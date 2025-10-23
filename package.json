@@ -1,0 +1,332 @@
+{
+  "name": "ditacraft",
+  "displayName": "DitaCraft",
+  "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
+  "version": "0.1.0",
+  "publisher": "ditacraft",
+  "author": {
+    "name": "Jeremy Jeanne",
+    "email": "jyjeanne@gmail.com"
+  },
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jyjeanne/ditacraft"
+  },
+  "bugs": {
+    "url": "https://github.com/jyjeanne/ditacraft/issues"
+  },
+  "homepage": "https://github.com/jyjeanne/ditacraft#readme",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Formatters",
+    "Other"
+  ],
+  "keywords": [
+    "dita",
+    "xml",
+    "technical-writing",
+    "documentation",
+    "publishing",
+    "dita-ot",
+    "bookmap",
+    "ditamap"
+  ],
+  "activationEvents": [
+    "onLanguage:dita",
+    "onCommand:ditacraft.validate",
+    "onCommand:ditacraft.publish",
+    "onCommand:ditacraft.newTopic",
+    "onCommand:ditacraft.newMap",
+    "onCommand:ditacraft.newBookmap",
+    "onCommand:ditacraft.configureDitaOT",
+    "workspaceContains:**/*.dita",
+    "workspaceContains:**/*.ditamap",
+    "workspaceContains:**/*.bookmap"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "dita",
+        "aliases": [
+          "DITA",
+          "dita"
+        ],
+        "extensions": [
+          ".dita",
+          ".ditamap",
+          ".bookmap"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dita",
+        "scopeName": "text.xml.dita",
+        "path": "./syntaxes/dita.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "ditacraft.validate",
+        "title": "DITA: Validate Current File",
+        "icon": "$(check)"
+      },
+      {
+        "command": "ditacraft.publish",
+        "title": "DITA: Publish (Select Format)",
+        "icon": "$(export)"
+      },
+      {
+        "command": "ditacraft.publishHTML5",
+        "title": "DITA: Publish to HTML5",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "ditacraft.previewHTML5",
+        "title": "DITA: Preview HTML5",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "ditacraft.newTopic",
+        "title": "DITA: Create New Topic"
+      },
+      {
+        "command": "ditacraft.newMap",
+        "title": "DITA: Create New Map"
+      },
+      {
+        "command": "ditacraft.newBookmap",
+        "title": "DITA: Create New Bookmap"
+      },
+      {
+        "command": "ditacraft.configureDitaOT",
+        "title": "DITA: Configure DITA-OT Path"
+      },
+      {
+        "command": "ditacraft.showLogFile",
+        "title": "DITA: Show Log File Location"
+      },
+      {
+        "command": "ditacraft.openLogFile",
+        "title": "DITA: Open Log File"
+      },
+      {
+        "command": "ditacraft.showOutputChannel",
+        "title": "DITA: Show Output Channel"
+      },
+      {
+        "command": "ditacraft.clearOutputChannel",
+        "title": "DITA: Clear Output Channel"
+      },
+      {
+        "command": "ditacraft.testLogger",
+        "title": "DITA: Test Logger (Debug)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "ditacraft.validate",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ditacraft.previewHTML5",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "navigation@2"
+        },
+        {
+          "command": "ditacraft.publish",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "navigation@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "ditacraft.validate",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "ditacraft@1"
+        },
+        {
+          "command": "ditacraft.publish",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "ditacraft@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ditacraft.validate",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.publish",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.publishHTML5",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.previewHTML5",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "ditacraft.validate",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "resourceLangId == dita || resourceExtname == .dita"
+      },
+      {
+        "command": "ditacraft.previewHTML5",
+        "key": "ctrl+shift+p",
+        "mac": "cmd+shift+p",
+        "when": "resourceLangId == dita || resourceExtname == .dita"
+      },
+      {
+        "command": "ditacraft.publish",
+        "key": "ctrl+shift+b",
+        "mac": "cmd+shift+b",
+        "when": "resourceLangId == dita || resourceExtname == .dita"
+      }
+    ],
+    "configuration": {
+      "title": "DitaCraft",
+      "properties": {
+        "ditacraft.ditaOtPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to DITA-OT installation directory (e.g., C:\\DITA-OT or /usr/local/dita-ot). Leave empty to use system PATH.",
+          "order": 1
+        },
+        "ditacraft.defaultTranstype": {
+          "type": "string",
+          "default": "html5",
+          "enum": [
+            "html5",
+            "pdf",
+            "xhtml",
+            "epub",
+            "htmlhelp",
+            "markdown"
+          ],
+          "description": "Default output format for DITA-OT publishing.",
+          "order": 2
+        },
+        "ditacraft.outputDirectory": {
+          "type": "string",
+          "default": "${workspaceFolder}/out",
+          "description": "Directory where published files will be saved. Supports ${workspaceFolder} variable.",
+          "order": 3
+        },
+        "ditacraft.autoValidate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically validate DITA files on save.",
+          "order": 4
+        },
+        "ditacraft.previewAutoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh HTML5 preview when file is saved.",
+          "order": 5
+        },
+        "ditacraft.showProgressNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show progress notifications during DITA-OT processing.",
+          "order": 6
+        },
+        "ditacraft.validationEngine": {
+          "type": "string",
+          "default": "xmllint",
+          "enum": [
+            "xmllint",
+            "built-in"
+          ],
+          "description": "XML validation engine to use (xmllint requires libxml2 installed).",
+          "order": 7
+        },
+        "ditacraft.ditaOtArgs": {
+          "type": "array",
+          "default": [],
+          "description": "Additional command-line arguments to pass to DITA-OT (e.g., ['--verbose', '--filter=myfilter.ditaval']).",
+          "order": 8
+        },
+        "ditacraft.enableSnippets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable DITA code snippets and auto-completion.",
+          "order": 9
+        },
+        "ditacraft.logLevel": {
+          "type": "string",
+          "default": "info",
+          "enum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ],
+          "description": "Logging level for debugging (debug, info, warn, error).",
+          "order": 10
+        },
+        "ditacraft.enableFileLogging": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable logging to file. Log files are stored in .ditacraft folder in workspace.",
+          "order": 11
+        },
+        "ditacraft.enableConsoleLogging": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable logging to Output channel in VS Code.",
+          "order": 12
+        }
+      }
+    },
+    "snippets": [
+      {
+        "language": "dita",
+        "path": "./snippets/dita.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.8.0",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "@vscode/test-electron": "^2.3.4",
+    "eslint": "^8.50.0",
+    "glob": "^10.3.3",
+    "mocha": "^10.2.0",
+    "typescript": "^5.2.2",
+    "@vscode/vsce": "^2.21.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.3.2",
+    "xml2js": "^0.6.2"
+  }
+}

@@ -1,0 +1,63 @@
+# Source files
+.vscode/**
+.vscode-test/**
+src/**
+.gitignore
+.yarnrc
+tsconfig.json
+vsc-extension-quickstart.md
+
+# Development dependencies
+**/tsconfig.json
+**/.eslintrc.json
+**/*.map
+**/*.ts
+
+# Documentation (keep README and CHANGELOG)
+CONTRIBUTING.md
+DITA-OT-INTEGRATION.md
+COMMANDS-AND-SHORTCUTS.md
+CONFIGURATION.md
+PROJECT-SUMMARY.md
+project-ditacraft.md
+DEBUGGING-GUIDE.md
+INSTALL-LOCAL.md
+PHASE1-COMPLETE.md
+VALIDATION-TESTS.md
+VALIDATOR-IMPLEMENTATION.md
+
+# Build artifacts
+.vscode-test/
+out/test/
+
+# Node modules (bundled dependencies will be included)
+node_modules/**
+!node_modules/fast-xml-parser/**
+!node_modules/xml2js/**
+!node_modules/strnum/**
+!node_modules/sax/**
+!node_modules/xmlbuilder/**
+
+# Git
+.git
+.gitignore
+.github
+
+# Testing
+coverage
+.nyc_output
+**/*.test.ts
+**/*.spec.ts
+
+# IDE
+.DS_Store
+.idea
+
+# Misc
+*.vsix
+.claude/
+test-minimal/
+NUL
+add-missing-data.png
+*.png
+!resources/*.png

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<topic id="no-doctype">
+    <title>Topic Without DOCTYPE</title>
+    <body>
+        <p>This topic is missing the DOCTYPE declaration.</p>
+    </body>
+</topic>

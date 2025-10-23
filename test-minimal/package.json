@@ -1,0 +1,20 @@
+{
+  "name": "ditacraft-test",
+  "displayName": "DitaCraft Test",
+  "version": "0.0.1",
+  "publisher": "test",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["*"],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ditacraftTest.hello",
+        "title": "DitaCraft Test: Hello World"
+      }
+    ]
+  }
+}

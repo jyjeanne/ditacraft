@@ -1,0 +1,275 @@
+{
+  "DITA Topic": {
+    "prefix": "dita-topic",
+    "body": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<!DOCTYPE topic PUBLIC \"-//OASIS//DTD DITA Topic//EN\" \"topic.dtd\">",
+      "<topic id=\"${1:topic_id}\">",
+      "    <title>${2:Topic Title}</title>",
+      "    <shortdesc>${3:Brief description}</shortdesc>",
+      "    <body>",
+      "        <p>${4:Content goes here}</p>",
+      "    </body>",
+      "</topic>"
+    ],
+    "description": "Create a generic DITA topic"
+  },
+  "DITA Concept": {
+    "prefix": "dita-concept",
+    "body": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<!DOCTYPE concept PUBLIC \"-//OASIS//DTD DITA Concept//EN\" \"concept.dtd\">",
+      "<concept id=\"${1:concept_id}\">",
+      "    <title>${2:Concept Title}</title>",
+      "    <shortdesc>${3:Brief description}</shortdesc>",
+      "    <conbody>",
+      "        <p>${4:Conceptual information}</p>",
+      "        <section>",
+      "            <title>${5:Section Title}</title>",
+      "            <p>${6:Additional content}</p>",
+      "        </section>",
+      "    </conbody>",
+      "</concept>"
+    ],
+    "description": "Create a DITA concept topic"
+  },
+  "DITA Task": {
+    "prefix": "dita-task",
+    "body": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<!DOCTYPE task PUBLIC \"-//OASIS//DTD DITA Task//EN\" \"task.dtd\">",
+      "<task id=\"${1:task_id}\">",
+      "    <title>${2:Task Title}</title>",
+      "    <shortdesc>${3:Brief description}</shortdesc>",
+      "    <taskbody>",
+      "        <prereq>",
+      "            <p>${4:Prerequisites}</p>",
+      "        </prereq>",
+      "        <context>",
+      "            <p>${5:Context information}</p>",
+      "        </context>",
+      "        <steps>",
+      "            <step>",
+      "                <cmd>${6:First step command}</cmd>",
+      "                <info>${7:Additional information}</info>",
+      "            </step>",
+      "            <step>",
+      "                <cmd>${8:Second step command}</cmd>",
+      "            </step>",
+      "        </steps>",
+      "        <result>",
+      "            <p>${9:Expected result}</p>",
+      "        </result>",
+      "    </taskbody>",
+      "</task>"
+    ],
+    "description": "Create a DITA task topic"
+  },
+  "DITA Reference": {
+    "prefix": "dita-reference",
+    "body": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<!DOCTYPE reference PUBLIC \"-//OASIS//DTD DITA Reference//EN\" \"reference.dtd\">",
+      "<reference id=\"${1:reference_id}\">",
+      "    <title>${2:Reference Title}</title>",
+      "    <shortdesc>${3:Brief description}</shortdesc>",
+      "    <refbody>",
+      "        <section>",
+      "            <title>${4:Section Title}</title>",
+      "            <p>${5:Reference information}</p>",
+      "        </section>",
+      "    </refbody>",
+      "</reference>"
+    ],
+    "description": "Create a DITA reference topic"
+  },
+  "DITA Map": {
+    "prefix": "dita-map",
+    "body": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<!DOCTYPE map PUBLIC \"-//OASIS//DTD DITA Map//EN\" \"map.dtd\">",
+      "<map id=\"${1:map_id}\">",
+      "    <title>${2:Map Title}</title>",
+      "    <topicref href=\"${3:topic.dita}\">",
+      "        <topicref href=\"${4:subtopic.dita}\"/>",
+      "    </topicref>",
+      "</map>"
+    ],
+    "description": "Create a DITA map"
+  },
+  "DITA Bookmap": {
+    "prefix": "dita-bookmap",
+    "body": [
+      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+      "<!DOCTYPE bookmap PUBLIC \"-//OASIS//DTD DITA BookMap//EN\" \"bookmap.dtd\">",
+      "<bookmap id=\"${1:bookmap_id}\">",
+      "    <booktitle>",
+      "        <mainbooktitle>${2:Book Title}</mainbooktitle>",
+      "    </booktitle>",
+      "    <bookmeta>",
+      "        <author>${3:Author Name}</author>",
+      "    </bookmeta>",
+      "    <frontmatter>",
+      "        <booklists>",
+      "            <toc/>",
+      "        </booklists>",
+      "    </frontmatter>",
+      "    <chapter href=\"${4:chapter.ditamap}\">",
+      "        <topicref href=\"${5:topic.dita}\"/>",
+      "    </chapter>",
+      "</bookmap>"
+    ],
+    "description": "Create a DITA bookmap"
+  },
+  "Paragraph": {
+    "prefix": "p",
+    "body": [
+      "<p>${1:Paragraph content}</p>"
+    ],
+    "description": "Insert a paragraph"
+  },
+  "Section": {
+    "prefix": "section",
+    "body": [
+      "<section>",
+      "    <title>${1:Section Title}</title>",
+      "    <p>${2:Content}</p>",
+      "</section>"
+    ],
+    "description": "Insert a section"
+  },
+  "Unordered List": {
+    "prefix": "ul",
+    "body": [
+      "<ul>",
+      "    <li>${1:First item}</li>",
+      "    <li>${2:Second item}</li>",
+      "    <li>${3:Third item}</li>",
+      "</ul>"
+    ],
+    "description": "Insert an unordered list"
+  },
+  "Ordered List": {
+    "prefix": "ol",
+    "body": [
+      "<ol>",
+      "    <li>${1:First item}</li>",
+      "    <li>${2:Second item}</li>",
+      "    <li>${3:Third item}</li>",
+      "</ol>"
+    ],
+    "description": "Insert an ordered list"
+  },
+  "Table": {
+    "prefix": "table",
+    "body": [
+      "<table>",
+      "    <title>${1:Table Title}</title>",
+      "    <tgroup cols=\"${2:2}\">",
+      "        <colspec colname=\"col1\"/>",
+      "        <colspec colname=\"col2\"/>",
+      "        <thead>",
+      "            <row>",
+      "                <entry>${3:Header 1}</entry>",
+      "                <entry>${4:Header 2}</entry>",
+      "            </row>",
+      "        </thead>",
+      "        <tbody>",
+      "            <row>",
+      "                <entry>${5:Cell 1}</entry>",
+      "                <entry>${6:Cell 2}</entry>",
+      "            </row>",
+      "        </tbody>",
+      "    </tgroup>",
+      "</table>"
+    ],
+    "description": "Insert a DITA table"
+  },
+  "Code Block": {
+    "prefix": "codeblock",
+    "body": [
+      "<codeblock>${1:code content}</codeblock>"
+    ],
+    "description": "Insert a code block"
+  },
+  "Note": {
+    "prefix": "note",
+    "body": [
+      "<note type=\"${1|note,tip,important,warning,danger|}\">${2:Note content}</note>"
+    ],
+    "description": "Insert a note"
+  },
+  "Cross Reference": {
+    "prefix": "xref",
+    "body": [
+      "<xref href=\"${1:target.dita}\">${2:link text}</xref>"
+    ],
+    "description": "Insert a cross reference"
+  },
+  "Image": {
+    "prefix": "image",
+    "body": [
+      "<image href=\"${1:image.png}\" alt=\"${2:Alternative text}\">",
+      "    <alt>${2:Alternative text}</alt>",
+      "</image>"
+    ],
+    "description": "Insert an image"
+  },
+  "Figure": {
+    "prefix": "fig",
+    "body": [
+      "<fig>",
+      "    <title>${1:Figure Title}</title>",
+      "    <image href=\"${2:image.png}\" alt=\"${3:Alternative text}\"/>",
+      "</fig>"
+    ],
+    "description": "Insert a figure with image"
+  },
+  "Definition List": {
+    "prefix": "dl",
+    "body": [
+      "<dl>",
+      "    <dlentry>",
+      "        <dt>${1:Term}</dt>",
+      "        <dd>${2:Definition}</dd>",
+      "    </dlentry>",
+      "    <dlentry>",
+      "        <dt>${3:Term}</dt>",
+      "        <dd>${4:Definition}</dd>",
+      "    </dlentry>",
+      "</dl>"
+    ],
+    "description": "Insert a definition list"
+  },
+  "Short Description": {
+    "prefix": "shortdesc",
+    "body": [
+      "<shortdesc>${1:Brief description}</shortdesc>"
+    ],
+    "description": "Insert a short description"
+  },
+  "Topic Reference": {
+    "prefix": "topicref",
+    "body": [
+      "<topicref href=\"${1:topic.dita}\">${2}</topicref>"
+    ],
+    "description": "Insert a topic reference"
+  },
+  "Conref": {
+    "prefix": "conref",
+    "body": [
+      "conref=\"${1:source.dita}#${2:topic_id}/${3:element_id}\""
+    ],
+    "description": "Insert a content reference attribute"
+  },
+  "Step": {
+    "prefix": "step",
+    "body": [
+      "<step>",
+      "    <cmd>${1:Command text}</cmd>",
+      "    <info>${2:Additional information}</info>",
+      "</step>"
+    ],
+    "description": "Insert a task step"
+  }
+}

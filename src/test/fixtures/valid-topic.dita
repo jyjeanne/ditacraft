@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="valid-topic">
+    <title>Valid Topic</title>
+    <shortdesc>This is a valid DITA topic for testing.</shortdesc>
+    <body>
+        <p>This topic has all required elements and proper structure.</p>
+        <section>
+            <title>Section Title</title>
+            <p>Section content goes here.</p>
+        </section>
+    </body>
+</topic>

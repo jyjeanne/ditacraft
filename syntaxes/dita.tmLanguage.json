@@ -1,0 +1,14 @@
+{
+    "name": "DITA",
+    "scopeName": "text.xml.dita",
+    "fileTypes": [
+        "dita",
+        "ditamap",
+        "bookmap"
+    ],
+    "patterns": [
+        {
+            "include": "text.xml"
+        }
+    ]
+}
