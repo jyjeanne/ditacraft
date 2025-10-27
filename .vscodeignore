@@ -58,6 +58,7 @@ coverage
 .claude/
 test-minimal/
 NUL
+nul
 add-missing-data.png
 *.png
 !resources/*.png
