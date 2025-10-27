@@ -14,18 +14,65 @@ import { DitaOtWrapper } from '../utils/ditaOtWrapper';
  */
 export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
     try {
-        // Get the file URI
-        const fileUri = uri || vscode.window.activeTextEditor?.document.uri;
+        // Get the file URI - be very explicit about getting the actual document
+        let fileUri: vscode.Uri | undefined = uri;
+
+        // If no URI was passed, get it from the active editor
+        if (!fileUri && vscode.window.activeTextEditor) {
+            fileUri = vscode.window.activeTextEditor.document.uri;
+            console.log('Using active editor document URI');
+        }
 
         if (!fileUri) {
-            vscode.window.showErrorMessage('No DITA file is currently open');
+            vscode.window.showErrorMessage('No DITA file is currently open. Please open a DITA file first.');
             return;
         }
 
-        const filePath = fileUri.fsPath;
+        // Log URI details for debugging
+        console.log('=== Preview Command Debug Info ===');
+        console.log('- URI provided as parameter:', uri ? 'Yes' : 'No');
+        console.log('- URI scheme:', fileUri.scheme);
+        console.log('- URI path:', fileUri.path);
+        console.log('- URI fsPath:', fileUri.fsPath);
+        console.log('- URI toString:', fileUri.toString());
+
+        // Get the file system path
+        let filePath = fileUri.fsPath;
+        console.log('- Resolved filePath:', filePath);
+
+        // Check if filePath is valid and not empty
+        if (!filePath || filePath.trim() === '') {
+            vscode.window.showErrorMessage('Invalid file path. Please open a DITA file.');
+            return;
+        }
+
+        // Additional check: ensure path ends with a file (has extension)
+        if (filePath.endsWith('\\') || filePath.endsWith('/')) {
+            console.error('ERROR: Path ends with directory separator:', filePath);
+            vscode.window.showErrorMessage('The path appears to be a directory, not a file. Please open a specific DITA file.');
+            return;
+        }
+
+        // Check if this is actually a file with an extension
+        const hasExtension = path.extname(filePath) !== '';
+        if (!hasExtension) {
+            console.error('ERROR: Path has no file extension:', filePath);
+            vscode.window.showErrorMessage('The path does not appear to be a file. Please open a DITA file (.dita, .ditamap, or .bookmap).');
+            return;
+        }
+
+        console.log('- File extension:', path.extname(filePath));
+        console.log('===================================')
 
         // Initialize DITA-OT wrapper
         const ditaOt = new DitaOtWrapper();
+
+        // Validate input file FIRST before checking DITA-OT
+        const validation = ditaOt.validateInputFile(filePath);
+        if (!validation.valid) {
+            vscode.window.showErrorMessage(`Cannot preview: ${validation.error}`);
+            return;
+        }
 
         // Validate DITA-OT installation
         const verification = await ditaOt.verifyInstallation();
@@ -38,13 +85,6 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
             if (action === 'Configure Now') {
                 await ditaOt.configureOtPath();
             }
-            return;
-        }
-
-        // Validate input file
-        const validation = ditaOt.validateInputFile(filePath);
-        if (!validation.valid) {
-            vscode.window.showErrorMessage(`Cannot preview: ${validation.error}`);
             return;
         }
 

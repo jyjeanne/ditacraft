@@ -23,8 +23,21 @@ export async function publishCommand(uri?: vscode.Uri): Promise<void> {
 
         const filePath = fileUri.fsPath;
 
+        // Check if filePath is valid and not empty
+        if (!filePath || filePath.trim() === '') {
+            vscode.window.showErrorMessage('Invalid file path. Please open a DITA file.');
+            return;
+        }
+
         // Initialize DITA-OT wrapper
         const ditaOt = new DitaOtWrapper();
+
+        // Validate input file FIRST before checking DITA-OT
+        const validation = ditaOt.validateInputFile(filePath);
+        if (!validation.valid) {
+            vscode.window.showErrorMessage(`Cannot publish: ${validation.error}`);
+            return;
+        }
 
         // Validate DITA-OT installation
         const verification = await ditaOt.verifyInstallation();
@@ -37,13 +50,6 @@ export async function publishCommand(uri?: vscode.Uri): Promise<void> {
             if (action === 'Configure Now') {
                 await ditaOt.configureOtPath();
             }
-            return;
-        }
-
-        // Validate input file
-        const validation = ditaOt.validateInputFile(filePath);
-        if (!validation.valid) {
-            vscode.window.showErrorMessage(`Cannot publish: ${validation.error}`);
             return;
         }
 
@@ -87,8 +93,21 @@ export async function publishHTML5Command(uri?: vscode.Uri): Promise<void> {
 
         const filePath = fileUri.fsPath;
 
+        // Check if filePath is valid and not empty
+        if (!filePath || filePath.trim() === '') {
+            vscode.window.showErrorMessage('Invalid file path. Please open a DITA file.');
+            return;
+        }
+
         // Initialize DITA-OT wrapper
         const ditaOt = new DitaOtWrapper();
+
+        // Validate input file FIRST before checking DITA-OT
+        const validation = ditaOt.validateInputFile(filePath);
+        if (!validation.valid) {
+            vscode.window.showErrorMessage(`Cannot publish: ${validation.error}`);
+            return;
+        }
 
         // Validate DITA-OT installation
         const verification = await ditaOt.verifyInstallation();
@@ -101,13 +120,6 @@ export async function publishHTML5Command(uri?: vscode.Uri): Promise<void> {
             if (action === 'Configure Now') {
                 await ditaOt.configureOtPath();
             }
-            return;
-        }
-
-        // Validate input file
-        const validation = ditaOt.validateInputFile(filePath);
-        if (!validation.valid) {
-            vscode.window.showErrorMessage(`Cannot publish: ${validation.error}`);
             return;
         }
 

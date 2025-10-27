@@ -92,9 +92,16 @@ export class DitaValidator {
      */
     private async validateWithXmllint(filePath: string): Promise<ValidationResult> {
         try {
-            // Try to run xmllint
+            // Try to run xmllint with DTD validation
+            // --valid: validate against DTD
+            // --noout: don't output the parsed document
+            // --nonet: prevent network access for DTD fetching (use local catalog)
             const command = process.platform === 'win32' ? 'xmllint' : 'xmllint';
-            await execAsync(`"${command}" --noout "${filePath}"`);
+
+            // Use --valid to validate against the DOCTYPE declaration (DTD)
+            await execAsync(`"${command}" --valid --noout --nonet "${filePath}"`, {
+                cwd: path.dirname(filePath) // Set working directory to file location
+            });
 
             // No errors
             return {
@@ -259,7 +266,7 @@ export class DitaValidator {
     /**
      * Validate DITA topic structure
      */
-    private validateDitaTopic(content: string, errors: ValidationError[], warnings: ValidationError[]): void {
+    private validateDitaTopic(content: string, errors: ValidationError[], _warnings: ValidationError[]): void {
         // Check for root element (topic, concept, task, reference, etc.)
         const topicTypes = ['<topic', '<concept', '<task', '<reference'];
         const hasTopicRoot = topicTypes.some(type => content.includes(type));
@@ -274,25 +281,41 @@ export class DitaValidator {
             });
         }
 
-        // Check for required elements
+        // Check for required title element (MANDATORY per DITA DTD)
         if (!content.includes('<title>')) {
-            warnings.push({
+            errors.push({
                 line: 0,
                 column: 0,
-                severity: 'warning',
-                message: 'DITA topic should contain a <title> element',
+                severity: 'error',
+                message: 'DITA topic MUST contain a <title> element (required by DTD)',
+                source: 'dita-validator'
+            });
+        } else if (content.includes('<title></title>') || content.includes('<title/>')) {
+            errors.push({
+                line: 0,
+                column: 0,
+                severity: 'error',
+                message: 'DITA topic <title> element cannot be empty (required by DTD)',
                 source: 'dita-validator'
             });
         }
 
-        // Check for id attribute on root
+        // Check for id attribute on root (REQUIRED per DITA DTD)
         const idMatch = content.match(/<(?:topic|concept|task|reference)\s+id="([^"]*)"/);
         if (!idMatch) {
-            warnings.push({
+            errors.push({
                 line: 0,
                 column: 0,
-                severity: 'warning',
-                message: 'Root element should have an id attribute',
+                severity: 'error',
+                message: 'Root element MUST have an id attribute (required by DTD)',
+                source: 'dita-validator'
+            });
+        } else if (idMatch[1] === '') {
+            errors.push({
+                line: 0,
+                column: 0,
+                severity: 'error',
+                message: 'Root element id attribute cannot be empty',
                 source: 'dita-validator'
             });
         }

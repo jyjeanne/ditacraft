@@ -37,17 +37,6 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - Add custom DITA-OT arguments and filters
 - Choose validation engine (xmllint or built-in)
 
-## Screenshots
-
-### Publishing with Format Selection
-![Publishing](docs/images/publish.png)
-
-### HTML5 Live Preview
-![Preview](docs/images/preview.png)
-
-### Syntax Highlighting
-![Syntax](docs/images/syntax.png)
-
 ## Installation
 
 ### From VS Code Marketplace
@@ -429,6 +418,16 @@ Contributions are welcome! Please:
 ### VS Code Resources
 - [VS Code Extension API](https://code.visualstudio.com/api)
 - [VS Code Publishing](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
+
+## Recent Updates
+
+### Version 0.1.0 Fixes
+- ✅ **Fixed preview and publishing with paths containing spaces** - File paths with spaces (e.g., "Learn Rust/project") now work correctly
+- ✅ **Fixed DITA validation** - Title element is now correctly validated as required (error, not warning) per DTD spec
+- ✅ **Enhanced DTD validation** - Added proper DTD validation support with xmllint
+- ✅ **Improved error messages** - Better, more descriptive validation and publishing error messages
+- ✅ **Fixed file path validation** - Added comprehensive checks to ensure files (not directories) are being processed
+- ✅ **Added verbose logging** - Detailed console logging for easier debugging
 
 ## Changelog
 

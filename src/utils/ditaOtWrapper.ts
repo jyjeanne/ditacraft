@@ -172,15 +172,27 @@ export class DitaOtWrapper {
         progressCallback?: (progress: PublishProgress) => void
     ): Promise<{ success: boolean; outputPath: string; error?: string }> {
 
+        console.log('[DitaOtWrapper] Publishing with options:', {
+            inputFile: options.inputFile,
+            transtype: options.transtype,
+            outputDir: options.outputDir
+        });
+
         return new Promise((resolve) => {
             const command = this.ditaOtCommand || 'dita';
 
             // Build command arguments
+            // Note: Paths with spaces must be properly quoted
             const args: string[] = [
-                '--input', options.inputFile,
+                '--input', `"${options.inputFile}"`,
                 '--format', options.transtype,
-                '--output', options.outputDir
+                '--output', `"${options.outputDir}"`,
+                // Add verbose mode for better error messages
+                '--verbose'
             ];
+
+            console.log('[DitaOtWrapper] DITA-OT command:', command);
+            console.log('[DitaOtWrapper] DITA-OT args:', args.join(' '));
 
             // Add temp directory if specified
             if (options.tempDir) {
@@ -206,7 +218,33 @@ export class DitaOtWrapper {
                 });
             }
 
+            // Final validation before spawning process
+            if (!fs.existsSync(options.inputFile)) {
+                console.error('[DitaOtWrapper] ERROR: Input file does not exist:', options.inputFile);
+                resolve({
+                    success: false,
+                    outputPath: options.outputDir,
+                    error: `Input file does not exist: ${options.inputFile}`
+                });
+                return;
+            }
+
+            const inputStats = fs.statSync(options.inputFile);
+            if (inputStats.isDirectory()) {
+                console.error('[DitaOtWrapper] ERROR: Input path is a directory, not a file:', options.inputFile);
+                resolve({
+                    success: false,
+                    outputPath: options.outputDir,
+                    error: `Input path is a directory, not a file: ${options.inputFile}`
+                });
+                return;
+            }
+
+            console.log('[DitaOtWrapper] Input file validated successfully');
+
             // Spawn DITA-OT process
+            console.log('[DitaOtWrapper] Spawning DITA-OT process...');
+            console.log('[DitaOtWrapper] Working directory:', path.dirname(options.inputFile));
             const ditaProcess = spawn(command, args, {
                 shell: true,
                 cwd: path.dirname(options.inputFile)
@@ -234,6 +272,9 @@ export class DitaOtWrapper {
                 const error = data.toString();
                 errorBuffer += error;
 
+                // Log all stderr for debugging
+                console.error('[DitaOtWrapper] DITA-OT stderr:', error);
+
                 // DITA-OT sometimes outputs progress to stderr
                 if (progressCallback) {
                     const progress = this.parseProgress(error);
@@ -245,6 +286,8 @@ export class DitaOtWrapper {
 
             // Handle process completion
             ditaProcess.on('close', (code: number) => {
+                console.log('[DitaOtWrapper] DITA-OT process closed with code:', code);
+
                 if (code === 0) {
                     if (progressCallback) {
                         progressCallback({
@@ -254,11 +297,16 @@ export class DitaOtWrapper {
                         });
                     }
 
+                    console.log('[DitaOtWrapper] Publishing successful');
                     resolve({
                         success: true,
                         outputPath: options.outputDir
                     });
                 } else {
+                    console.error('[DitaOtWrapper] Publishing failed with code:', code);
+                    console.error('[DitaOtWrapper] Error output:', errorBuffer);
+                    console.error('[DitaOtWrapper] Standard output:', outputBuffer);
+
                     resolve({
                         success: false,
                         outputPath: options.outputDir,
@@ -376,9 +424,27 @@ export class DitaOtWrapper {
      * Validate input file is suitable for publishing
      */
     public validateInputFile(filePath: string): { valid: boolean; error?: string } {
+        console.log('[DitaOtWrapper] Validating input file:', filePath);
+
+        // Check if path is empty or just whitespace
+        if (!filePath || filePath.trim() === '') {
+            return { valid: false, error: 'File path is empty' };
+        }
+
+        // Check if path ends with directory separator (definitely a directory)
+        if (filePath.endsWith('\\') || filePath.endsWith('/')) {
+            return { valid: false, error: `Path ends with directory separator: ${filePath}` };
+        }
+
         // Check file exists
         if (!fs.existsSync(filePath)) {
-            return { valid: false, error: 'File does not exist' };
+            return { valid: false, error: `File does not exist: ${filePath}` };
+        }
+
+        // Check if path is a directory
+        const stats = fs.statSync(filePath);
+        if (stats.isDirectory()) {
+            return { valid: false, error: `Path is a directory (not a file): ${filePath}. Please select a DITA file (.dita, .ditamap, or .bookmap)` };
         }
 
         // Check file extension
@@ -388,10 +454,11 @@ export class DitaOtWrapper {
         if (!validExtensions.includes(ext)) {
             return {
                 valid: false,
-                error: `Invalid file type. Expected ${validExtensions.join(', ')}`
+                error: `Invalid file type '${ext}' for file: ${filePath}. Expected ${validExtensions.join(', ')}`
             };
         }
 
+        console.log('[DitaOtWrapper] File validation passed:', filePath);
         return { valid: true };
     }
 }
