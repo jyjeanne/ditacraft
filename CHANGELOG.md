@@ -5,7 +5,7 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2024-10-23
+## [0.1.0] - 2025-01-27
 
 ### Added
 - **DITA Language Support**
@@ -80,12 +80,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Structured logging with timestamps and context
   - Log file management commands
 
+### Fixed
+- **Critical Path Handling**
+  - Fixed preview and publishing failures when file paths contain spaces (e.g., "Learn Rust/project")
+  - Added proper quoting around file paths in DITA-OT command arguments
+  - Resolves "Failed to parse input file" errors with paths containing spaces
+
+- **DITA Validation Improvements**
+  - Fixed `<title>` validation to be an error (required by DTD) instead of warning
+  - Fixed `id` attribute validation to be an error (required by DTD) instead of warning
+  - Added validation for empty title elements
+  - Enhanced error messages to include actual file paths
+
+- **DTD Validation Enhancements**
+  - Added `--valid` flag for proper DTD validation with xmllint
+  - Added `--nonet` flag to prevent network access during validation
+  - Set working directory for correct relative DTD path resolution
+
+- **File Path Validation**
+  - Added directory detection and rejection with clear error messages
+  - Added file extension validation
+  - Added empty path checks
+  - Prevents DITA-OT from receiving directory paths instead of file paths
+
+- **Error Logging and Debugging**
+  - Added comprehensive console logging throughout preview and publish workflows
+  - Added verbose output capture from DITA-OT
+  - Improved error capture and reporting with full command line details
+  - Better error messages for troubleshooting
+
+- **README Updates**
+  - Removed broken image references to non-existent screenshot files
+  - Added "Recent Updates" section documenting all bug fixes
+
 ### Technical Details
 - Built with TypeScript 5.2.2
 - Requires VS Code 1.80.0 or higher
 - Cross-platform support (Windows, macOS, Linux)
 - No external extension dependencies
 - MIT License
+- Tested with DITA-OT 4.1.1
 
 ### Known Limitations
 - HTML5 preview opens in external browser (WebView panel planned for future release)
