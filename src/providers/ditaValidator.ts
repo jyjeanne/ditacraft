@@ -81,6 +81,9 @@ export class DitaValidator {
         result.errors.push(...ditaValidation.errors);
         result.warnings.push(...ditaValidation.warnings);
 
+        // Recalculate validity based on total errors
+        result.valid = result.errors.length === 0;
+
         // Update diagnostics
         this.updateDiagnostics(fileUri, result);
 
@@ -110,9 +113,10 @@ export class DitaValidator {
                 warnings: []
             };
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Check if xmllint is not installed
-            if (error.code === 'ENOENT' || error.message.includes('not found')) {
+            const err = error as { code?: string; message?: string; stderr?: string; stdout?: string };
+            if (err.code === 'ENOENT' || err.message?.includes('not found')) {
                 vscode.window.showWarningMessage(
                     'xmllint not found. Switching to built-in validation. Install libxml2 or change validation engine in settings.',
                     'Change Engine'
@@ -127,7 +131,7 @@ export class DitaValidator {
             }
 
             // Parse xmllint errors
-            const errors = this.parseXmllintErrors(error.stderr || error.stdout || '');
+            const errors = this.parseXmllintErrors(err.stderr || err.stdout || '');
 
             return {
                 valid: errors.length === 0,
@@ -191,21 +195,22 @@ export class DitaValidator {
                 warnings: []
             };
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Parse error from fast-xml-parser
             const errors: ValidationError[] = [];
+            const err = error as { message?: string };
 
-            if (error.message) {
+            if (err.message) {
                 // Try to extract line number from error message
-                const lineMatch = error.message.match(/line:(\d+)/i) ||
-                                 error.message.match(/at position (\d+)/i);
+                const lineMatch = err.message.match(/line:(\d+)/i) ||
+                                 err.message.match(/at position (\d+)/i);
                 const line = lineMatch ? parseInt(lineMatch[1], 10) - 1 : 0;
 
                 errors.push({
                     line: line,
                     column: 0,
                     severity: 'error',
-                    message: error.message,
+                    message: err.message,
                     source: 'xml-parser'
                 });
             }
@@ -252,7 +257,7 @@ export class DitaValidator {
             // Check for common DITA issues
             this.checkCommonIssues(content, errors, warnings);
 
-        } catch (error: any) {
+        } catch (_error: unknown) {
             // Ignore parsing errors (already caught by XML validation)
         }
 

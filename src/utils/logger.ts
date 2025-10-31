@@ -72,7 +72,7 @@ export class Logger {
         }
     }
 
-    private formatMessage(level: LogLevel, message: string, data?: any): string {
+    private formatMessage(level: LogLevel, message: string, data?: unknown): string {
         const timestamp = new Date().toISOString();
         const levelStr = LogLevel[level].padEnd(5);
         let formatted = `[${timestamp}] [${levelStr}] ${message}`;
@@ -119,7 +119,7 @@ export class Logger {
         this.outputChannel.appendLine(message);
     }
 
-    private log(level: LogLevel, message: string, data?: any): void {
+    private log(level: LogLevel, message: string, data?: unknown): void {
         if (level < this.logLevel) {
             return;
         }
@@ -139,19 +139,19 @@ export class Logger {
         this.writeToConsole(formattedMessage);
     }
 
-    public debug(message: string, data?: any): void {
+    public debug(message: string, data?: unknown): void {
         this.log(LogLevel.DEBUG, message, data);
     }
 
-    public info(message: string, data?: any): void {
+    public info(message: string, data?: unknown): void {
         this.log(LogLevel.INFO, message, data);
     }
 
-    public warn(message: string, data?: any): void {
+    public warn(message: string, data?: unknown): void {
         this.log(LogLevel.WARN, message, data);
     }
 
-    public error(message: string, error?: any): void {
+    public error(message: string, error?: unknown): void {
         this.log(LogLevel.ERROR, message, error);
     }
 

@@ -37,7 +37,7 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
         console.log('- URI toString:', fileUri.toString());
 
         // Get the file system path
-        let filePath = fileUri.fsPath;
+        const filePath = fileUri.fsPath;
         console.log('- Resolved filePath:', filePath);
 
         // Check if filePath is valid and not empty
@@ -62,7 +62,7 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
         }
 
         console.log('- File extension:', path.extname(filePath));
-        console.log('===================================')
+        console.log('===================================');
 
         // Initialize DITA-OT wrapper
         const ditaOt = new DitaOtWrapper();
