@@ -95,14 +95,14 @@ export class DitaValidator {
      */
     private async validateWithXmllint(filePath: string): Promise<ValidationResult> {
         try {
-            // Try to run xmllint with DTD validation
-            // --valid: validate against DTD
+            // Try to run xmllint for basic XML validation
+            // We skip --valid flag because DTD files may not be available
+            // DITA-specific validation is done separately in validateDitaStructure
             // --noout: don't output the parsed document
-            // --nonet: prevent network access for DTD fetching (use local catalog)
             const command = process.platform === 'win32' ? 'xmllint' : 'xmllint';
 
-            // Use --valid to validate against the DOCTYPE declaration (DTD)
-            await execAsync(`"${command}" --valid --noout --nonet "${filePath}"`, {
+            // Basic XML well-formedness check without DTD validation
+            await execAsync(`"${command}" --noout "${filePath}"`, {
                 cwd: path.dirname(filePath) // Set working directory to file location
             });
 
@@ -114,8 +114,9 @@ export class DitaValidator {
             };
 
         } catch (error: unknown) {
-            // Check if xmllint is not installed
             const err = error as { code?: string; message?: string; stderr?: string; stdout?: string };
+
+            // Check if xmllint is not installed
             if (err.code === 'ENOENT' || err.message?.includes('not found')) {
                 vscode.window.showWarningMessage(
                     'xmllint not found. Switching to built-in validation. Install libxml2 or change validation engine in settings.',
@@ -130,8 +131,17 @@ export class DitaValidator {
                 return this.validateWithBuiltIn(filePath);
             }
 
-            // Parse xmllint errors
-            const errors = this.parseXmllintErrors(err.stderr || err.stdout || '');
+            // Check if error is related to missing DTDs (we handle DITA validation separately)
+            const stderrOutput = err.stderr || err.stdout || '';
+            if (stderrOutput.includes('failed to load external entity') ||
+                stderrOutput.includes('Could not load DTD') ||
+                stderrOutput.includes('validity error')) {
+                // DTD validation issues - fall back to built-in + DITA structure validation
+                return this.validateWithBuiltIn(filePath);
+            }
+
+            // Parse xmllint errors (real XML syntax errors)
+            const errors = this.parseXmllintErrors(stderrOutput);
 
             return {
                 valid: errors.length === 0,

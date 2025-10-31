@@ -11,7 +11,12 @@ suite('DitaValidator Test Suite', () => {
     let validator: DitaValidator;
     const fixturesPath = path.join(__dirname, '..', 'fixtures');
 
-    suiteSetup(() => {
+    suiteSetup(async () => {
+        // Configure to use built-in validation for tests
+        // (xmllint may not be available or properly configured in CI)
+        const config = vscode.workspace.getConfiguration('ditacraft');
+        await config.update('validationEngine', 'built-in', vscode.ConfigurationTarget.Global);
+
         validator = new DitaValidator();
     });
 
