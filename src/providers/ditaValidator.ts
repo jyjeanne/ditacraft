@@ -256,19 +256,33 @@ export class DitaValidator {
             }
 
             // Validate based on file type
-            if (ext === '.dita') {
-                this.validateDitaTopic(content, errors, warnings);
-            } else if (ext === '.ditamap') {
-                this.validateDitaMap(content, errors, warnings);
-            } else if (ext === '.bookmap') {
-                this.validateBookmap(content, errors, warnings);
+            try {
+                if (ext === '.dita') {
+                    this.validateDitaTopic(content, errors, warnings);
+                } else if (ext === '.ditamap') {
+                    this.validateDitaMap(content, errors, warnings);
+                } else if (ext === '.bookmap') {
+                    this.validateBookmap(content, errors, warnings);
+                }
+
+                // Check for common DITA issues
+                this.checkCommonIssues(content, errors, warnings);
+            } catch (validationError: unknown) {
+                // Ignore validation errors in structure checking
+                // These are often false positives from simple string matching
+                console.log('DITA structure validation error (ignored):', validationError);
             }
 
-            // Check for common DITA issues
-            this.checkCommonIssues(content, errors, warnings);
-
-        } catch (_error: unknown) {
-            // Ignore parsing errors (already caught by XML validation)
+        } catch (fileError: unknown) {
+            // File reading error - add as error
+            const err = fileError as { message?: string };
+            errors.push({
+                line: 0,
+                column: 0,
+                severity: 'error',
+                message: `Failed to read file for DITA validation: ${err.message || 'Unknown error'}`,
+                source: 'dita-validator'
+            });
         }
 
         return {

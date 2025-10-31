@@ -29,7 +29,14 @@ suite('DitaValidator Test Suite', () => {
             const fileUri = vscode.Uri.file(path.join(fixturesPath, 'valid-topic.dita'));
             const result = await validator.validateFile(fileUri);
 
-            assert.strictEqual(result.valid, true, 'Topic should be valid');
+            // Debug output
+            if (!result.valid) {
+                console.log('Validation failed for valid-topic.dita');
+                console.log('Errors:', JSON.stringify(result.errors, null, 2));
+                console.log('Warnings:', JSON.stringify(result.warnings, null, 2));
+            }
+
+            assert.strictEqual(result.valid, true, `Topic should be valid. Errors: ${JSON.stringify(result.errors)}`);
             assert.strictEqual(result.errors.length, 0, 'Should have no errors');
         });
 
