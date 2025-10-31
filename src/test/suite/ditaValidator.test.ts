@@ -64,6 +64,12 @@ suite('DitaValidator Test Suite', () => {
             const fileUri = vscode.Uri.file(path.join(fixturesPath, 'invalid-xml.dita'));
             const result = await validator.validateFile(fileUri);
 
+            // Debug output
+            console.log('Invalid XML validation result:');
+            console.log('- valid:', result.valid);
+            console.log('- errors:', JSON.stringify(result.errors, null, 2));
+            console.log('- warnings:', JSON.stringify(result.warnings, null, 2));
+
             assert.strictEqual(result.valid, false, 'Should be invalid');
             assert.ok(result.errors.length > 0, 'Should have at least one error');
         });

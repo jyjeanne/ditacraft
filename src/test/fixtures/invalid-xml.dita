@@ -5,7 +5,8 @@
     <body>
         <p>This topic has unclosed tags.</p>
         <section>
-            <title>Unclosed Section
+            <title>Unclosed Section</title>
+            <p>Some content
         </section>
     </body>
 </topic>

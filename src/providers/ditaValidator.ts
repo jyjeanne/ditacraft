@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { XMLParser } from 'fast-xml-parser';
+import { XMLValidator } from 'fast-xml-parser';
 
 const execAsync = promisify(exec);
 
@@ -184,19 +184,26 @@ export class DitaValidator {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
 
-            // Create XML parser with validation
-            const parser = new XMLParser({
-                ignoreAttributes: false,
-                parseAttributeValue: true,
-                parseTagValue: true,
-                trimValues: true,
-                processEntities: true,
-                allowBooleanAttributes: true,
-                stopNodes: ['*.cdata']
+            // First, use the validate method to check for XML errors
+            const validationResult = XMLValidator.validate(content, {
+                allowBooleanAttributes: true
             });
 
-            // Try to parse
-            parser.parse(content);
+            if (validationResult !== true) {
+                // Validation failed
+                const error = validationResult as { err: { code: string; msg: string; line: number } };
+                return {
+                    valid: false,
+                    errors: [{
+                        line: error.err.line - 1,
+                        column: 0,
+                        severity: 'error',
+                        message: `${error.err.code}: ${error.err.msg}`,
+                        source: 'xml-parser'
+                    }],
+                    warnings: []
+                };
+            }
 
             // Basic XML is valid
             return {
