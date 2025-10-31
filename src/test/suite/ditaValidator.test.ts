@@ -9,7 +9,9 @@ import { DitaValidator } from '../../providers/ditaValidator';
 
 suite('DitaValidator Test Suite', () => {
     let validator: DitaValidator;
-    const fixturesPath = path.join(__dirname, '..', 'fixtures');
+    // Use path relative to workspace root, not to compiled output
+    // __dirname in compiled code is out/test/suite, but fixtures are in src/test/fixtures
+    const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
 
     suiteSetup(async () => {
         // Configure to use built-in validation for tests
