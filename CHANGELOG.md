@@ -5,6 +5,16 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-02-01
+
+### Changed
+- **Preview Keyboard Shortcut**: Changed from `Ctrl+Shift+P` / `Cmd+Shift+P` to `Ctrl+Shift+H` / `Cmd+Shift+H` to avoid conflict with VS Code's Command Palette
+- **Performance**: Implemented esbuild bundling to reduce extension size from 157 files to 13 files (~44 KB)
+
+### Fixed
+- Fixed CI build by upgrading to Node.js 20 (resolves `File is not defined` error)
+- Configured ESLint to allow unused parameters prefixed with underscore
+
 ## [0.1.0] - 2025-01-27
 
 ### Added

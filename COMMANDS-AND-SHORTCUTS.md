@@ -47,7 +47,7 @@ All commands can be accessed via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shif
 
 #### `DITA: Preview HTML5`
 - **Command ID:** `ditacraft.previewHTML5`
-- **Keyboard Shortcut:** `Ctrl+Shift+P` (Windows/Linux), `Cmd+Shift+P` (macOS)
+- **Keyboard Shortcut:** `Ctrl+Shift+H` (Windows/Linux), `Cmd+Shift+H` (macOS)
 - **Icon:** Open Preview (👁)
 - **Description:** Shows HTML5 preview in WebView panel
 - **Availability:** When editing `.dita`, `.ditamap`, or `.bookmap` files
@@ -109,7 +109,7 @@ All commands can be accessed via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shif
 | Command | Windows/Linux | macOS | Context |
 |---------|--------------|-------|---------|
 | Validate | `Ctrl+Shift+V` | `Cmd+Shift+V` | DITA files |
-| Preview HTML5 | `Ctrl+Shift+P` | `Cmd+Shift+P` | DITA files |
+| Preview HTML5 | `Ctrl+Shift+H` | `Cmd+Shift+H` | DITA files |
 | Publish | `Ctrl+Shift+B` | `Cmd+Shift+B` | DITA files |
 
 ### Customizing Keybindings
@@ -164,7 +164,7 @@ All publishing, validation, and preview commands require this context.
 ### Example 1: Quick HTML5 Preview
 ```
 1. Open .dita file
-2. Press Ctrl+Shift+P (Cmd+Shift+P on macOS)
+2. Press Ctrl+Shift+H (Cmd+Shift+H on macOS)
 3. WebView opens with rendered HTML5
 4. Make edits to DITA file
 5. Save file → Preview auto-refreshes

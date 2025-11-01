@@ -134,7 +134,7 @@ DitaCraft/
 ### Keyboard Shortcuts
 - ✅ `Ctrl+Shift+V` - Validate
 - ✅ `Ctrl+Shift+B` - Publish
-- ✅ `Ctrl+Shift+P` - Preview
+- ✅ `Ctrl+Shift+H` - Preview
 
 ### DITA-OT Integration
 - ✅ Multi-platform detection (Windows/macOS/Linux)

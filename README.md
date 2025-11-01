@@ -224,7 +224,7 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Validate Current File** | `Ctrl+Shift+V` | Validate DITA syntax and structure |
 | **DITA: Publish (Select Format)** | `Ctrl+Shift+B` | Publish with format selection |
 | **DITA: Publish to HTML5** | - | Quick publish to HTML5 |
-| **DITA: Preview HTML5** | `Ctrl+Shift+P` | Show live HTML5 preview |
+| **DITA: Preview HTML5** | `Ctrl+Shift+H` | Show live HTML5 preview |
 | **DITA: Create New Topic** | - | Create new DITA topic |
 | **DITA: Create New Map** | - | Create new DITA map |
 | **DITA: Create New Bookmap** | - | Create new bookmap |
@@ -286,7 +286,7 @@ Additional formats available through DITA-OT plugins.
 
 1. Open `.dita` file
 2. Make edits
-3. Press `Ctrl+Shift+P` to preview
+3. Press `Ctrl+Shift+H` to preview
 4. Preview auto-refreshes on save
 5. Toggle between source and preview
 
