@@ -5,6 +5,7 @@ src/**
 .gitignore
 .yarnrc
 tsconfig.json
+esbuild.js
 vsc-extension-quickstart.md
 
 # Development dependencies
@@ -29,14 +30,12 @@ VALIDATOR-IMPLEMENTATION.md
 # Build artifacts
 .vscode-test/
 out/test/
+out/commands/
+out/providers/
+out/utils/
 
-# Node modules (bundled dependencies will be included)
+# Node modules (all dependencies are bundled into out/extension.js)
 node_modules/**
-!node_modules/fast-xml-parser/**
-!node_modules/xml2js/**
-!node_modules/strnum/**
-!node_modules/sax/**
-!node_modules/xmlbuilder/**
 
 # Git
 .git
