@@ -1,0 +1,7 @@
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="test_auto_detect">
+    <title>Auto-Detection Test</title>
+    <body>
+        <p>This file has .xml extension but should be detected as DITA by DOCTYPE.</p>
+    </body>
+</topic>

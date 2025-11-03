@@ -1,0 +1,7 @@
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA 1.3 Concept//EN" "concept.dtd">
+<concept>
+    <title>Missing ID Attribute</title>
+    <conbody>
+        <p>This concept is missing the required id attribute on the root element.</p>
+    </conbody>
+</concept>

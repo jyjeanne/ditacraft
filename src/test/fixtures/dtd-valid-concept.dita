@@ -1,0 +1,12 @@
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA 1.3 Concept//EN" "concept.dtd">
+<concept id="test_concept">
+    <title>Test Concept</title>
+    <shortdesc>This is a valid DITA concept for DTD validation testing.</shortdesc>
+    <conbody>
+        <p>This concept includes all required elements and follows DITA 1.3 DTD specifications.</p>
+        <section>
+            <title>Section Title</title>
+            <p>Section content with proper structure.</p>
+        </section>
+    </conbody>
+</concept>
