@@ -12,8 +12,47 @@ suite('DITA Link Provider Test Suite', () => {
     let linkProvider: DitaLinkProvider;
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
 
-    suiteSetup(() => {
+    suiteSetup(async () => {
         linkProvider = new DitaLinkProvider();
+
+        // Ensure extension is activated
+        const extension = vscode.extensions.getExtension('JeremyJeanne.ditacraft');
+        if (extension && !extension.isActive) {
+            await extension.activate();
+        }
+    });
+
+    suite('Language ID Configuration', () => {
+        test('DITA map files should have "dita" language ID', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'test-map-with-links.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            console.log('Document language ID:', document.languageId);
+            console.log('Document file name:', document.fileName);
+
+            assert.strictEqual(document.languageId, 'dita',
+                'DITA map files should have language ID "dita" not "xml"');
+        });
+
+        test('Bookmap files should have "dita" language ID', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'valid-bookmap.bookmap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            console.log('Bookmap language ID:', document.languageId);
+
+            assert.strictEqual(document.languageId, 'dita',
+                'Bookmap files should have language ID "dita" not "xml"');
+        });
+
+        test('DITA topic files should have "dita" language ID', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'valid-topic.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            console.log('Topic language ID:', document.languageId);
+
+            assert.strictEqual(document.languageId, 'dita',
+                'DITA topic files should have language ID "dita"');
+        });
     });
 
     suite('Link Detection', () => {
@@ -181,4 +220,56 @@ suite('DITA Link Provider Test Suite', () => {
             assert.strictEqual(links!.length, 0, 'Should find no links in topic file');
         });
     });
+
+    suite('Integration Tests', () => {
+        test('Link provider should be registered for DITA language', async function() {
+            this.timeout(5000);
+
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'test-map-with-links.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+            await vscode.window.showTextDocument(document);
+
+            // Wait a bit for providers to register
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Request document links from VS Code's document link system
+            const links = await vscode.commands.executeCommand<vscode.DocumentLink[]>(
+                'vscode.executeLinkProvider',
+                fileUri
+            );
+
+            console.log('Integration test - Links found by VS Code:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link:', document.getText(link.range), '->', link.target?.toString());
+                });
+            }
+
+            assert.ok(links, 'VS Code should return links from registered provider');
+            assert.ok(links!.length > 0, 'Should find links via VS Code document link system');
+        });
+
+        test('Should provide clickable links in editor', async function() {
+            this.timeout(5000);
+
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'test-map-with-links.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+            const editor = await vscode.window.showTextDocument(document);
+
+            // Wait for providers to initialize
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Verify document is open and language is correct
+            assert.strictEqual(editor.document.languageId, 'dita', 'Document should have DITA language ID');
+
+            // Get links from our provider directly
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Direct provider - Links found:', links?.length || 0);
+
+            assert.ok(links, 'Provider should return links');
+            assert.ok(links!.length > 0, 'Provider should find links in test map');
+        });
+    });
 });
+

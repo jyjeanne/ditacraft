@@ -99,17 +99,23 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
 export function registerDitaLinkProvider(context: vscode.ExtensionContext): void {
     const linkProvider = new DitaLinkProvider();
 
-    // Register for .ditamap files
+    // Register for .ditamap files (language ID is 'dita' as configured in package.json)
     const ditamapProvider = vscode.languages.registerDocumentLinkProvider(
-        { language: 'xml', pattern: '**/*.ditamap' },
+        { language: 'dita', pattern: '**/*.ditamap' },
         linkProvider
     );
 
     // Register for .bookmap files
     const bookmapProvider = vscode.languages.registerDocumentLinkProvider(
-        { language: 'xml', pattern: '**/*.bookmap' },
+        { language: 'dita', pattern: '**/*.bookmap' },
         linkProvider
     );
 
-    context.subscriptions.push(ditamapProvider, bookmapProvider);
+    // Also register for generic DITA language (catches all .dita, .ditamap, .bookmap)
+    const ditaProvider = vscode.languages.registerDocumentLinkProvider(
+        { language: 'dita' },
+        linkProvider
+    );
+
+    context.subscriptions.push(ditamapProvider, bookmapProvider, ditaProvider);
 }
