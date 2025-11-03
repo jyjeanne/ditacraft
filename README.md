@@ -9,13 +9,13 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 ## Highlights
 
-🔗 **Smart Navigation** - Ctrl+Click on `href` attributes in maps to open referenced topics
+🔗 **Smart Navigation** - Ctrl+Click on `href` attributes in maps to open referenced topics (fixed in v0.1.2)
 ✅ **DTD Validation** - Complete DITA 1.3 DTD support with 168 bundled DTD files
 ⚡ **Real-time Validation** - Automatic validation on open, save, and change with debouncing
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
 👁️ **Live Preview** - Side-by-side HTML5 preview with auto-refresh
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
-🧪 **60+ Tests** - Extensively tested with 96.7% test success rate
+🧪 **65+ Tests** - Extensively tested with 96.7% test success rate including integration tests
 
 ## Features
 
@@ -28,9 +28,16 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **Ctrl+Click navigation** in DITA maps and bookmaps
   - Click on `href` attributes in `<topicref>` elements to open referenced files
   - Works with relative paths and handles fragment identifiers (e.g., `file.dita#topic_id`)
-  - Visual link indicators (underlined hrefs)
+  - Visual link indicators (underlined hrefs when you hover)
   - Hover tooltip showing target filename
+  - Automatically resolves paths relative to the map file location
+  - Skips external URLs (http://, https://) - they won't be underlined
 - Navigate seamlessly between maps and topics in your documentation structure
+- **How to use:**
+  1. Open a `.ditamap` or `.bookmap` file
+  2. Hover over any `href` attribute value - it will be underlined
+  3. Ctrl+Click (Windows/Linux) or Cmd+Click (Mac) to open the target file
+  4. Works with nested topicrefs and complex map structures
 
 ### ✅ **Advanced Validation**
 - **Real-time validation** on file open, save, and change (with 500ms debouncing)
@@ -428,13 +435,15 @@ DitaCraft includes comprehensive test coverage for all key features:
 - **Link Navigation Tests** - Tests Ctrl+Click navigation in maps and bookmaps
 
 **Test Coverage:**
-- ✅ 60+ passing tests covering all key features (96.7% success rate)
+- ✅ 65+ passing tests covering all key features (96.7% success rate)
 - ✅ Real-time validation on file open, save, and change (with debouncing)
 - ✅ DTD resolution and bundled DTD files
 - ✅ Error highlighting with line/column accuracy
 - ✅ Manual validation command
 - ✅ Auto-detection by extension or DOCTYPE
 - ✅ Smart navigation with Ctrl+Click on href attributes
+- ✅ Language ID configuration and integration tests
+- ✅ Link detection, range accuracy, and tooltip verification
 
 **Running Tests:**
 ```bash
@@ -495,6 +504,25 @@ Contributions are welcome! Please:
    ```json
    "ditacraft.ditaOtArgs": ["--verbose"]
    ```
+
+### Smart Navigation Not Working
+
+**Problem:** Ctrl+Click on href attributes doesn't open files
+
+**Solution:**
+1. Verify you're in a `.ditamap` or `.bookmap` file (check file extension in status bar)
+2. Hover over the href value - it should be underlined if detected as a link
+3. Make sure you're clicking on the href value itself (e.g., `introduction.dita`), not the attribute name `href=`
+4. Check that the referenced file path is correct and file exists
+5. Try reloading VS Code window (`Ctrl+R` / `Cmd+R` in VS Code)
+6. Verify extension is activated (look for "DitaCraft" in Extensions)
+
+**Example of correct usage:**
+```xml
+<topicref href="introduction.dita"/>
+              ^^^^^^^^^^^^^^^^^^^^
+         Ctrl+Click here (on the value)
+```
 
 ### Preview Not Showing
 
