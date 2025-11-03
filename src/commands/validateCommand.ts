@@ -9,12 +9,14 @@ import { DitaValidator } from '../providers/ditaValidator';
 
 // Global validator instance
 let validator: DitaValidator | undefined;
+let extensionContext: vscode.ExtensionContext | undefined;
 
 /**
  * Initialize the validator
  */
 export function initializeValidator(context: vscode.ExtensionContext): void {
-    validator = new DitaValidator();
+    extensionContext = context;
+    validator = new DitaValidator(context);
     context.subscriptions.push(validator);
 
     // Auto-validate on save if enabled
@@ -55,7 +57,7 @@ export async function validateCommand(uri?: vscode.Uri): Promise<void> {
 
         // Initialize validator if not already done
         if (!validator) {
-            validator = new DitaValidator();
+            validator = new DitaValidator(extensionContext);
         }
 
         // Show progress

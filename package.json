@@ -332,6 +332,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.8.11",
     "fast-xml-parser": "^4.3.2",
     "xml2js": "^0.6.2"
   }

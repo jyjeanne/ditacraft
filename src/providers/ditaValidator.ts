@@ -9,6 +9,8 @@ import * as fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { XMLValidator } from 'fast-xml-parser';
+import { DOMParser } from '@xmldom/xmldom';
+import { DtdResolver } from '../utils/dtdResolver';
 
 const execAsync = promisify(exec);
 
@@ -29,10 +31,16 @@ export interface ValidationResult {
 export class DitaValidator {
     private diagnosticCollection: vscode.DiagnosticCollection;
     private validationEngine: 'xmllint' | 'built-in';
+    private dtdResolver: DtdResolver | null = null;
 
-    constructor() {
+    constructor(extensionContext?: vscode.ExtensionContext) {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection('dita');
         this.validationEngine = this.getValidationEngine();
+
+        // Initialize DTD resolver if extension context is provided
+        if (extensionContext) {
+            this.dtdResolver = new DtdResolver(extensionContext.extensionPath);
+        }
     }
 
     /**
@@ -184,6 +192,15 @@ export class DitaValidator {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
 
+            // Try DTD validation if DTD resolver is available
+            if (this.dtdResolver && this.dtdResolver.areDtdsAvailable()) {
+                const dtdResult = await this.validateWithDtd(filePath, content);
+                // If DTD validation found errors, return those
+                if (dtdResult.errors.length > 0) {
+                    return dtdResult;
+                }
+            }
+
             // First, use the validate method to check for XML errors
             const validationResult = XMLValidator.validate(content, {
                 allowBooleanAttributes: true
@@ -238,6 +255,109 @@ export class DitaValidator {
                 warnings: []
             };
         }
+    }
+
+    /**
+     * Validate using DTD with xmldom
+     */
+    private async validateWithDtd(_filePath: string, content: string): Promise<ValidationResult> {
+        const errors: ValidationError[] = [];
+        const warnings: ValidationError[] = [];
+
+        try {
+            // Custom error handler to collect errors
+            const errorHandler = {
+                warning: (msg: string) => {
+                    const lineInfo = this.extractLineInfo(msg);
+                    warnings.push({
+                        line: lineInfo.line,
+                        column: lineInfo.column,
+                        message: this.cleanErrorMessage(msg),
+                        severity: 'warning',
+                        source: 'dtd-validator'
+                    });
+                },
+                error: (msg: string) => {
+                    const lineInfo = this.extractLineInfo(msg);
+                    errors.push({
+                        line: lineInfo.line,
+                        column: lineInfo.column,
+                        message: this.cleanErrorMessage(msg),
+                        severity: 'error',
+                        source: 'dtd-validator'
+                    });
+                },
+                fatalError: (msg: string) => {
+                    const lineInfo = this.extractLineInfo(msg);
+                    errors.push({
+                        line: lineInfo.line,
+                        column: lineInfo.column,
+                        message: this.cleanErrorMessage(msg),
+                        severity: 'error',
+                        source: 'dtd-validator'
+                    });
+                }
+            };
+
+            // Create parser with DTD validation
+            const parser = new DOMParser({
+                errorHandler,
+                locator: {}
+            });
+
+            // Parse XML (xmldom will automatically validate against DTD if present)
+            parser.parseFromString(content, 'text/xml');
+
+            return {
+                valid: errors.length === 0,
+                errors: errors,
+                warnings: warnings
+            };
+
+        } catch (error: unknown) {
+            // Handle parsing errors
+            const err = error as { message?: string };
+            errors.push({
+                line: 0,
+                column: 0,
+                severity: 'error',
+                message: `DTD validation error: ${err.message || 'Unknown error'}`,
+                source: 'dtd-validator'
+            });
+
+            return {
+                valid: false,
+                errors: errors,
+                warnings: warnings
+            };
+        }
+    }
+
+    /**
+     * Extract line and column info from error messages
+     */
+    private extractLineInfo(message: string): { line: number; column: number } {
+        // Extract line and column from error messages
+        // Format examples: "@#[line:5,col:10]" or "line 5" or "line:5,col:10"
+        const lineMatch = message.match(/line[:\s]+(\d+)/i);
+        const colMatch = message.match(/col(?:umn)?[:\s]+(\d+)/i);
+
+        return {
+            line: lineMatch ? Math.max(0, parseInt(lineMatch[1], 10) - 1) : 0,
+            column: colMatch ? Math.max(0, parseInt(colMatch[1], 10) - 1) : 0
+        };
+    }
+
+    /**
+     * Clean error messages to make them more user-friendly
+     */
+    private cleanErrorMessage(message: string): string {
+        // Remove technical prefixes and make error messages more user-friendly
+        return message
+            .replace(/^\[xmldom\s+\w+\]\s*/i, '')
+            .replace(/@#\[line:\d+,col:\d+\]/, '')
+            .replace(/\s+/g, ' ')
+            .trim();
     }
 
     /**
