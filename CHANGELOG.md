@@ -5,6 +5,36 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2025-02-03
+
+### Added
+- **DTD-Based Validation**: Complete DITA 1.3 DTD validation support
+  - Bundled DITA 1.3 DTD files for all document types (topic, concept, task, reference, map, bookmap, learning, etc.)
+  - DTD catalog resolver with PUBLIC ID mapping and caching
+  - Validates against actual DITA specifications for required elements and attributes
+  - Accurate error reporting with line and column information
+- **Real-Time Validation**: Enhanced validation behavior
+  - Validation on file open, save, and document change
+  - 500ms debouncing for changes to prevent excessive validation
+  - Auto-validation toggle via settings
+- **Auto-Detection**: Intelligent DITA file detection
+  - By extension: `.dita`, `.ditamap`, `.bookmap`
+  - By DOCTYPE: Recognizes DITA DOCTYPE declarations in `.xml` files
+- **Comprehensive Test Suite**: 50+ tests covering all key features
+  - DTD validation tests (resolution, caching, validation)
+  - Real-time validation tests (open, save, change, debouncing)
+  - Command and auto-detection tests
+  - 96% test success rate (48/50 passing)
+  - TEST-COVERAGE.md documentation
+
+### Changed
+- Enhanced README.md with comprehensive feature documentation
+- Updated project structure documentation
+- Improved validation engine architecture with DTD support
+
+### Dependencies
+- Added `@xmldom/xmldom` for DTD-aware XML parsing
+
 ## [0.1.1] - 2025-02-01
 
 ### Changed
