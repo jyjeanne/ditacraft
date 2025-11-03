@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd">
+<bookmap id="test_bookmap">
+    <booktitle>
+        <mainbooktitle>Test Book with Chapter Navigation</mainbooktitle>
+    </booktitle>
+    <frontmatter>
+        <topicref href="valid-topic.dita"/>
+    </frontmatter>
+    <chapter href="valid-map.ditamap">
+        <topicref href="empty-elements.dita"/>
+    </chapter>
+    <chapter href="test-map-with-links.ditamap"/>
+    <appendix href="no-doctype.dita"/>
+    <part href="valid-topic.dita">
+        <chapter href="invalid-xml.dita"/>
+    </part>
+</bookmap>

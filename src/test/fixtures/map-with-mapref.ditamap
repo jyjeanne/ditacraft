@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="test_map_with_mapref">
+    <title>Test Map with Map References</title>
+    <topicref href="valid-topic.dita"/>
+    <mapref href="valid-map.ditamap"/>
+    <mapref href="test-map-with-links.ditamap" format="ditamap"/>
+    <keydef keys="mykey" href="empty-elements.dita"/>
+    <topicgroup>
+        <topicref href="no-doctype.dita"/>
+        <mapref href="bookmap-with-chapters.bookmap"/>
+    </topicgroup>
+</map>

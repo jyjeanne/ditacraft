@@ -197,6 +197,106 @@ suite('DITA Link Provider Test Suite', () => {
             // Should return links array (even if empty for this particular bookmap)
             assert.ok(links !== null && links !== undefined, 'Should return links for bookmap files');
         });
+
+        test('Should detect href in chapter elements', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'bookmap-with-chapters.bookmap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Chapter links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link to:', document.getText(link.range));
+                });
+            }
+
+            assert.ok(links, 'Should return links');
+            assert.ok(links!.length > 0, 'Should find links in chapter elements');
+
+            // Should find link to valid-map.ditamap in chapter element
+            const chapterLink = links!.find(link =>
+                link.target?.fsPath.includes('valid-map.ditamap')
+            );
+            assert.ok(chapterLink, 'Should find link to .ditamap in chapter element');
+        });
+
+        test('Should detect href in appendix elements', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'bookmap-with-chapters.bookmap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link in appendix element
+            const appendixLink = links!.find(link =>
+                link.target?.fsPath.includes('no-doctype.dita')
+            );
+            assert.ok(appendixLink, 'Should find link in appendix element');
+        });
+
+        test('Should detect href in part elements', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'bookmap-with-chapters.bookmap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link in part element
+            const partLink = links!.find(link =>
+                link.target?.fsPath.includes('valid-topic.dita')
+            );
+            assert.ok(partLink, 'Should find link in part element');
+        });
+    });
+
+    suite('Map Reference Support', () => {
+        test('Should detect href in mapref elements', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'map-with-mapref.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Mapref links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link to:', document.getText(link.range));
+                });
+            }
+
+            assert.ok(links, 'Should return links');
+            assert.ok(links!.length > 0, 'Should find links in map');
+
+            // Should find link to another .ditamap in mapref element
+            const maprefLink = links!.find(link =>
+                link.target?.fsPath.includes('valid-map.ditamap')
+            );
+            assert.ok(maprefLink, 'Should find link to .ditamap in mapref element');
+        });
+
+        test('Should detect href in keydef elements', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'map-with-mapref.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link in keydef element
+            const keydefLink = links!.find(link =>
+                link.target?.fsPath.includes('empty-elements.dita')
+            );
+            assert.ok(keydefLink, 'Should find link in keydef element');
+        });
+
+        test('Should detect href in nested elements within topicgroup', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'map-with-mapref.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find nested mapref to bookmap
+            const nestedMapref = links!.find(link =>
+                link.target?.fsPath.includes('bookmap-with-chapters.bookmap')
+            );
+            assert.ok(nestedMapref, 'Should find link in nested mapref element');
+        });
     });
 
     suite('Edge Cases', () => {

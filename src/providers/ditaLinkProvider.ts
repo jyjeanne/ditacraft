@@ -22,9 +22,10 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         const text = document.getText();
         const documentDir = path.dirname(document.uri.fsPath);
 
-        // Regular expression to match href attributes in topicref elements
-        // Matches: href="path/to/file.dita"
-        const hrefRegex = /<topicref[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
+        // Regular expression to match href attributes in DITA map elements
+        // Matches href in: topicref, chapter, appendix, part, mapref, keydef, etc.
+        // Pattern: <element ... href="value" ... >
+        const hrefRegex = /<(?:topicref|chapter|appendix|part|mapref|keydef|topicgroup|topichead)[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
 
         let match: RegExpExecArray | null;
         while ((match = hrefRegex.exec(text)) !== null) {
