@@ -11,9 +11,27 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 ### 📝 **DITA Editing**
 - Syntax highlighting for `.dita`, `.ditamap`, and `.bookmap` files
-- Intelligent code snippets and auto-completion
-- Real-time validation with inline error highlighting
-- Support for all DITA topic types (concept, task, reference, topic)
+- Intelligent code snippets and auto-completion (21 comprehensive snippets)
+- Support for all DITA topic types (concept, task, reference, topic, glossentry)
+
+### ✅ **Advanced Validation**
+- **Real-time validation** on file open, save, and change (with 500ms debouncing)
+- **DTD-based validation** against DITA 1.3 specifications
+  - Bundled DITA 1.3 DTD files (topic, concept, task, reference, map, bookmap, learning, etc.)
+  - Validates required elements (id, title) and proper structure
+  - Accurate PUBLIC ID resolution with caching
+- **Dual validation engines**:
+  - Built-in parser with DTD support (default)
+  - xmllint integration for advanced validation
+- **Intelligent error highlighting**:
+  - Inline error highlighting with squiggly underlines
+  - Errors appear in Problems panel with severity indicators
+  - Accurate line and column positioning
+  - Source attribution (DTD validator, XML parser, DITA validator)
+- **Auto-detection of DITA files**:
+  - By extension: `.dita`, `.ditamap`, `.bookmap`
+  - By DOCTYPE: Recognizes DITA DOCTYPE declarations in `.xml` files
+- **Manual validation command**: `DITA: Validate Current File` (Ctrl+Shift+V / Cmd+Shift+V)
 
 ### 🚀 **One-Click Publishing**
 - Publish to multiple formats: HTML5, PDF, EPUB, and more
@@ -333,17 +351,65 @@ ditacraft/
 │   │   ├── publishCommand.ts
 │   │   ├── previewCommand.ts
 │   │   └── fileCreationCommands.ts
+│   ├── providers/
+│   │   └── ditaValidator.ts   # DITA validation engine
 │   ├── utils/
-│   │   └── ditaOtWrapper.ts   # DITA-OT integration
-│   └── preview/
-│       └── previewPanel.ts    # WebView preview
+│   │   ├── ditaOtWrapper.ts   # DITA-OT integration
+│   │   ├── dtdResolver.ts     # DTD catalog resolver
+│   │   └── logger.ts          # Logging utility
+│   ├── preview/
+│   │   └── previewPanel.ts    # WebView preview
+│   └── test/                  # Test suites
+│       ├── suite/
+│       │   ├── ditaValidator.test.ts
+│       │   ├── dtdValidation.test.ts
+│       │   ├── realtimeValidation.test.ts
+│       │   └── commandAndDetection.test.ts
+│       └── fixtures/          # Test fixtures
+├── dtds/                      # DITA 1.3 DTD files
+│   ├── base/
+│   ├── technicalContent/
+│   ├── bookmap/
+│   └── learning/
 ├── syntaxes/
 │   └── dita.tmLanguage.json   # Syntax highlighting
 ├── snippets/
-│   └── dita.json              # Code snippets
+│   └── dita.json              # Code snippets (21 snippets)
 ├── package.json               # Extension manifest
-└── README.md
+├── README.md
+└── TEST-COVERAGE.md           # Test documentation
 ```
+
+### Quality & Testing
+
+DitaCraft includes comprehensive test coverage for all key features:
+
+**Test Suites:**
+- **DTD Validation Tests** - Tests DTD resolution and DTD-based validation
+- **Real-time Validation Tests** - Tests validation on file open, save, and change
+- **Command & Auto-Detection Tests** - Tests manual validation and file detection
+
+**Test Coverage:**
+- ✅ 48+ passing tests covering all key features
+- ✅ Real-time validation on file open, save, and change (with debouncing)
+- ✅ DTD resolution and bundled DTD files
+- ✅ Error highlighting with line/column accuracy
+- ✅ Manual validation command
+- ✅ Auto-detection by extension or DOCTYPE
+
+**Running Tests:**
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run watch
+
+# Compile tests
+npm run compile-tests
+```
+
+See [TEST-COVERAGE.md](TEST-COVERAGE.md) for detailed test documentation.
 
 ### Contributing
 
@@ -352,8 +418,10 @@ Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+4. Add tests for new features
+5. Ensure all tests pass (`npm test`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
 ## Troubleshooting
 
