@@ -14,6 +14,14 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - Intelligent code snippets and auto-completion (21 comprehensive snippets)
 - Support for all DITA topic types (concept, task, reference, topic, glossentry)
 
+### 🔗 **Smart Navigation**
+- **Ctrl+Click navigation** in DITA maps and bookmaps
+  - Click on `href` attributes in `<topicref>` elements to open referenced files
+  - Works with relative paths and handles fragment identifiers (e.g., `file.dita#topic_id`)
+  - Visual link indicators (underlined hrefs)
+  - Hover tooltip showing target filename
+- Navigate seamlessly between maps and topics in your documentation structure
+
 ### ✅ **Advanced Validation**
 - **Real-time validation** on file open, save, and change (with 500ms debouncing)
 - **DTD-based validation** against DITA 1.3 specifications

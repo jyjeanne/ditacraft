@@ -8,6 +8,7 @@
 import * as vscode from 'vscode';
 import { DitaOtWrapper } from './utils/ditaOtWrapper';
 import { logger } from './utils/logger';
+import { registerDitaLinkProvider } from './providers/ditaLinkProvider';
 import {
     validateCommand,
     initializeValidator,
@@ -49,6 +50,11 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.appendLine('Initializing validator...');
         initializeValidator(context);
         outputChannel.appendLine('Validator initialized');
+
+        // Register DITA link provider for Ctrl+Click navigation
+        outputChannel.appendLine('Registering DITA link provider...');
+        registerDitaLinkProvider(context);
+        outputChannel.appendLine('DITA link provider registered');
 
         // Register all commands
         outputChannel.appendLine('Registering commands...');

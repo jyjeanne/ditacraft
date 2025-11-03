@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.2] - 2025-02-03
 
 ### Added
+- **Smart Navigation**: Ctrl+Click navigation in DITA maps and bookmaps
+  - Click on `href` attributes in `<topicref>` elements to open referenced files
+  - Works with relative paths and handles fragment identifiers (#topic_id)
+  - Visual link indicators (underlined hrefs)
+  - Hover tooltip showing target filename
+  - Seamless navigation between maps and topics
 - **DTD-Based Validation**: Complete DITA 1.3 DTD validation support
   - Bundled DITA 1.3 DTD files for all document types (topic, concept, task, reference, map, bookmap, learning, etc.)
   - DTD catalog resolver with PUBLIC ID mapping and caching
@@ -20,11 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Auto-Detection**: Intelligent DITA file detection
   - By extension: `.dita`, `.ditamap`, `.bookmap`
   - By DOCTYPE: Recognizes DITA DOCTYPE declarations in `.xml` files
-- **Comprehensive Test Suite**: 50+ tests covering all key features
+- **Comprehensive Test Suite**: 60+ tests covering all key features
   - DTD validation tests (resolution, caching, validation)
   - Real-time validation tests (open, save, change, debouncing)
   - Command and auto-detection tests
-  - 96% test success rate (48/50 passing)
+  - Link navigation tests (Ctrl+Click, path resolution, edge cases)
   - TEST-COVERAGE.md documentation
 
 ### Changed

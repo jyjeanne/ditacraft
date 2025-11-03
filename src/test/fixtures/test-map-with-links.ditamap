@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="test_map">
+    <title>Test Map with Links</title>
+    <topicref href="valid-topic.dita"/>
+    <topicref href="valid-bookmap.bookmap"/>
+    <topicref href="subfolder/nonexistent.dita"/>
+    <topicref href="http://example.com/external.dita"/>
+    <topicref href="valid-topic.dita#topic_id"/>
+    <topicref format="dita" href="empty-elements.dita">
+        <topicref href="no-doctype.dita"/>
+    </topicref>
+</map>
