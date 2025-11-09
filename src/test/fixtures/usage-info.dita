@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="usage-info">
+    <title>Usage Information</title>
+    <body>
+        <p id="usage-tips">Here are some usage tips for the product:
+            <ol>
+                <li>Always check power connection before use</li>
+                <li>Clean regularly to maintain performance</li>
+                <li>Store in a cool, dry place</li>
+            </ol>
+        </p>
+        <p id="maintenance-guide">Regular maintenance ensures optimal performance and longevity.</p>
+        <section id="troubleshooting">
+            <title>Troubleshooting</title>
+            <p id="common-issues">If the device doesn't start, check the power supply and connections.</p>
+        </section>
+    </body>
+</topic>

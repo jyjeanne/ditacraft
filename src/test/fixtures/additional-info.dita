@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="additional-info">
+    <title>Additional Information</title>
+    <body>
+        <p id="additional-content">Here's some extra content that can be reused!</p>
+        <p id="more-details">Additional details about the product features and specifications.</p>
+        <note id="important-warning" type="warning">Please read all safety instructions before use.</note>
+    </body>
+</topic>

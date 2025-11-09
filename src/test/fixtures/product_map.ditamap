@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Product Documentation Map</title>
+
+    <!-- Standard href references -->
+    <topicref href="product-info-v2.dita"/>
+    <topicref href="usage-info.dita"/>
+    <topicref href="main-topic.dita"/>
+    <topicref href="additional-info.dita"/>
+
+    <!-- keydef definitions for key-based references -->
+    <keydef keys="product-description" href="product-info-v2.dita#product-info/product-description"/>
+    <keydef keys="usage-tips" href="usage-info.dita#usage-info/usage-tips"/>
+    <keydef keys="product-features" href="product-info-v2.dita#product-info/product-features"/>
+
+    <!-- topicref with keyref (references topic via key) -->
+    <topicref keyref="product-info-key"/>
+
+    <!-- keydef that points to entire topic -->
+    <keydef keys="product-info-key" href="product-info-v2.dita"/>
+    <keydef keys="usage-info-key" href="usage-info.dita"/>
+</map>

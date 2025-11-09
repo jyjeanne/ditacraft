@@ -697,6 +697,272 @@ suite('DITA Link Provider Test Suite', () => {
         });
     });
 
+    suite('Complete @conref Coverage (User Samples)', () => {
+        test('Should detect @conref with file.dita#element_id format', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'main-topic.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Main topic conref links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                });
+            }
+
+            // Should find links to additional-info.dita
+            const conrefLinks = links!.filter(link =>
+                link.target?.fsPath.includes('additional-info.dita') &&
+                link.tooltip?.includes('content reference')
+            );
+
+            assert.ok(conrefLinks.length > 0, 'Should find conref links to additional-info.dita');
+            console.log('  - Found', conrefLinks.length, 'conref links');
+        });
+
+        test('Should handle @conref with file.dita#topic_id/element_id format', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'main-topic.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should handle both formats:
+            // 1. additional-info.dita#additional-content
+            // 2. additional-info.dita#additional-info/more-details
+            const allConrefLinks = links!.filter(link =>
+                link.target?.fsPath.includes('additional-info.dita')
+            );
+
+            assert.ok(allConrefLinks.length >= 2, 'Should find multiple conref links with different formats');
+        });
+
+        test('Should detect @conref on different element types (p, note)', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'main-topic.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find conref on <p> and <note> elements
+            const conrefLinks = links!.filter(link =>
+                link.tooltip?.includes('content reference')
+            );
+
+            assert.ok(conrefLinks.length >= 3, 'Should find conref on multiple element types');
+        });
+
+        test('Should handle @conref with relative paths (./file.dita)', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'main-topic.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // All resolved paths should be absolute
+            links!.forEach(link => {
+                if (link.target) {
+                    assert.ok(path.isAbsolute(link.target.fsPath),
+                        `Should resolve relative path to absolute: ${link.target.fsPath}`);
+                }
+            });
+        });
+
+        test('Additional-info fixture should be valid and reusable', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'additional-info.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            assert.ok(document, 'Should open additional-info.dita');
+            assert.strictEqual(document.languageId, 'dita', 'Should have DITA language ID');
+
+            const content = document.getText();
+            assert.ok(content.includes('id="additional-content"'), 'Should contain additional-content element');
+            assert.ok(content.includes('id="more-details"'), 'Should contain more-details element');
+            assert.ok(content.includes('id="important-warning"'), 'Should contain important-warning element');
+        });
+    });
+
+    suite('Complete @keyref Coverage in Maps (User Samples)', () => {
+        test('Should detect keydef href in product map', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'product_map.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Product map links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                });
+            }
+
+            // Should find links to product-info-v2.dita
+            const productInfoLinks = links!.filter(link =>
+                link.target?.fsPath.includes('product-info-v2.dita')
+            );
+
+            assert.ok(productInfoLinks.length > 0, 'Should find links to product-info-v2.dita in keydef');
+        });
+
+        test('Should detect keydef href in usage-info references', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'product_map.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find links to usage-info.dita
+            const usageInfoLinks = links!.filter(link =>
+                link.target?.fsPath.includes('usage-info.dita')
+            );
+
+            assert.ok(usageInfoLinks.length > 0, 'Should find links to usage-info.dita in keydef');
+        });
+
+        test('Should detect standard topicref href in product map', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'product_map.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find standard topicref links
+            const topicrefLinks = links!.filter(link =>
+                link.target?.fsPath.includes('main-topic.dita') ||
+                link.target?.fsPath.includes('additional-info.dita')
+            );
+
+            assert.ok(topicrefLinks.length >= 2, 'Should find standard topicref href links');
+        });
+
+        test('Product map should link to all defined topics', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'product_map.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Count unique target files
+            const uniqueTargets = new Set(
+                links!.map(link => path.basename(link.target?.fsPath || '')).filter(name => name)
+            );
+
+            console.log('Unique targets in product map:', Array.from(uniqueTargets));
+
+            // Should link to at least: product-info-v2.dita, usage-info.dita, main-topic.dita, additional-info.dita
+            assert.ok(uniqueTargets.has('product-info-v2.dita'), 'Should link to product-info-v2.dita');
+            assert.ok(uniqueTargets.has('usage-info.dita'), 'Should link to usage-info.dita');
+            assert.ok(uniqueTargets.has('main-topic.dita'), 'Should link to main-topic.dita');
+            assert.ok(uniqueTargets.has('additional-info.dita'), 'Should link to additional-info.dita');
+        });
+    });
+
+    suite('Complete Test Coverage for All Fixtures', () => {
+        test('All new fixtures should be valid DITA files', async () => {
+            const newFixtures = [
+                'additional-info.dita',
+                'main-topic.dita',
+                'product-info-v2.dita',
+                'usage-info.dita',
+                'product_map.ditamap'
+            ];
+
+            for (const fixture of newFixtures) {
+                const fileUri = vscode.Uri.file(path.join(fixturesPath, fixture));
+                const document = await vscode.workspace.openTextDocument(fileUri);
+
+                assert.ok(document, `Should open ${fixture}`);
+                assert.strictEqual(document.languageId, 'dita', `${fixture} should have DITA language ID`);
+
+                const content = document.getText();
+                assert.ok(content.includes('<?xml'), `${fixture} should have XML declaration`);
+                assert.ok(content.includes('DOCTYPE'), `${fixture} should have DOCTYPE declaration`);
+            }
+        });
+
+        test('Product-info-v2 fixture should contain reusable content', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'product-info-v2.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const content = document.getText();
+            assert.ok(content.includes('id="product-description"'), 'Should have product-description element');
+            assert.ok(content.includes('id="product-features"'), 'Should have product-features element');
+            assert.ok(content.includes('id="spec-details"'), 'Should have spec-details element');
+        });
+
+        test('Usage-info fixture should contain usage tips and troubleshooting', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'usage-info.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const content = document.getText();
+            assert.ok(content.includes('id="usage-tips"'), 'Should have usage-tips element');
+            assert.ok(content.includes('id="maintenance-guide"'), 'Should have maintenance-guide element');
+            assert.ok(content.includes('id="common-issues"'), 'Should have common-issues element');
+        });
+
+        test('All @conref references should point to existing elements', async () => {
+            const mainTopicUri = vscode.Uri.file(path.join(fixturesPath, 'main-topic.dita'));
+            const mainTopic = await vscode.workspace.openTextDocument(mainTopicUri);
+            const mainContent = mainTopic.getText();
+
+            const additionalInfoUri = vscode.Uri.file(path.join(fixturesPath, 'additional-info.dita'));
+            const additionalInfo = await vscode.workspace.openTextDocument(additionalInfoUri);
+            const additionalContent = additionalInfo.getText();
+
+            // Check that referenced IDs exist
+            if (mainContent.includes('additional-content')) {
+                assert.ok(additionalContent.includes('id="additional-content"'),
+                    'additional-content ID should exist in target file');
+            }
+
+            if (mainContent.includes('more-details')) {
+                assert.ok(additionalContent.includes('id="more-details"'),
+                    'more-details ID should exist in target file');
+            }
+
+            if (mainContent.includes('important-warning')) {
+                assert.ok(additionalContent.includes('id="important-warning"'),
+                    'important-warning ID should exist in target file');
+            }
+        });
+
+        test('All map references should point to existing files', async () => {
+            const mapUri = vscode.Uri.file(path.join(fixturesPath, 'product_map.ditamap'));
+            const document = await vscode.workspace.openTextDocument(mapUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check that all link targets exist
+            for (const link of links!) {
+                if (link.target && !link.target.toString().startsWith('http')) {
+                    const targetExists = require('fs').existsSync(link.target.fsPath);
+                    assert.ok(targetExists,
+                        `Link target should exist: ${path.basename(link.target.fsPath)}`);
+                }
+            }
+        });
+
+        test('Complete coverage: @conref, @keyref, @href all work together', async () => {
+            // Test main-topic.dita (uses @conref)
+            const mainTopicUri = vscode.Uri.file(path.join(fixturesPath, 'main-topic.dita'));
+            const mainTopicDoc = await vscode.workspace.openTextDocument(mainTopicUri);
+            const mainTopicLinks = await linkProvider.provideDocumentLinks(mainTopicDoc, new vscode.CancellationTokenSource().token);
+
+            // Test product_map.ditamap (uses @href and keydef)
+            const mapUri = vscode.Uri.file(path.join(fixturesPath, 'product_map.ditamap'));
+            const mapDoc = await vscode.workspace.openTextDocument(mapUri);
+            const mapLinks = await linkProvider.provideDocumentLinks(mapDoc, new vscode.CancellationTokenSource().token);
+
+            console.log('Complete coverage check:');
+            console.log('  - Main topic (@conref) links:', mainTopicLinks?.length || 0);
+            console.log('  - Product map (@href/@keydef) links:', mapLinks?.length || 0);
+
+            assert.ok(mainTopicLinks!.length > 0, 'Should find @conref links in topics');
+            assert.ok(mapLinks!.length > 0, 'Should find @href links in maps');
+
+            // Verify tooltip differentiation
+            const conrefCount = mainTopicLinks!.filter(l => l.tooltip?.includes('content reference')).length;
+            console.log('  - Content reference links:', conrefCount);
+
+            assert.ok(conrefCount > 0, 'Should have content reference tooltips');
+        });
+    });
+
     suite('Integration Tests', () => {
         test('Link provider should be registered for DITA language', async function() {
             this.timeout(5000);
