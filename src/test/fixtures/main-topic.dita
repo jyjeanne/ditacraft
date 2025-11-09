@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="main-topic">
+    <title>Main Topic</title>
+    <body>
+        <p>Welcome to the main topic.</p>
+        <!-- @conref example: file.dita#element_id format -->
+        <p conref="additional-info.dita#additional-content"/>
+
+        <!-- @conref example: file.dita#topic_id/element_id format -->
+        <p conref="additional-info.dita#additional-info/more-details"/>
+
+        <!-- @conref with note element -->
+        <note conref="additional-info.dita#additional-info/important-warning"/>
+
+        <!-- @conref with relative path -->
+        <p conref="./additional-info.dita#additional-content"/>
+    </body>
+</topic>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="product-info">
+    <title>Product Information</title>
+    <body>
+        <p id="product-description">This product is a high-quality widget designed for efficiency and reliability.</p>
+        <p id="product-features">
+            Features include:
+            <ul>
+                <li>Durable construction</li>
+                <li>Easy to use interface</li>
+                <li>Energy efficient operation</li>
+            </ul>
+        </p>
+        <section id="specifications">
+            <title>Specifications</title>
+            <p id="spec-details">Weight: 2.5 kg, Dimensions: 30x20x10 cm</p>
+        </section>
+    </body>
+</topic>
