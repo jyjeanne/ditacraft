@@ -177,7 +177,7 @@ function findMainHtmlFile(outputDir: string, baseName: string): string | null {
         if (htmlFiles.length > 0) {
             return path.join(outputDir, htmlFiles[0]);
         }
-    } catch (error) {
+    } catch (_error) {
         // Directory doesn't exist or can't be read
     }
 

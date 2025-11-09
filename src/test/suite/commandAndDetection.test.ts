@@ -109,7 +109,7 @@ suite('Command and Auto-Detection Test Suite', () => {
 
                 // Command should complete without error (even though it doesn't validate)
                 assert.ok(true, 'Should handle non-DITA file gracefully');
-            } catch (error) {
+            } catch (_error) {
                 // File might not exist, which is fine
                 assert.ok(true, 'Non-DITA file test completed');
             }
