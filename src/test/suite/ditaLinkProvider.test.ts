@@ -530,6 +530,173 @@ suite('DITA Link Provider Test Suite', () => {
         });
     });
 
+    suite('Real-world Reference Examples', () => {
+        test('Should detect conref in user guide (common notes example)', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'user_guide.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('User guide links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                });
+            }
+
+            // Should find multiple conref links to common_notes.dita
+            const conrefLinks = links!.filter(link =>
+                link.target?.fsPath.includes('common_notes.dita') &&
+                link.tooltip?.includes('content reference')
+            );
+
+            assert.ok(conrefLinks.length > 0, 'Should find conref links to common_notes.dita');
+            console.log('  - Found', conrefLinks.length, 'conref links to common_notes.dita');
+        });
+
+        test('Should detect conref with fragment identifiers (important_note)', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'user_guide.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check that fragments are stripped from file paths
+            const commonNotesLinks = links!.filter(link =>
+                link.target?.fsPath.includes('common_notes.dita')
+            );
+
+            commonNotesLinks.forEach(link => {
+                assert.ok(!link.target?.fsPath.includes('#'),
+                    'Fragment identifiers should be stripped from file path');
+            });
+        });
+
+        test('Should detect keyref in user guide (requires map)', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'user_guide.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Pure keyref like "common-note" should be skipped (no filename)
+            const pureKeyrefLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === 'common-note';
+            });
+
+            assert.strictEqual(pureKeyrefLinks.length, 0,
+                'Pure keyref without filename should be skipped');
+        });
+
+        test('Should detect conkeyref in user guide (product name example)', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'user_guide.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Pure conkeyref like "product-name/keyword" should be skipped (no filename)
+            const pureConkeyrefLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === 'product-name/keyword' || text === 'product-version/keyword';
+            });
+
+            assert.strictEqual(pureConkeyrefLinks.length, 0,
+                'Pure conkeyref without filename should be skipped');
+        });
+
+        test('Common notes fixture should be reusable', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'common_notes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            // Should open without errors
+            assert.ok(document, 'Should open common_notes.dita');
+            assert.strictEqual(document.languageId, 'dita', 'Should have DITA language ID');
+
+            // Should contain the important_note element
+            const content = document.getText();
+            assert.ok(content.includes('id="important_note"'),
+                'Should contain important_note element');
+            assert.ok(content.includes('This is an important note for all users'),
+                'Should contain note content');
+        });
+
+        test('Product info fixture should contain keyword metadata', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'product_info.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            // Should contain metadata with keywords
+            const content = document.getText();
+            assert.ok(content.includes('<keywords>'), 'Should contain keywords element');
+            assert.ok(content.includes('Acme Widget'), 'Should contain product name keyword');
+            assert.ok(content.includes('Version 2.5'), 'Should contain version keyword');
+        });
+
+        test('Reference map should contain keydef elements', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'reference-map.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Reference map links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                });
+            }
+
+            // Should find links to common_notes.dita and product_info.dita in keydef elements
+            const commonNotesLink = links!.find(link =>
+                link.target?.fsPath.includes('common_notes.dita')
+            );
+            const productInfoLink = links!.find(link =>
+                link.target?.fsPath.includes('product_info.dita')
+            );
+
+            assert.ok(commonNotesLink, 'Should find link to common_notes.dita in keydef');
+            assert.ok(productInfoLink, 'Should find link to product_info.dita in keydef');
+        });
+
+        test('Reference map should have topicref to user guide', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'reference-map.ditamap'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link to user_guide.dita
+            const userGuideLink = links!.find(link =>
+                link.target?.fsPath.includes('user_guide.dita')
+            );
+
+            assert.ok(userGuideLink, 'Should find link to user_guide.dita');
+        });
+
+        test('All reference types should work together in user guide', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'user_guide.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Count different types of references
+            const conrefLinks = links!.filter(link =>
+                link.tooltip?.includes('content reference') && !link.tooltip?.includes('key')
+            );
+
+            console.log('User guide reference analysis:');
+            console.log('  - Total links:', links!.length);
+            console.log('  - Conref links:', conrefLinks.length);
+
+            // Should find at least conref links
+            assert.ok(conrefLinks.length > 0, 'Should find conref links');
+
+            // Verify all links are to common_notes.dita (the only file-based references)
+            const validLinks = links!.filter(link =>
+                link.target?.fsPath.includes('common_notes.dita')
+            );
+
+            assert.strictEqual(validLinks.length, conrefLinks.length,
+                'All file-based links should be to common_notes.dita');
+        });
+    });
+
     suite('Integration Tests', () => {
         test('Link provider should be registered for DITA language', async function() {
             this.timeout(5000);

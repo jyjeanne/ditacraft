@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Reference Examples Map</title>
+
+    <!-- Key definitions for @keyref usage -->
+    <keydef keys="common-note" href="common_notes.dita#common_notes/important_note"/>
+
+    <!-- Key definitions for @conkeyref usage -->
+    <keydef keys="product-name" href="product_info.dita">
+        <topicmeta>
+            <keywords>
+                <keyword>Acme Widget</keyword>
+            </keywords>
+        </topicmeta>
+    </keydef>
+
+    <keydef keys="product-version" href="product_info.dita">
+        <topicmeta>
+            <keywords>
+                <keyword>Version 2.5</keyword>
+            </keywords>
+        </topicmeta>
+    </keydef>
+
+    <!-- Standard topic references -->
+    <topicref href="user_guide.dita"/>
+    <topicref href="common_notes.dita"/>
+    <topicref href="product_info.dita"/>
+</map>

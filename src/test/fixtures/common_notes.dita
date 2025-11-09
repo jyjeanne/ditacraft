@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="common_notes">
+    <title>Common Notes and Reusable Content</title>
+    <body>
+        <note id="important_note">This is an important note for all users.</note>
+        <note id="warning_note" type="warning">Please read the safety instructions before proceeding.</note>
+        <p id="intro_para">Welcome to our comprehensive documentation system.</p>
+        <section id="troubleshooting">
+            <title>Troubleshooting Tips</title>
+            <p id="common_issue">If you encounter connection errors, check your network settings.</p>
+        </section>
+    </body>
+</topic>

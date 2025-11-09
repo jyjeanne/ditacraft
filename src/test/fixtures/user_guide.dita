@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="user_guide">
+    <title>User Guide</title>
+    <body>
+        <!-- Example 1: Using @conref to reuse content -->
+        <section>
+            <title>Getting Started</title>
+            <p>Welcome to the guide.</p>
+            <!-- Direct content reference -->
+            <note conref="common_notes.dita#common_notes/important_note"/>
+        </section>
+
+        <!-- Example 2: Using @keyref with keys defined in map -->
+        <section>
+            <title>Introduction</title>
+            <p>This guide covers the basics.</p>
+            <!-- Key reference (requires key definition in map) -->
+            <note keyref="common-note"/>
+        </section>
+
+        <!-- Example 3: Using @conkeyref for attribute/element values -->
+        <section>
+            <title>Welcome</title>
+            <!-- Content key reference for product name -->
+            <p>Thank you for choosing <ph conkeyref="product-name/keyword"/>.</p>
+            <p>You are using <ph conkeyref="product-version/keyword"/>.</p>
+        </section>
+
+        <!-- Example 4: Multiple conref examples -->
+        <section>
+            <title>Safety Information</title>
+            <note conref="common_notes.dita#common_notes/warning_note"/>
+            <p conref="common_notes.dita#common_notes/intro_para"/>
+        </section>
+
+        <!-- Example 5: Nested section with conref -->
+        <section>
+            <title>Support</title>
+            <p conref="common_notes.dita#common_notes/troubleshooting/common_issue"/>
+        </section>
+
+        <!-- Example 6: Mixed references -->
+        <section>
+            <title>Product Details</title>
+            <p>For more information about <ph conkeyref="product-name/keyword"/>, see the documentation.</p>
+            <note conref="common_notes.dita#common_notes/important_note"/>
+        </section>
+    </body>
+</topic>
