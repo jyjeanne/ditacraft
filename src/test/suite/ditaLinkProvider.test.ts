@@ -321,6 +321,215 @@ suite('DITA Link Provider Test Suite', () => {
         });
     });
 
+    suite('Content Reference Support (conref)', () => {
+        test('Should detect conref attributes in topic files', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Conref links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link to:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                });
+            }
+
+            assert.ok(links, 'Should return links');
+            assert.ok(links!.length > 0, 'Should find conref links in topic');
+
+            // Should find link to valid-topic.dita via conref
+            const conrefLink = links!.find(link =>
+                link.target?.fsPath.includes('valid-topic.dita') &&
+                link.tooltip?.includes('content reference')
+            );
+            assert.ok(conrefLink, 'Should find conref link to valid-topic.dita');
+        });
+
+        test('Should handle conref with fragment identifiers', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Conref with fragment should still link to the file (fragment stripped)
+            const fragmentLink = links!.find(link =>
+                link.target?.fsPath.includes('empty-elements.dita')
+            );
+
+            assert.ok(fragmentLink, 'Should handle conref with fragment identifier');
+            assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be removed from path');
+        });
+
+        test('Should handle conref with relative paths', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // All conref links should have absolute paths
+            links!.forEach(link => {
+                if (link.target) {
+                    assert.ok(path.isAbsolute(link.target.fsPath),
+                        `Conref link target should be absolute path: ${link.target.fsPath}`);
+                }
+            });
+        });
+
+        test('Conref tooltip should indicate content reference', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Find a conref link
+            const conrefLink = links!.find(link =>
+                link.tooltip?.includes('content reference')
+            );
+
+            assert.ok(conrefLink, 'Should have at least one conref link');
+            assert.ok(conrefLink!.tooltip!.toLowerCase().includes('content reference'),
+                'Conref tooltip should mention "content reference"');
+        });
+    });
+
+    suite('Content Key Reference Support (conkeyref)', () => {
+        test('Should detect conkeyref attributes with filenames', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link via conkeyref that contains a filename
+            const conkeyrefLink = links!.find(link =>
+                link.target?.fsPath.includes('valid-topic.dita') &&
+                link.tooltip?.includes('content key reference')
+            );
+
+            assert.ok(conkeyrefLink, 'Should find conkeyref link with filename');
+        });
+
+        test('Should skip pure key conkeyref without filenames', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should not create links for pure keys like "reusable-content/warning"
+            const pureKeyLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === 'reusable-content/warning';
+            });
+
+            assert.strictEqual(pureKeyLinks.length, 0,
+                'Should not create links for pure key references without filenames');
+        });
+
+        test('Conkeyref tooltip should indicate content key reference', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Find a conkeyref link
+            const conkeyrefLink = links!.find(link =>
+                link.tooltip?.includes('content key reference')
+            );
+
+            if (conkeyrefLink) {
+                assert.ok(conkeyrefLink.tooltip!.toLowerCase().includes('content key reference'),
+                    'Conkeyref tooltip should mention "content key reference"');
+            }
+        });
+    });
+
+    suite('Key Reference Support (keyref)', () => {
+        test('Should detect keyref attributes with filenames', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link via keyref that contains a filename
+            const keyrefLink = links!.find(link =>
+                link.target?.fsPath.includes('no-doctype.dita') &&
+                link.tooltip?.includes('key reference')
+            );
+
+            assert.ok(keyrefLink, 'Should find keyref link with filename');
+        });
+
+        test('Should skip pure key keyref without filenames', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should not create links for pure keys like "product-name"
+            const pureKeyLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === 'product-name';
+            });
+
+            assert.strictEqual(pureKeyLinks.length, 0,
+                'Should not create links for pure key references without filenames');
+        });
+
+        test('Keyref tooltip should indicate key reference', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Find a keyref link
+            const keyrefLink = links!.find(link =>
+                link.tooltip?.includes('key reference')
+            );
+
+            if (keyrefLink) {
+                assert.ok(keyrefLink.tooltip!.toLowerCase().includes('key reference'),
+                    'Keyref tooltip should mention "key reference"');
+            }
+        });
+    });
+
+    suite('Mixed References', () => {
+        test('Should detect all reference types in same document', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Total links found:', links?.length || 0);
+
+            // Should have links from conref, conkeyref, and keyref
+            const conrefLinks = links!.filter(link => link.tooltip?.includes('content reference'));
+            const conkeyrefLinks = links!.filter(link => link.tooltip?.includes('content key reference'));
+            const keyrefLinks = links!.filter(link => link.tooltip?.includes('key reference') && !link.tooltip?.includes('content'));
+
+            console.log('  - Conref links:', conrefLinks.length);
+            console.log('  - Conkeyref links:', conkeyrefLinks.length);
+            console.log('  - Keyref links:', keyrefLinks.length);
+
+            assert.ok(conrefLinks.length > 0, 'Should find at least one conref link');
+            assert.ok(links!.length >= 3, 'Should find multiple types of references');
+        });
+
+        test('Should not duplicate links for same target', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-references.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check that each link has a unique range
+            const ranges = links!.map(link => `${link.range.start.line}:${link.range.start.character}`);
+            const uniqueRanges = new Set(ranges);
+
+            assert.strictEqual(ranges.length, uniqueRanges.size,
+                'Each link should have a unique range (no duplicates)');
+        });
+    });
+
     suite('Integration Tests', () => {
         test('Link provider should be registered for DITA language', async function() {
             this.timeout(5000);

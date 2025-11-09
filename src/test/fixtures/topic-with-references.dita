@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_with_refs">
+    <title>Topic with Various References</title>
+    <body>
+        <!-- Test conref attribute -->
+        <p conref="valid-topic.dita#valid_topic/intro">Content reference to another topic</p>
+
+        <!-- Test conkeyref attribute with filename -->
+        <p conkeyref="valid-topic.dita/para1">Content key reference with filename</p>
+
+        <!-- Test keyref attribute with filename -->
+        <xref keyref="no-doctype.dita">Key reference with filename</xref>
+
+        <!-- Test nested conref -->
+        <section>
+            <title>Nested References</title>
+            <p conref="empty-elements.dita#empty_topic/p1">Nested content reference</p>
+        </section>
+
+        <!-- Test conref with relative path -->
+        <note conref="./valid-topic.dita#valid_topic/note1">Relative path content reference</note>
+
+        <!-- Pure key references (should be skipped) -->
+        <p keyref="product-name">Pure key reference without filename</p>
+        <p conkeyref="reusable-content/warning">Pure key without filename</p>
+    </body>
+</topic>

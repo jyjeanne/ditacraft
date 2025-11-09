@@ -21,34 +21,42 @@ export class Logger {
     private constructor() {
         this.outputChannel = vscode.window.createOutputChannel('DitaCraft');
 
-        // Get log file path from workspace or use temp directory
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        const logDir = workspaceFolder
-            ? path.join(workspaceFolder.uri.fsPath, '.ditacraft')
-            : path.join(os.tmpdir(), 'ditacraft-logs');
-
-        // Create log directory if it doesn't exist
-        if (!fs.existsSync(logDir)) {
-            try {
-                fs.mkdirSync(logDir, { recursive: true });
-            } catch (error) {
-                console.error('Failed to create log directory:', error);
-            }
-        }
-
-        // Generate log file name with timestamp
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
-        this.logFilePath = path.join(logDir, `ditacraft-${timestamp}.log`);
-
         // Get configuration
         const config = vscode.workspace.getConfiguration('ditacraft');
         this.logLevel = this.parseLogLevel(config.get<string>('logLevel', 'info'));
         this.enableFileLogging = config.get<boolean>('enableFileLogging', true);
         this.enableConsoleLogging = config.get<boolean>('enableConsoleLogging', true);
 
+        // Only create log directory and file if file logging is enabled AND in debug mode
+        const shouldCreateLogFile = this.enableFileLogging && this.logLevel === LogLevel.DEBUG;
+
+        if (shouldCreateLogFile) {
+            // Get log file path from workspace or use temp directory
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const logDir = workspaceFolder
+                ? path.join(workspaceFolder.uri.fsPath, '.ditacraft')
+                : path.join(os.tmpdir(), 'ditacraft-logs');
+
+            // Create log directory if it doesn't exist
+            if (!fs.existsSync(logDir)) {
+                try {
+                    fs.mkdirSync(logDir, { recursive: true });
+                } catch (error) {
+                    console.error('Failed to create log directory:', error);
+                }
+            }
+
+            // Generate log file name with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+            this.logFilePath = path.join(logDir, `ditacraft-${timestamp}.log`);
+        } else {
+            // Use empty path when file logging is disabled or not in debug mode
+            this.logFilePath = '';
+        }
+
         // Log initialization
         this.info('Logger initialized', {
-            logFilePath: this.logFilePath,
+            logFilePath: this.logFilePath || 'File logging disabled (enable debug mode)',
             logLevel: LogLevel[this.logLevel],
             enableFileLogging: this.enableFileLogging,
             enableConsoleLogging: this.enableConsoleLogging
@@ -98,7 +106,7 @@ export class Logger {
     }
 
     private writeToFile(message: string): void {
-        if (!this.enableFileLogging) {
+        if (!this.enableFileLogging || !this.logFilePath) {
             return;
         }
 
@@ -168,6 +176,13 @@ export class Logger {
     }
 
     public openLogFile(): void {
+        if (!this.logFilePath) {
+            vscode.window.showInformationMessage(
+                'File logging is disabled. Enable debug mode (ditacraft.logLevel = "debug") to create log files.'
+            );
+            return;
+        }
+
         if (fs.existsSync(this.logFilePath)) {
             vscode.workspace.openTextDocument(this.logFilePath).then(doc => {
                 vscode.window.showTextDocument(doc);
@@ -178,6 +193,13 @@ export class Logger {
     }
 
     public showLogFileLocation(): void {
+        if (!this.logFilePath) {
+            vscode.window.showInformationMessage(
+                'File logging is disabled. Enable debug mode (ditacraft.logLevel = "debug") to create log files.'
+            );
+            return;
+        }
+
         vscode.window.showInformationMessage(
             `Log file: ${this.logFilePath}`,
             'Open Log File',
@@ -193,6 +215,11 @@ export class Logger {
     }
 
     public async clearOldLogs(daysToKeep: number = 7): Promise<void> {
+        // Only clean up logs if we're in debug mode and have a log file path
+        if (!this.logFilePath || this.logLevel !== LogLevel.DEBUG) {
+            return;
+        }
+
         const logDir = path.dirname(this.logFilePath);
 
         if (!fs.existsSync(logDir)) {

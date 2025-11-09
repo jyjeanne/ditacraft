@@ -55,6 +55,7 @@ coverage
 # Misc
 *.vsix
 .claude/
+.ditacraft/
 test-minimal/
 NUL
 nul

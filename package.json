@@ -277,13 +277,13 @@
             "warn",
             "error"
           ],
-          "description": "Logging level for debugging (debug, info, warn, error).",
+          "description": "Logging level for debugging. Note: .ditacraft folder is only created when set to 'debug' mode.",
           "order": 10
         },
         "ditacraft.enableFileLogging": {
           "type": "boolean",
           "default": true,
-          "description": "Enable logging to file. Log files are stored in .ditacraft folder in workspace.",
+          "description": "Enable logging to file. Requires logLevel to be set to 'debug' to create .ditacraft folder.",
           "order": 11
         },
         "ditacraft.enableConsoleLogging": {

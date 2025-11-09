@@ -8,6 +8,7 @@ node_modules
 
 # Logs
 *.log
+.ditacraft
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
