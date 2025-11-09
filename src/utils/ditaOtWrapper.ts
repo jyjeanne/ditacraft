@@ -125,7 +125,7 @@ export class DitaOtWrapper {
                 version: version,
                 path: this.ditaOtCommand || 'System PATH'
             };
-        } catch (error) {
+        } catch (_error) {
             return {
                 installed: false
             };
@@ -158,7 +158,7 @@ export class DitaOtWrapper {
             }
 
             return transtypes.sort();
-        } catch (error) {
+        } catch (_error) {
             // Return default transtypes if command fails
             return ['html5', 'pdf', 'xhtml', 'epub', 'htmlhelp', 'markdown'];
         }
