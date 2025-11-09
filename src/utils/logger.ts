@@ -31,11 +31,8 @@ export class Logger {
         const shouldCreateLogFile = this.enableFileLogging && this.logLevel === LogLevel.DEBUG;
 
         if (shouldCreateLogFile) {
-            // Get log file path from workspace or use temp directory
-            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-            const logDir = workspaceFolder
-                ? path.join(workspaceFolder.uri.fsPath, '.ditacraft')
-                : path.join(os.tmpdir(), 'ditacraft-logs');
+            // Always use temp directory for logs (never create .ditacraft folder in workspace)
+            const logDir = path.join(os.tmpdir(), 'ditacraft-logs');
 
             // Create log directory if it doesn't exist
             if (!fs.existsSync(logDir)) {
