@@ -6,6 +6,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 import { DitaLinkProvider } from '../../providers/ditaLinkProvider';
 
 suite('DITA Link Provider Test Suite', () => {
@@ -930,7 +931,7 @@ suite('DITA Link Provider Test Suite', () => {
             // Check that all link targets exist
             for (const link of links!) {
                 if (link.target && !link.target.toString().startsWith('http')) {
-                    const targetExists = require('fs').existsSync(link.target.fsPath);
+                    const targetExists = fs.existsSync(link.target.fsPath);
                     assert.ok(targetExists,
                         `Link target should exist: ${path.basename(link.target.fsPath)}`);
                 }
