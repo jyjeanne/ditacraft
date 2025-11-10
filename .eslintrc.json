@@ -20,19 +20,20 @@
         "format": ["camelCase", "PascalCase"]
       }
     ],
-    "@typescript-eslint/semi": "warn",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
-        "argsIgnorePattern": "^_"
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
       }
     ],
     "prefer-const": "warn",
     "curly": "warn",
     "eqeqeq": "warn",
     "no-throw-literal": "warn",
-    "semi": "off"
+    "semi": "warn"
   },
   "ignorePatterns": [
     "out",
