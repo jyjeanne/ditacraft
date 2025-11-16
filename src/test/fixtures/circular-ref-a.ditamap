@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Circular Reference A</title>
+    <keydef keys="key-a" href="valid-topic.dita"/>
+    <!-- Circular reference back to B -->
+    <mapref href="circular-ref-b.ditamap"/>
+</map>
