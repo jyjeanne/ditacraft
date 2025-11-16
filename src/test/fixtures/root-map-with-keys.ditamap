@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Root Map with Key Definitions</title>
+
+    <!-- Direct key definitions -->
+    <keydef keys="product-name" href="product-info-v2.dita"/>
+    <keydef keys="usage-guide" href="usage-info.dita#usage-info/usage-tips"/>
+
+    <!-- Inline key definition (no href) -->
+    <keydef keys="version-number">
+        <topicmeta>
+            <keywords>
+                <keyword>3.0.1</keyword>
+            </keywords>
+        </topicmeta>
+    </keydef>
+
+    <!-- Multiple keys in single attribute -->
+    <keydef keys="product config-guide" href="main-topic.dita"/>
+
+    <!-- Key with scope -->
+    <keydef keys="external-link" href="additional-info.dita" scope="peer"/>
+
+    <!-- Key with processing-role -->
+    <keydef keys="template-only" href="common_notes.dita" processing-role="resource-only"/>
+
+    <!-- Include submap to test hierarchy -->
+    <mapref href="submap-with-keys.ditamap"/>
+
+    <!-- Standard topicref -->
+    <topicref href="valid-topic.dita"/>
+</map>

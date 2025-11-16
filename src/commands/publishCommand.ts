@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
+import { logger } from '../utils/logger';
 
 /**
  * Command: ditacraft.publish
@@ -174,21 +175,37 @@ async function executePublish(
             );
 
             if (action === 'Open Output Folder') {
-                vscode.env.openExternal(vscode.Uri.file(result.outputPath));
+                Promise.resolve(vscode.env.openExternal(vscode.Uri.file(result.outputPath))).catch((err: unknown) => {
+                    logger.error('Failed to open output folder', err);
+                });
             } else if (action === 'Show Preview') {
                 // Open preview for HTML5
-                vscode.commands.executeCommand('ditacraft.previewHTML5', vscode.Uri.file(inputFile));
+                Promise.resolve(vscode.commands.executeCommand('ditacraft.previewHTML5', vscode.Uri.file(inputFile))).catch((err: unknown) => {
+                    logger.error('Failed to open preview', err);
+                });
             }
         } else {
+            // Log detailed error information
+            logger.error('Publishing failed', {
+                inputFile: inputFile,
+                transtype: transtype,
+                outputDir: outputDir,
+                error: result.error
+            });
+
             // Show error
             const viewOutput = await vscode.window.showErrorMessage(
                 `Publishing failed: ${result.error}`,
-                'View Output'
+                'View Output',
+                'View Logs'
             );
 
             if (viewOutput === 'View Output') {
-                // TODO: Show output channel with detailed error
-                vscode.window.showErrorMessage(result.error || 'Unknown error');
+                // Show the output channel with detailed logs
+                logger.show();
+            } else if (viewOutput === 'View Logs') {
+                // Open the log file for detailed analysis
+                logger.openLogFile();
             }
         }
     });

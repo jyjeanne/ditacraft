@@ -6,10 +6,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { exec, spawn } from 'child_process';
+import { execFile, spawn } from 'child_process';
 import { promisify } from 'util';
+import { logger } from './logger';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface DitaOtConfig {
     ditaOtPath: string;
@@ -51,12 +52,52 @@ export class DitaOtWrapper {
         let outputDir = config.get<string>('outputDirectory', '${workspaceFolder}/out');
         outputDir = outputDir.replace('${workspaceFolder}', workspaceFolder);
 
+        // Validate output directory path
+        if (outputDir && !this.isValidPath(outputDir)) {
+            logger.warn('Invalid output directory path, using default');
+            outputDir = workspaceFolder ? path.join(workspaceFolder, 'out') : './out';
+        }
+
+        // Validate DITA-OT path
+        const ditaOtPath = config.get<string>('ditaOtPath', '');
+        if (ditaOtPath && !this.isValidPath(ditaOtPath)) {
+            logger.warn('Invalid DITA-OT path in configuration');
+        }
+
+        // Validate transtype
+        const defaultTranstype = config.get<string>('defaultTranstype', 'html5');
+        const validTranstypes = ['html5', 'pdf', 'xhtml', 'epub', 'htmlhelp', 'markdown'];
+        const safeTranstype = validTranstypes.includes(defaultTranstype) ? defaultTranstype : 'html5';
+
         return {
-            ditaOtPath: config.get<string>('ditaOtPath', ''),
-            defaultTranstype: config.get<string>('defaultTranstype', 'html5'),
+            ditaOtPath: ditaOtPath,
+            defaultTranstype: safeTranstype,
             outputDirectory: outputDir,
             additionalArgs: config.get<string[]>('ditaOtArgs', [])
         };
+    }
+
+    /**
+     * Validate that a path doesn't contain dangerous characters
+     */
+    private isValidPath(pathStr: string): boolean {
+        // Check for null bytes (security risk)
+        if (pathStr.includes('\0')) {
+            return false;
+        }
+
+        // Check for reserved characters that could cause issues
+        const invalidChars = /[<>:"|?*]/;
+        if (process.platform === 'win32' && invalidChars.test(pathStr)) {
+            // On Windows, these characters are invalid in paths
+            // But we allow : for drive letters (e.g., C:\)
+            const withoutDrive = pathStr.replace(/^[a-zA-Z]:/, '');
+            if (/[<>"|?*]/.test(withoutDrive)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -115,7 +156,8 @@ export class DitaOtWrapper {
     public async verifyInstallation(): Promise<{ installed: boolean; version?: string; path?: string }> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            const { stdout } = await execAsync(`"${command}" --version`);
+            // Use execFile instead of exec to prevent command injection
+            const { stdout } = await execFileAsync(command, ['--version']);
 
             const versionMatch = stdout.match(/DITA-OT version ([\d.]+)/i);
             const version = versionMatch ? versionMatch[1] : 'unknown';
@@ -138,7 +180,8 @@ export class DitaOtWrapper {
     public async getAvailableTranstypes(): Promise<string[]> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            const { stdout } = await execAsync(`"${command}" transtypes`);
+            // Use execFile instead of exec to prevent command injection
+            const { stdout } = await execFileAsync(command, ['transtypes']);
 
             // Parse the output to extract transtype names
             const transtypes: string[] = [];
@@ -172,7 +215,7 @@ export class DitaOtWrapper {
         progressCallback?: (progress: PublishProgress) => void
     ): Promise<{ success: boolean; outputPath: string; error?: string }> {
 
-        console.log('[DitaOtWrapper] Publishing with options:', {
+        logger.debug('Publishing with options', {
             inputFile: options.inputFile,
             transtype: options.transtype,
             outputDir: options.outputDir
@@ -182,17 +225,16 @@ export class DitaOtWrapper {
             const command = this.ditaOtCommand || 'dita';
 
             // Build command arguments
-            // Note: Paths with spaces must be properly quoted
+            // Note: Pass arguments as array elements without quotes - spawn handles escaping
             const args: string[] = [
-                '--input', `"${options.inputFile}"`,
+                '--input', options.inputFile,
                 '--format', options.transtype,
-                '--output', `"${options.outputDir}"`,
+                '--output', options.outputDir,
                 // Add verbose mode for better error messages
                 '--verbose'
             ];
 
-            console.log('[DitaOtWrapper] DITA-OT command:', command);
-            console.log('[DitaOtWrapper] DITA-OT args:', args.join(' '));
+            logger.debug('DITA-OT command', { command, args: args.join(' ') });
 
             // Add temp directory if specified
             if (options.tempDir) {
@@ -220,7 +262,7 @@ export class DitaOtWrapper {
 
             // Final validation before spawning process
             if (!fs.existsSync(options.inputFile)) {
-                console.error('[DitaOtWrapper] ERROR: Input file does not exist:', options.inputFile);
+                logger.error('Input file does not exist', { inputFile: options.inputFile });
                 resolve({
                     success: false,
                     outputPath: options.outputDir,
@@ -231,7 +273,7 @@ export class DitaOtWrapper {
 
             const inputStats = fs.statSync(options.inputFile);
             if (inputStats.isDirectory()) {
-                console.error('[DitaOtWrapper] ERROR: Input path is a directory, not a file:', options.inputFile);
+                logger.error('Input path is a directory, not a file', { inputFile: options.inputFile });
                 resolve({
                     success: false,
                     outputPath: options.outputDir,
@@ -240,18 +282,33 @@ export class DitaOtWrapper {
                 return;
             }
 
-            console.log('[DitaOtWrapper] Input file validated successfully');
+            logger.debug('Input file validated successfully');
 
             // Spawn DITA-OT process
-            console.log('[DitaOtWrapper] Spawning DITA-OT process...');
-            console.log('[DitaOtWrapper] Working directory:', path.dirname(options.inputFile));
+            // Remove shell: true to avoid command injection vulnerabilities
+            logger.debug('Spawning DITA-OT process', { cwd: path.dirname(options.inputFile) });
             const ditaProcess = spawn(command, args, {
-                shell: true,
                 cwd: path.dirname(options.inputFile)
             });
 
             let outputBuffer = '';
             let errorBuffer = '';
+            let processTimedOut = false;
+
+            // Add timeout protection (10 minutes max for DITA-OT processing)
+            const PROCESS_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+            const timeoutHandle = setTimeout(() => {
+                processTimedOut = true;
+                logger.error('DITA-OT process timeout after 10 minutes');
+                ditaProcess.kill('SIGTERM');
+
+                // Give it a moment to terminate gracefully, then force kill
+                setTimeout(() => {
+                    if (!ditaProcess.killed) {
+                        ditaProcess.kill('SIGKILL');
+                    }
+                }, 5000);
+            }, PROCESS_TIMEOUT_MS);
 
             // Capture stdout
             ditaProcess.stdout?.on('data', (data: Buffer) => {
@@ -273,7 +330,7 @@ export class DitaOtWrapper {
                 errorBuffer += error;
 
                 // Log all stderr for debugging
-                console.error('[DitaOtWrapper] DITA-OT stderr:', error);
+                logger.debug('DITA-OT stderr output', { error });
 
                 // DITA-OT sometimes outputs progress to stderr
                 if (progressCallback) {
@@ -286,9 +343,18 @@ export class DitaOtWrapper {
 
             // Handle process completion
             ditaProcess.on('close', (code: number) => {
-                console.log('[DitaOtWrapper] DITA-OT process closed with code:', code);
+                // Clear the timeout since process has completed
+                clearTimeout(timeoutHandle);
 
-                if (code === 0) {
+                logger.debug('DITA-OT process closed', { exitCode: code });
+
+                if (processTimedOut) {
+                    resolve({
+                        success: false,
+                        outputPath: options.outputDir,
+                        error: 'DITA-OT process timed out after 10 minutes'
+                    });
+                } else if (code === 0) {
                     if (progressCallback) {
                         progressCallback({
                             stage: 'Complete',
@@ -297,15 +363,17 @@ export class DitaOtWrapper {
                         });
                     }
 
-                    console.log('[DitaOtWrapper] Publishing successful');
+                    logger.info('Publishing successful', { outputPath: options.outputDir });
                     resolve({
                         success: true,
                         outputPath: options.outputDir
                     });
                 } else {
-                    console.error('[DitaOtWrapper] Publishing failed with code:', code);
-                    console.error('[DitaOtWrapper] Error output:', errorBuffer);
-                    console.error('[DitaOtWrapper] Standard output:', outputBuffer);
+                    logger.error('Publishing failed', {
+                        exitCode: code,
+                        errorOutput: errorBuffer,
+                        standardOutput: outputBuffer
+                    });
 
                     resolve({
                         success: false,
@@ -317,6 +385,7 @@ export class DitaOtWrapper {
 
             // Handle process errors
             ditaProcess.on('error', (error: Error) => {
+                clearTimeout(timeoutHandle);
                 resolve({
                     success: false,
                     outputPath: options.outputDir,
@@ -424,7 +493,7 @@ export class DitaOtWrapper {
      * Validate input file is suitable for publishing
      */
     public validateInputFile(filePath: string): { valid: boolean; error?: string } {
-        console.log('[DitaOtWrapper] Validating input file:', filePath);
+        logger.debug('Validating input file', { filePath });
 
         // Check if path is empty or just whitespace
         if (!filePath || filePath.trim() === '') {
@@ -458,7 +527,7 @@ export class DitaOtWrapper {
             };
         }
 
-        console.log('[DitaOtWrapper] File validation passed:', filePath);
+        logger.debug('File validation passed', { filePath });
         return { valid: true };
     }
 }

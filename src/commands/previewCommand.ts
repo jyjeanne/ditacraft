@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
+import { logger } from '../utils/logger';
 
 /**
  * Command: ditacraft.previewHTML5
@@ -20,7 +21,7 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
         // If no URI was passed, get it from the active editor
         if (!fileUri && vscode.window.activeTextEditor) {
             fileUri = vscode.window.activeTextEditor.document.uri;
-            console.log('Using active editor document URI');
+            logger.debug('Using active editor document URI');
         }
 
         if (!fileUri) {
@@ -29,16 +30,16 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
         }
 
         // Log URI details for debugging
-        console.log('=== Preview Command Debug Info ===');
-        console.log('- URI provided as parameter:', uri ? 'Yes' : 'No');
-        console.log('- URI scheme:', fileUri.scheme);
-        console.log('- URI path:', fileUri.path);
-        console.log('- URI fsPath:', fileUri.fsPath);
-        console.log('- URI toString:', fileUri.toString());
+        logger.debug('Preview command debug info', {
+            uriProvidedAsParameter: uri ? 'Yes' : 'No',
+            uriScheme: fileUri.scheme,
+            uriPath: fileUri.path,
+            uriFsPath: fileUri.fsPath,
+            uriToString: fileUri.toString()
+        });
 
         // Get the file system path
         const filePath = fileUri.fsPath;
-        console.log('- Resolved filePath:', filePath);
 
         // Check if filePath is valid and not empty
         if (!filePath || filePath.trim() === '') {
@@ -48,7 +49,7 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
 
         // Additional check: ensure path ends with a file (has extension)
         if (filePath.endsWith('\\') || filePath.endsWith('/')) {
-            console.error('ERROR: Path ends with directory separator:', filePath);
+            logger.error('Path ends with directory separator', { filePath });
             vscode.window.showErrorMessage('The path appears to be a directory, not a file. Please open a specific DITA file.');
             return;
         }
@@ -56,13 +57,12 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
         // Check if this is actually a file with an extension
         const hasExtension = path.extname(filePath) !== '';
         if (!hasExtension) {
-            console.error('ERROR: Path has no file extension:', filePath);
+            logger.error('Path has no file extension', { filePath });
             vscode.window.showErrorMessage('The path does not appear to be a file. Please open a DITA file (.dita, .ditamap, or .bookmap).');
             return;
         }
 
-        console.log('- File extension:', path.extname(filePath));
-        console.log('===================================');
+        logger.debug('File extension validated', { extension: path.extname(filePath) });
 
         // Initialize DITA-OT wrapper
         const ditaOt = new DitaOtWrapper();
@@ -147,6 +147,7 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error('Preview failed', error);
         vscode.window.showErrorMessage(`Preview failed: ${errorMessage}`);
     }
 }
@@ -172,7 +173,7 @@ function findMainHtmlFile(outputDir: string, baseName: string): string | null {
     // Fallback: find any .html file
     try {
         const files = fs.readdirSync(outputDir);
-        const htmlFiles = files.filter(f => f.endsWith('.html'));
+        const htmlFiles = files.filter((f: string) => f.endsWith('.html'));
 
         if (htmlFiles.length > 0) {
             return path.join(outputDir, htmlFiles[0]);

@@ -8,6 +8,104 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { logger } from '../utils/logger';
 
+// Constants for file name validation
+const FILE_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+const FILE_NAME_VALIDATION_MESSAGE = 'File name can only contain letters, numbers, hyphens, and underscores';
+
+/**
+ * Options for creating a DITA file
+ */
+interface FileCreationOptions {
+    fileName: string;
+    extension: string;
+    content: string;
+    fileType: string;
+    additionalInfo?: Record<string, unknown>;
+}
+
+/**
+ * Validate file name input
+ */
+function validateFileName(value: string): string | null {
+    if (!value) {
+        return 'File name is required';
+    }
+    if (!FILE_NAME_PATTERN.test(value)) {
+        return FILE_NAME_VALIDATION_MESSAGE;
+    }
+    return null;
+}
+
+/**
+ * Get the current workspace folder or show error
+ */
+function getWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        logger.error('No workspace folder open');
+        vscode.window.showErrorMessage('No workspace folder open');
+    }
+    return workspaceFolder;
+}
+
+/**
+ * Create a DITA file from options
+ * This is the core function that handles file creation, reducing code duplication
+ */
+async function createDitaFile(options: FileCreationOptions): Promise<void> {
+    const workspaceFolder = getWorkspaceFolder();
+    if (!workspaceFolder) {
+        return;
+    }
+
+    logger.debug('Workspace folder', { path: workspaceFolder.uri.fsPath });
+
+    // Create file path
+    const fullFileName = `${options.fileName}${options.extension}`;
+    const filePath = path.join(workspaceFolder.uri.fsPath, fullFileName);
+
+    logger.debug('Creating file', { filePath });
+
+    // Check if file already exists
+    if (fs.existsSync(filePath)) {
+        logger.warn('File already exists', { filePath });
+        vscode.window.showErrorMessage(`File already exists: ${fullFileName}`);
+        return;
+    }
+
+    // Write file with error handling
+    try {
+        fs.writeFileSync(filePath, options.content, 'utf8');
+    } catch (writeError) {
+        const writeErrorMessage = writeError instanceof Error ? writeError.message : 'Unknown write error';
+        logger.error('Failed to write file', { filePath, error: writeErrorMessage });
+        throw new Error(`Failed to write file: ${writeErrorMessage}`);
+    }
+
+    logger.info(`Created DITA ${options.fileType} file`, {
+        filePath,
+        fileName: fullFileName,
+        ...options.additionalInfo
+    });
+
+    // Open file in editor
+    const document = await vscode.workspace.openTextDocument(filePath);
+    await vscode.window.showTextDocument(document);
+
+    vscode.window.showInformationMessage(`Created ${options.fileType}: ${fullFileName}`);
+}
+
+/**
+ * Prompt user for file name with validation
+ */
+async function promptForFileName(placeholder: string, prompt: string): Promise<string | undefined> {
+    return vscode.window.showInputBox({
+        prompt,
+        placeHolder: placeholder,
+        validateInput: validateFileName
+    });
+}
+
 /**
  * Command: ditacraft.newTopic
  * Creates a new DITA topic file
@@ -29,72 +127,32 @@ export async function newTopicCommand(): Promise<void> {
 
         if (!topicType) {
             logger.debug('User cancelled topic type selection');
-            return; // User cancelled
+            return;
         }
 
         logger.debug('Topic type selected', { type: topicType.value });
 
         // Ask for file name
-        const fileName = await vscode.window.showInputBox({
-            prompt: 'Enter file name (without extension)',
-            placeHolder: 'my-topic',
-            validateInput: (value) => {
-                if (!value) {
-                    return 'File name is required';
-                }
-                if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-                    return 'File name can only contain letters, numbers, hyphens, and underscores';
-                }
-                return null;
-            }
-        });
+        const fileName = await promptForFileName('my-topic', 'Enter file name (without extension)');
 
         if (!fileName) {
             logger.debug('User cancelled file name input');
-            return; // User cancelled
+            return;
         }
 
         logger.debug('File name entered', { fileName });
 
-        // Get workspace folder
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            logger.error('No workspace folder open');
-            vscode.window.showErrorMessage('No workspace folder open');
-            return;
-        }
-
-        logger.debug('Workspace folder', { path: workspaceFolder.uri.fsPath });
-
-        // Create file path
-        const filePath = path.join(workspaceFolder.uri.fsPath, `${fileName}.dita`);
-
-        logger.debug('Creating file', { filePath });
-
-        // Check if file already exists
-        if (fs.existsSync(filePath)) {
-            logger.warn('File already exists', { filePath });
-            vscode.window.showErrorMessage(`File already exists: ${fileName}.dita`);
-            return;
-        }
-
-        // Generate content based on topic type
+        // Generate and create file
         const content = generateTopicContent(topicType.value, fileName);
         logger.debug('Generated content', { length: content.length, topicType: topicType.value });
 
-        // Write file
-        fs.writeFileSync(filePath, content, 'utf8');
-        logger.info('Created DITA topic file', {
-            filePath,
-            topicType: topicType.value,
-            fileName: `${fileName}.dita`
+        await createDitaFile({
+            fileName,
+            extension: '.dita',
+            content,
+            fileType: topicType.label,
+            additionalInfo: { topicType: topicType.value }
         });
-
-        // Open file in editor
-        const document = await vscode.workspace.openTextDocument(filePath);
-        await vscode.window.showTextDocument(document);
-
-        vscode.window.showInformationMessage(`Created ${topicType.label}: ${fileName}.dita`);
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -112,65 +170,25 @@ export async function newMapCommand(): Promise<void> {
         logger.debug('Starting newMapCommand');
 
         // Ask for file name
-        const fileName = await vscode.window.showInputBox({
-            prompt: 'Enter map file name (without extension)',
-            placeHolder: 'my-map',
-            validateInput: (value) => {
-                if (!value) {
-                    return 'File name is required';
-                }
-                if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-                    return 'File name can only contain letters, numbers, hyphens, and underscores';
-                }
-                return null;
-            }
-        });
+        const fileName = await promptForFileName('my-map', 'Enter map file name (without extension)');
 
         if (!fileName) {
             logger.debug('User cancelled file name input');
-            return; // User cancelled
+            return;
         }
 
         logger.debug('File name entered', { fileName });
 
-        // Get workspace folder
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            logger.error('No workspace folder open');
-            vscode.window.showErrorMessage('No workspace folder open');
-            return;
-        }
-
-        logger.debug('Workspace folder', { path: workspaceFolder.uri.fsPath });
-
-        // Create file path
-        const filePath = path.join(workspaceFolder.uri.fsPath, `${fileName}.ditamap`);
-
-        logger.debug('Creating file', { filePath });
-
-        // Check if file already exists
-        if (fs.existsSync(filePath)) {
-            logger.warn('File already exists', { filePath });
-            vscode.window.showErrorMessage(`File already exists: ${fileName}.ditamap`);
-            return;
-        }
-
-        // Generate content
+        // Generate and create file
         const content = generateMapContent(fileName);
         logger.debug('Generated map content', { length: content.length });
 
-        // Write file
-        fs.writeFileSync(filePath, content, 'utf8');
-        logger.info('Created DITA map file', {
-            filePath,
-            fileName: `${fileName}.ditamap`
+        await createDitaFile({
+            fileName,
+            extension: '.ditamap',
+            content,
+            fileType: 'map'
         });
-
-        // Open file in editor
-        const document = await vscode.workspace.openTextDocument(filePath);
-        await vscode.window.showTextDocument(document);
-
-        vscode.window.showInformationMessage(`Created map: ${fileName}.ditamap`);
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -195,72 +213,32 @@ export async function newBookmapCommand(): Promise<void> {
 
         if (!bookTitle) {
             logger.debug('User cancelled book title input');
-            return; // User cancelled
+            return;
         }
 
         logger.debug('Book title entered', { bookTitle });
 
         // Ask for file name
-        const fileName = await vscode.window.showInputBox({
-            prompt: 'Enter bookmap file name (without extension)',
-            placeHolder: 'user-guide',
-            validateInput: (value) => {
-                if (!value) {
-                    return 'File name is required';
-                }
-                if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-                    return 'File name can only contain letters, numbers, hyphens, and underscores';
-                }
-                return null;
-            }
-        });
+        const fileName = await promptForFileName('user-guide', 'Enter bookmap file name (without extension)');
 
         if (!fileName) {
             logger.debug('User cancelled file name input');
-            return; // User cancelled
+            return;
         }
 
         logger.debug('File name entered', { fileName });
 
-        // Get workspace folder
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            logger.error('No workspace folder open');
-            vscode.window.showErrorMessage('No workspace folder open');
-            return;
-        }
-
-        logger.debug('Workspace folder', { path: workspaceFolder.uri.fsPath });
-
-        // Create file path
-        const filePath = path.join(workspaceFolder.uri.fsPath, `${fileName}.bookmap`);
-
-        logger.debug('Creating file', { filePath });
-
-        // Check if file already exists
-        if (fs.existsSync(filePath)) {
-            logger.warn('File already exists', { filePath });
-            vscode.window.showErrorMessage(`File already exists: ${fileName}.bookmap`);
-            return;
-        }
-
-        // Generate content
+        // Generate and create file
         const content = generateBookmapContent(bookTitle, fileName);
         logger.debug('Generated bookmap content', { length: content.length });
 
-        // Write file
-        fs.writeFileSync(filePath, content, 'utf8');
-        logger.info('Created DITA bookmap file', {
-            filePath,
-            bookTitle,
-            fileName: `${fileName}.bookmap`
+        await createDitaFile({
+            fileName,
+            extension: '.bookmap',
+            content,
+            fileType: 'bookmap',
+            additionalInfo: { bookTitle }
         });
-
-        // Open file in editor
-        const document = await vscode.workspace.openTextDocument(filePath);
-        await vscode.window.showTextDocument(document);
-
-        vscode.window.showInformationMessage(`Created bookmap: ${fileName}.bookmap`);
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

@@ -5,6 +5,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
+import { logger } from './logger';
 
 export class DtdResolver {
     private dtdCache: Map<string, string> = new Map();
@@ -84,7 +85,7 @@ export class DtdResolver {
             this.dtdCache.set(publicId, content);
             return content;
         } catch (error) {
-            console.error(`Failed to load DTD from ${dtdPath}:`, error);
+            logger.error('Failed to load DTD', { dtdPath, error });
             return null;
         }
     }

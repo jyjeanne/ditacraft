@@ -1,0 +1,288 @@
+@startuml DitaCraft Architecture
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+title DitaCraft VS Code Extension - Class Architecture (v0.2.0)
+
+' ===== PACKAGES =====
+
+package "Extension Core" {
+    class Extension <<entry point>> {
+        +activate(context: ExtensionContext): void
+        +deactivate(): void
+        +getOutputChannel(): OutputChannel
+        +getDitaOtWrapper(): DitaOtWrapper
+        -registerCommands(): void
+        -registerProviders(): void
+        -initializeComponents(): void
+    }
+}
+
+package "Providers" {
+    interface ValidationError {
+        +message: string
+        +line: number
+        +column: number
+        +severity: DiagnosticSeverity
+    }
+
+    interface ValidationResult {
+        +valid: boolean
+        +errors: ValidationError[]
+        +warnings: ValidationError[]
+    }
+
+    class DitaValidator {
+        -context: ExtensionContext
+        -diagnosticCollection: DiagnosticCollection
+        -dtdResolver: DtdResolver
+        -debounceTimer: NodeJS.Timeout
+        +validateFile(uri: Uri): Promise<ValidationResult>
+        +validateDocument(document: TextDocument): void
+        +clearDiagnostics(): void
+        +dispose(): void
+        -validateWithBuiltIn(path: string, content: string): Promise<ValidationResult>
+        -validateDitaStructure(path: string, content: string): Promise<ValidationResult>
+        -neutralizeXXE(content: string): {content: string, hadEntities: boolean}
+        -updateDiagnostics(uri: Uri, result: ValidationResult): void
+    }
+
+    class DitaLinkProvider implements DocumentLinkProvider {
+        -keySpaceResolver: KeySpaceResolver
+        +provideDocumentLinks(document: TextDocument, token: CancellationToken): Promise<DocumentLink[]>
+        -parseHrefLinks(text: string, document: TextDocument): DocumentLink[]
+        -parseConrefLinks(text: string, document: TextDocument): DocumentLink[]
+        -parseConkeyrefLinks(text: string, document: TextDocument): DocumentLink[]
+        -parseKeyrefLinks(text: string, document: TextDocument): DocumentLink[]
+        -resolveKeyToFile(keyName: string, documentUri: Uri): string | null
+        -createLinkForMatch(match: RegExpMatchArray, ...): DocumentLink | null
+        {static} -HREF_REGEX: RegExp
+        {static} -CONREF_REGEX: RegExp
+        {static} -CONKEYREF_REGEX: RegExp
+        {static} -KEYREF_REGEX: RegExp
+        {static} -MAX_MATCHES: number
+    }
+}
+
+package "Utils" {
+    interface KeyDefinition {
+        +keys: string
+        +href?: string
+        +scope?: string
+        +format?: string
+        +processing-role?: string
+    }
+
+    interface KeyMetadata {
+        +definedIn: string
+        +element: string
+        +attributes: Map<string, string>
+    }
+
+    interface KeySpace {
+        +keys: Map<string, KeyDefinition>
+        +metadata: Map<string, KeyMetadata>
+        +processedMaps: Set<string>
+    }
+
+    class KeySpaceResolver implements Disposable {
+        -keySpaceCache: Map<string, KeySpace>
+        -cacheTimestamps: Map<string, number>
+        -rootMapCache: Map<string, string>
+        -fileWatcher: FileSystemWatcher
+        -pendingInvalidations: Set<string>
+        -debounceTimer: NodeJS.Timeout
+        -CACHE_TTL_MS: number
+        -MAX_CACHE_SIZE: number
+        -DEBOUNCE_MS: number
+        +getKeySpace(contextFilePath: string): Promise<KeySpace>
+        +resolveKey(keyName: string, contextFilePath: string): Promise<string | undefined>
+        +invalidateCacheForFile(filePath: string): void
+        +dispose(): void
+        -findRootMap(startPath: string): Promise<string | null>
+        -buildKeySpace(rootMapPath: string): Promise<KeySpace>
+        -parseMapForKeys(mapPath: string, keySpace: KeySpace): Promise<void>
+        -fileExistsAsync(path: string): Promise<boolean>
+        -isPathWithinWorkspace(path: string): boolean
+        -queueInvalidation(filePath: string): void
+        -evictOldestCacheEntry(): void
+    }
+
+    class DtdResolver {
+        -extensionPath: string
+        -dtdCache: Map<string, string>
+        -publicIdMap: Map<string, string>
+        +areDtdsAvailable(): boolean
+        +resolvePublicId(publicId: string): string | null
+        +getDtdContent(publicId: string): string | null
+        -initializePublicIdMap(): void
+        -loadDtdContent(path: string): string | null
+    }
+
+    interface DitaOtConfig {
+        +ditaOtPath: string
+        +defaultTranstype: string
+        +outputDirectory: string
+    }
+
+    interface PublishOptions {
+        +inputFile: string
+        +outputDir: string
+        +transtype: string
+        +additionalArgs?: string[]
+    }
+
+    interface PublishProgress {
+        +stage: string
+        +message: string
+        +percentage: number
+    }
+
+    class DitaOtWrapper {
+        -config: DitaOtConfig
+        +isAvailable(): Promise<boolean>
+        +getVersion(): Promise<string>
+        +getTranstypes(): Promise<string[]>
+        +publish(options: PublishOptions, progress?: (p: PublishProgress) => void): Promise<string>
+        +setDitaOtPath(path: string): void
+        -executeCommand(command: string, args: string[]): Promise<string>
+        -validateDitaOtPath(path: string): Promise<boolean>
+    }
+
+    class Logger {
+        -logFilePath: string
+        -outputChannel: OutputChannel
+        -logLevel: string
+        +info(message: string, data?: object): void
+        +warn(message: string, data?: object): void
+        +error(message: string, error?: Error, data?: object): void
+        +debug(message: string, data?: object): void
+        +showLogFileLocation(): void
+        +openLogFile(): void
+        -writeToFile(level: string, message: string, data?: object): void
+        -formatLogEntry(level: string, message: string, data?: object): string
+    }
+}
+
+package "Commands" {
+    class ValidateCommand <<module>> {
+        +initializeValidator(context: ExtensionContext): void
+        +validateCommand(uri?: Uri): Promise<void>
+        +getValidator(): DitaValidator | undefined
+        -setupAutoValidation(): void
+        -setupFileWatchers(): void
+    }
+
+    class PublishCommand <<module>> {
+        +publishCommand(uri?: Uri): Promise<void>
+        +publishHTML5Command(uri?: Uri): Promise<void>
+        -selectTranstype(): Promise<string | undefined>
+        -executePublish(file: string, transtype: string): Promise<void>
+        -showProgress(message: string): void
+    }
+
+    class PreviewCommand <<module>> {
+        +previewHTML5Command(uri?: Uri): Promise<void>
+        -generatePreview(inputFile: string): Promise<string>
+        -openInBrowser(htmlPath: string): void
+    }
+
+    class ConfigureCommand <<module>> {
+        +configureDitaOTCommand(): Promise<void>
+        -selectDitaOtPath(): Promise<string | undefined>
+        -validatePath(path: string): Promise<boolean>
+    }
+
+    class FileCreationCommands <<module>> {
+        +newTopicCommand(): Promise<void>
+        +newMapCommand(): Promise<void>
+        +newBookmapCommand(): Promise<void>
+        -getTopicType(): Promise<string | undefined>
+        -createFile(template: string, name: string): Promise<void>
+        -generateTemplate(type: string): string
+    }
+}
+
+' ===== RELATIONSHIPS =====
+
+' Extension relationships
+Extension ..> DitaValidator : creates
+Extension ..> DitaLinkProvider : registers
+Extension ..> DitaOtWrapper : manages
+Extension ..> Logger : uses
+Extension ..> ValidateCommand : registers
+Extension ..> PublishCommand : registers
+Extension ..> PreviewCommand : registers
+Extension ..> ConfigureCommand : registers
+Extension ..> FileCreationCommands : registers
+
+' Provider relationships
+DitaValidator *-- DtdResolver : uses
+DitaValidator ..> ValidationResult : returns
+DitaValidator ..> ValidationError : contains
+DitaLinkProvider *-- KeySpaceResolver : uses
+DitaLinkProvider ..> vscode.DocumentLink : creates
+
+' KeySpaceResolver relationships
+KeySpaceResolver ..> KeySpace : manages
+KeySpaceResolver ..> KeyDefinition : resolves
+KeySpaceResolver ..> KeyMetadata : stores
+KeySpaceResolver ..> vscode.FileSystemWatcher : uses
+
+' Command relationships
+ValidateCommand ..> DitaValidator : uses
+PublishCommand ..> DitaOtWrapper : uses
+PreviewCommand ..> DitaOtWrapper : uses
+ConfigureCommand ..> DitaOtWrapper : configures
+
+' Utility relationships
+DitaOtWrapper ..> DitaOtConfig : configured by
+DitaOtWrapper ..> PublishOptions : accepts
+DitaOtWrapper ..> PublishProgress : reports
+
+' Interface implementations
+DitaLinkProvider ..|> vscode.DocumentLinkProvider
+KeySpaceResolver ..|> vscode.Disposable
+
+' ===== NOTES =====
+
+note top of Extension
+    Entry point for VS Code extension.
+    Manages lifecycle, registers commands,
+    and initializes all components.
+end note
+
+note right of KeySpaceResolver
+    **NEW in v0.2.0**
+    - Automatic root map discovery
+    - Key space building with caching
+    - Path traversal protection
+    - Async file operations
+    - 1-minute cache TTL
+    - 300ms debouncing
+end note
+
+note left of DitaValidator
+    **Security Features**
+    - XXE neutralization
+    - Input validation
+    - Safe async operations
+end note
+
+note bottom of DitaLinkProvider
+    **Enhanced Navigation**
+    - href, conref, keyref, conkeyref support
+    - Pre-compiled regex patterns
+    - Key space resolution integration
+end note
+
+note right of DitaOtWrapper
+    **Command Injection Prevention**
+    - Uses execFile() instead of exec()
+    - Safe argument passing
+end note
+
+@enduml

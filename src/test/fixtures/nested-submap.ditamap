@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Nested Submap (Level 3)</title>
+
+    <!-- Keys from deeply nested map -->
+    <keydef keys="deep-key" href="product_info.dita"/>
+    <keydef keys="inline-only">
+        <topicmeta>
+            <keywords>
+                <keyword>Deeply nested value</keyword>
+            </keywords>
+        </topicmeta>
+    </keydef>
+
+    <!-- This key already exists in parent, should be ignored -->
+    <keydef keys="submap-key" href="invalid-xml.dita"/>
+</map>
