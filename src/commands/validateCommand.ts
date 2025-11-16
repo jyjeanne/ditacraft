@@ -11,6 +11,10 @@ import { DitaValidator } from '../providers/ditaValidator';
 let validator: DitaValidator | undefined;
 let extensionContext: vscode.ExtensionContext | undefined;
 
+// Debounce timers for validation (per file)
+const validationDebounceTimers: Map<string, NodeJS.Timeout> = new Map();
+const VALIDATION_DEBOUNCE_MS = 500; // 500ms debounce as documented
+
 /**
  * Initialize the validator
  */
@@ -27,11 +31,33 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
             vscode.workspace.onDidSaveTextDocument(async (document) => {
                 const ext = path.extname(document.uri.fsPath).toLowerCase();
                 if (['.dita', '.ditamap', '.bookmap'].includes(ext)) {
-                    await validator?.validateFile(document.uri);
+                    const filePath = document.uri.fsPath;
+
+                    // Clear existing timer for this file
+                    const existingTimer = validationDebounceTimers.get(filePath);
+                    if (existingTimer) {
+                        clearTimeout(existingTimer);
+                    }
+
+                    // Set new debounced validation
+                    const timer = setTimeout(async () => {
+                        validationDebounceTimers.delete(filePath);
+                        await validator?.validateFile(document.uri);
+                    }, VALIDATION_DEBOUNCE_MS);
+
+                    validationDebounceTimers.set(filePath, timer);
                 }
             })
         );
     }
+
+    // Clean up debounce timers on deactivation
+    context.subscriptions.push({
+        dispose: () => {
+            validationDebounceTimers.forEach(timer => clearTimeout(timer));
+            validationDebounceTimers.clear();
+        }
+    });
 }
 
 /**

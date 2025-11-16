@@ -53,7 +53,14 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         const hrefRegex = /<(?:topicref|chapter|appendix|part|mapref|keydef|topicgroup|topichead)[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
 
         let match: RegExpExecArray | null;
+        let matchCount = 0;
+        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = hrefRegex.exec(text)) !== null) {
+            // Safety check to prevent infinite loops if regex lacks global flag
+            if (++matchCount > maxMatches) {
+                break;
+            }
+
             const hrefValue = match[1];
 
             // Skip if href is empty, a URL, or contains variables
@@ -97,7 +104,14 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         const conrefRegex = /\bconref\s*=\s*["']([^"']+)["']/gi;
 
         let match: RegExpExecArray | null;
+        let matchCount = 0;
+        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = conrefRegex.exec(text)) !== null) {
+            // Safety check to prevent infinite loops
+            if (++matchCount > maxMatches) {
+                break;
+            }
+
             const conrefValue = match[1];
 
             // Skip if empty, URL, or contains variables
@@ -141,7 +155,14 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         const conkeyrefRegex = /\bconkeyref\s*=\s*["']([^"']+)["']/gi;
 
         let match: RegExpExecArray | null;
+        let matchCount = 0;
+        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = conkeyrefRegex.exec(text)) !== null) {
+            // Safety check to prevent infinite loops
+            if (++matchCount > maxMatches) {
+                break;
+            }
+
             const conkeyrefValue = match[1];
 
             // Skip if empty or contains variables
@@ -192,7 +213,14 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         const keyrefRegex = /\bkeyref\s*=\s*["']([^"']+)["']/gi;
 
         let match: RegExpExecArray | null;
+        let matchCount = 0;
+        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = keyrefRegex.exec(text)) !== null) {
+            // Safety check to prevent infinite loops
+            if (++matchCount > maxMatches) {
+                break;
+            }
+
             const keyrefValue = match[1];
 
             // Skip if empty or contains variables
@@ -230,7 +258,8 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
      */
     private resolveReference(reference: string, baseDir: string): string | null {
         // Remove fragment identifier if present (e.g., "file.dita#topic_id" -> "file.dita")
-        const referenceWithoutFragment = reference.split('#')[0];
+        const parts = reference.split('#');
+        const referenceWithoutFragment = parts.length > 0 ? parts[0] : reference;
 
         if (!referenceWithoutFragment) {
             return null;
@@ -238,6 +267,23 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
 
         // Resolve relative path to absolute path
         const absolutePath = path.resolve(baseDir, referenceWithoutFragment);
+
+        // Security: Prevent path traversal attacks
+        // Ensure resolved path is within the workspace bounds
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders && workspaceFolders.length > 0) {
+            const normalizedAbsolutePath = path.normalize(absolutePath);
+            const isWithinWorkspace = workspaceFolders.some(folder => {
+                const normalizedWorkspace = path.normalize(folder.uri.fsPath);
+                return normalizedAbsolutePath.startsWith(normalizedWorkspace + path.sep) ||
+                       normalizedAbsolutePath === normalizedWorkspace;
+            });
+
+            // Reject path traversal attempts outside workspace
+            if (!isWithinWorkspace) {
+                return null;
+            }
+        }
 
         // Check if file exists
         if (fs.existsSync(absolutePath)) {

@@ -51,12 +51,52 @@ export class DitaOtWrapper {
         let outputDir = config.get<string>('outputDirectory', '${workspaceFolder}/out');
         outputDir = outputDir.replace('${workspaceFolder}', workspaceFolder);
 
+        // Validate output directory path
+        if (outputDir && !this.isValidPath(outputDir)) {
+            console.warn('[DitaOtWrapper] Invalid output directory path, using default');
+            outputDir = workspaceFolder ? path.join(workspaceFolder, 'out') : './out';
+        }
+
+        // Validate DITA-OT path
+        const ditaOtPath = config.get<string>('ditaOtPath', '');
+        if (ditaOtPath && !this.isValidPath(ditaOtPath)) {
+            console.warn('[DitaOtWrapper] Invalid DITA-OT path in configuration');
+        }
+
+        // Validate transtype
+        const defaultTranstype = config.get<string>('defaultTranstype', 'html5');
+        const validTranstypes = ['html5', 'pdf', 'xhtml', 'epub', 'htmlhelp', 'markdown'];
+        const safeTranstype = validTranstypes.includes(defaultTranstype) ? defaultTranstype : 'html5';
+
         return {
-            ditaOtPath: config.get<string>('ditaOtPath', ''),
-            defaultTranstype: config.get<string>('defaultTranstype', 'html5'),
+            ditaOtPath: ditaOtPath,
+            defaultTranstype: safeTranstype,
             outputDirectory: outputDir,
             additionalArgs: config.get<string[]>('ditaOtArgs', [])
         };
+    }
+
+    /**
+     * Validate that a path doesn't contain dangerous characters
+     */
+    private isValidPath(pathStr: string): boolean {
+        // Check for null bytes (security risk)
+        if (pathStr.includes('\0')) {
+            return false;
+        }
+
+        // Check for reserved characters that could cause issues
+        const invalidChars = /[<>:"|?*]/;
+        if (process.platform === 'win32' && invalidChars.test(pathStr)) {
+            // On Windows, these characters are invalid in paths
+            // But we allow : for drive letters (e.g., C:\)
+            const withoutDrive = pathStr.replace(/^[a-zA-Z]:/, '');
+            if (/[<>"|?*]/.test(withoutDrive)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -252,6 +292,22 @@ export class DitaOtWrapper {
 
             let outputBuffer = '';
             let errorBuffer = '';
+            let processTimedOut = false;
+
+            // Add timeout protection (10 minutes max for DITA-OT processing)
+            const PROCESS_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+            const timeoutHandle = setTimeout(() => {
+                processTimedOut = true;
+                console.error('[DitaOtWrapper] DITA-OT process timeout after 10 minutes');
+                ditaProcess.kill('SIGTERM');
+
+                // Give it a moment to terminate gracefully, then force kill
+                setTimeout(() => {
+                    if (!ditaProcess.killed) {
+                        ditaProcess.kill('SIGKILL');
+                    }
+                }, 5000);
+            }, PROCESS_TIMEOUT_MS);
 
             // Capture stdout
             ditaProcess.stdout?.on('data', (data: Buffer) => {
@@ -286,9 +342,18 @@ export class DitaOtWrapper {
 
             // Handle process completion
             ditaProcess.on('close', (code: number) => {
+                // Clear the timeout since process has completed
+                clearTimeout(timeoutHandle);
+
                 console.log('[DitaOtWrapper] DITA-OT process closed with code:', code);
 
-                if (code === 0) {
+                if (processTimedOut) {
+                    resolve({
+                        success: false,
+                        outputPath: options.outputDir,
+                        error: 'DITA-OT process timed out after 10 minutes'
+                    });
+                } else if (code === 0) {
                     if (progressCallback) {
                         progressCallback({
                             stage: 'Complete',
@@ -317,6 +382,7 @@ export class DitaOtWrapper {
 
             // Handle process errors
             ditaProcess.on('error', (error: Error) => {
+                clearTimeout(timeoutHandle);
                 resolve({
                     success: false,
                     outputPath: options.outputDir,

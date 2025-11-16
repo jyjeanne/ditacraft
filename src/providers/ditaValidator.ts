@@ -208,15 +208,22 @@ export class DitaValidator {
             });
 
             if (validationResult !== true) {
-                // Validation failed
-                const error = validationResult as { err: { code: string; msg: string; line: number } };
+                // Validation failed - safely extract error details
+                const errorObj = validationResult as Record<string, unknown>;
+                const err = errorObj.err as Record<string, unknown> | undefined;
+
+                // Validate the error object structure before accessing properties
+                const errorCode = err && typeof err.code === 'string' ? err.code : 'UNKNOWN';
+                const errorMsg = err && typeof err.msg === 'string' ? err.msg : 'Validation error';
+                const errorLine = err && typeof err.line === 'number' ? err.line : 1;
+
                 return {
                     valid: false,
                     errors: [{
-                        line: error.err.line - 1,
+                        line: errorLine - 1,
                         column: 0,
                         severity: 'error',
-                        message: `${error.err.code}: ${error.err.msg}`,
+                        message: `${errorCode}: ${errorMsg}`,
                         source: 'xml-parser'
                     }],
                     warnings: []

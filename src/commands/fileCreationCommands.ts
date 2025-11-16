@@ -82,8 +82,14 @@ export async function newTopicCommand(): Promise<void> {
         const content = generateTopicContent(topicType.value, fileName);
         logger.debug('Generated content', { length: content.length, topicType: topicType.value });
 
-        // Write file
-        fs.writeFileSync(filePath, content, 'utf8');
+        // Write file with error handling
+        try {
+            fs.writeFileSync(filePath, content, 'utf8');
+        } catch (writeError) {
+            const writeErrorMessage = writeError instanceof Error ? writeError.message : 'Unknown write error';
+            logger.error('Failed to write file', { filePath, error: writeErrorMessage });
+            throw new Error(`Failed to write file: ${writeErrorMessage}`);
+        }
         logger.info('Created DITA topic file', {
             filePath,
             topicType: topicType.value,
@@ -159,8 +165,14 @@ export async function newMapCommand(): Promise<void> {
         const content = generateMapContent(fileName);
         logger.debug('Generated map content', { length: content.length });
 
-        // Write file
-        fs.writeFileSync(filePath, content, 'utf8');
+        // Write file with error handling
+        try {
+            fs.writeFileSync(filePath, content, 'utf8');
+        } catch (writeError) {
+            const writeErrorMessage = writeError instanceof Error ? writeError.message : 'Unknown write error';
+            logger.error('Failed to write file', { filePath, error: writeErrorMessage });
+            throw new Error(`Failed to write file: ${writeErrorMessage}`);
+        }
         logger.info('Created DITA map file', {
             filePath,
             fileName: `${fileName}.ditamap`
@@ -248,8 +260,14 @@ export async function newBookmapCommand(): Promise<void> {
         const content = generateBookmapContent(bookTitle, fileName);
         logger.debug('Generated bookmap content', { length: content.length });
 
-        // Write file
-        fs.writeFileSync(filePath, content, 'utf8');
+        // Write file with error handling
+        try {
+            fs.writeFileSync(filePath, content, 'utf8');
+        } catch (writeError) {
+            const writeErrorMessage = writeError instanceof Error ? writeError.message : 'Unknown write error';
+            logger.error('Failed to write file', { filePath, error: writeErrorMessage });
+            throw new Error(`Failed to write file: ${writeErrorMessage}`);
+        }
         logger.info('Created DITA bookmap file', {
             filePath,
             bookTitle,
