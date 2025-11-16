@@ -5,6 +5,60 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-11-16
+
+### Added
+- **Full Key Space Resolution**: Complete DITA key resolution support
+  - Automatic root map discovery from workspace folders
+  - Key space building from map hierarchies (maps, submaps, bookmaps)
+  - Resolution of `@keyref`, `@conkeyref`, and key-based references
+  - Intelligent caching with 1-minute TTL for performance
+  - File watcher integration with 300ms debouncing
+  - LRU eviction for cache memory management
+
+- **Content Reference Navigation**: Enhanced Ctrl+Click support
+  - Navigate `@conref` attributes to referenced content
+  - Support for `file.dita#element_id` and `file.dita#topic_id/element_id` formats
+  - Automatic path resolution relative to current file
+  - Tooltip differentiation for conref, conkeyref, and keyref links
+
+- **Enterprise Security Features**: Production-ready security hardening
+  - XXE (XML External Entity) neutralization to prevent injection attacks
+  - Path traversal protection with workspace bounds validation
+  - Command injection prevention using `execFile()` instead of `exec()`
+  - Input validation for all file system operations
+
+- **Performance Optimizations**: Async operations and caching
+  - Async file operations using `fs.promises` API to prevent UI blocking
+  - Pre-compiled regex patterns for faster parsing
+  - Root map caching to avoid repeated expensive directory scans
+  - Debounced cache invalidation for file system events
+  - Eliminated duplicate file reads in validation pipeline
+
+- **Comprehensive Test Suite**: 144+ tests covering all features
+  - Key space resolution tests with complex map hierarchies
+  - Security tests for path traversal and XXE protection
+  - Content reference and key reference navigation tests
+  - Async operation and caching behavior tests
+
+### Changed
+- Upgraded test coverage from 65+ to 144+ tests
+- Improved error handling with proper type annotations
+- Enhanced tooltip messages to indicate reference type
+- Better handling of Thenable vs Promise in VS Code API
+
+### Fixed
+- Promise rejection handling with proper `.catch()` wrappers
+- TypeScript unused variable errors with underscore prefix convention
+- DTD validation test fixtures with proper XML declarations and required elements
+- Test reference consistency (element IDs matching test expectations)
+
+### Security
+- Added `neutralizeXXE()` method to strip external entity declarations
+- Added `isPathWithinWorkspace()` for path traversal prevention
+- Replaced `exec()` with `execFile()` to prevent shell injection
+- Added workspace bounds validation before file operations
+
 ## [0.1.2] - 2025-02-03
 
 ### Added
@@ -179,14 +233,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned Features
 - WebView-based HTML5 preview panel
 - Enhanced error reporting in output channel
-- DITA content key resolution
-- Conref validation and navigation
 - Map navigation tree view
 - Topic relationship visualization
 - Built-in DITA-OT installer
-- Support for DITA 1.3 and 2.0 specifications
+- Support for DITA 2.0 specifications
 - Ditaval filter file support
 - Subject scheme validation
+- External key scope resolution
+- Same-file element navigation (scroll to `#element_id`)
 
 ---
 

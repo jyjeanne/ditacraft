@@ -9,13 +9,15 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 ## Highlights
 
-🔗 **Smart Navigation** - Ctrl+Click on `href` attributes in maps to open referenced topics (fixed in v0.1.2)
+🔗 **Smart Navigation** - Ctrl+Click on `href`, `conref`, `keyref`, and `conkeyref` attributes with full key space resolution
+🔑 **Key Space Resolution** - Automatic resolution of DITA keys from map hierarchies with intelligent caching
 ✅ **DTD Validation** - Complete DITA 1.3 DTD support with 168 bundled DTD files
 ⚡ **Real-time Validation** - Automatic validation on open, save, and change with debouncing
+🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, and command injection prevention
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
 👁️ **Live Preview** - Side-by-side HTML5 preview with auto-refresh
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
-🧪 **65+ Tests** - Extensively tested with 96.7% test success rate including integration tests
+🧪 **144+ Tests** - Extensively tested with comprehensive integration and security tests
 
 ## Features
 
@@ -25,19 +27,27 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - Support for all DITA topic types (concept, task, reference, topic, glossentry)
 
 ### 🔗 **Smart Navigation**
-- **Ctrl+Click navigation** in DITA maps and bookmaps
+- **Ctrl+Click navigation** in DITA maps, bookmaps, and topics
   - Click on `href` attributes in `<topicref>` elements to open referenced files
+  - Click on `conref` attributes to navigate to content references
+  - Click on `keyref` and `conkeyref` to navigate to key-defined targets
   - Works with relative paths and handles fragment identifiers (e.g., `file.dita#topic_id`)
-  - Visual link indicators (underlined hrefs when you hover)
-  - Hover tooltip showing target filename
+  - Visual link indicators (underlined references when you hover)
+  - Hover tooltip showing target filename and reference type
   - Automatically resolves paths relative to the map file location
   - Skips external URLs (http://, https://) - they won't be underlined
+- **Full Key Space Resolution** (NEW in v0.2.0)
+  - Automatically discovers root maps in your workspace
+  - Builds and caches key space from map hierarchies
+  - Resolves `@keyref`, `@conkeyref`, and key-based references
+  - Handles submaps, nested maps, and complex key definitions
+  - 1-minute cache TTL with intelligent invalidation
 - Navigate seamlessly between maps and topics in your documentation structure
 - **How to use:**
-  1. Open a `.ditamap` or `.bookmap` file
-  2. Hover over any `href` attribute value - it will be underlined
+  1. Open a `.ditamap`, `.bookmap`, or `.dita` file
+  2. Hover over any `href`, `conref`, `keyref`, or `conkeyref` value - it will be underlined
   3. Ctrl+Click (Windows/Linux) or Cmd+Click (Mac) to open the target file
-  4. Works with nested topicrefs and complex map structures
+  4. Works with nested topicrefs, key definitions, and complex map structures
 
 ### ✅ **Advanced Validation**
 - **Real-time validation** on file open, save, and change (with 500ms debouncing)
@@ -48,6 +58,11 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **Dual validation engines**:
   - Built-in parser with DTD support (default)
   - xmllint integration for advanced validation
+- **Enterprise Security Features** (NEW in v0.2.0):
+  - XXE (XML External Entity) neutralization to prevent injection attacks
+  - Path traversal protection with workspace bounds validation
+  - Command injection prevention using safe execution methods
+  - Async file operations to prevent UI blocking
 - **Intelligent error highlighting**:
   - Inline error highlighting with squiggly underlines
   - Errors appear in Problems panel with severity indicators
@@ -421,7 +436,7 @@ ditacraft/
 │   └── dita.json              # Code snippets (21 snippets)
 ├── package.json               # Extension manifest
 ├── README.md
-└── TEST-COVERAGE.md           # Test documentation
+└── CHANGELOG.md               # Version history
 ```
 
 ### Quality & Testing
@@ -432,16 +447,20 @@ DitaCraft includes comprehensive test coverage for all key features:
 - **DTD Validation Tests** - Tests DTD resolution and DTD-based validation
 - **Real-time Validation Tests** - Tests validation on file open, save, and change
 - **Command & Auto-Detection Tests** - Tests manual validation and file detection
-- **Link Navigation Tests** - Tests Ctrl+Click navigation in maps and bookmaps
+- **Link Navigation Tests** - Tests Ctrl+Click navigation including key resolution
+- **Key Space Resolution Tests** - Tests key space building and caching
 
 **Test Coverage:**
-- ✅ 65+ passing tests covering all key features (96.7% success rate)
+- ✅ 144+ passing tests covering all key features
 - ✅ Real-time validation on file open, save, and change (with debouncing)
 - ✅ DTD resolution and bundled DTD files
 - ✅ Error highlighting with line/column accuracy
 - ✅ Manual validation command
 - ✅ Auto-detection by extension or DOCTYPE
-- ✅ Smart navigation with Ctrl+Click on href attributes
+- ✅ Smart navigation with key space resolution
+- ✅ Content references (`@conref`, `@conkeyref`, `@keyref`)
+- ✅ Security testing (path traversal, XXE protection)
+- ✅ Async file operations and caching
 - ✅ Language ID configuration and integration tests
 - ✅ Link detection, range accuracy, and tooltip verification
 
@@ -457,39 +476,33 @@ npm run watch
 npm run compile-tests
 ```
 
-See [TEST-COVERAGE.md](TEST-COVERAGE.md) for detailed test documentation.
-
 ## Known Limitations
 
-### Smart Navigation (v0.1.3)
+### Smart Navigation (v0.2.0)
 
-The current implementation of Ctrl+Click navigation supports **direct file references** only. The following DITA reference types are **not yet navigable**:
+The current implementation provides comprehensive navigation support. Minor limitations include:
 
-1. **Key References (`@keyref`)** - e.g., `<keyword keyref="maintenance-version"/>`
-   - Key names need to be resolved through a DITA key space (map hierarchy)
-   - Currently skips any keyref that doesn't look like a filename
-
-2. **Same-file Content References (`@conref` with `#`)** - e.g., `<ph conref="#v4.3/summary"/>`
+1. **Same-file Content References (`@conref` with `#`)** - e.g., `<ph conref="#v4.3/summary"/>`
    - References starting with `#` point to elements within the same file
-   - Currently returns null for same-file references
+   - Currently opens the file but doesn't scroll to the specific element
 
-3. **Content Key References (`@conkeyref`)** - e.g., `<p conkeyref="conref-task/semver-info"/>`
-   - Requires resolving key names to files, then navigating to specific elements
-   - Currently only works if the key name contains `.dita` or `.ditamap`
+2. **Conditional Key Definitions**
+   - Keys with DITAVAL conditions may not be resolved correctly
+   - The key space builder uses the first definition found
 
-**Why this happens:**
-- The link provider was designed for direct file path navigation
-- Proper key resolution requires parsing the entire map hierarchy to build a "key space"
-- This is complex as keys can be defined in submaps, override each other, and have conditional definitions
+3. **External Key Scopes**
+   - Keys defined in external key scopes are not yet supported
+   - Limited to keys within the workspace
 
-**What currently works:**
+**What now works (NEW in v0.2.0):**
 - ✅ `href="path/to/file.dita"` - Direct file paths
-- ✅ `href="file.dita#topic_id"` - File paths with fragment identifiers (opens file)
-- ✅ Relative paths resolved from current file location
-
-**Planned improvement:**
-- Future versions will implement key space resolution to support `@keyref`, `@conkeyref`, and same-file `@conref` navigation
-- See [docs/KEY-SPACE-RESOLUTION.md](docs/KEY-SPACE-RESOLUTION.md) for the technical specification
+- ✅ `href="file.dita#topic_id"` - File paths with fragment identifiers
+- ✅ `conref="file.dita#element_id"` - Content references
+- ✅ `keyref="key-name"` - Key references resolved via key space
+- ✅ `conkeyref="key-name/element"` - Content key references
+- ✅ Automatic root map discovery and key space building
+- ✅ Intelligent caching with 1-minute TTL
+- ✅ File watcher debouncing (300ms) for performance
 
 ### Contributing
 
@@ -566,15 +579,6 @@ Contributions are welcome! Please:
 3. Look for JavaScript errors in Developer Tools
 4. Try republishing: `Ctrl+Shift+B` → HTML5
 
-📖 **[Full Troubleshooting Guide](CONFIGURATION.md#troubleshooting)**
-
-## Documentation
-
-- **[Configuration Guide](CONFIGURATION.md)** - Complete settings documentation
-- **[Commands and Shortcuts](COMMANDS-AND-SHORTCUTS.md)** - All commands and keybindings
-- **[DITA-OT Integration](DITA-OT-INTEGRATION.md)** - DITA-OT integration details
-- **[Contributing Guide](CONTRIBUTING.md)** - Development and contribution guidelines
-
 ## Resources
 
 ### DITA Resources
@@ -588,12 +592,20 @@ Contributions are welcome! Please:
 
 ## Recent Updates
 
-### Version 0.1.0 Fixes
-- ✅ **Fixed preview and publishing with paths containing spaces** - File paths with spaces (e.g., "Learn Rust/project") now work correctly
-- ✅ **Fixed DITA validation** - Title element is now correctly validated as required (error, not warning) per DTD spec
+### Version 0.2.0 (Current)
+- ✅ **Full Key Space Resolution** - Navigate `@keyref`, `@conkeyref`, and key-based references with automatic key space building
+- ✅ **Enhanced Security** - XXE neutralization, path traversal protection, and command injection prevention
+- ✅ **Performance Optimizations** - Async file operations, intelligent caching (1-min TTL), and file watcher debouncing
+- ✅ **Content Reference Navigation** - Ctrl+Click on `@conref` attributes to navigate to referenced content
+- ✅ **Comprehensive Test Suite** - 144+ tests covering key resolution, security, and all core features
+- ✅ **Better UI Responsiveness** - Async operations prevent UI blocking during file operations
+
+### Version 0.1.3 Fixes
+- ✅ **Fixed preview and publishing with paths containing spaces** - File paths with spaces now work correctly
+- ✅ **Fixed DITA validation** - Title element is now correctly validated as required per DTD spec
 - ✅ **Enhanced DTD validation** - Added proper DTD validation support with xmllint
 - ✅ **Improved error messages** - Better, more descriptive validation and publishing error messages
-- ✅ **Fixed file path validation** - Added comprehensive checks to ensure files (not directories) are being processed
+- ✅ **Fixed file path validation** - Comprehensive checks to ensure files are being processed
 - ✅ **Added verbose logging** - Detailed console logging for easier debugging
 
 ## Changelog
