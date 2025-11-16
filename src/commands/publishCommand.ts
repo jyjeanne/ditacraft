@@ -175,10 +175,14 @@ async function executePublish(
             );
 
             if (action === 'Open Output Folder') {
-                vscode.env.openExternal(vscode.Uri.file(result.outputPath));
+                Promise.resolve(vscode.env.openExternal(vscode.Uri.file(result.outputPath))).catch((err: unknown) => {
+                    logger.error('Failed to open output folder', err);
+                });
             } else if (action === 'Show Preview') {
                 // Open preview for HTML5
-                vscode.commands.executeCommand('ditacraft.previewHTML5', vscode.Uri.file(inputFile));
+                Promise.resolve(vscode.commands.executeCommand('ditacraft.previewHTML5', vscode.Uri.file(inputFile))).catch((err: unknown) => {
+                    logger.error('Failed to open preview', err);
+                });
             }
         } else {
             // Log detailed error information

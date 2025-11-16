@@ -127,13 +127,16 @@ export class DitaValidator {
 
             // Check if xmllint is not installed
             if (err.code === 'ENOENT' || err.message?.includes('not found')) {
-                vscode.window.showWarningMessage(
+                Promise.resolve(vscode.window.showWarningMessage(
                     'xmllint not found. Switching to built-in validation. Install libxml2 or change validation engine in settings.',
                     'Change Engine'
-                ).then(action => {
+                )).then((action: string | undefined) => {
                     if (action === 'Change Engine') {
-                        vscode.commands.executeCommand('workbench.action.openSettings', 'ditacraft.validationEngine');
+                        return vscode.commands.executeCommand('workbench.action.openSettings', 'ditacraft.validationEngine');
                     }
+                    return undefined;
+                }).catch((_err: unknown) => {
+                    // Silently handle dialog/command errors
                 });
 
                 // Fall back to built-in validation
@@ -307,6 +310,18 @@ export class DitaValidator {
                 }
             };
 
+            // Neutralize XXE attacks before parsing
+            const { content: safeContent, hadEntities } = this.neutralizeXXE(content);
+            if (hadEntities) {
+                warnings.push({
+                    line: 0,
+                    column: 0,
+                    message: 'External entity declarations were removed for security reasons',
+                    severity: 'warning',
+                    source: 'security'
+                });
+            }
+
             // Create parser with DTD validation
             const parser = new DOMParser({
                 errorHandler,
@@ -314,7 +329,7 @@ export class DitaValidator {
             });
 
             // Parse XML (xmldom will automatically validate against DTD if present)
-            parser.parseFromString(content, 'text/xml');
+            parser.parseFromString(safeContent, 'text/xml');
 
             return {
                 valid: errors.length === 0,
@@ -339,6 +354,35 @@ export class DitaValidator {
                 warnings: warnings
             };
         }
+    }
+
+    /**
+     * Neutralize XXE (XML External Entity) attacks by removing entity declarations
+     * This prevents malicious XML from accessing local files or causing SSRF
+     */
+    private neutralizeXXE(xmlContent: string): { content: string; hadEntities: boolean } {
+        // Check for ENTITY declarations in DOCTYPE
+        const entityPattern = /<!ENTITY\s+\S+\s+(?:SYSTEM|PUBLIC)\s+[^>]+>/gi;
+        const hadEntities = entityPattern.test(xmlContent);
+
+        if (hadEntities) {
+            // Remove external entity declarations while preserving the rest of DOCTYPE
+            // This pattern matches: <!ENTITY name SYSTEM "uri"> or <!ENTITY name PUBLIC "..." "...">
+            const neutralized = xmlContent.replace(
+                /<!ENTITY\s+\S+\s+(?:SYSTEM|PUBLIC)\s+[^>]+>/gi,
+                '<!-- XXE entity declaration removed for security -->'
+            );
+
+            // Also remove any parameter entity declarations
+            const finalContent = neutralized.replace(
+                /<!ENTITY\s+%\s+\S+\s+(?:SYSTEM|PUBLIC)\s+[^>]+>/gi,
+                '<!-- XXE parameter entity declaration removed for security -->'
+            );
+
+            return { content: finalContent, hadEntities: true };
+        }
+
+        return { content: xmlContent, hadEntities: false };
     }
 
     /**

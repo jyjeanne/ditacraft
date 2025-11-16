@@ -271,7 +271,9 @@ async function verifyDitaOtInstallation(): Promise<void> {
 
             if (action === 'Configure Now') {
                 logger.debug('User chose to configure DITA-OT');
-                vscode.commands.executeCommand('ditacraft.configureDitaOT');
+                Promise.resolve(vscode.commands.executeCommand('ditacraft.configureDitaOT')).catch((err: unknown) => {
+                    logger.error('Failed to open DITA-OT configuration', err);
+                });
             }
         }
     } catch (error) {

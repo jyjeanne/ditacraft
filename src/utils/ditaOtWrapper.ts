@@ -6,11 +6,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { exec, spawn } from 'child_process';
+import { execFile, spawn } from 'child_process';
 import { promisify } from 'util';
 import { logger } from './logger';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface DitaOtConfig {
     ditaOtPath: string;
@@ -156,7 +156,8 @@ export class DitaOtWrapper {
     public async verifyInstallation(): Promise<{ installed: boolean; version?: string; path?: string }> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            const { stdout } = await execAsync(`"${command}" --version`);
+            // Use execFile instead of exec to prevent command injection
+            const { stdout } = await execFileAsync(command, ['--version']);
 
             const versionMatch = stdout.match(/DITA-OT version ([\d.]+)/i);
             const version = versionMatch ? versionMatch[1] : 'unknown';
@@ -179,7 +180,8 @@ export class DitaOtWrapper {
     public async getAvailableTranstypes(): Promise<string[]> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            const { stdout } = await execAsync(`"${command}" transtypes`);
+            // Use execFile instead of exec to prevent command injection
+            const { stdout } = await execFileAsync(command, ['transtypes']);
 
             // Parse the output to extract transtype names
             const transtypes: string[] = [];

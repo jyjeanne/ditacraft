@@ -181,8 +181,10 @@ export class Logger {
         }
 
         if (fs.existsSync(this.logFilePath)) {
-            vscode.workspace.openTextDocument(this.logFilePath).then(doc => {
-                vscode.window.showTextDocument(doc);
+            Promise.resolve(vscode.workspace.openTextDocument(this.logFilePath)).then(doc => {
+                return vscode.window.showTextDocument(doc);
+            }).catch((_err: unknown) => {
+                vscode.window.showErrorMessage('Failed to open log file');
             });
         } else {
             vscode.window.showWarningMessage('Log file does not exist yet.');
@@ -197,17 +199,20 @@ export class Logger {
             return;
         }
 
-        vscode.window.showInformationMessage(
+        Promise.resolve(vscode.window.showInformationMessage(
             `Log file: ${this.logFilePath}`,
             'Open Log File',
             'Open Folder'
-        ).then(selection => {
+        )).then((selection: string | undefined) => {
             if (selection === 'Open Log File') {
                 this.openLogFile();
             } else if (selection === 'Open Folder') {
                 const logDir = path.dirname(this.logFilePath);
-                vscode.env.openExternal(vscode.Uri.file(logDir));
+                return vscode.env.openExternal(vscode.Uri.file(logDir));
             }
+            return undefined;
+        }).catch((_err: unknown) => {
+            // Silently handle dialog/navigation errors
         });
     }
 

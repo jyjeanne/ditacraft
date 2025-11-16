@@ -71,6 +71,25 @@ export class KeySpaceResolver implements vscode.Disposable {
     }
 
     /**
+     * Validate that a path is within workspace bounds
+     * Prevents path traversal attacks (e.g., ../../etc/passwd)
+     */
+    private isPathWithinWorkspace(absolutePath: string): boolean {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            // No workspace open, allow all paths (single file mode)
+            return true;
+        }
+
+        const normalizedPath = path.normalize(absolutePath);
+        return workspaceFolders.some(folder => {
+            const normalizedWorkspace = path.normalize(folder.uri.fsPath);
+            return normalizedPath.startsWith(normalizedWorkspace + path.sep) ||
+                   normalizedPath === normalizedWorkspace;
+        });
+    }
+
+    /**
      * Set up file system watcher for map files
      */
     private setupFileWatcher(): void {
@@ -271,14 +290,26 @@ export class KeySpaceResolver implements vscode.Disposable {
                     if (href.includes('#')) {
                         const [filePart, elementId] = href.split('#');
                         if (filePart) {
-                            keyDef.targetFile = path.resolve(mapDir, filePart);
+                            const resolvedPath = path.resolve(mapDir, filePart);
+                            // Validate path is within workspace bounds
+                            if (this.isPathWithinWorkspace(resolvedPath)) {
+                                keyDef.targetFile = resolvedPath;
+                            } else {
+                                logger.warn('Path traversal attempt blocked', { href: filePart, mapPath });
+                            }
                         }
                         if (elementId) {
                             keyDef.elementId = elementId;
                         }
                     } else if (!href.startsWith('http://') && !href.startsWith('https://')) {
                         // Resolve relative path
-                        keyDef.targetFile = path.resolve(mapDir, href);
+                        const resolvedPath = path.resolve(mapDir, href);
+                        // Validate path is within workspace bounds
+                        if (this.isPathWithinWorkspace(resolvedPath)) {
+                            keyDef.targetFile = resolvedPath;
+                        } else {
+                            logger.warn('Path traversal attempt blocked', { href, mapPath });
+                        }
                     }
                 }
 
@@ -355,7 +386,13 @@ export class KeySpaceResolver implements vscode.Disposable {
 
             // Resolve relative path
             const absolutePath = path.resolve(mapDir, href);
-            submaps.push(absolutePath);
+
+            // Validate path is within workspace bounds
+            if (this.isPathWithinWorkspace(absolutePath)) {
+                submaps.push(absolutePath);
+            } else {
+                logger.warn('Map reference outside workspace blocked', { href, mapPath });
+            }
         }
 
         return submaps;
