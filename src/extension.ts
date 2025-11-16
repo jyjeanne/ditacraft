@@ -289,30 +289,34 @@ async function verifyDitaOtInstallation(): Promise<void> {
 /**
  * Show welcome message on first activation
  */
-function showWelcomeMessage(context: vscode.ExtensionContext): void {
+async function showWelcomeMessage(context: vscode.ExtensionContext): Promise<void> {
     const hasShownWelcome = context.globalState.get<boolean>('ditacraft.hasShownWelcome', false);
 
     if (!hasShownWelcome) {
-        vscode.window.showInformationMessage(
-            'Welcome to DitaCraft! The best way to edit and publish your DITA files.',
-            'Get Started',
-            'View Documentation'
-        ).then(action => {
+        try {
+            const action = await vscode.window.showInformationMessage(
+                'Welcome to DitaCraft! The best way to edit and publish your DITA files.',
+                'Get Started',
+                'View Documentation'
+            );
+
             if (action === 'Get Started') {
                 // Show quick start guide
-                vscode.commands.executeCommand(
+                await vscode.commands.executeCommand(
                     'vscode.open',
                     vscode.Uri.parse('https://github.com/jyjeanne/ditacraft#quick-start')
                 );
             } else if (action === 'View Documentation') {
                 // Open README
                 const readmePath = vscode.Uri.joinPath(context.extensionUri, 'README.md');
-                vscode.commands.executeCommand('markdown.showPreview', readmePath);
+                await vscode.commands.executeCommand('markdown.showPreview', readmePath);
             }
-        });
 
-        // Mark welcome message as shown
-        context.globalState.update('ditacraft.hasShownWelcome', true);
+            // Mark welcome message as shown only after dialog interaction completes
+            await context.globalState.update('ditacraft.hasShownWelcome', true);
+        } catch (error) {
+            logger.error('Error showing welcome message', error);
+        }
     }
 }
 

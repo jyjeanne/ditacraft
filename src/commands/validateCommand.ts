@@ -68,8 +68,11 @@ export async function validateCommand(uri?: vscode.Uri): Promise<void> {
         }, async (progress) => {
             progress.report({ increment: 0, message: "Reading file..." });
 
-            // Validate the file
-            const validationResult = await validator!.validateFile(fileUri);
+            // Validate the file - validator is guaranteed to be defined here
+            if (!validator) {
+                throw new Error('Validator failed to initialize');
+            }
+            const validationResult = await validator.validateFile(fileUri);
 
             progress.report({ increment: 100, message: "Complete" });
 

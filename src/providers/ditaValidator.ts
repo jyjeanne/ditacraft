@@ -6,13 +6,13 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { XMLValidator } from 'fast-xml-parser';
 import { DOMParser } from '@xmldom/xmldom';
 import { DtdResolver } from '../utils/dtdResolver';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface ValidationError {
     line: number;
@@ -110,7 +110,8 @@ export class DitaValidator {
             const command = process.platform === 'win32' ? 'xmllint' : 'xmllint';
 
             // Basic XML well-formedness check without DTD validation
-            await execAsync(`"${command}" --noout "${filePath}"`, {
+            // Use execFile instead of exec to avoid command injection
+            await execFileAsync(command, ['--noout', filePath], {
                 cwd: path.dirname(filePath) // Set working directory to file location
             });
 
@@ -466,7 +467,7 @@ export class DitaValidator {
                 message: 'Root element MUST have an id attribute (required by DTD)',
                 source: 'dita-validator'
             });
-        } else if (idMatch[1] === '') {
+        } else if (idMatch.length > 1 && idMatch[1] === '') {
             errors.push({
                 line: 0,
                 column: 0,

@@ -182,11 +182,11 @@ export class DitaOtWrapper {
             const command = this.ditaOtCommand || 'dita';
 
             // Build command arguments
-            // Note: Paths with spaces must be properly quoted
+            // Note: Pass arguments as array elements without quotes - spawn handles escaping
             const args: string[] = [
-                '--input', `"${options.inputFile}"`,
+                '--input', options.inputFile,
                 '--format', options.transtype,
-                '--output', `"${options.outputDir}"`,
+                '--output', options.outputDir,
                 // Add verbose mode for better error messages
                 '--verbose'
             ];
@@ -243,10 +243,10 @@ export class DitaOtWrapper {
             console.log('[DitaOtWrapper] Input file validated successfully');
 
             // Spawn DITA-OT process
+            // Remove shell: true to avoid command injection vulnerabilities
             console.log('[DitaOtWrapper] Spawning DITA-OT process...');
             console.log('[DitaOtWrapper] Working directory:', path.dirname(options.inputFile));
             const ditaProcess = spawn(command, args, {
-                shell: true,
                 cwd: path.dirname(options.inputFile)
             });
 
