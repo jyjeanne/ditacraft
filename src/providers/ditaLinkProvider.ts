@@ -2,26 +2,55 @@
  * DITA Link Provider
  * Provides clickable links for href, conref, conkeyref, and keyref attributes in DITA files
  * Enables Ctrl+Click navigation to open referenced DITA files
+ *
+ * Supports:
+ * - Direct file references (href="file.dita")
+ * - Content references (conref="file.dita#element")
+ * - Key references (keyref="keyname") - requires key space resolution
+ * - Content key references (conkeyref="keyname/element")
+ * - Same-file references (conref="#element")
  */
 
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { KeySpaceResolver } from '../utils/keySpaceResolver';
+import { logger } from '../utils/logger';
+
+/**
+ * Custom DocumentLink that stores additional metadata for deferred resolution
+ */
+interface PendingKeyLink {
+    range: vscode.Range;
+    keyName: string;
+    elementId?: string;
+    type: 'keyref' | 'conkeyref';
+}
 
 export class DitaLinkProvider implements vscode.DocumentLinkProvider {
+    private keySpaceResolver: KeySpaceResolver;
+    private pendingKeyLinks: Map<string, PendingKeyLink[]> = new Map();
+
+    constructor(keySpaceResolver?: KeySpaceResolver) {
+        this.keySpaceResolver = keySpaceResolver || new KeySpaceResolver();
+    }
 
     /**
      * Provide document links for various reference attributes in DITA files
      * Supports: href, conref, conkeyref, keyref
      */
-    public provideDocumentLinks(
+    public async provideDocumentLinks(
         document: vscode.TextDocument,
         _token: vscode.CancellationToken
-    ): vscode.ProviderResult<vscode.DocumentLink[]> {
+    ): Promise<vscode.DocumentLink[]> {
 
         const links: vscode.DocumentLink[] = [];
         const text = document.getText();
         const documentDir = path.dirname(document.uri.fsPath);
+        const documentPath = document.uri.fsPath;
+
+        // Clear pending key links for this document
+        this.pendingKeyLinks.delete(documentPath);
 
         // Process href attributes (in map and topic elements)
         this.processHrefAttributes(text, document, documentDir, links);
@@ -29,11 +58,11 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         // Process conref attributes (content references)
         this.processConrefAttributes(text, document, documentDir, links);
 
-        // Process conkeyref attributes (content key references)
-        this.processConkeyrefAttributes(text, document, documentDir, links);
+        // Process conkeyref attributes (content key references) - with key space resolution
+        await this.processConkeyrefAttributesWithKeySpace(text, document, documentDir, links);
 
-        // Process keyref attributes (key references)
-        this.processKeyrefAttributes(text, document, documentDir, links);
+        // Process keyref attributes (key references) - with key space resolution
+        await this.processKeyrefAttributesWithKeySpace(text, document, documentDir, links);
 
         return links;
     }
@@ -128,6 +157,17 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             const endPos = document.positionAt(valueStart + conrefValue.length);
             const range = new vscode.Range(startPos, endPos);
 
+            // Handle same-file references (e.g., "#elementId/path")
+            if (conrefValue.startsWith('#')) {
+                // Same-file reference - create link to current file with fragment
+                const elementPath = conrefValue.substring(1);
+                const targetUri = document.uri.with({ fragment: elementPath });
+                const link = new vscode.DocumentLink(range, targetUri);
+                link.tooltip = `Go to element: ${elementPath}`;
+                links.push(link);
+                continue;
+            }
+
             // Resolve the target file path
             const targetPath = this.resolveReference(conrefValue, documentDir);
 
@@ -141,16 +181,15 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     }
 
     /**
-     * Process conkeyref attributes (content key references)
+     * Process conkeyref attributes with key space resolution
      * Format: conkeyref="keyname/elementid" or conkeyref="keyname"
-     * Note: This creates a link if the keyname looks like a filename
      */
-    private processConkeyrefAttributes(
+    private async processConkeyrefAttributesWithKeySpace(
         text: string,
         document: vscode.TextDocument,
         documentDir: string,
         links: vscode.DocumentLink[]
-    ): void {
+    ): Promise<void> {
         // Match conkeyref attributes
         const conkeyrefRegex = /\bconkeyref\s*=\s*["']([^"']+)["']/gi;
 
@@ -171,14 +210,9 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
 
             // Extract the key part (before any slash)
-            const keyPart = conkeyrefValue.split('/')[0];
-
-            // Check if the key looks like a filename (contains .dita or .ditamap extension)
-            if (!keyPart.includes('.dita') && !keyPart.includes('.ditamap')) {
-                // Skip pure key references that don't look like filenames
-                // In a full implementation, we would resolve keys from a keyspace
-                continue;
-            }
+            const parts = conkeyrefValue.split('/');
+            const keyPart = parts[0];
+            const elementPart = parts.length > 1 ? parts.slice(1).join('/') : undefined;
 
             // Calculate position
             const valueStart = match.index + match[0].indexOf(conkeyrefValue);
@@ -186,29 +220,52 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             const endPos = document.positionAt(valueStart + conkeyrefValue.length);
             const range = new vscode.Range(startPos, endPos);
 
-            // Try to resolve as a file path
-            const targetPath = this.resolveReference(keyPart, documentDir);
+            // Try to resolve through key space
+            try {
+                const keyDef = await this.keySpaceResolver.resolveKey(keyPart, document.uri.fsPath);
 
-            if (targetPath) {
-                const targetUri = vscode.Uri.file(targetPath);
-                const link = new vscode.DocumentLink(range, targetUri);
-                link.tooltip = `Open content key reference: ${path.basename(targetPath)}`;
-                links.push(link);
+                if (keyDef && keyDef.targetFile) {
+                    const targetUri = vscode.Uri.file(keyDef.targetFile);
+                    const link = new vscode.DocumentLink(range, targetUri);
+
+                    if (elementPart) {
+                        link.tooltip = `Open content key reference: ${keyPart}/${elementPart}`;
+                    } else {
+                        link.tooltip = `Open content key reference: ${keyPart}`;
+                    }
+
+                    links.push(link);
+                    logger.debug('Resolved conkeyref', { key: keyPart, target: keyDef.targetFile });
+                }
+            } catch (error) {
+                logger.debug('Failed to resolve conkeyref', { key: keyPart, error });
+            }
+
+            // Fallback: Check if the key looks like a filename (backward compatibility)
+            if (!links.some(l => l.range.isEqual(range))) {
+                if (keyPart.includes('.dita') || keyPart.includes('.ditamap')) {
+                    const targetPath = this.resolveReference(keyPart, documentDir);
+                    if (targetPath) {
+                        const targetUri = vscode.Uri.file(targetPath);
+                        const link = new vscode.DocumentLink(range, targetUri);
+                        link.tooltip = `Open content key reference: ${path.basename(targetPath)}`;
+                        links.push(link);
+                    }
+                }
             }
         }
     }
 
     /**
-     * Process keyref attributes (key references)
+     * Process keyref attributes with key space resolution
      * Format: keyref="keyname"
-     * Note: This creates a link if the keyname looks like a filename
      */
-    private processKeyrefAttributes(
+    private async processKeyrefAttributesWithKeySpace(
         text: string,
         document: vscode.TextDocument,
         documentDir: string,
         links: vscode.DocumentLink[]
-    ): void {
+    ): Promise<void> {
         // Match keyref attributes
         const keyrefRegex = /\bkeyref\s*=\s*["']([^"']+)["']/gi;
 
@@ -228,26 +285,45 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                 continue;
             }
 
-            // Check if the key looks like a filename
-            if (!keyrefValue.includes('.dita') && !keyrefValue.includes('.ditamap')) {
-                // Skip pure key references that don't look like filenames
-                continue;
-            }
-
             // Calculate position
             const valueStart = match.index + match[0].indexOf(keyrefValue);
             const startPos = document.positionAt(valueStart);
             const endPos = document.positionAt(valueStart + keyrefValue.length);
             const range = new vscode.Range(startPos, endPos);
 
-            // Try to resolve as a file path
-            const targetPath = this.resolveReference(keyrefValue, documentDir);
+            // Try to resolve through key space
+            try {
+                const keyDef = await this.keySpaceResolver.resolveKey(keyrefValue, document.uri.fsPath);
 
-            if (targetPath) {
-                const targetUri = vscode.Uri.file(targetPath);
-                const link = new vscode.DocumentLink(range, targetUri);
-                link.tooltip = `Open key reference: ${path.basename(targetPath)}`;
-                links.push(link);
+                if (keyDef && keyDef.targetFile) {
+                    const targetUri = vscode.Uri.file(keyDef.targetFile);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Open key reference: ${keyrefValue} → ${path.basename(keyDef.targetFile)}`;
+                    links.push(link);
+                    logger.debug('Resolved keyref', { key: keyrefValue, target: keyDef.targetFile });
+                } else if (keyDef && keyDef.inlineContent) {
+                    // Key has inline content, no file to navigate to
+                    // Could create a tooltip-only link or skip
+                    logger.debug('Key has inline content', {
+                        key: keyrefValue,
+                        content: keyDef.inlineContent
+                    });
+                }
+            } catch (error) {
+                logger.debug('Failed to resolve keyref', { key: keyrefValue, error });
+            }
+
+            // Fallback: Check if the key looks like a filename (backward compatibility)
+            if (!links.some(l => l.range.isEqual(range))) {
+                if (keyrefValue.includes('.dita') || keyrefValue.includes('.ditamap')) {
+                    const targetPath = this.resolveReference(keyrefValue, documentDir);
+                    if (targetPath) {
+                        const targetUri = vscode.Uri.file(targetPath);
+                        const link = new vscode.DocumentLink(range, targetUri);
+                        link.tooltip = `Open key reference: ${path.basename(targetPath)}`;
+                        links.push(link);
+                    }
+                }
             }
         }
     }
@@ -303,13 +379,35 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     ): vscode.ProviderResult<vscode.DocumentLink> {
         return link;
     }
+
+    /**
+     * Get the KeySpaceResolver instance
+     */
+    public getKeySpaceResolver(): KeySpaceResolver {
+        return this.keySpaceResolver;
+    }
+}
+
+// Global key space resolver instance for shared use
+let globalKeySpaceResolver: KeySpaceResolver | undefined;
+
+/**
+ * Get or create the global KeySpaceResolver
+ */
+export function getGlobalKeySpaceResolver(): KeySpaceResolver {
+    if (!globalKeySpaceResolver) {
+        globalKeySpaceResolver = new KeySpaceResolver();
+    }
+    return globalKeySpaceResolver;
 }
 
 /**
  * Register the DITA link provider for map files
  */
 export function registerDitaLinkProvider(context: vscode.ExtensionContext): void {
-    const linkProvider = new DitaLinkProvider();
+    // Create shared key space resolver
+    const keySpaceResolver = getGlobalKeySpaceResolver();
+    const linkProvider = new DitaLinkProvider(keySpaceResolver);
 
     // Register for .ditamap files (language ID is 'dita' as configured in package.json)
     const ditamapProvider = vscode.languages.registerDocumentLinkProvider(
@@ -329,5 +427,15 @@ export function registerDitaLinkProvider(context: vscode.ExtensionContext): void
         linkProvider
     );
 
+    // Clean up key space resolver on deactivation
+    context.subscriptions.push({
+        dispose: () => {
+            keySpaceResolver.dispose();
+            globalKeySpaceResolver = undefined;
+        }
+    });
+
     context.subscriptions.push(ditamapProvider, bookmapProvider, ditaProvider);
+
+    logger.info('DITA Link Provider registered with key space resolution');
 }
