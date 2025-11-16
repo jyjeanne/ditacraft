@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Root Map (Preferred for Key Resolution)</title>
+
+    <!-- Include the map with all key definitions -->
+    <mapref href="root-map-with-keys.ditamap"/>
+
+    <!-- Standard topic references -->
+    <topicref href="valid-topic.dita"/>
+    <topicref href="product-info-v2.dita"/>
+</map>

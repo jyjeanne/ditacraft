@@ -259,7 +259,9 @@ suite('Key Space Resolver Test Suite', () => {
 
     suite('Key Resolution', () => {
         test('Should resolve key from context file', async () => {
-            const contextFile = path.join(fixturesPath, 'valid-topic.dita');
+            // Use a file that's in the same directory as root-map-with-keys.ditamap
+            // which has product-name key defined
+            const contextFile = path.join(fixturesPath, 'product-info-v2.dita');
             const keyDef = await resolver.resolveKey('product-name', contextFile);
 
             assert.ok(keyDef, 'Should resolve key');
