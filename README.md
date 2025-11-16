@@ -459,6 +459,38 @@ npm run compile-tests
 
 See [TEST-COVERAGE.md](TEST-COVERAGE.md) for detailed test documentation.
 
+## Known Limitations
+
+### Smart Navigation (v0.1.3)
+
+The current implementation of Ctrl+Click navigation supports **direct file references** only. The following DITA reference types are **not yet navigable**:
+
+1. **Key References (`@keyref`)** - e.g., `<keyword keyref="maintenance-version"/>`
+   - Key names need to be resolved through a DITA key space (map hierarchy)
+   - Currently skips any keyref that doesn't look like a filename
+
+2. **Same-file Content References (`@conref` with `#`)** - e.g., `<ph conref="#v4.3/summary"/>`
+   - References starting with `#` point to elements within the same file
+   - Currently returns null for same-file references
+
+3. **Content Key References (`@conkeyref`)** - e.g., `<p conkeyref="conref-task/semver-info"/>`
+   - Requires resolving key names to files, then navigating to specific elements
+   - Currently only works if the key name contains `.dita` or `.ditamap`
+
+**Why this happens:**
+- The link provider was designed for direct file path navigation
+- Proper key resolution requires parsing the entire map hierarchy to build a "key space"
+- This is complex as keys can be defined in submaps, override each other, and have conditional definitions
+
+**What currently works:**
+- ✅ `href="path/to/file.dita"` - Direct file paths
+- ✅ `href="file.dita#topic_id"` - File paths with fragment identifiers (opens file)
+- ✅ Relative paths resolved from current file location
+
+**Planned improvement:**
+- Future versions will implement key space resolution to support `@keyref`, `@conkeyref`, and same-file `@conref` navigation
+- See [docs/KEY-SPACE-RESOLUTION.md](docs/KEY-SPACE-RESOLUTION.md) for the technical specification
+
 ### Contributing
 
 Contributions are welcome! Please:
