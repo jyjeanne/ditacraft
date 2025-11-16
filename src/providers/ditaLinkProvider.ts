@@ -31,6 +31,13 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     private keySpaceResolver: KeySpaceResolver;
     private pendingKeyLinks: Map<string, PendingKeyLink[]> = new Map();
 
+    // Pre-compiled regex patterns for better performance (avoid re-compilation on each call)
+    private static readonly HREF_REGEX = /<(?:topicref|chapter|appendix|part|mapref|keydef|topicgroup|topichead)[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
+    private static readonly CONREF_REGEX = /\bconref\s*=\s*["']([^"']+)["']/gi;
+    private static readonly CONKEYREF_REGEX = /\bconkeyref\s*=\s*["']([^"']+)["']/gi;
+    private static readonly KEYREF_REGEX = /\bkeyref\s*=\s*["']([^"']+)["']/gi;
+    private static readonly MAX_MATCHES = 10000; // Safety limit
+
     constructor(keySpaceResolver?: KeySpaceResolver) {
         this.keySpaceResolver = keySpaceResolver || new KeySpaceResolver();
     }
@@ -76,17 +83,15 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         documentDir: string,
         links: vscode.DocumentLink[]
     ): void {
-        // Regular expression to match href attributes in DITA map elements
-        // Matches href in: topicref, chapter, appendix, part, mapref, keydef, etc.
-        // Pattern: <element ... href="value" ... >
-        const hrefRegex = /<(?:topicref|chapter|appendix|part|mapref|keydef|topicgroup|topichead)[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
+        // Use pre-compiled regex pattern (reset lastIndex for fresh search)
+        const hrefRegex = DitaLinkProvider.HREF_REGEX;
+        hrefRegex.lastIndex = 0;
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
-        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = hrefRegex.exec(text)) !== null) {
-            // Safety check to prevent infinite loops if regex lacks global flag
-            if (++matchCount > maxMatches) {
+            // Safety check to prevent infinite loops
+            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
                 break;
             }
 
@@ -128,16 +133,15 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         documentDir: string,
         links: vscode.DocumentLink[]
     ): void {
-        // Match conref attributes in any element
-        // Pattern: conref="value"
-        const conrefRegex = /\bconref\s*=\s*["']([^"']+)["']/gi;
+        // Use pre-compiled regex pattern (reset lastIndex for fresh search)
+        const conrefRegex = DitaLinkProvider.CONREF_REGEX;
+        conrefRegex.lastIndex = 0;
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
-        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = conrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > maxMatches) {
+            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
                 break;
             }
 
@@ -190,15 +194,15 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         documentDir: string,
         links: vscode.DocumentLink[]
     ): Promise<void> {
-        // Match conkeyref attributes
-        const conkeyrefRegex = /\bconkeyref\s*=\s*["']([^"']+)["']/gi;
+        // Use pre-compiled regex pattern (reset lastIndex for fresh search)
+        const conkeyrefRegex = DitaLinkProvider.CONKEYREF_REGEX;
+        conkeyrefRegex.lastIndex = 0;
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
-        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = conkeyrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > maxMatches) {
+            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
                 break;
             }
 
@@ -266,15 +270,15 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         documentDir: string,
         links: vscode.DocumentLink[]
     ): Promise<void> {
-        // Match keyref attributes
-        const keyrefRegex = /\bkeyref\s*=\s*["']([^"']+)["']/gi;
+        // Use pre-compiled regex pattern (reset lastIndex for fresh search)
+        const keyrefRegex = DitaLinkProvider.KEYREF_REGEX;
+        keyrefRegex.lastIndex = 0;
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
-        const maxMatches = 10000; // Safety limit to prevent infinite loops
         while ((match = keyrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > maxMatches) {
+            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
                 break;
             }
 

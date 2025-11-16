@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import { logger } from './logger';
 
 /**
@@ -54,9 +55,13 @@ interface CacheConfig {
  */
 export class KeySpaceResolver implements vscode.Disposable {
     private keySpaceCache: Map<string, KeySpace> = new Map();
+    private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
     private fileWatcher: vscode.FileSystemWatcher | undefined;
     private cacheConfig: CacheConfig;
     private disposables: vscode.Disposable[] = [];
+    private rootMapCacheTtl: number = 60 * 1000; // 1 minute cache for root map lookups
+    private debounceTimer: NodeJS.Timeout | undefined;
+    private pendingInvalidations: Set<string> = new Set();
 
     constructor() {
         this.cacheConfig = {
@@ -101,23 +106,50 @@ export class KeySpaceResolver implements vscode.Disposable {
             false   // Don't ignore deletes
         );
 
-        // Invalidate cache when maps change
+        // Invalidate cache when maps change (with debouncing)
         this.fileWatcher.onDidChange(uri => {
-            logger.debug('Map file changed, invalidating cache', { file: uri.fsPath });
-            this.invalidateCacheForFile(uri.fsPath);
+            logger.debug('Map file changed, queueing invalidation', { file: uri.fsPath });
+            this.queueInvalidation(uri.fsPath);
         });
 
         this.fileWatcher.onDidCreate(uri => {
-            logger.debug('Map file created, invalidating cache', { file: uri.fsPath });
-            this.invalidateCacheForFile(uri.fsPath);
+            logger.debug('Map file created, queueing invalidation', { file: uri.fsPath });
+            this.queueInvalidation(uri.fsPath);
         });
 
         this.fileWatcher.onDidDelete(uri => {
-            logger.debug('Map file deleted, invalidating cache', { file: uri.fsPath });
-            this.invalidateCacheForFile(uri.fsPath);
+            logger.debug('Map file deleted, queueing invalidation', { file: uri.fsPath });
+            this.queueInvalidation(uri.fsPath);
         });
 
         this.disposables.push(this.fileWatcher);
+    }
+
+    /**
+     * Queue file invalidation with debouncing (300ms)
+     * Prevents multiple rapid invalidations during bulk file operations
+     */
+    private queueInvalidation(filePath: string): void {
+        this.pendingInvalidations.add(filePath);
+
+        // Clear existing timer
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+        }
+
+        // Set new timer to process all pending invalidations
+        this.debounceTimer = setTimeout(() => {
+            logger.debug('Processing debounced invalidations', {
+                count: this.pendingInvalidations.size
+            });
+
+            for (const file of this.pendingInvalidations) {
+                this.invalidateCacheForFile(file);
+            }
+
+            this.pendingInvalidations.clear();
+            this.debounceTimer = undefined;
+        }, 300); // 300ms debounce
     }
 
     /**
@@ -125,6 +157,10 @@ export class KeySpaceResolver implements vscode.Disposable {
      */
     private invalidateCacheForFile(changedFile: string): void {
         const normalizedPath = path.normalize(changedFile);
+        const changedDir = path.dirname(normalizedPath);
+
+        // Clear root map cache for the affected directory
+        this.rootMapCache.delete(changedDir);
 
         // Check each cached key space to see if it includes this file
         for (const [rootMap, keySpace] of this.keySpaceCache.entries()) {
@@ -176,8 +212,9 @@ export class KeySpaceResolver implements vscode.Disposable {
                 continue;
             }
 
-            // Check if file exists
-            if (!fs.existsSync(currentMap)) {
+            // Check if file exists (async to avoid blocking UI)
+            const fileExists = await this.fileExistsAsync(currentMap);
+            if (!fileExists) {
                 logger.warn('Map file not found', { map: currentMap });
                 continue;
             }
@@ -435,11 +472,21 @@ export class KeySpaceResolver implements vscode.Disposable {
     /**
      * Find root map for a given file
      * Strategy: Look for .ditamap files in the same directory and parent directories
+     * Uses caching to avoid expensive directory scans
      */
     public async findRootMap(filePath: string): Promise<string | null> {
         const absolutePath = path.isAbsolute(filePath)
             ? filePath
             : path.resolve(filePath);
+
+        const cacheKey = path.dirname(absolutePath);
+
+        // Check cache first (avoids expensive directory scans)
+        const cached = this.rootMapCache.get(cacheKey);
+        if (cached && (Date.now() - cached.timestamp) < this.rootMapCacheTtl) {
+            logger.debug('Root map cache hit', { directory: cacheKey });
+            return cached.rootMap;
+        }
 
         let currentDir = path.dirname(absolutePath);
         const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -451,7 +498,8 @@ export class KeySpaceResolver implements vscode.Disposable {
         while (currentDir && currentDir.length >= stopDir.length) {
             // Look for .ditamap or .bookmap files in current directory
             try {
-                const files = fs.readdirSync(currentDir);
+                // Use async readdir to avoid blocking UI thread
+                const files = await fsPromises.readdir(currentDir);
                 const mapFiles = files.filter(f =>
                     f.endsWith('.ditamap') || f.endsWith('.bookmap')
                 );
@@ -462,12 +510,16 @@ export class KeySpaceResolver implements vscode.Disposable {
 
                     for (const preferred of preferredNames) {
                         if (mapFiles.includes(preferred)) {
-                            return path.join(currentDir, preferred);
+                            const result = path.join(currentDir, preferred);
+                            this.rootMapCache.set(cacheKey, { rootMap: result, timestamp: Date.now() });
+                            return result;
                         }
                     }
 
                     // Return first map file found
-                    return path.join(currentDir, mapFiles.sort()[0]);
+                    const result = path.join(currentDir, mapFiles.sort()[0]);
+                    this.rootMapCache.set(cacheKey, { rootMap: result, timestamp: Date.now() });
+                    return result;
                 }
             } catch (_error) {
                 // Directory not readable
@@ -482,22 +534,27 @@ export class KeySpaceResolver implements vscode.Disposable {
         }
 
         logger.debug('No root map found', { searchedFrom: absolutePath });
+        this.rootMapCache.set(cacheKey, { rootMap: null, timestamp: Date.now() });
         return null;
+    }
+
+    /**
+     * Check if file exists asynchronously
+     */
+    private async fileExistsAsync(filePath: string): Promise<boolean> {
+        try {
+            await fsPromises.access(filePath, fs.constants.F_OK);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     /**
      * Read file asynchronously
      */
     private async readFileAsync(filePath: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            fs.readFile(filePath, 'utf-8', (err, data) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            });
-        });
+        return fsPromises.readFile(filePath, 'utf-8');
     }
 
     /**
@@ -529,6 +586,7 @@ export class KeySpaceResolver implements vscode.Disposable {
      */
     public clearCache(): void {
         this.keySpaceCache.clear();
+        this.rootMapCache.clear();
         logger.info('Key space cache cleared');
     }
 
@@ -536,6 +594,13 @@ export class KeySpaceResolver implements vscode.Disposable {
      * Dispose of resources
      */
     public dispose(): void {
+        // Clear debounce timer
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = undefined;
+        }
+        this.pendingInvalidations.clear();
+
         this.clearCache();
         this.disposables.forEach(d => d.dispose());
         logger.debug('KeySpaceResolver disposed');

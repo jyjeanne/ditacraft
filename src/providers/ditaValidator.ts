@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { XMLValidator } from 'fast-xml-parser';
@@ -57,15 +57,18 @@ export class DitaValidator {
     public async validateFile(fileUri: vscode.Uri): Promise<ValidationResult> {
         const filePath = fileUri.fsPath;
 
-        // Check file exists
-        if (!fs.existsSync(filePath)) {
+        // Check file exists and read content once (performance optimization)
+        let fileContent: string;
+        try {
+            fileContent = await fsPromises.readFile(filePath, 'utf8');
+        } catch (_error) {
             return {
                 valid: false,
                 errors: [{
                     line: 0,
                     column: 0,
                     severity: 'error',
-                    message: 'File does not exist',
+                    message: 'File does not exist or cannot be read',
                     source: 'ditacraft'
                 }],
                 warnings: []
@@ -81,11 +84,11 @@ export class DitaValidator {
         if (this.validationEngine === 'xmllint') {
             result = await this.validateWithXmllint(filePath);
         } else {
-            result = await this.validateWithBuiltIn(filePath);
+            result = await this.validateWithBuiltIn(filePath, fileContent);
         }
 
-        // Add DITA-specific validation
-        const ditaValidation = await this.validateDitaStructure(filePath);
+        // Add DITA-specific validation (pass cached content)
+        const ditaValidation = await this.validateDitaStructure(filePath, fileContent);
         result.errors.push(...ditaValidation.errors);
         result.warnings.push(...ditaValidation.warnings);
 
@@ -192,13 +195,14 @@ export class DitaValidator {
     /**
      * Validate using built-in XML parser
      */
-    private async validateWithBuiltIn(filePath: string): Promise<ValidationResult> {
+    private async validateWithBuiltIn(filePath: string, content?: string): Promise<ValidationResult> {
         try {
-            const content = fs.readFileSync(filePath, 'utf8');
+            // Use provided content or read file (fallback for backward compatibility)
+            const fileContent = content || await fsPromises.readFile(filePath, 'utf8');
 
             // Try DTD validation if DTD resolver is available
             if (this.dtdResolver && this.dtdResolver.areDtdsAvailable()) {
-                const dtdResult = await this.validateWithDtd(filePath, content);
+                const dtdResult = await this.validateWithDtd(filePath, fileContent);
                 // If DTD validation found errors, return those
                 if (dtdResult.errors.length > 0) {
                     return dtdResult;
@@ -206,7 +210,7 @@ export class DitaValidator {
             }
 
             // First, use the validate method to check for XML errors
-            const validationResult = XMLValidator.validate(content, {
+            const validationResult = XMLValidator.validate(fileContent, {
                 allowBooleanAttributes: true
             });
 
@@ -415,16 +419,17 @@ export class DitaValidator {
     /**
      * Validate DITA-specific structure and rules
      */
-    private async validateDitaStructure(filePath: string): Promise<ValidationResult> {
+    private async validateDitaStructure(filePath: string, content?: string): Promise<ValidationResult> {
         const errors: ValidationError[] = [];
         const warnings: ValidationError[] = [];
 
         try {
-            const content = fs.readFileSync(filePath, 'utf8');
+            // Use provided content or read file (fallback for backward compatibility)
+            const fileContent = content || await fsPromises.readFile(filePath, 'utf8');
             const ext = path.extname(filePath).toLowerCase();
 
             // Check DOCTYPE declaration
-            if (!content.includes('<!DOCTYPE')) {
+            if (!fileContent.includes('<!DOCTYPE')) {
                 warnings.push({
                     line: 0,
                     column: 0,
@@ -437,15 +442,15 @@ export class DitaValidator {
             // Validate based on file type
             try {
                 if (ext === '.dita') {
-                    this.validateDitaTopic(content, errors, warnings);
+                    this.validateDitaTopic(fileContent, errors, warnings);
                 } else if (ext === '.ditamap') {
-                    this.validateDitaMap(content, errors, warnings);
+                    this.validateDitaMap(fileContent, errors, warnings);
                 } else if (ext === '.bookmap') {
-                    this.validateBookmap(content, errors, warnings);
+                    this.validateBookmap(fileContent, errors, warnings);
                 }
 
                 // Check for common DITA issues
-                this.checkCommonIssues(content, errors, warnings);
+                this.checkCommonIssues(fileContent, errors, warnings);
             } catch (validationError: unknown) {
                 // Ignore validation errors in structure checking
                 // These are often false positives from simple string matching
