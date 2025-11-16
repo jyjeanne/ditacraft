@@ -30,9 +30,6 @@ let outputChannel: vscode.OutputChannel;
  * Called when the extension is activated
  */
 export function activate(context: vscode.ExtensionContext) {
-    // Show immediate popup to confirm activation is called
-    vscode.window.showInformationMessage('DitaCraft: activate() called!');
-
     try {
         logger.info('DitaCraft extension activation started');
 
@@ -82,8 +79,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         logger.info('DitaCraft extension activated successfully');
         outputChannel.appendLine('=== DitaCraft Activation Complete ===');
-
-        vscode.window.showInformationMessage('DitaCraft activated successfully!');
     } catch (error) {
         const errorMsg = `Failed to activate DitaCraft: ${error instanceof Error ? error.message : 'Unknown error'}`;
         vscode.window.showErrorMessage(errorMsg);
