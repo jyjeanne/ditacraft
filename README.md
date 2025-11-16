@@ -1,9 +1,10 @@
 # DitaCraft
 
-**The best way to edit and publish your DITA files**
+**The easiest way to edit and publish your DITA files**
 
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.80+-blue.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml)
 
 DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, validation, and seamless integration with DITA-OT for multi-format publishing.
 
