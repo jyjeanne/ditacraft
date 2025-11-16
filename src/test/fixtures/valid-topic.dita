@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
-<topic id="valid-topic">
+<topic id="valid_topic">
     <title>Valid Topic</title>
     <shortdesc>This is a valid DITA topic for testing.</shortdesc>
     <body>
-        <p>This topic has all required elements and proper structure.</p>
+        <p id="intro">This topic has all required elements and proper structure.</p>
+        <note id="note1">This is a test note for conref testing.</note>
         <section>
             <title>Section Title</title>
-            <p>Section content goes here.</p>
+            <p id="para1">Section content goes here.</p>
         </section>
     </body>
 </topic>
