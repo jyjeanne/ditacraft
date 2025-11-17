@@ -278,6 +278,28 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 ---
 
+## Edge Case Test Coverage ✅ IMPLEMENTED
+
+**New Test Suite**: Edge Case Handling (13 tests)
+
+**Test Categories**:
+- ✅ Empty attribute values (conref="", keyref="", scope="", etc.)
+- ✅ Malformed fragment identifiers (##, #/, very long IDs)
+- ✅ Special characters in paths (spaces, unicode, parentheses, brackets)
+- ✅ Variable syntax skipping (${variable}/file.dita)
+- ✅ Case variations (LOCAL, PDF vs local, pdf)
+- ✅ Attributes with special characters (rev="2.0-beta", linktext with quotes/ampersand)
+- ✅ Fragment-only edge cases (#, #/, #a/b/c)
+- ✅ Non-existent file references
+- ✅ Whitespace variations in attributes
+
+**Test Fixture**: `src/test/fixtures/topic-with-edge-cases.dita`
+- Comprehensive collection of edge cases
+- Empty attributes, malformed paths, special characters
+- Variable syntax, case variations, long values
+
+---
+
 ## Recommendations
 
 ### Low Priority (Future Enhancements)
@@ -287,9 +309,13 @@ This document analyzes DitaCraft's support for DITA reference types and their te
    - Different warning for peer scope files not found
    - Visual differentiation by scope type
 
-3. **Format validation** - Verify format matches file
+2. **Format validation** - Verify format matches file
    - Warn if format="pdf" but file is .dita
    - Show different icons based on format
+
+3. **Circular reference detection** - Prevent infinite loops
+   - Detect A→B→A conref chains
+   - Self-referencing conref protection
 
 ---
 

@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `@rev` displayed as `[rev: 2.0]` for revision/version tracking
   - All attributes extracted and combined in enhanced tooltips
 
-- **Enhanced Test Coverage**: Added 70+ new test cases
+- **Enhanced Test Coverage**: Added 85+ new test cases
   - Cross-reference (xref) detection tests
   - Link element detection tests
   - Same-file element navigation tests
@@ -56,11 +56,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - HTTP URL skipping tests
   - Mixed reference type tests
   - Enhanced attribute parsing tests (@scope, @format, @type, @linktext, @rev)
+  - **Edge case handling** (13 new tests):
+    - Empty attribute values (conref="", keyref="", scope="", etc.)
+    - Malformed fragment identifiers (##, very long IDs)
+    - Special characters in paths (spaces, unicode, parentheses)
+    - Variable syntax skipping (${variable}/file.dita)
+    - Case variations in attribute values
+    - Whitespace handling in attributes
 
 - **Updated Documentation**: DITA Reference Coverage Analysis
   - Coverage increased from 36% to **100%** (13/13 reference types fully implemented)
   - Full DITA reference type coverage achieved
   - Comprehensive coverage matrix and implementation notes
+  - Added edge case test coverage documentation
 
 ### Changed
 - **Reference Type Coverage**: Now supports all 13 major DITA reference types

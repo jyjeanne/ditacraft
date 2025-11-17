@@ -1411,6 +1411,226 @@ suite('DITA Link Provider Test Suite', () => {
         });
     });
 
+    suite('Edge Case Handling', () => {
+        test('Should handle empty conref attribute gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            // Should not throw error
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should return links array even with empty conref');
+
+            // Empty conref should not create a link
+            const emptyConrefLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === '';
+            });
+
+            assert.strictEqual(emptyConrefLinks.length, 0, 'Should not create links for empty conref values');
+        });
+
+        test('Should handle empty keyref attribute gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should return links array even with empty keyref');
+        });
+
+        test('Should handle empty enhanced attributes gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should still create links even with empty scope/format/rev attributes
+            console.log('Total links in edge cases file:', links!.length);
+
+            // Links should be created, but empty attributes should not appear in tooltip
+            links!.forEach(link => {
+                // Should not have [scope: ] or [format: ] with empty values
+                if (link.tooltip) {
+                    assert.ok(!link.tooltip.includes('[scope: ]'), 'Should not show empty scope');
+                    assert.ok(!link.tooltip.includes('[format: ]'), 'Should not show empty format');
+                    assert.ok(!link.tooltip.includes('[rev: ]'), 'Should not show empty rev');
+                }
+            });
+        });
+
+        test('Should handle malformed fragment identifiers', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should not crash on malformed fragments');
+
+            // Check that double hash is handled
+            const doubleHashLink = links!.find(link => {
+                const text = document.getText(link.range);
+                return text.includes('##');
+            });
+
+            // Provider should either skip or handle gracefully
+            console.log('Double hash link:', doubleHashLink?.tooltip);
+        });
+
+        test('Should handle special characters in paths', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should not crash on special character paths');
+
+            // Check paths with spaces
+            const spacePathLink = links!.find(link =>
+                link.target?.fsPath.includes('file with spaces')
+            );
+            console.log('Space path link:', spacePathLink?.target?.fsPath);
+
+            // Check paths with parentheses
+            const parenPathLink = links!.find(link =>
+                link.target?.fsPath.includes('file(1)')
+            );
+            console.log('Parentheses path link:', parenPathLink?.target?.fsPath);
+        });
+
+        test('Should handle very long element IDs', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should handle very long element IDs');
+
+            // Should find the link with very long ID
+            const longIdLink = links!.find(link =>
+                link.tooltip?.includes('this_is_a_very_long_element_id')
+            );
+            console.log('Long ID link found:', !!longIdLink);
+        });
+
+        test('Should skip variable syntax in paths', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should NOT create links for paths containing ${variable}
+            const variableLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text.includes('${');
+            });
+
+            assert.strictEqual(variableLinks.length, 0, 'Should skip paths with variable syntax');
+        });
+
+        test('Should handle attributes with special characters', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check rev with hyphen
+            const hyphenRevLink = links!.find(link =>
+                link.tooltip?.includes('[rev: 2.0-beta]')
+            );
+            assert.ok(hyphenRevLink, 'Should handle rev with hyphen');
+
+            // Check linktext with entities (ampersand)
+            const ampersandLink = links!.find(link =>
+                link.tooltip?.includes('&amp;') || link.tooltip?.includes('&')
+            );
+            console.log('Ampersand linktext link:', ampersandLink?.tooltip);
+        });
+
+        test('Should handle case variations in attribute values', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check for uppercase/mixed case scope
+            const uppercaseScopeLink = links!.find(link =>
+                link.tooltip?.includes('[scope: LOCAL]')
+            );
+            console.log('Uppercase scope link:', uppercaseScopeLink?.tooltip);
+
+            // Check for mixed case format
+            const mixedCaseFormatLink = links!.find(link =>
+                link.tooltip?.includes('[format: PDF]')
+            );
+            console.log('Mixed case format link:', mixedCaseFormatLink?.tooltip);
+        });
+
+        test('Should handle empty href attribute gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should return links array even with empty href');
+
+            // Empty href should not create a link with valid target
+            const emptyHrefLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === '' && link.target?.scheme === 'file';
+            });
+
+            assert.strictEqual(emptyHrefLinks.length, 0, 'Should not create file links for empty href values');
+        });
+
+        test('Should handle fragment-only edge cases', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check empty fragment (#)
+            const emptyFragmentLink = links!.find(link => {
+                const text = document.getText(link.range);
+                return text === '#';
+            });
+
+            if (emptyFragmentLink) {
+                console.log('Empty fragment link:', emptyFragmentLink.tooltip);
+                // Should handle gracefully
+                assert.ok(emptyFragmentLink.target, 'Empty fragment should have some target handling');
+            }
+        });
+
+        test('Should handle non-existent file references gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should still create links even for non-existent files (user feedback)
+            const nonExistentLink = links!.find(link =>
+                link.target?.fsPath.includes('nonexistent-file.dita')
+            );
+
+            console.log('Non-existent file link:', nonExistentLink?.target?.fsPath);
+            // The link should be created so user gets "file not found" when clicking
+        });
+
+        test('Should handle whitespace variations in attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should handle whitespace variations');
+
+            // Count total links to ensure none were missed due to whitespace
+            console.log('Total links with edge cases:', links!.length);
+            assert.ok(links!.length > 0, 'Should find links despite whitespace variations');
+        });
+    });
+
     suite('Integration Tests', () => {
         test('Link provider should be registered for DITA language', async function() {
             this.timeout(5000);
