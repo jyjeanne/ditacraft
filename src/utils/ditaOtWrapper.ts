@@ -156,8 +156,16 @@ export class DitaOtWrapper {
     public async verifyInstallation(): Promise<{ installed: boolean; version?: string; path?: string }> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            // Use execFile instead of exec to prevent command injection
-            const { stdout } = await execFileAsync(command, ['--version']);
+            let stdout: string;
+
+            // On Windows, .bat and .cmd files need to be executed through cmd.exe
+            if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
+                const result = await execFileAsync('cmd.exe', ['/c', command, '--version']);
+                stdout = result.stdout;
+            } else {
+                const result = await execFileAsync(command, ['--version']);
+                stdout = result.stdout;
+            }
 
             const versionMatch = stdout.match(/DITA-OT version ([\d.]+)/i);
             const version = versionMatch ? versionMatch[1] : 'unknown';
@@ -168,6 +176,7 @@ export class DitaOtWrapper {
                 path: this.ditaOtCommand || 'System PATH'
             };
         } catch (_error) {
+            logger.debug('DITA-OT verification failed', { error: _error });
             return {
                 installed: false
             };
@@ -180,8 +189,16 @@ export class DitaOtWrapper {
     public async getAvailableTranstypes(): Promise<string[]> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            // Use execFile instead of exec to prevent command injection
-            const { stdout } = await execFileAsync(command, ['transtypes']);
+            let stdout: string;
+
+            // On Windows, .bat and .cmd files need to be executed through cmd.exe
+            if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
+                const result = await execFileAsync('cmd.exe', ['/c', command, 'transtypes']);
+                stdout = result.stdout;
+            } else {
+                const result = await execFileAsync(command, ['transtypes']);
+                stdout = result.stdout;
+            }
 
             // Parse the output to extract transtype names
             const transtypes: string[] = [];
@@ -285,11 +302,19 @@ export class DitaOtWrapper {
             logger.debug('Input file validated successfully');
 
             // Spawn DITA-OT process
-            // Remove shell: true to avoid command injection vulnerabilities
+            // On Windows, .bat and .cmd files need to be executed through cmd.exe
             logger.debug('Spawning DITA-OT process', { cwd: path.dirname(options.inputFile) });
-            const ditaProcess = spawn(command, args, {
-                cwd: path.dirname(options.inputFile)
-            });
+            let ditaProcess;
+            if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
+                // Execute through cmd.exe for Windows batch files
+                ditaProcess = spawn('cmd.exe', ['/c', command, ...args], {
+                    cwd: path.dirname(options.inputFile)
+                });
+            } else {
+                ditaProcess = spawn(command, args, {
+                    cwd: path.dirname(options.inputFile)
+                });
+            }
 
             let outputBuffer = '';
             let errorBuffer = '';
