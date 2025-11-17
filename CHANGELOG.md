@@ -38,14 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Helpful message: "Key not found in key space. Make sure it's defined in a root map."
   - Integration with VS Code Problems panel
 
-- **Enhanced Attribute Parsing**: Tooltips show @scope, @format, @type, and @linktext
+- **Enhanced Attribute Parsing**: Tooltips show @scope, @format, @type, @linktext, and @rev
   - `@scope` displayed as `[scope: local/peer/external]`
   - `@format` displayed as `[format: dita/pdf/html]`
   - `@type` displayed as `[type: concept/task/reference]`
   - `@linktext` displayed as `Link text: "custom text"`
+  - `@rev` displayed as `[rev: 2.0]` for revision/version tracking
   - All attributes extracted and combined in enhanced tooltips
 
-- **Enhanced Test Coverage**: Added 65+ new test cases
+- **Enhanced Test Coverage**: Added 70+ new test cases
   - Cross-reference (xref) detection tests
   - Link element detection tests
   - Same-file element navigation tests
@@ -54,18 +55,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fragment identifier handling tests
   - HTTP URL skipping tests
   - Mixed reference type tests
-  - Enhanced attribute parsing tests (@scope, @format, @type, @linktext)
+  - Enhanced attribute parsing tests (@scope, @format, @type, @linktext, @rev)
 
 - **Updated Documentation**: DITA Reference Coverage Analysis
-  - Coverage increased from 36% to **92%** (12/13 reference types fully implemented)
-  - Only @rev (revision tracking) remains unimplemented
+  - Coverage increased from 36% to **100%** (13/13 reference types fully implemented)
+  - Full DITA reference type coverage achieved
   - Comprehensive coverage matrix and implementation notes
 
 ### Changed
-- **Reference Type Coverage**: Now supports 12 major DITA reference types
-  - @conref, @conkeyref, @keyref, @href, @scope, @format, @type, @linktext
+- **Reference Type Coverage**: Now supports all 13 major DITA reference types
+  - @conref, @conkeyref, @keyref, @href, @scope, @format, @type, @linktext, @rev
   - `<xref>`, `<link>`, #fragment (same-file), @id (element navigator)
-  - Improved from 4/11 to 12/13 fully implemented reference types (92%)
+  - Improved from 4/11 to 13/13 fully implemented reference types (100%)
   - Same-file navigation now uses VS Code commands for proper scrolling
 
 ## [0.2.1] - 2025-11-17

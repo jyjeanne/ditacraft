@@ -47,6 +47,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     private static readonly FORMAT_PATTERN = /\bformat\s*=\s*["']([^"']+)["']/i;
     private static readonly LINKTEXT_PATTERN = /\blinktext\s*=\s*["']([^"']+)["']/i;
     private static readonly TYPE_PATTERN = /\btype\s*=\s*["']([^"']+)["']/i;
+    private static readonly REV_PATTERN = /\brev\s*=\s*["']([^"']+)["']/i;
 
     constructor(keySpaceResolver?: KeySpaceResolver) {
         this.keySpaceResolver = keySpaceResolver || new KeySpaceResolver();
@@ -459,11 +460,12 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                 } else {
                     baseTooltip = `Open cross-reference: ${path.basename(targetPath)}`;
                 }
-                // Enhance tooltip with scope, format, and linktext
+                // Enhance tooltip with scope, format, linktext, and rev
                 link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
                     showScope: true,
                     showFormat: true,
-                    showLinktext: true
+                    showLinktext: true,
+                    showRev: true
                 });
                 links.push(link);
             }
@@ -601,12 +603,13 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                 } else {
                     baseTooltip = `Open related link: ${path.basename(targetPath)}`;
                 }
-                // Enhance tooltip with scope, format, and linktext
+                // Enhance tooltip with scope, format, linktext, type, and rev
                 link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
                     showScope: true,
                     showFormat: true,
                     showLinktext: true,
-                    showType: true
+                    showType: true,
+                    showRev: true
                 });
                 links.push(link);
             }
@@ -709,12 +712,21 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     }
 
     /**
+     * Extract @rev attribute from element tag
+     * Returns revision identifier (e.g., '2.0', '1.1', 'draft') or undefined
+     */
+    private extractRev(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.REV_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
      * Build enhanced tooltip with scope, format, and linktext information
      */
     private buildEnhancedTooltip(
         baseTooltip: string,
         elementTag: string,
-        options: { showScope?: boolean; showFormat?: boolean; showLinktext?: boolean; showType?: boolean } = {}
+        options: { showScope?: boolean; showFormat?: boolean; showLinktext?: boolean; showType?: boolean; showRev?: boolean } = {}
     ): string {
         const parts: string[] = [baseTooltip];
 
@@ -737,6 +749,13 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             const type = this.extractType(elementTag);
             if (type) {
                 parts.push(`[type: ${type}]`);
+            }
+        }
+
+        if (options.showRev) {
+            const rev = this.extractRev(elementTag);
+            if (rev) {
+                parts.push(`[rev: ${rev}]`);
             }
         }
 

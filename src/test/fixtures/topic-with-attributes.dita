@@ -21,6 +21,12 @@
         <!-- Test xref with multiple attributes -->
         <p>Read <xref href="concepts/overview.dita" scope="local" format="dita" linktext="Overview Document">overview</xref>.</p>
 
+        <!-- Test xref with rev attribute -->
+        <p>See <xref href="features/new-features.dita" rev="2.0">new features in version 2.0</xref>.</p>
+
+        <!-- Test xref with multiple attributes including rev -->
+        <p>Check <xref href="changelog.dita" scope="local" format="dita" rev="1.5">version 1.5 changes</xref>.</p>
+
         <!-- Test link with scope and format -->
         <section id="resources">
             <title>Resources</title>
@@ -42,5 +48,11 @@
 
         <!-- Test link with type attribute -->
         <link href="task/install.dita" scope="local" type="task"/>
+
+        <!-- Test link with rev attribute -->
+        <link href="updates/release-notes.dita" rev="3.0" type="reference"/>
+
+        <!-- Test link with multiple attributes including rev -->
+        <link href="migration/upgrade-guide.dita" scope="local" format="dita" type="task" rev="2.5"/>
     </related-links>
 </topic>

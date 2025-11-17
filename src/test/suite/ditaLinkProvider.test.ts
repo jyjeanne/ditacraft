@@ -1342,6 +1342,73 @@ suite('DITA Link Provider Test Suite', () => {
                 assert.ok(link.tooltip, 'Every link should have a tooltip');
             });
         });
+
+        test('Should extract @rev attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with rev attribute
+            const revLinks = links!.filter(link =>
+                link.tooltip?.includes('[rev:')
+            );
+
+            console.log('Links with rev attribute:', revLinks.length);
+
+            assert.ok(revLinks.length > 0, 'Should find links with rev attribute in tooltip');
+
+            // Check for specific rev value
+            const rev20Link = links!.find(link =>
+                link.tooltip?.includes('[rev: 2.0]')
+            );
+            assert.ok(rev20Link, 'Should find xref with rev="2.0" attribute');
+        });
+
+        test('Should extract @rev attribute in link element tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link element with rev attribute
+            const rev30Link = links!.find(link =>
+                link.tooltip?.includes('[rev: 3.0]')
+            );
+
+            assert.ok(rev30Link, 'Should find link with rev="3.0" attribute');
+
+            // Check for multiple attributes with rev
+            const multiAttrRevLink = links!.find(link =>
+                link.tooltip?.includes('[rev: 2.5]') &&
+                link.tooltip?.includes('[type: task]')
+            );
+
+            if (multiAttrRevLink) {
+                console.log('Multi-attribute rev link tooltip:', multiAttrRevLink.tooltip);
+                assert.ok(multiAttrRevLink.tooltip!.includes('[rev: 2.5]'), 'Should show rev 2.5');
+                assert.ok(multiAttrRevLink.tooltip!.includes('[type: task]'), 'Should show task type');
+            }
+        });
+
+        test('Should show rev attribute alongside other attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with scope, format, and rev attributes
+            const multiAttrLink = links!.find(link =>
+                link.tooltip?.includes('[scope: local]') &&
+                link.tooltip?.includes('[format: dita]') &&
+                link.tooltip?.includes('[rev: 1.5]')
+            );
+
+            if (multiAttrLink) {
+                console.log('Link with scope, format, and rev:', multiAttrLink.tooltip);
+                assert.ok(multiAttrLink, 'Should find link with scope, format, and rev attributes');
+            }
+        });
     });
 
     suite('Integration Tests', () => {

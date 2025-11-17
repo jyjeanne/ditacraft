@@ -19,8 +19,8 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 | **&lt;xref&gt;** | ✅ YES | ✅ YES | Cross-references (href and keyref) |
 | **&lt;link&gt;** | ✅ YES | ✅ YES | Related link elements |
 | **#fragment** | ✅ YES | ✅ YES | Same-file navigation with scroll |
-| **@rev** | ❌ NO | ❌ NO | Revision history not tracked |
-| **@linktext** | ❌ NO | ❌ NO | Link text not extracted |
+| **@linktext** | ✅ YES | ✅ YES | Link text extracted and shown in tooltip |
+| **@rev** | ✅ YES | ✅ YES | Revision tracking shown in tooltip |
 
 ## Detailed Analysis
 
@@ -170,21 +170,6 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 ---
 
-## Missing Reference Types (NOT IMPLEMENTED)
-
-### 1. @rev (Revision) ❌ NOT IMPLEMENTED
-
-**Use Case**: Version/revision tracking
-
-**Example**:
-```xml
-<topicref href="topics/mycontent.dita" rev="2.0"/>
-```
-
-**Priority**: LOW - Typically handled by DITA-OT
-
----
-
 ## Recently Implemented Reference Types
 
 ### 1. @scope Attribute ✅ IMPLEMENTED
@@ -275,18 +260,29 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 - ✅ Integration with KeySpaceResolver
 - ✅ Helpful error messages for missing keys
 
+### 7. @rev Attribute ✅ IMPLEMENTED
+
+**Implementation**: `src/providers/ditaLinkProvider.ts`
+**Pattern**: `/\brev\s*=\s*["']([^"']+)["']/i`
+
+**Features**:
+- ✅ Extracted from xref and link elements
+- ✅ Displayed in tooltip as `[rev: 2.0]`
+- ✅ Shows revision/version information
+- ✅ Supports any revision identifier (e.g., '2.0', '1.5', 'draft')
+
+**Test Coverage**:
+- ✅ Should extract @rev attribute in xref tooltip
+- ✅ Should extract @rev attribute in link element tooltip
+- ✅ Should show rev attribute alongside other attributes
+
 ---
 
 ## Recommendations
 
-### Low Priority (Remaining)
+### Low Priority (Future Enhancements)
 
-1. **@rev support** - Version/revision tracking
-   - Parse @rev attribute
-   - Show revision in tooltip
-   - Not typically needed for navigation
-
-2. **Advanced scope handling** - External link behavior
+1. **Advanced scope handling** - External link behavior
    - Open external links in browser
    - Different warning for peer scope files not found
    - Visual differentiation by scope type
@@ -299,7 +295,7 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 ## Test Coverage Summary
 
-**Implemented and Tested**: 12/13 (92%)
+**Implemented and Tested**: 13/13 (100%)
 - @conref ✅
 - @conkeyref ✅
 - @keyref ✅
@@ -312,9 +308,10 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 - @format ✅
 - @type ✅
 - @linktext ✅
+- @rev ✅
 
-**Not Implemented**: 1/13 (8%)
-- @rev (revision tracking)
+**Not Implemented**: 0/13 (0%)
+- None - Full coverage achieved!
 
 ## Recent Changes (2025-11-17)
 
@@ -324,9 +321,10 @@ This document analyzes DitaCraft's support for DITA reference types and their te
    - `extractFormat()` - Extract @format attribute (dita/pdf/html)
    - `extractType()` - Extract @type attribute (concept/task/reference)
    - `extractLinktext()` - Extract @linktext attribute for custom text
-   - `buildEnhancedTooltip()` - Combine base tooltip with attribute info
-2. `src/test/suite/ditaLinkProvider.test.ts` - Added 7 new attribute parsing tests
-3. `src/test/fixtures/topic-with-attributes.dita` - Test fixture with enhanced attributes
+   - `extractRev()` - Extract @rev attribute for revision tracking
+   - `buildEnhancedTooltip()` - Combine base tooltip with attribute info (including @rev)
+2. `src/test/suite/ditaLinkProvider.test.ts` - Added 10 new attribute parsing tests (including 3 for @rev)
+3. `src/test/fixtures/topic-with-attributes.dita` - Test fixture with enhanced attributes including @rev
 
 **Added same-file element navigation**:
 1. `src/utils/elementNavigator.ts` - Element finding and scrolling utility
