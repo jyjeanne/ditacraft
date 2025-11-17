@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_with_xref_links">
+    <title>Topic with Cross-References and Links</title>
+    <body>
+        <!-- Test xref elements with href -->
+        <p>For more information, see <xref href="valid-topic.dita">the valid topic</xref>.</p>
+
+        <!-- Test xref with fragment -->
+        <p>Refer to <xref href="valid-topic.dita#valid_topic/intro">the introduction section</xref>.</p>
+
+        <!-- Test xref with keyref -->
+        <p>See the <xref keyref="product-key">product documentation</xref>.</p>
+
+        <!-- Test xref with same-file fragment -->
+        <p>Jump to <xref href="#topic_with_xref_links/summary">the summary</xref> below.</p>
+
+        <!-- Test external URL xref (should be skipped) -->
+        <p>Visit <xref href="https://example.com">the external site</xref>.</p>
+
+        <!-- Test link elements in related-links -->
+        <section id="summary">
+            <title>Summary</title>
+            <p>This is the summary section.</p>
+        </section>
+    </body>
+    <related-links>
+        <!-- Test link with href -->
+        <link href="user_guide.dita"/>
+
+        <!-- Test link with fragment -->
+        <link href="product_info.dita#product_info/overview"/>
+
+        <!-- Test link with same-file fragment -->
+        <link href="#topic_with_xref_links/summary"/>
+
+        <!-- Test external link (should be skipped) -->
+        <link href="https://docs.example.com/api"/>
+    </related-links>
+</topic>

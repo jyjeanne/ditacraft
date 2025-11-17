@@ -5,6 +5,41 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-11-17
+
+### Added
+- **Cross-Reference (xref) Support**: Full navigation support for `<xref>` elements
+  - Navigate `<xref href="file.dita">` to target files
+  - Support for `<xref href="file.dita#element">` with fragment identifiers
+  - Navigate `<xref keyref="keyname">` via key space resolution
+  - Same-file navigation with `<xref href="#element">`
+  - Smart tooltip indicating "cross-reference" type
+  - Automatic skipping of external HTTP/HTTPS URLs
+
+- **Related Link Element Support**: Navigation for `<link>` elements in related-links sections
+  - Navigate `<link href="file.dita"/>` to target files
+  - Support for fragments: `<link href="file.dita#element"/>`
+  - Same-file links with `<link href="#element"/>`
+  - Smart tooltip indicating "related link" type
+
+- **Enhanced Test Coverage**: Added 21 new test cases
+  - Cross-reference (xref) detection tests
+  - Link element detection tests
+  - Fragment identifier handling tests
+  - Same-file reference tests
+  - HTTP URL skipping tests
+  - Mixed reference type tests
+
+- **Updated Documentation**: DITA Reference Coverage Analysis
+  - Coverage increased from 36% to 55% (6/11 reference types fully implemented)
+  - Updated recommendations for remaining high-priority features
+  - Detailed implementation notes for xref and link support
+
+### Changed
+- **Reference Type Coverage**: Now supports 6 major DITA reference types
+  - @conref, @conkeyref, @keyref, @href, `<xref>`, `<link>`
+  - Improved from 4/11 to 6/11 fully implemented reference types
+
 ## [0.2.1] - 2025-11-17
 
 ### Fixed

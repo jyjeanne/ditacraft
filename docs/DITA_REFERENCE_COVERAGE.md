@@ -16,8 +16,8 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 | **@format** | ❌ NO | ❌ NO | Not used in link resolution |
 | **@type** | ❌ NO | ❌ NO | Not considered in navigation |
 | **@keys** | ✅ YES | ✅ YES | Key definitions in maps |
-| **&lt;xref&gt;** | ❌ NO | ❌ NO | Cross-references not supported |
-| **&lt;link&gt;** | ❌ NO | ❌ NO | Link elements not supported |
+| **&lt;xref&gt;** | ✅ YES | ✅ YES | Cross-references (href and keyref) |
+| **&lt;link&gt;** | ✅ YES | ✅ YES | Related link elements |
 | **@anchor** | ⚠️ PARTIAL | ❌ NO | Fragment parsed but not scrolled to |
 | **@rev** | ❌ NO | ❌ NO | Revision history not tracked |
 | **@linktext** | ❌ NO | ❌ NO | Link text not extracted |
@@ -127,45 +127,52 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 - ✅ Cache management tests
 - ✅ Root map discovery tests
 
+### 7. &lt;xref&gt; (Cross-Reference) ✅ IMPLEMENTED
+
+**Implementation**: `src/providers/ditaLinkProvider.ts` line 391-523
+**Regex Patterns**:
+- `/<xref[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi`
+- `/<xref[^>]*\bkeyref\s*=\s*["']([^"']+)["'][^>]*>/gi`
+
+**Supported Formats**:
+- ✅ `<xref href="file.dita">` - File reference
+- ✅ `<xref href="file.dita#element">` - File with fragment
+- ✅ `<xref href="#element">` - Same-file reference
+- ✅ `<xref keyref="keyname">` - Key reference
+- ✅ Skips `http://` and `https://` URLs
+
+**Test Coverage**:
+- ✅ Should detect xref elements with href attributes
+- ✅ Should handle xref href with file references
+- ✅ Should handle xref href with fragment identifiers
+- ✅ Should handle xref with same-file fragment references
+- ✅ Should skip xref with external HTTP URLs
+- ✅ Xref tooltip should indicate cross-reference type
+
+### 8. &lt;link&gt; (Related Links) ✅ IMPLEMENTED
+
+**Implementation**: `src/providers/ditaLinkProvider.ts` line 525-590
+**Regex Pattern**: `/<link[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi`
+
+**Supported Formats**:
+- ✅ `<link href="file.dita"/>` - File reference
+- ✅ `<link href="file.dita#element"/>` - File with fragment
+- ✅ `<link href="#element"/>` - Same-file reference
+- ✅ Skips `http://` and `https://` URLs
+
+**Test Coverage**:
+- ✅ Should detect link elements with href attributes
+- ✅ Should handle link element with file references
+- ✅ Should handle link element with fragment identifiers
+- ✅ Should handle link element with same-file fragment references
+- ✅ Should skip link elements with external HTTP URLs
+- ✅ Link tooltip should indicate related link type
+
 ---
 
 ## Missing Reference Types (NOT IMPLEMENTED)
 
-### 1. &lt;xref&gt; (Cross-Reference) ❌ NOT IMPLEMENTED
-
-**Use Case**: Inline cross-references within topic content
-
-**Example**:
-```xml
-<xref href="topics/mycontent.dita#section2">See the referenced section</xref>
-<xref keyref="mykey">See details</xref>
-```
-
-**Required Implementation**:
-- Add xref pattern: `/<xref[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi`
-- Support keyref within xref
-- Extract and display link text
-
-**Priority**: HIGH - Common DITA usage pattern
-
-### 2. &lt;link&gt; (Related Links) ❌ NOT IMPLEMENTED
-
-**Use Case**: Related links section in topics
-
-**Example**:
-```xml
-<link href="topics/mycontent.dita" linktext="Click here"/>
-<link href="https://www.example.com">External site</link>
-```
-
-**Required Implementation**:
-- Add link pattern
-- Extract linktext attribute
-- Handle external links differently
-
-**Priority**: MEDIUM
-
-### 3. @scope Attribute ❌ NOT PARSED
+### 1. @scope Attribute ❌ NOT PARSED
 
 **Use Case**: Determines if reference is local, peer, or external
 
@@ -182,7 +189,7 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 **Priority**: MEDIUM
 
-### 4. @format Attribute ❌ NOT PARSED
+### 2. @format Attribute ❌ NOT PARSED
 
 **Use Case**: Specifies format of target (dita, html, pdf, etc.)
 
@@ -198,7 +205,7 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 **Priority**: LOW
 
-### 5. @type Attribute ❌ NOT PARSED
+### 3. @type Attribute ❌ NOT PARSED
 
 **Use Case**: Specifies topic type of target
 
@@ -209,7 +216,7 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 **Priority**: LOW
 
-### 6. @rev (Revision) ❌ NOT IMPLEMENTED
+### 4. @rev (Revision) ❌ NOT IMPLEMENTED
 
 **Use Case**: Version/revision tracking
 
@@ -220,7 +227,7 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 **Priority**: LOW - Typically handled by DITA-OT
 
-### 7. Same-file Navigation ⚠️ PARTIAL
+### 5. Same-file Navigation ⚠️ PARTIAL
 
 **Issue**: When conref="#element_id", we open the current file but don't scroll to element
 
@@ -237,60 +244,69 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 ### High Priority (Should Implement)
 
-1. **Add xref support** - Very common in DITA content
-   - Inline cross-references
-   - Support both href and keyref
-   - Display link text
-
-2. **Same-file element navigation** - Improve conref="#id" handling
+1. **Same-file element navigation** - Improve conref="#id" and xref="#id" handling
    - Scroll to specific element
    - Highlight target element
+   - Use VS Code's `vscode.commands.executeCommand('editor.action.goToLocations')`
 
-3. **Better error reporting** - When keys aren't found
+2. **Better error reporting** - When keys aren't found
    - Show diagnostic warning
    - Suggest similar keys
+   - Inline validation for missing references
 
 ### Medium Priority
 
-4. **Add link element support** - Related links sections
-5. **Parse @scope attribute** - Better external link handling
-6. **Parse @format attribute** - Icon/tooltip improvements
+3. **Parse @scope attribute** - Better external link handling
+   - Different handling for external vs local
+   - Validate scope consistency
+
+4. **Parse @format attribute** - Icon/tooltip improvements
+   - Different icons based on format (pdf, html, etc.)
+   - Warn if format doesn't match file extension
 
 ### Low Priority
 
-7. **@type validation** - Verify topic types match
-8. **@rev support** - Version tracking
-9. **@linktext extraction** - Display custom link text
+5. **@type validation** - Verify topic types match
+6. **@rev support** - Version tracking
+7. **@linktext extraction** - Display custom link text in tooltips
 
 ---
 
 ## Test Coverage Summary
 
-**Implemented and Tested**: 4/11 (36%)
+**Implemented and Tested**: 6/11 (55%)
 - @conref ✅
 - @conkeyref ✅
 - @keyref ✅
 - @href ✅
+- &lt;xref&gt; ✅
+- &lt;link&gt; ✅
 
 **Partially Implemented**: 2/11 (18%)
 - @id (validation only)
 - @anchor (parsing only)
 
-**Not Implemented**: 5/11 (45%)
-- xref
-- link
+**Not Implemented**: 3/11 (27%)
 - @scope
 - @format
 - @type
 
+## Recent Changes (2025-11-17)
+
+**Added xref and link support**:
+1. `src/providers/ditaLinkProvider.ts` - Added xref and link pattern matching
+   - `processXrefAttributes()` - for `<xref href="...">`
+   - `processXrefKeyrefAttributes()` - for `<xref keyref="...">`
+   - `processLinkAttributes()` - for `<link href="...">`
+2. `src/test/suite/ditaLinkProvider.test.ts` - Added 21 new test cases
+3. `src/test/fixtures/topic-with-xref-links.dita` - New comprehensive test fixture
+
 ## Files Needing Updates
 
-1. `src/providers/ditaLinkProvider.ts` - Add xref and link patterns
-2. `src/test/suite/ditaLinkProvider.test.ts` - Add xref/link tests
-3. `src/test/fixtures/` - Add test fixtures for xref and link
-4. `src/providers/ditaValidator.ts` - Validate scope/format attributes
+1. `src/providers/ditaValidator.ts` - Validate scope/format attributes
+2. `src/providers/ditaLinkProvider.ts` - Add same-file element scrolling
 
 ---
 
 *Generated: 2025-11-17*
-*DitaCraft Version: 0.2.1*
+*DitaCraft Version: 0.2.2*
