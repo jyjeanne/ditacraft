@@ -5,6 +5,22 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-11-17
+
+### Fixed
+- **Windows DITA-OT Support**: Fixed execution of .bat and .cmd files on Windows
+  - DITA-OT verification now works correctly by executing through cmd.exe
+  - Publishing now works on Windows with proper batch file handling
+  - Resolves "DITA-OT path set, but verification failed" error
+- **Title Validation**: Improved validation to check title as first child of root element
+  - Now correctly detects missing title element even if title exists in nested elements
+  - Validates that `<title>` must be direct child of topic/concept/task/reference
+  - Better pattern matching for root element attributes (handles any order)
+- **CI/CD Improvements**: Added VSIX artifact build to GitHub Actions workflow
+  - Automatically builds and uploads VSIX on every push
+  - Artifact includes commit SHA for easy identification
+  - 30-day retention for downloadable artifacts
+
 ## [0.2.0] - 2025-11-16
 
 ### Added
