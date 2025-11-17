@@ -11,14 +11,14 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 | **@keyref** | ✅ YES | ✅ YES | Key references with key space resolution |
 | **@href** | ✅ YES | ✅ YES | Direct file references in maps |
 | **&lt;topicref&gt;** | ✅ YES | ✅ YES | Topic references in maps |
-| **@id** | ⚠️ PARTIAL | ✅ YES | Validated but not navigable |
-| **@scope** | ❌ NO | ❌ NO | Not parsed for navigation |
-| **@format** | ❌ NO | ❌ NO | Not used in link resolution |
-| **@type** | ❌ NO | ❌ NO | Not considered in navigation |
+| **@id** | ✅ YES | ✅ YES | Navigable via element navigator |
+| **@scope** | ✅ YES | ✅ YES | Shown in tooltip (local/peer/external) |
+| **@format** | ✅ YES | ✅ YES | Shown in tooltip (dita/pdf/html) |
+| **@type** | ✅ YES | ✅ YES | Shown in tooltip for link elements |
 | **@keys** | ✅ YES | ✅ YES | Key definitions in maps |
 | **&lt;xref&gt;** | ✅ YES | ✅ YES | Cross-references (href and keyref) |
 | **&lt;link&gt;** | ✅ YES | ✅ YES | Related link elements |
-| **@anchor** | ⚠️ PARTIAL | ❌ NO | Fragment parsed but not scrolled to |
+| **#fragment** | ✅ YES | ✅ YES | Same-file navigation with scroll |
 | **@rev** | ❌ NO | ❌ NO | Revision history not tracked |
 | **@linktext** | ❌ NO | ❌ NO | Link text not extracted |
 
@@ -172,51 +172,7 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 ## Missing Reference Types (NOT IMPLEMENTED)
 
-### 1. @scope Attribute ❌ NOT PARSED
-
-**Use Case**: Determines if reference is local, peer, or external
-
-**Example**:
-```xml
-<xref href="topics/other.dita" scope="peer">Peer topic</xref>
-<xref href="http://example.com" scope="external">External</xref>
-```
-
-**Required Implementation**:
-- Parse scope attribute
-- Different handling for external vs local
-- Validate scope consistency
-
-**Priority**: MEDIUM
-
-### 2. @format Attribute ❌ NOT PARSED
-
-**Use Case**: Specifies format of target (dita, html, pdf, etc.)
-
-**Example**:
-```xml
-<topicref href="resources/guide.pdf" format="pdf"/>
-```
-
-**Required Implementation**:
-- Parse format attribute
-- Different icons/tooltips based on format
-- Warn if format doesn't match file extension
-
-**Priority**: LOW
-
-### 3. @type Attribute ❌ NOT PARSED
-
-**Use Case**: Specifies topic type of target
-
-**Example**:
-```xml
-<topicref href="concepts/intro.dita" type="concept"/>
-```
-
-**Priority**: LOW
-
-### 4. @rev (Revision) ❌ NOT IMPLEMENTED
+### 1. @rev (Revision) ❌ NOT IMPLEMENTED
 
 **Use Case**: Version/revision tracking
 
@@ -227,71 +183,158 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 **Priority**: LOW - Typically handled by DITA-OT
 
-### 5. Same-file Navigation ⚠️ PARTIAL
+---
 
-**Issue**: When conref="#element_id", we open the current file but don't scroll to element
+## Recently Implemented Reference Types
 
-**Required Implementation**:
-- Use VS Code's `vscode.commands.executeCommand('editor.action.goToLocations')`
-- Parse file to find element by @id
-- Position cursor at that location
+### 1. @scope Attribute ✅ IMPLEMENTED
 
-**Priority**: HIGH - Improves user experience
+**Implementation**: `src/providers/ditaLinkProvider.ts`
+**Pattern**: `/\bscope\s*=\s*["']([^"']+)["']/i`
+
+**Features**:
+- ✅ Extracted from xref and link elements
+- ✅ Displayed in tooltip as `[scope: local/peer/external]`
+- ✅ Supports local, peer, and external values
+
+**Test Coverage**:
+- ✅ Should extract @scope attribute in xref tooltip
+- ✅ Should handle peer scope in tooltip
+- ✅ Should show multiple attributes in tooltip
+
+### 2. @format Attribute ✅ IMPLEMENTED
+
+**Implementation**: `src/providers/ditaLinkProvider.ts`
+**Pattern**: `/\bformat\s*=\s*["']([^"']+)["']/i`
+
+**Features**:
+- ✅ Extracted from xref and link elements
+- ✅ Displayed in tooltip as `[format: dita/pdf/html]`
+- ✅ Shows target file format type
+
+**Test Coverage**:
+- ✅ Should extract @format attribute in xref tooltip
+- ✅ Should find link with PDF format
+
+### 3. @type Attribute ✅ IMPLEMENTED
+
+**Implementation**: `src/providers/ditaLinkProvider.ts`
+**Pattern**: `/\btype\s*=\s*["']([^"']+)["']/i`
+
+**Features**:
+- ✅ Extracted from link elements
+- ✅ Displayed in tooltip as `[type: concept/task/reference]`
+- ✅ Shows topic type of target
+
+**Test Coverage**:
+- ✅ Should extract @type attribute in link element tooltip
+
+### 4. @linktext Attribute ✅ IMPLEMENTED
+
+**Implementation**: `src/providers/ditaLinkProvider.ts`
+**Pattern**: `/\blinktext\s*=\s*["']([^"']+)["']/i`
+
+**Features**:
+- ✅ Extracted from xref and link elements
+- ✅ Displayed in tooltip as `Link text: "custom text"`
+- ✅ Shows custom link text on new line
+
+**Test Coverage**:
+- ✅ Should extract @linktext attribute in xref tooltip
+- ✅ Should find link with "Click here for more" linktext
+
+### 5. Same-file Navigation ✅ IMPLEMENTED
+
+**Implementation**: `src/utils/elementNavigator.ts`
+**Command**: `ditacraft.navigateToElement`
+
+**Supported Formats**:
+- ✅ `#element_id` - Direct element reference
+- ✅ `#topic_id/element_id` - Nested path format
+- ✅ Automatic element finding by @id attribute
+- ✅ Visual highlight with 2-second fade
+- ✅ Cursor positioned at element
+
+**Test Coverage**:
+- ✅ Should find element with simple id
+- ✅ Should find root element id
+- ✅ Should return -1 for non-existent id
+- ✅ Should handle id with underscores
+- ✅ Should handle id with hyphens
+- ✅ Should create valid command URIs for same-file references
+- ✅ Conref, xref, and link same-file references use command URIs
+
+### 6. Key Reference Diagnostics ✅ IMPLEMENTED
+
+**Implementation**: `src/providers/keyDiagnostics.ts`
+
+**Features**:
+- ✅ Automatic detection of undefined keyref and conkeyref
+- ✅ Warning markers in VS Code Problems panel
+- ✅ Debounced validation (1s delay)
+- ✅ Integration with KeySpaceResolver
+- ✅ Helpful error messages for missing keys
 
 ---
 
 ## Recommendations
 
-### High Priority (Should Implement)
+### Low Priority (Remaining)
 
-1. **Same-file element navigation** - Improve conref="#id" and xref="#id" handling
-   - Scroll to specific element
-   - Highlight target element
-   - Use VS Code's `vscode.commands.executeCommand('editor.action.goToLocations')`
+1. **@rev support** - Version/revision tracking
+   - Parse @rev attribute
+   - Show revision in tooltip
+   - Not typically needed for navigation
 
-2. **Better error reporting** - When keys aren't found
-   - Show diagnostic warning
-   - Suggest similar keys
-   - Inline validation for missing references
+2. **Advanced scope handling** - External link behavior
+   - Open external links in browser
+   - Different warning for peer scope files not found
+   - Visual differentiation by scope type
 
-### Medium Priority
-
-3. **Parse @scope attribute** - Better external link handling
-   - Different handling for external vs local
-   - Validate scope consistency
-
-4. **Parse @format attribute** - Icon/tooltip improvements
-   - Different icons based on format (pdf, html, etc.)
-   - Warn if format doesn't match file extension
-
-### Low Priority
-
-5. **@type validation** - Verify topic types match
-6. **@rev support** - Version tracking
-7. **@linktext extraction** - Display custom link text in tooltips
+3. **Format validation** - Verify format matches file
+   - Warn if format="pdf" but file is .dita
+   - Show different icons based on format
 
 ---
 
 ## Test Coverage Summary
 
-**Implemented and Tested**: 6/11 (55%)
+**Implemented and Tested**: 12/13 (92%)
 - @conref ✅
 - @conkeyref ✅
 - @keyref ✅
 - @href ✅
 - &lt;xref&gt; ✅
 - &lt;link&gt; ✅
+- #fragment (same-file navigation) ✅
+- @id (element navigator) ✅
+- @scope ✅
+- @format ✅
+- @type ✅
+- @linktext ✅
 
-**Partially Implemented**: 2/11 (18%)
-- @id (validation only)
-- @anchor (parsing only)
-
-**Not Implemented**: 3/11 (27%)
-- @scope
-- @format
-- @type
+**Not Implemented**: 1/13 (8%)
+- @rev (revision tracking)
 
 ## Recent Changes (2025-11-17)
+
+**Added enhanced attribute parsing**:
+1. `src/providers/ditaLinkProvider.ts` - Enhanced tooltips with attribute information
+   - `extractScope()` - Extract @scope attribute (local/peer/external)
+   - `extractFormat()` - Extract @format attribute (dita/pdf/html)
+   - `extractType()` - Extract @type attribute (concept/task/reference)
+   - `extractLinktext()` - Extract @linktext attribute for custom text
+   - `buildEnhancedTooltip()` - Combine base tooltip with attribute info
+2. `src/test/suite/ditaLinkProvider.test.ts` - Added 7 new attribute parsing tests
+3. `src/test/fixtures/topic-with-attributes.dita` - Test fixture with enhanced attributes
+
+**Added same-file element navigation**:
+1. `src/utils/elementNavigator.ts` - Element finding and scrolling utility
+   - `findElementById()` - Find element by @id attribute
+   - `navigateToElement()` - Navigate with visual highlight
+   - Command URI handling for same-file references
+2. `src/test/suite/elementNavigator.test.ts` - 214+ lines of navigation tests
+3. `src/providers/keyDiagnostics.ts` - Missing key warning provider
 
 **Added xref and link support**:
 1. `src/providers/ditaLinkProvider.ts` - Added xref and link pattern matching
@@ -303,8 +346,8 @@ This document analyzes DitaCraft's support for DITA reference types and their te
 
 ## Files Needing Updates
 
-1. `src/providers/ditaValidator.ts` - Validate scope/format attributes
-2. `src/providers/ditaLinkProvider.ts` - Add same-file element scrolling
+1. `src/providers/ditaValidator.ts` - Add @rev validation if needed
+2. Future: Open external links in browser based on scope="external"
 
 ---
 

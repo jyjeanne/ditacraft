@@ -38,7 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Helpful message: "Key not found in key space. Make sure it's defined in a root map."
   - Integration with VS Code Problems panel
 
-- **Enhanced Test Coverage**: Added 40+ new test cases
+- **Enhanced Attribute Parsing**: Tooltips show @scope, @format, @type, and @linktext
+  - `@scope` displayed as `[scope: local/peer/external]`
+  - `@format` displayed as `[format: dita/pdf/html]`
+  - `@type` displayed as `[type: concept/task/reference]`
+  - `@linktext` displayed as `Link text: "custom text"`
+  - All attributes extracted and combined in enhanced tooltips
+
+- **Enhanced Test Coverage**: Added 65+ new test cases
   - Cross-reference (xref) detection tests
   - Link element detection tests
   - Same-file element navigation tests
@@ -47,16 +54,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fragment identifier handling tests
   - HTTP URL skipping tests
   - Mixed reference type tests
+  - Enhanced attribute parsing tests (@scope, @format, @type, @linktext)
 
 - **Updated Documentation**: DITA Reference Coverage Analysis
-  - Coverage increased from 36% to 55% (6/11 reference types fully implemented)
-  - Updated recommendations for remaining high-priority features
-  - Detailed implementation notes for xref and link support
+  - Coverage increased from 36% to **92%** (12/13 reference types fully implemented)
+  - Only @rev (revision tracking) remains unimplemented
+  - Comprehensive coverage matrix and implementation notes
 
 ### Changed
-- **Reference Type Coverage**: Now supports 6 major DITA reference types
-  - @conref, @conkeyref, @keyref, @href, `<xref>`, `<link>`
-  - Improved from 4/11 to 6/11 fully implemented reference types
+- **Reference Type Coverage**: Now supports 12 major DITA reference types
+  - @conref, @conkeyref, @keyref, @href, @scope, @format, @type, @linktext
+  - `<xref>`, `<link>`, #fragment (same-file), @id (element navigator)
+  - Improved from 4/11 to 12/13 fully implemented reference types (92%)
   - Same-file navigation now uses VS Code commands for proper scrolling
 
 ## [0.2.1] - 2025-11-17

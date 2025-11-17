@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_with_attributes">
+    <title>Topic with Enhanced Attributes</title>
+    <body>
+        <!-- Test xref with scope attribute -->
+        <p>See <xref href="valid-topic.dita" scope="local">local topic</xref>.</p>
+
+        <!-- Test xref with peer scope -->
+        <p>Reference <xref href="../other/peer-topic.dita" scope="peer">peer documentation</xref>.</p>
+
+        <!-- Test xref with external scope -->
+        <p>Visit <xref href="https://example.com/api" scope="external" format="html">API docs</xref>.</p>
+
+        <!-- Test xref with format attribute -->
+        <p>Download <xref href="docs/guide.pdf" format="pdf">PDF guide</xref>.</p>
+
+        <!-- Test xref with linktext attribute -->
+        <p><xref href="additional-info.dita" linktext="Click here for more" scope="local"/></p>
+
+        <!-- Test xref with multiple attributes -->
+        <p>Read <xref href="concepts/overview.dita" scope="local" format="dita" linktext="Overview Document">overview</xref>.</p>
+
+        <!-- Test link with scope and format -->
+        <section id="resources">
+            <title>Resources</title>
+            <p>Additional resources are available.</p>
+        </section>
+    </body>
+    <related-links>
+        <!-- Test link with scope attribute -->
+        <link href="user_guide.dita" scope="local" format="dita" type="topic"/>
+
+        <!-- Test link with peer scope -->
+        <link href="../admin/admin-guide.dita" scope="peer" type="concept"/>
+
+        <!-- Test link with external scope -->
+        <link href="https://docs.example.com" scope="external" format="html"/>
+
+        <!-- Test link with format and linktext -->
+        <link href="resources/manual.pdf" format="pdf" linktext="Full Manual" type="reference"/>
+
+        <!-- Test link with type attribute -->
+        <link href="task/install.dita" scope="local" type="task"/>
+    </related-links>
+</topic>

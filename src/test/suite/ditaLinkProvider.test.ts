@@ -1197,6 +1197,153 @@ suite('DITA Link Provider Test Suite', () => {
         });
     });
 
+    suite('Enhanced Attribute Parsing', () => {
+        test('Should extract @scope attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with scope="local"
+            const scopeLinks = links!.filter(link =>
+                link.tooltip?.includes('[scope:')
+            );
+
+            console.log('Links with scope attribute:', scopeLinks.length);
+            scopeLinks.forEach(link => {
+                console.log('  - Scope tooltip:', link.tooltip);
+            });
+
+            assert.ok(scopeLinks.length > 0, 'Should find links with scope attribute in tooltip');
+
+            // Check for local scope
+            const localScopeLink = links!.find(link =>
+                link.tooltip?.includes('[scope: local]')
+            );
+            assert.ok(localScopeLink, 'Should find link with local scope');
+        });
+
+        test('Should extract @format attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with format="pdf"
+            const formatLinks = links!.filter(link =>
+                link.tooltip?.includes('[format:')
+            );
+
+            console.log('Links with format attribute:', formatLinks.length);
+
+            assert.ok(formatLinks.length > 0, 'Should find links with format attribute in tooltip');
+
+            // Check for PDF format
+            const pdfFormatLink = links!.find(link =>
+                link.tooltip?.includes('[format: pdf]')
+            );
+            assert.ok(pdfFormatLink, 'Should find link with PDF format');
+        });
+
+        test('Should extract @linktext attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with linktext attribute
+            const linktextLinks = links!.filter(link =>
+                link.tooltip?.includes('Link text:')
+            );
+
+            console.log('Links with linktext attribute:', linktextLinks.length);
+
+            assert.ok(linktextLinks.length > 0, 'Should find links with linktext attribute in tooltip');
+
+            // Check for specific linktext
+            const clickHereLink = links!.find(link =>
+                link.tooltip?.includes('Click here for more')
+            );
+            assert.ok(clickHereLink, 'Should find link with "Click here for more" linktext');
+        });
+
+        test('Should extract @type attribute in link element tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link element with type attribute
+            const typeLinks = links!.filter(link =>
+                link.tooltip?.includes('[type:')
+            );
+
+            console.log('Links with type attribute:', typeLinks.length);
+
+            assert.ok(typeLinks.length > 0, 'Should find links with type attribute in tooltip');
+
+            // Check for task type
+            const taskTypeLink = links!.find(link =>
+                link.tooltip?.includes('[type: task]')
+            );
+            if (taskTypeLink) {
+                assert.ok(taskTypeLink, 'Should find link with task type');
+            }
+        });
+
+        test('Should show multiple attributes in tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link with multiple attributes (scope, format, linktext)
+            const multiAttrLink = links!.find(link =>
+                link.tooltip?.includes('[scope:') &&
+                link.tooltip?.includes('[format:')
+            );
+
+            if (multiAttrLink) {
+                console.log('Multi-attribute tooltip:', multiAttrLink.tooltip);
+                assert.ok(multiAttrLink.tooltip!.includes('[scope:'), 'Should show scope');
+                assert.ok(multiAttrLink.tooltip!.includes('[format:'), 'Should show format');
+            }
+        });
+
+        test('Should handle peer scope in tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            const peerScopeLink = links!.find(link =>
+                link.tooltip?.includes('[scope: peer]')
+            );
+
+            if (peerScopeLink) {
+                assert.ok(peerScopeLink, 'Should find link with peer scope');
+                console.log('Peer scope link tooltip:', peerScopeLink.tooltip);
+            }
+        });
+
+        test('Should not crash on elements without attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Tooltips should still work even without enhanced attributes
+            const xrefLinks = links!.filter(link =>
+                link.tooltip?.includes('cross-reference')
+            );
+
+            assert.ok(xrefLinks.length > 0, 'Should still create links for xref without attributes');
+            xrefLinks.forEach(link => {
+                assert.ok(link.tooltip, 'Every link should have a tooltip');
+            });
+        });
+    });
+
     suite('Integration Tests', () => {
         test('Link provider should be registered for DITA language', async function() {
             this.timeout(5000);

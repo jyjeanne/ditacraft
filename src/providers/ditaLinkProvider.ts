@@ -42,6 +42,12 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     private static readonly LINK_HREF_REGEX = /<link[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
     private static readonly MAX_MATCHES = 10000; // Safety limit
 
+    // Attribute extraction patterns
+    private static readonly SCOPE_PATTERN = /\bscope\s*=\s*["']([^"']+)["']/i;
+    private static readonly FORMAT_PATTERN = /\bformat\s*=\s*["']([^"']+)["']/i;
+    private static readonly LINKTEXT_PATTERN = /\blinktext\s*=\s*["']([^"']+)["']/i;
+    private static readonly TYPE_PATTERN = /\btype\s*=\s*["']([^"']+)["']/i;
+
     constructor(keySpaceResolver?: KeySpaceResolver) {
         this.keySpaceResolver = keySpaceResolver || new KeySpaceResolver();
     }
@@ -446,12 +452,19 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                 const link = new vscode.DocumentLink(range, targetUri);
                 // Extract fragment if present for tooltip
                 const hasFragment = hrefValue.includes('#');
+                let baseTooltip: string;
                 if (hasFragment) {
                     const fragment = hrefValue.split('#')[1];
-                    link.tooltip = `Open cross-reference: ${path.basename(targetPath)}#${fragment}`;
+                    baseTooltip = `Open cross-reference: ${path.basename(targetPath)}#${fragment}`;
                 } else {
-                    link.tooltip = `Open cross-reference: ${path.basename(targetPath)}`;
+                    baseTooltip = `Open cross-reference: ${path.basename(targetPath)}`;
                 }
+                // Enhance tooltip with scope, format, and linktext
+                link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
+                    showScope: true,
+                    showFormat: true,
+                    showLinktext: true
+                });
                 links.push(link);
             }
         }
@@ -581,12 +594,20 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                 const link = new vscode.DocumentLink(range, targetUri);
                 // Extract fragment if present for tooltip
                 const hasFragment = hrefValue.includes('#');
+                let baseTooltip: string;
                 if (hasFragment) {
                     const fragment = hrefValue.split('#')[1];
-                    link.tooltip = `Open related link: ${path.basename(targetPath)}#${fragment}`;
+                    baseTooltip = `Open related link: ${path.basename(targetPath)}#${fragment}`;
                 } else {
-                    link.tooltip = `Open related link: ${path.basename(targetPath)}`;
+                    baseTooltip = `Open related link: ${path.basename(targetPath)}`;
                 }
+                // Enhance tooltip with scope, format, and linktext
+                link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
+                    showScope: true,
+                    showFormat: true,
+                    showLinktext: true,
+                    showType: true
+                });
                 links.push(link);
             }
         }
@@ -649,6 +670,84 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
      */
     public getKeySpaceResolver(): KeySpaceResolver {
         return this.keySpaceResolver;
+    }
+
+    /**
+     * Extract @scope attribute from element tag
+     * Returns 'local' | 'peer' | 'external' | undefined
+     */
+    private extractScope(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.SCOPE_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Extract @format attribute from element tag
+     * Returns format type (e.g., 'dita', 'pdf', 'html') or undefined
+     */
+    private extractFormat(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.FORMAT_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Extract @linktext attribute from element tag
+     * Returns custom link text or undefined
+     */
+    private extractLinktext(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.LINKTEXT_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Extract @type attribute from element tag
+     * Returns topic type (e.g., 'concept', 'task', 'reference') or undefined
+     */
+    private extractType(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.TYPE_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Build enhanced tooltip with scope, format, and linktext information
+     */
+    private buildEnhancedTooltip(
+        baseTooltip: string,
+        elementTag: string,
+        options: { showScope?: boolean; showFormat?: boolean; showLinktext?: boolean; showType?: boolean } = {}
+    ): string {
+        const parts: string[] = [baseTooltip];
+
+        // Extract attributes
+        if (options.showScope) {
+            const scope = this.extractScope(elementTag);
+            if (scope) {
+                parts.push(`[scope: ${scope}]`);
+            }
+        }
+
+        if (options.showFormat) {
+            const format = this.extractFormat(elementTag);
+            if (format) {
+                parts.push(`[format: ${format}]`);
+            }
+        }
+
+        if (options.showType) {
+            const type = this.extractType(elementTag);
+            if (type) {
+                parts.push(`[type: ${type}]`);
+            }
+        }
+
+        if (options.showLinktext) {
+            const linktext = this.extractLinktext(elementTag);
+            if (linktext) {
+                parts.push(`\nLink text: "${linktext}"`);
+            }
+        }
+
+        return parts.join(' ');
     }
 }
 
