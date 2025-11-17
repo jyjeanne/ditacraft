@@ -174,10 +174,11 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
 
             // Handle same-file references (e.g., "#elementId/path")
             if (conrefValue.startsWith('#')) {
-                // Same-file reference - create link to current file with fragment
+                // Same-file reference - create command URI to navigate to element
                 const elementPath = conrefValue.substring(1);
-                const targetUri = document.uri.with({ fragment: elementPath });
-                const link = new vscode.DocumentLink(range, targetUri);
+                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementPath]));
+                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
+                const link = new vscode.DocumentLink(range, commandUri);
                 link.tooltip = `Go to element: ${elementPath}`;
                 links.push(link);
                 continue;
@@ -429,8 +430,9 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             // Handle same-file references (e.g., "#elementId")
             if (hrefValue.startsWith('#')) {
                 const elementId = hrefValue.substring(1);
-                const targetUri = document.uri.with({ fragment: elementId });
-                const link = new vscode.DocumentLink(range, targetUri);
+                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementId]));
+                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
+                const link = new vscode.DocumentLink(range, commandUri);
                 link.tooltip = `Go to element: ${elementId}`;
                 links.push(link);
                 continue;
@@ -563,8 +565,9 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             // Handle same-file references (e.g., "#elementId")
             if (hrefValue.startsWith('#')) {
                 const elementId = hrefValue.substring(1);
-                const targetUri = document.uri.with({ fragment: elementId });
-                const link = new vscode.DocumentLink(range, targetUri);
+                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementId]));
+                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
+                const link = new vscode.DocumentLink(range, commandUri);
                 link.tooltip = `Go to element: ${elementId}`;
                 links.push(link);
                 continue;

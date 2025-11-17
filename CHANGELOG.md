@@ -22,11 +22,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Same-file links with `<link href="#element"/>`
   - Smart tooltip indicating "related link" type
 
-- **Enhanced Test Coverage**: Added 21 new test cases
+- **Same-File Element Navigation**: Scroll-to-element support for `#element_id` references
+  - Clicking on `conref="#element_id"` scrolls to target element
+  - Clicking on `xref href="#element_id"` scrolls to target element
+  - Clicking on `link href="#element_id"` scrolls to target element
+  - Supports `topic_id/element_id` path format
+  - Visual highlight on target element (2-second fade)
+  - Cursor positioned at element location
+  - Warning message if element not found
+
+- **Key Reference Diagnostics**: Warning messages for missing key references
+  - Automatic detection of undefined `keyref` and `conkeyref` attributes
+  - Warning markers in editor for unresolved keys
+  - Debounced validation to avoid excessive checking
+  - Helpful message: "Key not found in key space. Make sure it's defined in a root map."
+  - Integration with VS Code Problems panel
+
+- **Enhanced Test Coverage**: Added 40+ new test cases
   - Cross-reference (xref) detection tests
   - Link element detection tests
+  - Same-file element navigation tests
+  - Element ID finding tests
+  - Command URI generation tests
   - Fragment identifier handling tests
-  - Same-file reference tests
   - HTTP URL skipping tests
   - Mixed reference type tests
 
@@ -39,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Reference Type Coverage**: Now supports 6 major DITA reference types
   - @conref, @conkeyref, @keyref, @href, `<xref>`, `<link>`
   - Improved from 4/11 to 6/11 fully implemented reference types
+  - Same-file navigation now uses VS Code commands for proper scrolling
 
 ## [0.2.1] - 2025-11-17
 
