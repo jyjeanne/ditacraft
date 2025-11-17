@@ -307,11 +307,31 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                     logger.debug('Resolved keyref', { key: keyrefValue, target: keyDef.targetFile });
                 } else if (keyDef && keyDef.inlineContent) {
                     // Key has inline content, no file to navigate to
-                    // Could create a tooltip-only link or skip
+                    // Create a link with no target but informative tooltip
                     logger.debug('Key has inline content', {
                         key: keyrefValue,
-                        content: keyDef.inlineContent
+                        content: keyDef.inlineContent,
+                        sourceMap: keyDef.sourceMap
                     });
+                    // Still create a visual indicator even though we can't navigate
+                    // Use the source map as target so user can see where key is defined
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyrefValue}" has inline content: "${keyDef.inlineContent}" (defined in ${path.basename(keyDef.sourceMap)})`;
+                    links.push(link);
+                } else if (keyDef) {
+                    // Key exists but has no target file or inline content
+                    logger.debug('Key resolved but has no target', {
+                        key: keyrefValue,
+                        sourceMap: keyDef.sourceMap
+                    });
+                    // Link to the source map where key is defined
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyrefValue}" defined in ${path.basename(keyDef.sourceMap)} (no target file)`;
+                    links.push(link);
+                } else {
+                    logger.debug('Key not found in key space', { key: keyrefValue });
                 }
             } catch (error) {
                 logger.debug('Failed to resolve keyref', { key: keyrefValue, error });
