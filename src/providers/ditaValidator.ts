@@ -494,27 +494,8 @@ export class DitaValidator {
             });
         }
 
-        // Check for required title element (MANDATORY per DITA DTD)
-        if (!content.includes('<title>')) {
-            errors.push({
-                line: 0,
-                column: 0,
-                severity: 'error',
-                message: 'DITA topic MUST contain a <title> element (required by DTD)',
-                source: 'dita-validator'
-            });
-        } else if (content.includes('<title></title>') || content.includes('<title/>')) {
-            errors.push({
-                line: 0,
-                column: 0,
-                severity: 'error',
-                message: 'DITA topic <title> element cannot be empty (required by DTD)',
-                source: 'dita-validator'
-            });
-        }
-
         // Check for id attribute on root (REQUIRED per DITA DTD)
-        const idMatch = content.match(/<(?:topic|concept|task|reference)\s+id="([^"]*)"/);
+        const idMatch = content.match(/<(?:topic|concept|task|reference)\s+[^>]*id="([^"]*)"/);
         if (!idMatch) {
             errors.push({
                 line: 0,
@@ -529,6 +510,58 @@ export class DitaValidator {
                 column: 0,
                 severity: 'error',
                 message: 'Root element id attribute cannot be empty',
+                source: 'dita-validator'
+            });
+        }
+
+        // Check for required title element as DIRECT CHILD of root (MANDATORY per DITA DTD)
+        // The title must appear immediately after the opening tag of topic/concept/task/reference
+        // Pattern: <topic ...> followed by optional whitespace/comments, then <title>
+        const rootTitlePattern = /<(?:topic|concept|task|reference)\s+[^>]*>[\s\S]*?(?=<(?:title|shortdesc|prolog|abstract|body|conbody|taskbody|refbody|related-links))/;
+        const rootMatch = content.match(rootTitlePattern);
+
+        if (rootMatch) {
+            // Now check if there's a <title> element that's a direct child of the root
+            // We need to find <title> that comes right after the root element opening tag
+            const titleAfterRootPattern = /<(?:topic|concept|task|reference)\s+[^>]*>[\s]*<title>/;
+            const hasRootTitle = titleAfterRootPattern.test(content);
+
+            if (!hasRootTitle) {
+                // Double-check: look for title as first child element
+                const firstChildPattern = /<(?:topic|concept|task|reference)\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
+                const firstChildMatch = content.match(firstChildPattern);
+
+                if (!firstChildMatch || firstChildMatch[1] !== 'title') {
+                    errors.push({
+                        line: 0,
+                        column: 0,
+                        severity: 'error',
+                        message: 'DITA topic MUST contain a <title> element as first child (required by DTD)',
+                        source: 'dita-validator'
+                    });
+                }
+            }
+        } else {
+            // Fallback: Simple check if no title exists at all
+            if (!content.includes('<title>') && !content.includes('<title ')) {
+                errors.push({
+                    line: 0,
+                    column: 0,
+                    severity: 'error',
+                    message: 'DITA topic MUST contain a <title> element (required by DTD)',
+                    source: 'dita-validator'
+                });
+            }
+        }
+
+        // Check for empty title element (anywhere in document as it's always invalid)
+        const emptyTitlePattern = /<title\s*(?:\/|>\s*<\/title)>/;
+        if (emptyTitlePattern.test(content)) {
+            errors.push({
+                line: 0,
+                column: 0,
+                severity: 'error',
+                message: 'DITA topic <title> element cannot be empty (required by DTD)',
                 source: 'dita-validator'
             });
         }
