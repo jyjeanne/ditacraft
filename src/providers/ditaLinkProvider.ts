@@ -233,13 +233,38 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                     const link = new vscode.DocumentLink(range, targetUri);
 
                     if (elementPart) {
-                        link.tooltip = `Open content key reference: ${keyPart}/${elementPart}`;
+                        link.tooltip = `Open content key reference: ${keyPart}/${elementPart} → ${path.basename(keyDef.targetFile)}`;
                     } else {
-                        link.tooltip = `Open content key reference: ${keyPart}`;
+                        link.tooltip = `Open content key reference: ${keyPart} → ${path.basename(keyDef.targetFile)}`;
                     }
 
                     links.push(link);
-                    logger.debug('Resolved conkeyref', { key: keyPart, target: keyDef.targetFile });
+                    logger.debug('Resolved conkeyref', { key: keyPart, element: elementPart, target: keyDef.targetFile });
+                } else if (keyDef && keyDef.inlineContent) {
+                    // Key has inline content, navigate to source map
+                    logger.debug('Conkeyref key has inline content', {
+                        key: keyPart,
+                        element: elementPart,
+                        content: keyDef.inlineContent,
+                        sourceMap: keyDef.sourceMap
+                    });
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyPart}" has inline content: "${keyDef.inlineContent}" (defined in ${path.basename(keyDef.sourceMap)})`;
+                    links.push(link);
+                } else if (keyDef) {
+                    // Key exists but has no target file or inline content
+                    logger.debug('Conkeyref key resolved but has no target', {
+                        key: keyPart,
+                        element: elementPart,
+                        sourceMap: keyDef.sourceMap
+                    });
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyPart}" defined in ${path.basename(keyDef.sourceMap)} (no target file)`;
+                    links.push(link);
+                } else {
+                    logger.debug('Conkeyref key not found in key space', { key: keyPart, element: elementPart });
                 }
             } catch (error) {
                 logger.debug('Failed to resolve conkeyref', { key: keyPart, error });
