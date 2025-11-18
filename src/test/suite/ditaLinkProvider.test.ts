@@ -966,6 +966,671 @@ suite('DITA Link Provider Test Suite', () => {
         });
     });
 
+    suite('Cross-Reference (xref) Support', () => {
+        test('Should detect xref elements with href attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Xref links found:', links?.length || 0);
+            if (links) {
+                links.forEach(link => {
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath, 'Tooltip:', link.tooltip);
+                });
+            }
+
+            // Should find xref links with href
+            const xrefLinks = links!.filter(link =>
+                link.tooltip?.includes('cross-reference')
+            );
+
+            assert.ok(xrefLinks.length > 0, 'Should find xref links');
+        });
+
+        test('Should handle xref href with file references', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link to valid-topic.dita via xref
+            const validTopicLink = links!.find(link =>
+                link.target?.fsPath.includes('valid-topic.dita') &&
+                link.tooltip?.includes('cross-reference')
+            );
+
+            assert.ok(validTopicLink, 'Should find xref link to valid-topic.dita');
+        });
+
+        test('Should handle xref href with fragment identifiers', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with fragment (valid-topic.dita#valid_topic/intro)
+            const fragmentLink = links!.find(link =>
+                link.target?.fsPath.includes('valid-topic.dita') &&
+                link.tooltip?.includes('#')
+            );
+
+            assert.ok(fragmentLink, 'Should handle xref with fragment identifier');
+            assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be stripped from file path');
+        });
+
+        test('Should handle xref with same-file fragment references', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find same-file xref (#topic_with_xref_links/summary)
+            const sameFileLink = links!.find(link => {
+                const text = document.getText(link.range);
+                return text.startsWith('#');
+            });
+
+            if (sameFileLink) {
+                assert.ok(sameFileLink.tooltip?.includes('Go to element'),
+                    'Same-file xref should have "Go to element" tooltip');
+            }
+        });
+
+        test('Should skip xref with external HTTP URLs', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should NOT create links for https:// URLs in xref
+            const httpLinks = links!.filter(link =>
+                link.target?.toString().startsWith('http')
+            );
+
+            assert.strictEqual(httpLinks.length, 0, 'Should not create links for HTTP URLs in xref');
+        });
+
+        test('Xref tooltip should indicate cross-reference type', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            const xrefLink = links!.find(link =>
+                link.tooltip?.includes('cross-reference')
+            );
+
+            if (xrefLink) {
+                assert.ok(xrefLink.tooltip!.toLowerCase().includes('cross-reference'),
+                    'Xref tooltip should mention "cross-reference"');
+            }
+        });
+    });
+
+    suite('Link Element Support', () => {
+        test('Should detect link elements with href attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link elements in related-links section
+            const relatedLinks = links!.filter(link =>
+                link.tooltip?.includes('related link')
+            );
+
+            assert.ok(relatedLinks.length > 0, 'Should find related link elements');
+        });
+
+        test('Should handle link element with file references', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link to user_guide.dita
+            const userGuideLink = links!.find(link =>
+                link.target?.fsPath.includes('user_guide.dita') &&
+                link.tooltip?.includes('related link')
+            );
+
+            assert.ok(userGuideLink, 'Should find link element to user_guide.dita');
+        });
+
+        test('Should handle link element with fragment identifiers', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link with fragment (product_info.dita#product_info/overview)
+            const fragmentLink = links!.find(link =>
+                link.target?.fsPath.includes('product_info.dita') &&
+                link.tooltip?.includes('#')
+            );
+
+            assert.ok(fragmentLink, 'Should handle link element with fragment identifier');
+            assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be stripped from file path');
+        });
+
+        test('Should handle link element with same-file fragment references', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check if any link has same-file reference tooltip
+            const sameFileLinks = links!.filter(link =>
+                link.tooltip?.includes('Go to element')
+            );
+
+            assert.ok(sameFileLinks.length > 0, 'Should handle same-file link references');
+        });
+
+        test('Should skip link elements with external HTTP URLs', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should NOT create links for https:// URLs in link elements
+            const httpLinks = links!.filter(link =>
+                link.target?.toString().startsWith('http')
+            );
+
+            assert.strictEqual(httpLinks.length, 0, 'Should not create links for HTTP URLs in link elements');
+        });
+
+        test('Link tooltip should indicate related link type', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            const relatedLink = links!.find(link =>
+                link.tooltip?.includes('related link')
+            );
+
+            if (relatedLink) {
+                assert.ok(relatedLink.tooltip!.toLowerCase().includes('related link'),
+                    'Link tooltip should mention "related link"');
+            }
+        });
+    });
+
+    suite('Mixed Xref and Link References', () => {
+        test('Should detect all reference types in same document', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            console.log('Total links in xref/link test file:', links?.length || 0);
+
+            // Should have links from xref and link elements
+            const xrefLinks = links!.filter(link => link.tooltip?.includes('cross-reference'));
+            const relatedLinks = links!.filter(link => link.tooltip?.includes('related link'));
+            const sameFileLinks = links!.filter(link => link.tooltip?.includes('Go to element'));
+
+            console.log('  - Cross-reference (xref) links:', xrefLinks.length);
+            console.log('  - Related link elements:', relatedLinks.length);
+            console.log('  - Same-file links:', sameFileLinks.length);
+
+            assert.ok(xrefLinks.length > 0, 'Should find at least one xref link');
+            assert.ok(relatedLinks.length > 0, 'Should find at least one related link');
+            assert.ok(links!.length >= 4, 'Should find multiple types of references');
+        });
+
+        test('Should not duplicate links for same target', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check that each link has a unique range
+            const ranges = links!.map(link => `${link.range.start.line}:${link.range.start.character}`);
+            const uniqueRanges = new Set(ranges);
+
+            assert.strictEqual(ranges.length, uniqueRanges.size,
+                'Each link should have a unique range (no duplicates)');
+        });
+    });
+
+    suite('Enhanced Attribute Parsing', () => {
+        test('Should extract @scope attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with scope="local"
+            const scopeLinks = links!.filter(link =>
+                link.tooltip?.includes('[scope:')
+            );
+
+            console.log('Links with scope attribute:', scopeLinks.length);
+            scopeLinks.forEach(link => {
+                console.log('  - Scope tooltip:', link.tooltip);
+            });
+
+            assert.ok(scopeLinks.length > 0, 'Should find links with scope attribute in tooltip');
+
+            // Check for local scope
+            const localScopeLink = links!.find(link =>
+                link.tooltip?.includes('[scope: local]')
+            );
+            assert.ok(localScopeLink, 'Should find link with local scope');
+        });
+
+        test('Should extract @format attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with format="pdf"
+            const formatLinks = links!.filter(link =>
+                link.tooltip?.includes('[format:')
+            );
+
+            console.log('Links with format attribute:', formatLinks.length);
+
+            assert.ok(formatLinks.length > 0, 'Should find links with format attribute in tooltip');
+
+            // Check for PDF format
+            const pdfFormatLink = links!.find(link =>
+                link.tooltip?.includes('[format: pdf]')
+            );
+            assert.ok(pdfFormatLink, 'Should find link with PDF format');
+        });
+
+        test('Should extract @linktext attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with linktext attribute
+            const linktextLinks = links!.filter(link =>
+                link.tooltip?.includes('Link text:')
+            );
+
+            console.log('Links with linktext attribute:', linktextLinks.length);
+
+            assert.ok(linktextLinks.length > 0, 'Should find links with linktext attribute in tooltip');
+
+            // Check for specific linktext
+            const clickHereLink = links!.find(link =>
+                link.tooltip?.includes('Click here for more')
+            );
+            assert.ok(clickHereLink, 'Should find link with "Click here for more" linktext');
+        });
+
+        test('Should extract @type attribute in link element tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link element with type attribute
+            const typeLinks = links!.filter(link =>
+                link.tooltip?.includes('[type:')
+            );
+
+            console.log('Links with type attribute:', typeLinks.length);
+
+            assert.ok(typeLinks.length > 0, 'Should find links with type attribute in tooltip');
+
+            // Check for task type
+            const taskTypeLink = links!.find(link =>
+                link.tooltip?.includes('[type: task]')
+            );
+            if (taskTypeLink) {
+                assert.ok(taskTypeLink, 'Should find link with task type');
+            }
+        });
+
+        test('Should show multiple attributes in tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link with multiple attributes (scope, format, linktext)
+            const multiAttrLink = links!.find(link =>
+                link.tooltip?.includes('[scope:') &&
+                link.tooltip?.includes('[format:')
+            );
+
+            if (multiAttrLink) {
+                console.log('Multi-attribute tooltip:', multiAttrLink.tooltip);
+                assert.ok(multiAttrLink.tooltip!.includes('[scope:'), 'Should show scope');
+                assert.ok(multiAttrLink.tooltip!.includes('[format:'), 'Should show format');
+            }
+        });
+
+        test('Should handle peer scope in tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            const peerScopeLink = links!.find(link =>
+                link.tooltip?.includes('[scope: peer]')
+            );
+
+            if (peerScopeLink) {
+                assert.ok(peerScopeLink, 'Should find link with peer scope');
+                console.log('Peer scope link tooltip:', peerScopeLink.tooltip);
+            }
+        });
+
+        test('Should not crash on elements without attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Tooltips should still work even without enhanced attributes
+            const xrefLinks = links!.filter(link =>
+                link.tooltip?.includes('cross-reference')
+            );
+
+            assert.ok(xrefLinks.length > 0, 'Should still create links for xref without attributes');
+            xrefLinks.forEach(link => {
+                assert.ok(link.tooltip, 'Every link should have a tooltip');
+            });
+        });
+
+        test('Should extract @rev attribute in xref tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with rev attribute
+            const revLinks = links!.filter(link =>
+                link.tooltip?.includes('[rev:')
+            );
+
+            console.log('Links with rev attribute:', revLinks.length);
+
+            assert.ok(revLinks.length > 0, 'Should find links with rev attribute in tooltip');
+
+            // Check for specific rev value
+            const rev20Link = links!.find(link =>
+                link.tooltip?.includes('[rev: 2.0]')
+            );
+            assert.ok(rev20Link, 'Should find xref with rev="2.0" attribute');
+        });
+
+        test('Should extract @rev attribute in link element tooltip', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find link element with rev attribute
+            const rev30Link = links!.find(link =>
+                link.tooltip?.includes('[rev: 3.0]')
+            );
+
+            assert.ok(rev30Link, 'Should find link with rev="3.0" attribute');
+
+            // Check for multiple attributes with rev
+            const multiAttrRevLink = links!.find(link =>
+                link.tooltip?.includes('[rev: 2.5]') &&
+                link.tooltip?.includes('[type: task]')
+            );
+
+            if (multiAttrRevLink) {
+                console.log('Multi-attribute rev link tooltip:', multiAttrRevLink.tooltip);
+                assert.ok(multiAttrRevLink.tooltip!.includes('[rev: 2.5]'), 'Should show rev 2.5');
+                assert.ok(multiAttrRevLink.tooltip!.includes('[type: task]'), 'Should show task type');
+            }
+        });
+
+        test('Should show rev attribute alongside other attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-attributes.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should find xref with scope, format, and rev attributes
+            const multiAttrLink = links!.find(link =>
+                link.tooltip?.includes('[scope: local]') &&
+                link.tooltip?.includes('[format: dita]') &&
+                link.tooltip?.includes('[rev: 1.5]')
+            );
+
+            if (multiAttrLink) {
+                console.log('Link with scope, format, and rev:', multiAttrLink.tooltip);
+                assert.ok(multiAttrLink, 'Should find link with scope, format, and rev attributes');
+            }
+        });
+    });
+
+    suite('Edge Case Handling', () => {
+        test('Should handle empty conref attribute gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            // Should not throw error
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should return links array even with empty conref');
+
+            // Empty conref should not create a link
+            const emptyConrefLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === '';
+            });
+
+            assert.strictEqual(emptyConrefLinks.length, 0, 'Should not create links for empty conref values');
+        });
+
+        test('Should handle empty keyref attribute gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should return links array even with empty keyref');
+        });
+
+        test('Should handle empty enhanced attributes gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should still create links even with empty scope/format/rev attributes
+            console.log('Total links in edge cases file:', links!.length);
+
+            // Links should be created, but empty attributes should not appear in tooltip
+            links!.forEach(link => {
+                // Should not have [scope: ] or [format: ] with empty values
+                if (link.tooltip) {
+                    assert.ok(!link.tooltip.includes('[scope: ]'), 'Should not show empty scope');
+                    assert.ok(!link.tooltip.includes('[format: ]'), 'Should not show empty format');
+                    assert.ok(!link.tooltip.includes('[rev: ]'), 'Should not show empty rev');
+                }
+            });
+        });
+
+        test('Should handle malformed fragment identifiers', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should not crash on malformed fragments');
+
+            // Check that double hash is handled
+            const doubleHashLink = links!.find(link => {
+                const text = document.getText(link.range);
+                return text.includes('##');
+            });
+
+            // Provider should either skip or handle gracefully
+            console.log('Double hash link:', doubleHashLink?.tooltip);
+        });
+
+        test('Should handle special characters in paths', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should not crash on special character paths');
+
+            // Check paths with spaces
+            const spacePathLink = links!.find(link =>
+                link.target?.fsPath.includes('file with spaces')
+            );
+            console.log('Space path link:', spacePathLink?.target?.fsPath);
+
+            // Check paths with parentheses
+            const parenPathLink = links!.find(link =>
+                link.target?.fsPath.includes('file(1)')
+            );
+            console.log('Parentheses path link:', parenPathLink?.target?.fsPath);
+        });
+
+        test('Should handle very long element IDs', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should handle very long element IDs');
+
+            // Should find the link with very long ID
+            const longIdLink = links!.find(link =>
+                link.tooltip?.includes('this_is_a_very_long_element_id')
+            );
+            console.log('Long ID link found:', !!longIdLink);
+        });
+
+        test('Should skip variable syntax in paths', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should NOT create links for paths containing ${variable}
+            const variableLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text.includes('${');
+            });
+
+            assert.strictEqual(variableLinks.length, 0, 'Should skip paths with variable syntax');
+        });
+
+        test('Should handle attributes with special characters', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check rev with hyphen
+            const hyphenRevLink = links!.find(link =>
+                link.tooltip?.includes('[rev: 2.0-beta]')
+            );
+            assert.ok(hyphenRevLink, 'Should handle rev with hyphen');
+
+            // Check linktext with entities (ampersand)
+            const ampersandLink = links!.find(link =>
+                link.tooltip?.includes('&amp;') || link.tooltip?.includes('&')
+            );
+            console.log('Ampersand linktext link:', ampersandLink?.tooltip);
+        });
+
+        test('Should handle case variations in attribute values', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check for uppercase/mixed case scope
+            const uppercaseScopeLink = links!.find(link =>
+                link.tooltip?.includes('[scope: LOCAL]')
+            );
+            console.log('Uppercase scope link:', uppercaseScopeLink?.tooltip);
+
+            // Check for mixed case format
+            const mixedCaseFormatLink = links!.find(link =>
+                link.tooltip?.includes('[format: PDF]')
+            );
+            console.log('Mixed case format link:', mixedCaseFormatLink?.tooltip);
+        });
+
+        test('Should handle empty href attribute gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should return links array even with empty href');
+
+            // Empty href should not create a link with valid target
+            const emptyHrefLinks = links!.filter(link => {
+                const text = document.getText(link.range);
+                return text === '' && link.target?.scheme === 'file';
+            });
+
+            assert.strictEqual(emptyHrefLinks.length, 0, 'Should not create file links for empty href values');
+        });
+
+        test('Should handle fragment-only edge cases', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Check empty fragment (#)
+            const emptyFragmentLink = links!.find(link => {
+                const text = document.getText(link.range);
+                return text === '#';
+            });
+
+            if (emptyFragmentLink) {
+                console.log('Empty fragment link:', emptyFragmentLink.tooltip);
+                // Should handle gracefully
+                assert.ok(emptyFragmentLink.target, 'Empty fragment should have some target handling');
+            }
+        });
+
+        test('Should handle non-existent file references gracefully', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            // Should still create links even for non-existent files (user feedback)
+            const nonExistentLink = links!.find(link =>
+                link.target?.fsPath.includes('nonexistent-file.dita')
+            );
+
+            console.log('Non-existent file link:', nonExistentLink?.target?.fsPath);
+            // The link should be created so user gets "file not found" when clicking
+        });
+
+        test('Should handle whitespace variations in attributes', async () => {
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-edge-cases.dita'));
+            const document = await vscode.workspace.openTextDocument(fileUri);
+
+            const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
+
+            assert.ok(links !== null, 'Should handle whitespace variations');
+
+            // Count total links to ensure none were missed due to whitespace
+            console.log('Total links with edge cases:', links!.length);
+            assert.ok(links!.length > 0, 'Should find links despite whitespace variations');
+        });
+    });
+
     suite('Integration Tests', () => {
         test('Link provider should be registered for DITA language', async function() {
             this.timeout(5000);

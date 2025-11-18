@@ -8,7 +8,9 @@
 import * as vscode from 'vscode';
 import { DitaOtWrapper } from './utils/ditaOtWrapper';
 import { logger } from './utils/logger';
-import { registerDitaLinkProvider } from './providers/ditaLinkProvider';
+import { registerDitaLinkProvider, getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
+import { registerElementNavigationCommand } from './utils/elementNavigator';
+import { registerKeyDiagnosticsProvider } from './providers/keyDiagnostics';
 import {
     validateCommand,
     initializeValidator,
@@ -52,6 +54,17 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.appendLine('Registering DITA link provider...');
         registerDitaLinkProvider(context);
         outputChannel.appendLine('DITA link provider registered');
+
+        // Register element navigation command for same-file references
+        outputChannel.appendLine('Registering element navigation command...');
+        registerElementNavigationCommand(context);
+        outputChannel.appendLine('Element navigation command registered');
+
+        // Register key diagnostics provider for missing key warnings
+        outputChannel.appendLine('Registering key diagnostics provider...');
+        const keySpaceResolver = getGlobalKeySpaceResolver();
+        registerKeyDiagnosticsProvider(context, keySpaceResolver);
+        outputChannel.appendLine('Key diagnostics provider registered');
 
         // Register all commands
         outputChannel.appendLine('Registering commands...');

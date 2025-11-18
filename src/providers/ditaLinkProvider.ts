@@ -1,6 +1,6 @@
 /**
  * DITA Link Provider
- * Provides clickable links for href, conref, conkeyref, and keyref attributes in DITA files
+ * Provides clickable links for href, conref, conkeyref, keyref, and xref attributes in DITA files
  * Enables Ctrl+Click navigation to open referenced DITA files
  *
  * Supports:
@@ -8,6 +8,7 @@
  * - Content references (conref="file.dita#element")
  * - Key references (keyref="keyname") - requires key space resolution
  * - Content key references (conkeyref="keyname/element")
+ * - Cross references (xref href="file.dita#element" or xref keyref="keyname")
  * - Same-file references (conref="#element")
  */
 
@@ -36,7 +37,17 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     private static readonly CONREF_REGEX = /\bconref\s*=\s*["']([^"']+)["']/gi;
     private static readonly CONKEYREF_REGEX = /\bconkeyref\s*=\s*["']([^"']+)["']/gi;
     private static readonly KEYREF_REGEX = /\bkeyref\s*=\s*["']([^"']+)["']/gi;
+    private static readonly XREF_HREF_REGEX = /<xref[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    private static readonly XREF_KEYREF_REGEX = /<xref[^>]*\bkeyref\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    private static readonly LINK_HREF_REGEX = /<link[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
     private static readonly MAX_MATCHES = 10000; // Safety limit
+
+    // Attribute extraction patterns
+    private static readonly SCOPE_PATTERN = /\bscope\s*=\s*["']([^"']+)["']/i;
+    private static readonly FORMAT_PATTERN = /\bformat\s*=\s*["']([^"']+)["']/i;
+    private static readonly LINKTEXT_PATTERN = /\blinktext\s*=\s*["']([^"']+)["']/i;
+    private static readonly TYPE_PATTERN = /\btype\s*=\s*["']([^"']+)["']/i;
+    private static readonly REV_PATTERN = /\brev\s*=\s*["']([^"']+)["']/i;
 
     constructor(keySpaceResolver?: KeySpaceResolver) {
         this.keySpaceResolver = keySpaceResolver || new KeySpaceResolver();
@@ -44,7 +55,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
 
     /**
      * Provide document links for various reference attributes in DITA files
-     * Supports: href, conref, conkeyref, keyref
+     * Supports: href, conref, conkeyref, keyref, xref, link
      */
     public async provideDocumentLinks(
         document: vscode.TextDocument,
@@ -61,6 +72,13 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
 
         // Process href attributes (in map and topic elements)
         this.processHrefAttributes(text, document, documentDir, links);
+
+        // Process xref elements (cross-references)
+        this.processXrefAttributes(text, document, documentDir, links);
+        await this.processXrefKeyrefAttributes(text, document, links);
+
+        // Process link elements
+        this.processLinkAttributes(text, document, documentDir, links);
 
         // Process conref attributes (content references)
         this.processConrefAttributes(text, document, documentDir, links);
@@ -163,10 +181,11 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
 
             // Handle same-file references (e.g., "#elementId/path")
             if (conrefValue.startsWith('#')) {
-                // Same-file reference - create link to current file with fragment
+                // Same-file reference - create command URI to navigate to element
                 const elementPath = conrefValue.substring(1);
-                const targetUri = document.uri.with({ fragment: elementPath });
-                const link = new vscode.DocumentLink(range, targetUri);
+                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementPath]));
+                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
+                const link = new vscode.DocumentLink(range, commandUri);
                 link.tooltip = `Go to element: ${elementPath}`;
                 links.push(link);
                 continue;
@@ -233,13 +252,38 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                     const link = new vscode.DocumentLink(range, targetUri);
 
                     if (elementPart) {
-                        link.tooltip = `Open content key reference: ${keyPart}/${elementPart}`;
+                        link.tooltip = `Open content key reference: ${keyPart}/${elementPart} → ${path.basename(keyDef.targetFile)}`;
                     } else {
-                        link.tooltip = `Open content key reference: ${keyPart}`;
+                        link.tooltip = `Open content key reference: ${keyPart} → ${path.basename(keyDef.targetFile)}`;
                     }
 
                     links.push(link);
-                    logger.debug('Resolved conkeyref', { key: keyPart, target: keyDef.targetFile });
+                    logger.debug('Resolved conkeyref', { key: keyPart, element: elementPart, target: keyDef.targetFile });
+                } else if (keyDef && keyDef.inlineContent) {
+                    // Key has inline content, navigate to source map
+                    logger.debug('Conkeyref key has inline content', {
+                        key: keyPart,
+                        element: elementPart,
+                        content: keyDef.inlineContent,
+                        sourceMap: keyDef.sourceMap
+                    });
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyPart}" has inline content: "${keyDef.inlineContent}" (defined in ${path.basename(keyDef.sourceMap)})`;
+                    links.push(link);
+                } else if (keyDef) {
+                    // Key exists but has no target file or inline content
+                    logger.debug('Conkeyref key resolved but has no target', {
+                        key: keyPart,
+                        element: elementPart,
+                        sourceMap: keyDef.sourceMap
+                    });
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyPart}" defined in ${path.basename(keyDef.sourceMap)} (no target file)`;
+                    links.push(link);
+                } else {
+                    logger.debug('Conkeyref key not found in key space', { key: keyPart, element: elementPart });
                 }
             } catch (error) {
                 logger.debug('Failed to resolve conkeyref', { key: keyPart, error });
@@ -307,11 +351,31 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                     logger.debug('Resolved keyref', { key: keyrefValue, target: keyDef.targetFile });
                 } else if (keyDef && keyDef.inlineContent) {
                     // Key has inline content, no file to navigate to
-                    // Could create a tooltip-only link or skip
+                    // Create a link with no target but informative tooltip
                     logger.debug('Key has inline content', {
                         key: keyrefValue,
-                        content: keyDef.inlineContent
+                        content: keyDef.inlineContent,
+                        sourceMap: keyDef.sourceMap
                     });
+                    // Still create a visual indicator even though we can't navigate
+                    // Use the source map as target so user can see where key is defined
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyrefValue}" has inline content: "${keyDef.inlineContent}" (defined in ${path.basename(keyDef.sourceMap)})`;
+                    links.push(link);
+                } else if (keyDef) {
+                    // Key exists but has no target file or inline content
+                    logger.debug('Key resolved but has no target', {
+                        key: keyrefValue,
+                        sourceMap: keyDef.sourceMap
+                    });
+                    // Link to the source map where key is defined
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Key "${keyrefValue}" defined in ${path.basename(keyDef.sourceMap)} (no target file)`;
+                    links.push(link);
+                } else {
+                    logger.debug('Key not found in key space', { key: keyrefValue });
                 }
             } catch (error) {
                 logger.debug('Failed to resolve keyref', { key: keyrefValue, error });
@@ -328,6 +392,226 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
                         links.push(link);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Process xref elements with href attributes (cross-references)
+     * Format: <xref href="file.dita#element_id">text</xref>
+     */
+    private processXrefAttributes(
+        text: string,
+        document: vscode.TextDocument,
+        documentDir: string,
+        links: vscode.DocumentLink[]
+    ): void {
+        // Use pre-compiled regex pattern (reset lastIndex for fresh search)
+        const xrefHrefRegex = DitaLinkProvider.XREF_HREF_REGEX;
+        xrefHrefRegex.lastIndex = 0;
+
+        let match: RegExpExecArray | null;
+        let matchCount = 0;
+        while ((match = xrefHrefRegex.exec(text)) !== null) {
+            // Safety check to prevent infinite loops
+            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+                break;
+            }
+
+            const hrefValue = match[1];
+
+            // Skip if empty, URL, or contains variables
+            if (!hrefValue ||
+                hrefValue.startsWith('http://') ||
+                hrefValue.startsWith('https://') ||
+                hrefValue.includes('${')) {
+                continue;
+            }
+
+            // Calculate the position of the href value
+            const valueStart = match.index + match[0].indexOf(hrefValue);
+            const startPos = document.positionAt(valueStart);
+            const endPos = document.positionAt(valueStart + hrefValue.length);
+            const range = new vscode.Range(startPos, endPos);
+
+            // Handle same-file references (e.g., "#elementId")
+            if (hrefValue.startsWith('#')) {
+                const elementId = hrefValue.substring(1);
+                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementId]));
+                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
+                const link = new vscode.DocumentLink(range, commandUri);
+                link.tooltip = `Go to element: ${elementId}`;
+                links.push(link);
+                continue;
+            }
+
+            // Resolve the target file path
+            const targetPath = this.resolveReference(hrefValue, documentDir);
+
+            if (targetPath) {
+                const targetUri = vscode.Uri.file(targetPath);
+                const link = new vscode.DocumentLink(range, targetUri);
+                // Extract fragment if present for tooltip
+                const hasFragment = hrefValue.includes('#');
+                let baseTooltip: string;
+                if (hasFragment) {
+                    const fragment = hrefValue.split('#')[1];
+                    baseTooltip = `Open cross-reference: ${path.basename(targetPath)}#${fragment}`;
+                } else {
+                    baseTooltip = `Open cross-reference: ${path.basename(targetPath)}`;
+                }
+                // Enhance tooltip with scope, format, linktext, and rev
+                link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
+                    showScope: true,
+                    showFormat: true,
+                    showLinktext: true,
+                    showRev: true
+                });
+                links.push(link);
+            }
+        }
+    }
+
+    /**
+     * Process xref elements with keyref attributes
+     * Format: <xref keyref="keyname">text</xref>
+     */
+    private async processXrefKeyrefAttributes(
+        text: string,
+        document: vscode.TextDocument,
+        links: vscode.DocumentLink[]
+    ): Promise<void> {
+        // Use pre-compiled regex pattern (reset lastIndex for fresh search)
+        const xrefKeyrefRegex = DitaLinkProvider.XREF_KEYREF_REGEX;
+        xrefKeyrefRegex.lastIndex = 0;
+
+        let match: RegExpExecArray | null;
+        let matchCount = 0;
+        while ((match = xrefKeyrefRegex.exec(text)) !== null) {
+            // Safety check to prevent infinite loops
+            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+                break;
+            }
+
+            const keyrefValue = match[1];
+
+            // Skip if empty or contains variables
+            if (!keyrefValue || keyrefValue.includes('${')) {
+                continue;
+            }
+
+            // Calculate position
+            const valueStart = match.index + match[0].indexOf(keyrefValue);
+            const startPos = document.positionAt(valueStart);
+            const endPos = document.positionAt(valueStart + keyrefValue.length);
+            const range = new vscode.Range(startPos, endPos);
+
+            // Try to resolve through key space
+            try {
+                const keyDef = await this.keySpaceResolver.resolveKey(keyrefValue, document.uri.fsPath);
+
+                if (keyDef && keyDef.targetFile) {
+                    const targetUri = vscode.Uri.file(keyDef.targetFile);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Open xref key: ${keyrefValue} → ${path.basename(keyDef.targetFile)}`;
+                    links.push(link);
+                    logger.debug('Resolved xref keyref', { key: keyrefValue, target: keyDef.targetFile });
+                } else if (keyDef && keyDef.inlineContent) {
+                    // Key has inline content, navigate to source map
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Xref key "${keyrefValue}" has inline content: "${keyDef.inlineContent}" (defined in ${path.basename(keyDef.sourceMap)})`;
+                    links.push(link);
+                    logger.debug('Xref keyref has inline content', { key: keyrefValue, content: keyDef.inlineContent });
+                } else if (keyDef) {
+                    // Key exists but has no target file or inline content
+                    const targetUri = vscode.Uri.file(keyDef.sourceMap);
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Xref key "${keyrefValue}" defined in ${path.basename(keyDef.sourceMap)} (no target file)`;
+                    links.push(link);
+                    logger.debug('Xref keyref resolved but has no target', { key: keyrefValue });
+                } else {
+                    logger.debug('Xref key not found in key space', { key: keyrefValue });
+                }
+            } catch (error) {
+                logger.debug('Failed to resolve xref keyref', { key: keyrefValue, error });
+            }
+        }
+    }
+
+    /**
+     * Process link elements with href attributes
+     * Format: <link href="file.dita#element_id"/>
+     */
+    private processLinkAttributes(
+        text: string,
+        document: vscode.TextDocument,
+        documentDir: string,
+        links: vscode.DocumentLink[]
+    ): void {
+        // Use pre-compiled regex pattern (reset lastIndex for fresh search)
+        const linkHrefRegex = DitaLinkProvider.LINK_HREF_REGEX;
+        linkHrefRegex.lastIndex = 0;
+
+        let match: RegExpExecArray | null;
+        let matchCount = 0;
+        while ((match = linkHrefRegex.exec(text)) !== null) {
+            // Safety check to prevent infinite loops
+            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+                break;
+            }
+
+            const hrefValue = match[1];
+
+            // Skip if empty, URL, or contains variables
+            if (!hrefValue ||
+                hrefValue.startsWith('http://') ||
+                hrefValue.startsWith('https://') ||
+                hrefValue.includes('${')) {
+                continue;
+            }
+
+            // Calculate the position of the href value
+            const valueStart = match.index + match[0].indexOf(hrefValue);
+            const startPos = document.positionAt(valueStart);
+            const endPos = document.positionAt(valueStart + hrefValue.length);
+            const range = new vscode.Range(startPos, endPos);
+
+            // Handle same-file references (e.g., "#elementId")
+            if (hrefValue.startsWith('#')) {
+                const elementId = hrefValue.substring(1);
+                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementId]));
+                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
+                const link = new vscode.DocumentLink(range, commandUri);
+                link.tooltip = `Go to element: ${elementId}`;
+                links.push(link);
+                continue;
+            }
+
+            // Resolve the target file path
+            const targetPath = this.resolveReference(hrefValue, documentDir);
+
+            if (targetPath) {
+                const targetUri = vscode.Uri.file(targetPath);
+                const link = new vscode.DocumentLink(range, targetUri);
+                // Extract fragment if present for tooltip
+                const hasFragment = hrefValue.includes('#');
+                let baseTooltip: string;
+                if (hasFragment) {
+                    const fragment = hrefValue.split('#')[1];
+                    baseTooltip = `Open related link: ${path.basename(targetPath)}#${fragment}`;
+                } else {
+                    baseTooltip = `Open related link: ${path.basename(targetPath)}`;
+                }
+                // Enhance tooltip with scope, format, linktext, type, and rev
+                link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
+                    showScope: true,
+                    showFormat: true,
+                    showLinktext: true,
+                    showType: true,
+                    showRev: true
+                });
+                links.push(link);
             }
         }
     }
@@ -389,6 +673,100 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
      */
     public getKeySpaceResolver(): KeySpaceResolver {
         return this.keySpaceResolver;
+    }
+
+    /**
+     * Extract @scope attribute from element tag
+     * Returns 'local' | 'peer' | 'external' | undefined
+     */
+    private extractScope(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.SCOPE_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Extract @format attribute from element tag
+     * Returns format type (e.g., 'dita', 'pdf', 'html') or undefined
+     */
+    private extractFormat(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.FORMAT_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Extract @linktext attribute from element tag
+     * Returns custom link text or undefined
+     */
+    private extractLinktext(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.LINKTEXT_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Extract @type attribute from element tag
+     * Returns topic type (e.g., 'concept', 'task', 'reference') or undefined
+     */
+    private extractType(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.TYPE_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Extract @rev attribute from element tag
+     * Returns revision identifier (e.g., '2.0', '1.1', 'draft') or undefined
+     */
+    private extractRev(elementTag: string): string | undefined {
+        const match = elementTag.match(DitaLinkProvider.REV_PATTERN);
+        return match ? match[1] : undefined;
+    }
+
+    /**
+     * Build enhanced tooltip with scope, format, and linktext information
+     */
+    private buildEnhancedTooltip(
+        baseTooltip: string,
+        elementTag: string,
+        options: { showScope?: boolean; showFormat?: boolean; showLinktext?: boolean; showType?: boolean; showRev?: boolean } = {}
+    ): string {
+        const parts: string[] = [baseTooltip];
+
+        // Extract attributes
+        if (options.showScope) {
+            const scope = this.extractScope(elementTag);
+            if (scope) {
+                parts.push(`[scope: ${scope}]`);
+            }
+        }
+
+        if (options.showFormat) {
+            const format = this.extractFormat(elementTag);
+            if (format) {
+                parts.push(`[format: ${format}]`);
+            }
+        }
+
+        if (options.showType) {
+            const type = this.extractType(elementTag);
+            if (type) {
+                parts.push(`[type: ${type}]`);
+            }
+        }
+
+        if (options.showRev) {
+            const rev = this.extractRev(elementTag);
+            if (rev) {
+                parts.push(`[rev: ${rev}]`);
+            }
+        }
+
+        if (options.showLinktext) {
+            const linktext = this.extractLinktext(elementTag);
+            if (linktext) {
+                parts.push(`\nLink text: "${linktext}"`);
+            }
+        }
+
+        return parts.join(' ');
     }
 }
 

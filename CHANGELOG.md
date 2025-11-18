@@ -5,6 +5,78 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-11-17
+
+### Added
+- **Cross-Reference (xref) Support**: Full navigation support for `<xref>` elements
+  - Navigate `<xref href="file.dita">` to target files
+  - Support for `<xref href="file.dita#element">` with fragment identifiers
+  - Navigate `<xref keyref="keyname">` via key space resolution
+  - Same-file navigation with `<xref href="#element">`
+  - Smart tooltip indicating "cross-reference" type
+  - Automatic skipping of external HTTP/HTTPS URLs
+
+- **Related Link Element Support**: Navigation for `<link>` elements in related-links sections
+  - Navigate `<link href="file.dita"/>` to target files
+  - Support for fragments: `<link href="file.dita#element"/>`
+  - Same-file links with `<link href="#element"/>`
+  - Smart tooltip indicating "related link" type
+
+- **Same-File Element Navigation**: Scroll-to-element support for `#element_id` references
+  - Clicking on `conref="#element_id"` scrolls to target element
+  - Clicking on `xref href="#element_id"` scrolls to target element
+  - Clicking on `link href="#element_id"` scrolls to target element
+  - Supports `topic_id/element_id` path format
+  - Visual highlight on target element (2-second fade)
+  - Cursor positioned at element location
+  - Warning message if element not found
+
+- **Key Reference Diagnostics**: Warning messages for missing key references
+  - Automatic detection of undefined `keyref` and `conkeyref` attributes
+  - Warning markers in editor for unresolved keys
+  - Debounced validation to avoid excessive checking
+  - Helpful message: "Key not found in key space. Make sure it's defined in a root map."
+  - Integration with VS Code Problems panel
+
+- **Enhanced Attribute Parsing**: Tooltips show @scope, @format, @type, @linktext, and @rev
+  - `@scope` displayed as `[scope: local/peer/external]`
+  - `@format` displayed as `[format: dita/pdf/html]`
+  - `@type` displayed as `[type: concept/task/reference]`
+  - `@linktext` displayed as `Link text: "custom text"`
+  - `@rev` displayed as `[rev: 2.0]` for revision/version tracking
+  - All attributes extracted and combined in enhanced tooltips
+
+- **Enhanced Test Coverage**: Added 85+ new test cases
+  - Cross-reference (xref) detection tests
+  - Link element detection tests
+  - Same-file element navigation tests
+  - Element ID finding tests
+  - Command URI generation tests
+  - Fragment identifier handling tests
+  - HTTP URL skipping tests
+  - Mixed reference type tests
+  - Enhanced attribute parsing tests (@scope, @format, @type, @linktext, @rev)
+  - **Edge case handling** (13 new tests):
+    - Empty attribute values (conref="", keyref="", scope="", etc.)
+    - Malformed fragment identifiers (##, very long IDs)
+    - Special characters in paths (spaces, unicode, parentheses)
+    - Variable syntax skipping (${variable}/file.dita)
+    - Case variations in attribute values
+    - Whitespace handling in attributes
+
+- **Updated Documentation**: DITA Reference Coverage Analysis
+  - Coverage increased from 36% to **100%** (13/13 reference types fully implemented)
+  - Full DITA reference type coverage achieved
+  - Comprehensive coverage matrix and implementation notes
+  - Added edge case test coverage documentation
+
+### Changed
+- **Reference Type Coverage**: Now supports all 13 major DITA reference types
+  - @conref, @conkeyref, @keyref, @href, @scope, @format, @type, @linktext, @rev
+  - `<xref>`, `<link>`, #fragment (same-file), @id (element navigator)
+  - Improved from 4/11 to 13/13 fully implemented reference types (100%)
+  - Same-file navigation now uses VS Code commands for proper scrolling
+
 ## [0.2.1] - 2025-11-17
 
 ### Fixed

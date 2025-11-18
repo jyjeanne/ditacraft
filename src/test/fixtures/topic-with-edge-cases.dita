@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_with_edge_cases">
+    <title>Topic with Edge Cases for Testing</title>
+    <body>
+        <!-- Test empty attribute values -->
+        <p>Empty conref: <ph conref=""/></p>
+        <p>Empty keyref: <keyword keyref=""/></p>
+        <p>Empty conkeyref: <ph conkeyref=""/></p>
+
+        <!-- Test malformed fragment identifiers -->
+        <p>Double hash: <xref href="valid-topic.dita##invalid"/></p>
+        <p>Fragment with spaces: <xref href="valid-topic.dita#element id"/></p>
+        <p>Very long element ID: <xref href="valid-topic.dita#this_is_a_very_long_element_id_that_exceeds_normal_naming_conventions_and_should_be_handled_gracefully_by_the_parser_without_causing_any_issues_or_crashes_in_the_system_even_though_it_is_extremely_long"/></p>
+
+        <!-- Test special characters in paths -->
+        <p>Path with spaces: <xref href="file with spaces.dita">spaces in filename</xref></p>
+        <p>Path with unicode: <xref href="文档/topic.dita">unicode path</xref></p>
+        <p>Path with parentheses: <xref href="file(1).dita">parentheses</xref></p>
+        <p>Path with brackets: <xref href="file[version].dita">brackets</xref></p>
+
+        <!-- Test empty enhanced attributes -->
+        <p>Empty scope: <xref href="valid-topic.dita" scope="">empty scope</xref></p>
+        <p>Empty format: <xref href="valid-topic.dita" format="">empty format</xref></p>
+        <p>Empty linktext: <xref href="valid-topic.dita" linktext="">empty linktext</xref></p>
+        <p>Empty rev: <xref href="valid-topic.dita" rev="">empty rev</xref></p>
+        <p>Empty type: <link href="valid-topic.dita" type=""/></p>
+
+        <!-- Test attributes with special characters -->
+        <p>Rev with hyphen: <xref href="valid-topic.dita" rev="2.0-beta">beta version</xref></p>
+        <p>Rev with underscore: <xref href="valid-topic.dita" rev="version_1_0">underscored</xref></p>
+        <p>Linktext with quotes: <xref href="valid-topic.dita" linktext="Click &quot;here&quot;">quoted text</xref></p>
+        <p>Linktext with ampersand: <xref href="valid-topic.dita" linktext="Terms &amp; Conditions">ampersand</xref></p>
+
+        <!-- Test invalid/unknown attribute values -->
+        <p>Invalid scope: <xref href="valid-topic.dita" scope="invalid">unknown scope</xref></p>
+        <p>Unknown format: <xref href="valid-topic.dita" format="xyz123">unknown format</xref></p>
+        <p>Very long linktext: <xref href="valid-topic.dita" linktext="This is a very long link text that exceeds normal expectations and should be handled gracefully by the tooltip system without truncation issues or display problems in the VS Code interface">long text</xref></p>
+
+        <!-- Test whitespace variations -->
+        <p>Attribute with extra spaces: <xref  href = "valid-topic.dita"  scope = "local" >extra spaces</xref></p>
+        <p>Newline in attribute: <xref href="valid-topic.dita"
+            scope="local"
+            format="dita">multiline</xref></p>
+
+        <!-- Test case sensitivity -->
+        <p>Uppercase scope: <xref href="valid-topic.dita" scope="LOCAL">uppercase</xref></p>
+        <p>Mixed case format: <xref href="valid-topic.dita" format="PDF">mixed case</xref></p>
+
+        <!-- Test fragment-only references -->
+        <p>Empty fragment: <xref href="#">empty hash</xref></p>
+        <p>Fragment only slash: <xref href="#/">#/ only</xref></p>
+        <p>Fragment with multiple slashes: <xref href="#topic/element/subelement">nested path</xref></p>
+
+        <!-- Test conref edge cases -->
+        <p conref="#topic_with_edge_cases/nonexistent_element">Self-referencing conref</p>
+        <p conref="nonexistent-file.dita#element">Non-existent file conref</p>
+        <p conref="valid-topic.dita#">Missing element ID</p>
+
+        <!-- Test variable syntax that should be skipped -->
+        <p>Variable path: <xref href="${variable}/file.dita">variable</xref></p>
+        <p>Variable conref: <ph conref="${SHARED_CONTENT}/warning.dita#warnings/safety"/></p>
+        <p>Variable keyref: <keyword keyref="${PRODUCT_KEY}"/></p>
+
+        <!-- Test very long paths -->
+        <p>Deep nesting: <xref href="a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/very-deep-file.dita">deeply nested</xref></p>
+
+        <!-- Section for testing element navigation edge cases -->
+        <section id="section-with-hyphen">
+            <title>Section with Hyphen ID</title>
+            <p>Test hyphenated IDs</p>
+        </section>
+
+        <section id="section_with_underscore">
+            <title>Section with Underscore ID</title>
+            <p>Test underscored IDs</p>
+        </section>
+
+        <section id="123numericstart">
+            <title>Numeric Start ID</title>
+            <p>ID starting with number (invalid XML but should handle)</p>
+        </section>
+    </body>
+    <related-links>
+        <!-- Test link edge cases -->
+        <link href="" type="concept"/>
+        <link href="valid-topic.dita" type="" scope="" format=""/>
+        <link href="#nonexistent" type="reference"/>
+        <link href="file with spaces.dita" type="task"/>
+    </related-links>
+</topic>
