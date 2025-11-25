@@ -288,6 +288,42 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Create New Map** | - | Create new DITA map |
 | **DITA: Create New Bookmap** | - | Create new bookmap |
 | **DITA: Configure DITA-OT Path** | - | Set DITA-OT installation path |
+| **DITA: Setup cSpell Configuration** | - | Create cSpell config for DITA files |
+
+## Spell Checking with cSpell
+
+DitaCraft includes a pre-configured cSpell configuration with comprehensive DITA vocabulary to prevent false "unknown word" errors when using spell checkers.
+
+### Setup cSpell
+
+**Option 1: Automatic Setup (Recommended)**
+1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Type "DITA: Setup cSpell Configuration"
+3. Click the command
+4. DitaCraft will create a `.cspellrc.json` file in your workspace root with all DITA terminology pre-configured
+
+**Option 2: Manual Setup**
+1. Copy the template `.cspellrc.json` from the DitaCraft project repository
+2. Place it in your workspace root folder
+3. The configuration includes:
+   - All DITA 1.3 elements (topic, titlealts, topicref, etc.)
+   - Common DITA attributes (href, conref, keyref, format, scope, etc.)
+   - Publishing terms (ditamap, bookmap, ditaval, etc.)
+   - Specialized configurations for `.dita`, `.ditamap`, `.bookmap`, and `.ditaval` files
+
+### Why cSpell Configuration?
+
+DITA includes many technical terms and element names (like `titlealts`, `conref`, `keyref`) that aren't recognized by standard spell checkers. The pre-configured `.cspellrc.json` prevents false "unknown word" warnings for these legitimate DITA terms while still catching actual spelling errors in your documentation content.
+
+### What's Included in the Configuration
+
+The default cSpell configuration includes:
+- **DITA elements**: topic, concept, task, reference, figure, table, section, and 100+ more
+- **DITA attributes**: href, conref, keyref, conkeyref, format, scope, type, and more
+- **Map elements**: ditamap, topicref, mapref, keydef, reltable, and more
+- **Bookmap elements**: chapter, part, appendix, frontmatter, backmatter, and more
+- **Learning elements**: learningBase, learningObject, learningContent, and more
+- **Specialized terms**: ditaarch, xmlns, OASIS standards, and DITA-OT related terms
 
 ## Configuration
 
@@ -608,6 +644,45 @@ Contributions are welcome! Please:
 - ✅ **Improved error messages** - Better, more descriptive validation and publishing error messages
 - ✅ **Fixed file path validation** - Comprehensive checks to ensure files are being processed
 - ✅ **Added verbose logging** - Detailed console logging for easier debugging
+
+## Roadmap
+
+We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md](ROADMAP.md) for:
+
+- **v0.3.0** - Developer Experience & Quality (test coverage, CI improvements)
+- **v0.4.0** - Enhanced Preview & Visualization (WebView, DITA map visualizer)
+- **v0.5.0** - IntelliSense & Content Assistance (hover, completion, code actions)
+- **v0.6.0** - Project Management & Views (DITA Explorer, Key Space browser)
+- **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation)
+- **v0.8.0** - Refactoring & Productivity (rename keys, templates)
+- **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)
+
+## Contributing
+
+We welcome contributions! Here's how you can help:
+
+### Good First Issues
+Look for issues labeled [`good first issue`](https://github.com/jyjeanne/ditacraft/labels/good%20first%20issue) - these are great starting points for new contributors.
+
+### Development Setup
+```bash
+git clone https://github.com/jyjeanne/ditacraft.git
+cd ditacraft
+npm install
+npm run compile
+# Press F5 in VS Code to run in debug mode
+```
+
+### Areas Needing Help
+| Area | Difficulty | Description |
+|------|------------|-------------|
+| Test Coverage | Easy-Medium | Add tests for commands and providers |
+| Documentation | Easy | Improve README, add tutorials |
+| WebView Preview | Medium | Complete HTML5 preview feature |
+| IntelliSense | Medium-Hard | Hover and completion providers |
+| DTD Support | Hard | Add DITA 1.2/2.0 support |
+
+See [ROADMAP.md](ROADMAP.md) for detailed feature breakdown and contribution opportunities.
 
 ## Changelog
 

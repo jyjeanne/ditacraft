@@ -8,6 +8,17 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
+import { DitaPreviewPanel } from '../providers/previewPanel';
+
+// Store extension context for creating preview panels
+let extensionContext: vscode.ExtensionContext | undefined;
+
+/**
+ * Initialize the preview command with extension context
+ */
+export function initializePreview(context: vscode.ExtensionContext): void {
+    extensionContext = context;
+}
 
 /**
  * Command: ditacraft.previewHTML5
@@ -138,12 +149,20 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
         }
 
         // Create and show WebView panel
-        // TODO: This will be implemented in previewPanel.ts
-        // For now, open in external browser
-        const htmlUri = vscode.Uri.file(htmlFile);
-        await vscode.env.openExternal(htmlUri);
-
-        vscode.window.showInformationMessage('Preview opened in browser');
+        if (extensionContext) {
+            DitaPreviewPanel.createOrShow(
+                extensionContext.extensionUri,
+                htmlFile,
+                filePath
+            );
+            logger.info('Preview panel opened', { htmlFile, sourceFile: filePath });
+        } else {
+            // Fallback: open in external browser if context not available
+            logger.warn('Extension context not available, opening in external browser');
+            const htmlUri = vscode.Uri.file(htmlFile);
+            await vscode.env.openExternal(htmlUri);
+            vscode.window.showInformationMessage('Preview opened in browser');
+        }
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';

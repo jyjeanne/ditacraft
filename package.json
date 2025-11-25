@@ -110,6 +110,10 @@
         "title": "DITA: Configure DITA-OT Path"
       },
       {
+        "command": "ditacraft.setupCSpell",
+        "title": "DITA: Setup cSpell Configuration"
+      },
+      {
         "command": "ditacraft.showLogFile",
         "title": "DITA: Show Log File Location"
       },
@@ -313,9 +317,31 @@
     "pretest": "npm run compile-tests && npm run lint",
     "compile-tests": "tsc -p ./",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "coverage": "nyc npm test",
+    "coverage:report": "nyc report --reporter=html --reporter=text"
+  },
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "include": [
+      "out/**/*.js"
+    ],
+    "exclude": [
+      "out/test/**",
+      "out/**/*.test.js"
+    ],
+    "reporter": [
+      "text",
+      "html",
+      "lcov"
+    ],
+    "all": true,
+    "report-dir": "coverage",
+    "temp-dir": ".nyc_output",
+    "check-coverage": false
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.8.0",
@@ -329,11 +355,11 @@
     "glob": "^10.3.3",
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
+    "nyc": "^17.1.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
-    "fast-xml-parser": "^4.3.2",
-    "xml2js": "^0.6.2"
+    "fast-xml-parser": "^4.3.2"
   }
 }

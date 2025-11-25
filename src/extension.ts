@@ -17,11 +17,14 @@ import {
     publishCommand,
     publishHTML5Command,
     previewHTML5Command,
+    initializePreview,
     newTopicCommand,
     newMapCommand,
     newBookmapCommand,
-    configureDitaOTCommand
+    configureDitaOTCommand,
+    setupCSpellCommand
 } from './commands';
+import { registerPreviewPanelSerializer } from './providers/previewPanel';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
@@ -49,6 +52,12 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.appendLine('Initializing validator...');
         initializeValidator(context);
         outputChannel.appendLine('Validator initialized');
+
+        // Initialize preview panel
+        outputChannel.appendLine('Initializing preview panel...');
+        initializePreview(context);
+        registerPreviewPanelSerializer(context);
+        outputChannel.appendLine('Preview panel initialized');
 
         // Register DITA link provider for Ctrl+Click navigation
         outputChannel.appendLine('Registering DITA link provider...');
@@ -181,6 +190,10 @@ function registerCommands(context: vscode.ExtensionContext): void {
     // Configuration commands
     context.subscriptions.push(
         vscode.commands.registerCommand('ditacraft.configureDitaOT', configureDitaOTCommand)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.setupCSpell', setupCSpellCommand)
     );
 
     // Test command for debugging (intentionally throws error)
