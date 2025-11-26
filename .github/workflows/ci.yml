@@ -39,9 +39,46 @@ jobs:
     - name: Compile tests
       run: npm run compile-tests
 
-    - name: Run tests
-      run: xvfb-run -a npm test
+    - name: Run tests with coverage
+      id: test
+      run: |
+        set -o pipefail
+        xvfb-run -a npm run coverage:c8 2>&1 | tee test-output.log
       if: success()
+
+    - name: Display test and coverage summary
+      if: always() && steps.test.outcome != 'skipped'
+      run: |
+        echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Extract test count from log
+        if grep -q "passing" test-output.log; then
+          PASSING=$(grep -oP '\d+(?= passing)' test-output.log | tail -1)
+          echo "✅ **$PASSING tests passing**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if grep -q "failing" test-output.log; then
+          FAILING=$(grep -oP '\d+(?= failing)' test-output.log | tail -1)
+          echo "❌ **$FAILING tests failing**" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        npx c8 report --reporter=text-summary 2>/dev/null | tail -n 6 >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "📥 Download the full HTML report from Artifacts below." >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: coverage-report-${{ github.sha }}
+        path: coverage/
+        retention-days: 30
 
     - name: Install vsce
       run: npm install -g @vscode/vsce
