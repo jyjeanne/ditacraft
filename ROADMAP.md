@@ -14,7 +14,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Key Space Resolution | Complete | 95% |
 | Real-time Validation | Complete | 95% |
 | DITA-OT Publishing | Complete | 95% |
-| Live HTML5 Preview | Partial | 60% |
+| Live HTML5 Preview | Complete | 90% |
 | Code Snippets (21) | Complete | 100% |
 | Security (XXE, Path Traversal) | Complete | 100% |
 | cSpell Integration | Complete | 100% |
@@ -29,22 +29,22 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] Add code coverage reporting with nyc/istanbul
 - [ ] Add coverage threshold enforcement (minimum 70%)
 - [x] Add security scanning (npm audit) to CI pipeline
-- [ ] Test DITA-OT integration (currently untested)
+- [x] Test DITA-OT integration (currently untested)
 - [x] Test publish/preview/file creation commands
 - [ ] Test cSpell setup command
-- [ ] Add Windows and macOS to CI test matrix
+- [x] Add Windows and macOS to CI test matrix
 
 ### Code Quality
 - [x] Remove unused `xml2js` dependency
-- [ ] Consolidate file reading in validator (eliminate duplicate reads)
-- [ ] Create utility function for safe error message extraction
-- [ ] Standardize async/await patterns (remove Promise chains)
+- [x] Consolidate file reading in validator (eliminate duplicate reads)
+- [x] Create utility function for safe error message extraction
+- [x] Standardize async/await patterns (remove Promise chains)
 
 ### Configuration Flexibility
-- [ ] Make validation debounce configurable (100-2000ms)
-- [ ] Make key space cache TTL configurable (1-30 minutes)
-- [ ] Make DITA-OT process timeout configurable (5-30 minutes)
-- [ ] Add `ditacraft.maxLinkMatches` setting (currently hardcoded at 10,000)
+- [x] Make validation debounce configurable (100-2000ms)
+- [x] Make key space cache TTL configurable (1-30 minutes)
+- [x] Make DITA-OT process timeout configurable (5-30 minutes)
+- [x] Add `ditacraft.maxLinkMatches` setting (currently hardcoded at 10,000)
 
 **Good First Issues:**
 - Remove `xml2js` from package.json

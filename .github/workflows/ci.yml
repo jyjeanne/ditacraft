@@ -44,6 +44,7 @@ jobs:
       run: |
         set -o pipefail
         xvfb-run -a npm run coverage:c8 2>&1 | tee test-output.log
+      run: npm test
       if: success()
 
     - name: Display test and coverage summary

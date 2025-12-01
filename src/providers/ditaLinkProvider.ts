@@ -40,7 +40,6 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     private static readonly XREF_HREF_REGEX = /<xref[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
     private static readonly XREF_KEYREF_REGEX = /<xref[^>]*\bkeyref\s*=\s*["']([^"']+)["'][^>]*>/gi;
     private static readonly LINK_HREF_REGEX = /<link[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
-    private static readonly MAX_MATCHES = 10000; // Safety limit
 
     // Attribute extraction patterns
     private static readonly SCOPE_PATTERN = /\bscope\s*=\s*["']([^"']+)["']/i;
@@ -51,6 +50,14 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
 
     constructor(keySpaceResolver?: KeySpaceResolver) {
         this.keySpaceResolver = keySpaceResolver || new KeySpaceResolver();
+    }
+
+    /**
+     * Get max link matches from configuration
+     */
+    private getMaxMatches(): number {
+        const config = vscode.workspace.getConfiguration('ditacraft');
+        return config.get<number>('maxLinkMatches', 10000);
     }
 
     /**
@@ -109,7 +116,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         let matchCount = 0;
         while ((match = hrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+            if (++matchCount > this.getMaxMatches()) {
                 break;
             }
 
@@ -159,7 +166,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         let matchCount = 0;
         while ((match = conrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+            if (++matchCount > this.getMaxMatches()) {
                 break;
             }
 
@@ -221,7 +228,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         let matchCount = 0;
         while ((match = conkeyrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+            if (++matchCount > this.getMaxMatches()) {
                 break;
             }
 
@@ -322,7 +329,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         let matchCount = 0;
         while ((match = keyrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+            if (++matchCount > this.getMaxMatches()) {
                 break;
             }
 
@@ -414,7 +421,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         let matchCount = 0;
         while ((match = xrefHrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+            if (++matchCount > this.getMaxMatches()) {
                 break;
             }
 
@@ -489,7 +496,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         let matchCount = 0;
         while ((match = xrefKeyrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+            if (++matchCount > this.getMaxMatches()) {
                 break;
             }
 
@@ -557,7 +564,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
         let matchCount = 0;
         while ((match = linkHrefRegex.exec(text)) !== null) {
             // Safety check to prevent infinite loops
-            if (++matchCount > DitaLinkProvider.MAX_MATCHES) {
+            if (++matchCount > this.getMaxMatches()) {
                 break;
             }
 

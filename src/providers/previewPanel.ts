@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { logger } from '../utils/logger';
+import { fireAndForget } from '../utils/errorUtils';
 
 /**
  * Manages the DITA Preview WebView panel
@@ -106,8 +107,13 @@ export class DitaPreviewPanel {
                         return;
                     case 'openSource':
                         if (this._currentSourceFile) {
-                            vscode.workspace.openTextDocument(this._currentSourceFile)
-                                .then(doc => vscode.window.showTextDocument(doc, vscode.ViewColumn.One));
+                            fireAndForget(
+                                (async () => {
+                                    const doc = await vscode.workspace.openTextDocument(this._currentSourceFile!);
+                                    await vscode.window.showTextDocument(doc, vscode.ViewColumn.One);
+                                })(),
+                                'open-source-file'
+                            );
                         }
                         return;
                 }

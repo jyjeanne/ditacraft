@@ -78,6 +78,15 @@ export class DitaOtWrapper {
     }
 
     /**
+     * Get DITA-OT process timeout from configuration (in milliseconds)
+     */
+    private getProcessTimeoutMs(): number {
+        const config = vscode.workspace.getConfiguration('ditacraft');
+        const timeoutMinutes = config.get<number>('ditaOtTimeoutMinutes', 10);
+        return timeoutMinutes * 60 * 1000;
+    }
+
+    /**
      * Validate that a path doesn't contain dangerous characters
      */
     private isValidPath(pathStr: string): boolean {
@@ -320,11 +329,12 @@ export class DitaOtWrapper {
             let errorBuffer = '';
             let processTimedOut = false;
 
-            // Add timeout protection (10 minutes max for DITA-OT processing)
-            const PROCESS_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+            // Add timeout protection for DITA-OT processing
+            const processTimeoutMs = this.getProcessTimeoutMs();
+            const timeoutMinutes = processTimeoutMs / 60000;
             const timeoutHandle = setTimeout(() => {
                 processTimedOut = true;
-                logger.error('DITA-OT process timeout after 10 minutes');
+                logger.error(`DITA-OT process timeout after ${timeoutMinutes} minutes`);
                 ditaProcess.kill('SIGTERM');
 
                 // Give it a moment to terminate gracefully, then force kill
@@ -333,7 +343,7 @@ export class DitaOtWrapper {
                         ditaProcess.kill('SIGKILL');
                     }
                 }, 5000);
-            }, PROCESS_TIMEOUT_MS);
+            }, processTimeoutMs);
 
             // Capture stdout
             ditaProcess.stdout?.on('data', (data: Buffer) => {

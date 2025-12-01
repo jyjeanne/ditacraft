@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { KeySpaceResolver } from '../utils/keySpaceResolver';
 import { logger } from '../utils/logger';
+import { fireAndForget } from '../utils/errorUtils';
 
 export class KeyDiagnosticsProvider implements vscode.Disposable {
     private diagnosticCollection: vscode.DiagnosticCollection;
@@ -35,6 +36,14 @@ export class KeyDiagnosticsProvider implements vscode.Disposable {
     }
 
     /**
+     * Get max matches from configuration (use 1/10 of maxLinkMatches)
+     */
+    private getMaxMatches(): number {
+        const config = vscode.workspace.getConfiguration('ditacraft');
+        return Math.max(1000, Math.floor(config.get<number>('maxLinkMatches', 10000) / 10));
+    }
+
+    /**
      * Debounced document change handler
      */
     private changeTimeout: NodeJS.Timeout | undefined;
@@ -49,9 +58,10 @@ export class KeyDiagnosticsProvider implements vscode.Disposable {
         }
 
         this.changeTimeout = setTimeout(() => {
-            this.checkDocument(event.document).catch(err => {
-                logger.error('Error checking document for key diagnostics', err);
-            });
+            fireAndForget(
+                this.checkDocument(event.document),
+                'key-diagnostics-check'
+            );
         }, 1000);
     }
 
@@ -144,7 +154,7 @@ export class KeyDiagnosticsProvider implements vscode.Disposable {
 
         let match: RegExpExecArray | null;
         let count = 0;
-        const maxMatches = 1000;
+        const maxMatches = this.getMaxMatches();
 
         while ((match = pattern.exec(text)) !== null) {
             if (++count > maxMatches) {

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { fireAndForget } from './errorUtils';
 
 export enum LogLevel {
     DEBUG = 0,
@@ -181,11 +182,13 @@ export class Logger {
         }
 
         if (fs.existsSync(this.logFilePath)) {
-            Promise.resolve(vscode.workspace.openTextDocument(this.logFilePath)).then(doc => {
-                return vscode.window.showTextDocument(doc);
-            }).catch((_err: unknown) => {
-                vscode.window.showErrorMessage('Failed to open log file');
-            });
+            fireAndForget(
+                (async () => {
+                    const doc = await vscode.workspace.openTextDocument(this.logFilePath);
+                    await vscode.window.showTextDocument(doc);
+                })(),
+                'open-log-file'
+            );
         } else {
             vscode.window.showWarningMessage('Log file does not exist yet.');
         }
@@ -199,21 +202,22 @@ export class Logger {
             return;
         }
 
-        Promise.resolve(vscode.window.showInformationMessage(
-            `Log file: ${this.logFilePath}`,
-            'Open Log File',
-            'Open Folder'
-        )).then((selection: string | undefined) => {
-            if (selection === 'Open Log File') {
-                this.openLogFile();
-            } else if (selection === 'Open Folder') {
-                const logDir = path.dirname(this.logFilePath);
-                return vscode.env.openExternal(vscode.Uri.file(logDir));
-            }
-            return undefined;
-        }).catch((_err: unknown) => {
-            // Silently handle dialog/navigation errors
-        });
+        fireAndForget(
+            (async () => {
+                const selection = await vscode.window.showInformationMessage(
+                    `Log file: ${this.logFilePath}`,
+                    'Open Log File',
+                    'Open Folder'
+                );
+                if (selection === 'Open Log File') {
+                    this.openLogFile();
+                } else if (selection === 'Open Folder') {
+                    const logDir = path.dirname(this.logFilePath);
+                    await vscode.env.openExternal(vscode.Uri.file(logDir));
+                }
+            })(),
+            'show-log-location'
+        );
     }
 
     public async clearOldLogs(daysToKeep: number = 7): Promise<void> {

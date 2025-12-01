@@ -295,6 +295,38 @@
           "default": true,
           "description": "Enable logging to Output channel in VS Code.",
           "order": 12
+        },
+        "ditacraft.validationDebounceMs": {
+          "type": "number",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 2000,
+          "description": "Debounce delay (in milliseconds) before validating a file after changes. Lower values provide faster feedback but may impact performance.",
+          "order": 13
+        },
+        "ditacraft.keySpaceCacheTtlMinutes": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 30,
+          "description": "Time-to-live (in minutes) for cached key space data. Increase for better performance with large DITA projects.",
+          "order": 14
+        },
+        "ditacraft.ditaOtTimeoutMinutes": {
+          "type": "number",
+          "default": 10,
+          "minimum": 5,
+          "maximum": 30,
+          "description": "Maximum time (in minutes) to wait for DITA-OT processing to complete before timing out.",
+          "order": 15
+        },
+        "ditacraft.maxLinkMatches": {
+          "type": "number",
+          "default": 10000,
+          "minimum": 1000,
+          "maximum": 100000,
+          "description": "Maximum number of link matches to process per file. Increase for very large DITA files.",
+          "order": 16
         }
       }
     },

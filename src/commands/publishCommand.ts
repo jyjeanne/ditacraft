@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
+import { fireAndForget } from '../utils/errorUtils';
 
 /**
  * Command: ditacraft.publish
@@ -175,14 +176,16 @@ async function executePublish(
             );
 
             if (action === 'Open Output Folder') {
-                Promise.resolve(vscode.env.openExternal(vscode.Uri.file(result.outputPath))).catch((err: unknown) => {
-                    logger.error('Failed to open output folder', err);
-                });
+                fireAndForget(
+                    vscode.env.openExternal(vscode.Uri.file(result.outputPath)),
+                    'open-output-folder'
+                );
             } else if (action === 'Show Preview') {
                 // Open preview for HTML5
-                Promise.resolve(vscode.commands.executeCommand('ditacraft.previewHTML5', vscode.Uri.file(inputFile))).catch((err: unknown) => {
-                    logger.error('Failed to open preview', err);
-                });
+                fireAndForget(
+                    vscode.commands.executeCommand('ditacraft.previewHTML5', vscode.Uri.file(inputFile)),
+                    'open-preview'
+                );
             }
         } else {
             // Log detailed error information

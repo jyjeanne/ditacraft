@@ -8,6 +8,7 @@
 import * as vscode from 'vscode';
 import { DitaOtWrapper } from './utils/ditaOtWrapper';
 import { logger } from './utils/logger';
+import { fireAndForget } from './utils/errorUtils';
 import { registerDitaLinkProvider, getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
 import { registerElementNavigationCommand } from './utils/elementNavigator';
 import { registerKeyDiagnosticsProvider } from './providers/keyDiagnostics';
@@ -297,9 +298,10 @@ async function verifyDitaOtInstallation(): Promise<void> {
 
             if (action === 'Configure Now') {
                 logger.debug('User chose to configure DITA-OT');
-                Promise.resolve(vscode.commands.executeCommand('ditacraft.configureDitaOT')).catch((err: unknown) => {
-                    logger.error('Failed to open DITA-OT configuration', err);
-                });
+                fireAndForget(
+                    vscode.commands.executeCommand('ditacraft.configureDitaOT'),
+                    'configure-dita-ot'
+                );
             }
         }
     } catch (error) {

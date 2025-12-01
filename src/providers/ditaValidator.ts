@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import { XMLValidator } from 'fast-xml-parser';
 import { DOMParser } from '@xmldom/xmldom';
 import { DtdResolver } from '../utils/dtdResolver';
+import { getErrorMessage, fireAndForget } from '../utils/errorUtils';
 
 const execFileAsync = promisify(execFile);
 
@@ -130,17 +131,19 @@ export class DitaValidator {
 
             // Check if xmllint is not installed
             if (err.code === 'ENOENT' || err.message?.includes('not found')) {
-                Promise.resolve(vscode.window.showWarningMessage(
-                    'xmllint not found. Switching to built-in validation. Install libxml2 or change validation engine in settings.',
-                    'Change Engine'
-                )).then((action: string | undefined) => {
-                    if (action === 'Change Engine') {
-                        return vscode.commands.executeCommand('workbench.action.openSettings', 'ditacraft.validationEngine');
-                    }
-                    return undefined;
-                }).catch((_err: unknown) => {
-                    // Silently handle dialog/command errors
-                });
+                // Fire-and-forget: show warning without blocking validation
+                fireAndForget(
+                    (async () => {
+                        const action = await vscode.window.showWarningMessage(
+                            'xmllint not found. Switching to built-in validation. Install libxml2 or change validation engine in settings.',
+                            'Change Engine'
+                        );
+                        if (action === 'Change Engine') {
+                            await vscode.commands.executeCommand('workbench.action.openSettings', 'ditacraft.validationEngine');
+                        }
+                    })(),
+                    'xmllint-warning'
+                );
 
                 // Fall back to built-in validation
                 return this.validateWithBuiltIn(filePath);
@@ -246,27 +249,22 @@ export class DitaValidator {
 
         } catch (error: unknown) {
             // Parse error from fast-xml-parser
-            const errors: ValidationError[] = [];
-            const err = error as { message?: string };
+            const errorMessage = getErrorMessage(error);
 
-            if (err.message) {
-                // Try to extract line number from error message
-                const lineMatch = err.message.match(/line:(\d+)/i) ||
-                                 err.message.match(/at position (\d+)/i);
-                const line = lineMatch ? parseInt(lineMatch[1], 10) - 1 : 0;
-
-                errors.push({
-                    line: line,
-                    column: 0,
-                    severity: 'error',
-                    message: err.message,
-                    source: 'xml-parser'
-                });
-            }
+            // Try to extract line number from error message
+            const lineMatch = errorMessage.match(/line:(\d+)/i) ||
+                             errorMessage.match(/at position (\d+)/i);
+            const line = lineMatch ? parseInt(lineMatch[1], 10) - 1 : 0;
 
             return {
                 valid: false,
-                errors: errors,
+                errors: [{
+                    line: line,
+                    column: 0,
+                    severity: 'error',
+                    message: errorMessage,
+                    source: 'xml-parser'
+                }],
                 warnings: []
             };
         }
@@ -343,12 +341,11 @@ export class DitaValidator {
 
         } catch (error: unknown) {
             // Handle parsing errors
-            const err = error as { message?: string };
             errors.push({
                 line: 0,
                 column: 0,
                 severity: 'error',
-                message: `DTD validation error: ${err.message || 'Unknown error'}`,
+                message: `DTD validation error: ${getErrorMessage(error)}`,
                 source: 'dtd-validator'
             });
 
@@ -459,12 +456,11 @@ export class DitaValidator {
 
         } catch (fileError: unknown) {
             // File reading error - add as error
-            const err = fileError as { message?: string };
             errors.push({
                 line: 0,
                 column: 0,
                 severity: 'error',
-                message: `Failed to read file for DITA validation: ${err.message || 'Unknown error'}`,
+                message: `Failed to read file for DITA validation: ${getErrorMessage(fileError)}`,
                 source: 'dita-validator'
             });
         }

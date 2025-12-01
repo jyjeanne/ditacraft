@@ -64,15 +64,42 @@ export class KeySpaceResolver implements vscode.Disposable {
     private pendingInvalidations: Set<string> = new Set();
 
     constructor() {
-        this.cacheConfig = {
-            ttlMs: 5 * 60 * 1000,  // 5 minutes
-            maxSize: 10             // Max 10 root maps
-        };
+        this.cacheConfig = this.loadCacheConfig();
 
         // Set up file watcher for map files
         this.setupFileWatcher();
 
         logger.debug('KeySpaceResolver initialized');
+    }
+
+    /**
+     * Load cache configuration from VS Code settings
+     */
+    private loadCacheConfig(): CacheConfig {
+        const config = vscode.workspace.getConfiguration('ditacraft');
+        const ttlMinutes = config.get<number>('keySpaceCacheTtlMinutes', 5);
+        return {
+            ttlMs: ttlMinutes * 60 * 1000,
+            maxSize: 10  // Max 10 root maps
+        };
+    }
+
+    /**
+     * Reload cache configuration (call when settings change)
+     */
+    public reloadCacheConfig(): void {
+        this.cacheConfig = this.loadCacheConfig();
+        logger.debug('KeySpaceResolver cache config reloaded', {
+            ttlMinutes: this.cacheConfig.ttlMs / 60000
+        });
+    }
+
+    /**
+     * Get max link matches from configuration
+     */
+    private getMaxMatches(): number {
+        const config = vscode.workspace.getConfiguration('ditacraft');
+        return config.get<number>('maxLinkMatches', 10000);
     }
 
     /**
@@ -299,7 +326,7 @@ export class KeySpaceResolver implements vscode.Disposable {
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
-        const maxMatches = 10000;
+        const maxMatches = this.getMaxMatches();
 
         while ((match = keydefRegex.exec(mapContent)) !== null) {
             if (++matchCount > maxMatches) {
@@ -407,7 +434,8 @@ export class KeySpaceResolver implements vscode.Disposable {
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
-        const maxMatches = 1000;
+        // Use 1/10 of maxLinkMatches for map references (minimum 1000)
+        const maxMatches = Math.max(1000, Math.floor(this.getMaxMatches() / 10));
 
         while ((match = mapRefRegex.exec(mapContent)) !== null) {
             if (++matchCount > maxMatches) {

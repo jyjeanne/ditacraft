@@ -13,7 +13,14 @@ let extensionContext: vscode.ExtensionContext | undefined;
 
 // Debounce timers for validation (per file)
 const validationDebounceTimers: Map<string, NodeJS.Timeout> = new Map();
-const VALIDATION_DEBOUNCE_MS = 500; // 500ms debounce as documented
+
+/**
+ * Get the validation debounce delay from configuration
+ */
+function getValidationDebounceMs(): number {
+    const config = vscode.workspace.getConfiguration('ditacraft');
+    return config.get<number>('validationDebounceMs', 500);
+}
 
 /**
  * Initialize the validator
@@ -43,7 +50,7 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
                     const timer = setTimeout(async () => {
                         validationDebounceTimers.delete(filePath);
                         await validator?.validateFile(document.uri);
-                    }, VALIDATION_DEBOUNCE_MS);
+                    }, getValidationDebounceMs());
 
                     validationDebounceTimers.set(filePath, timer);
                 }
