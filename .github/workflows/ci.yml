@@ -11,7 +11,12 @@ on:
 
 jobs:
   lint-and-test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout code
@@ -39,59 +44,95 @@ jobs:
     - name: Compile tests
       run: npm run compile-tests
 
-    - name: Run tests with coverage
-      id: test
+    - name: Run tests with coverage (Linux)
+      id: test-linux
+      if: runner.os == 'Linux'
+      shell: bash
       run: |
         set -o pipefail
         xvfb-run -a npm run coverage:c8 2>&1 | tee test-output.log
+
+    - name: Run tests (Windows)
+      id: test-windows
+      if: runner.os == 'Windows'
       run: npm test
-      if: success()
+
+    - name: Run tests (macOS)
+      id: test-macos
+      if: runner.os == 'macOS'
+      run: npm test
 
     - name: Display test and coverage summary
-      if: always() && steps.test.outcome != 'skipped'
+      if: always() && runner.os == 'Linux'
+      shell: bash
       run: |
         echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Extract test count from log
-        if grep -q "passing" test-output.log; then
-          PASSING=$(grep -oP '\d+(?= passing)' test-output.log | tail -1)
-          echo "✅ **$PASSING tests passing**" >> $GITHUB_STEP_SUMMARY
+
+        # Check if test output log exists
+        if [ -f test-output.log ]; then
+          # Extract test count from log using portable grep
+          PASSING=$(grep -o '[0-9]* passing' test-output.log | tail -1 | grep -o '[0-9]*' || echo "0")
+          FAILING=$(grep -o '[0-9]* failing' test-output.log | tail -1 | grep -o '[0-9]*' || echo "")
+
+          if [ -n "$PASSING" ] && [ "$PASSING" != "0" ]; then
+            echo "✅ **$PASSING tests passing**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -n "$FAILING" ]; then
+            echo "❌ **$FAILING tests failing**" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "⚠️ Test output log not found" >> $GITHUB_STEP_SUMMARY
         fi
-        
-        if grep -q "failing" test-output.log; then
-          FAILING=$(grep -oP '\d+(?= failing)' test-output.log | tail -1)
-          echo "❌ **$FAILING tests failing**" >> $GITHUB_STEP_SUMMARY
-        fi
-        
+
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
         npx c8 report --reporter=text-summary 2>/dev/null | tail -n 6 >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "📥 Download the full HTML report from Artifacts below." >> $GITHUB_STEP_SUMMARY
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
-      if: success()
+      if: runner.os == 'Linux' && always()
+      continue-on-error: true
       with:
         name: coverage-report-${{ github.sha }}
         path: coverage/
         retention-days: 30
+        if-no-files-found: ignore
+
+  package:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Compile TypeScript
+      run: npm run compile
 
     - name: Install vsce
       run: npm install -g @vscode/vsce
-      if: success()
 
     - name: Package extension
       run: vsce package
-      if: success()
 
     - name: Upload VSIX artifact
       uses: actions/upload-artifact@v4
-      if: success()
       with:
         name: ditacraft-${{ github.sha }}-vsix
         path: '*.vsix'
