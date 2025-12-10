@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { DitaOtWrapper } from './utils/ditaOtWrapper';
 import { logger } from './utils/logger';
 import { fireAndForget } from './utils/errorUtils';
+import { configManager, ConfigurationChangeEvent } from './utils/configurationManager';
 import { registerDitaLinkProvider, getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
 import { registerElementNavigationCommand } from './utils/elementNavigator';
 import { registerKeyDiagnosticsProvider } from './providers/keyDiagnostics';
@@ -249,24 +250,85 @@ function registerLoggerCommands(context: vscode.ExtensionContext): void {
 
 /**
  * Register configuration change listener
- * Reloads DITA-OT wrapper when configuration changes
+ * Dynamically propagates configuration changes to all components without requiring reload
  */
 function registerConfigurationListener(context: vscode.ExtensionContext): void {
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(event => {
-            if (event.affectsConfiguration('ditacraft')) {
-                logger.info('Configuration changed, reloading DITA-OT wrapper');
-                outputChannel.appendLine('Configuration changed, reloading DITA-OT wrapper...');
-                ditaOtWrapper.reloadConfiguration();
+    // Set up error handler to use the logger (avoids circular dependency in configurationManager)
+    configManager.setErrorHandler((error, source) => {
+        logger.error(`Configuration error in ${source || 'unknown'}`, error);
+    });
 
-                // Verify installation if DITA-OT path changed
-                if (event.affectsConfiguration('ditacraft.ditaOtPath')) {
-                    logger.debug('DITA-OT path changed, verifying installation');
-                    verifyDitaOtInstallation();
-                }
-            }
-        })
+    // Use the centralized configuration manager for change notifications
+    const configListener = configManager.onConfigurationChange((event: ConfigurationChangeEvent) => {
+        handleConfigurationChange(event);
+    });
+    context.subscriptions.push(configListener);
+
+    // Also add the configuration manager itself to subscriptions for cleanup
+    context.subscriptions.push(configManager);
+}
+
+/**
+ * Handle configuration changes and propagate to all components
+ */
+function handleConfigurationChange(event: ConfigurationChangeEvent): void {
+    const changedKeys = event.affectedKeys;
+
+    logger.info('Configuration changed', {
+        changedSettings: changedKeys,
+        changes: Object.fromEntries(
+            changedKeys.map(key => [key, {
+                from: event.previousValues.get(key),
+                to: event.newValues.get(key)
+            }])
+        )
+    });
+
+    outputChannel.appendLine(`Configuration changed: ${changedKeys.join(', ')}`);
+
+    // Logger configuration (logLevel, enableFileLogging, enableConsoleLogging)
+    const loggerSettings = ['logLevel', 'enableFileLogging', 'enableConsoleLogging'];
+    if (changedKeys.some(key => loggerSettings.includes(key))) {
+        logger.reloadConfiguration();
+        outputChannel.appendLine('  → Logger configuration reloaded');
+    }
+
+    // DITA-OT configuration (ditaOtPath, defaultTranstype, outputDirectory, ditaOtArgs, ditaOtTimeoutMinutes)
+    const ditaOtSettings = ['ditaOtPath', 'defaultTranstype', 'outputDirectory', 'ditaOtArgs', 'ditaOtTimeoutMinutes'];
+    if (changedKeys.some(key => ditaOtSettings.includes(key))) {
+        ditaOtWrapper.reloadConfiguration();
+        outputChannel.appendLine('  → DITA-OT wrapper configuration reloaded');
+
+        // Verify installation if path changed
+        if (changedKeys.includes('ditaOtPath')) {
+            logger.debug('DITA-OT path changed, verifying installation');
+            verifyDitaOtInstallation();
+        }
+    }
+
+    // Key space resolver configuration (keySpaceCacheTtlMinutes)
+    if (changedKeys.includes('keySpaceCacheTtlMinutes')) {
+        const keySpaceResolver = getGlobalKeySpaceResolver();
+        keySpaceResolver.reloadCacheConfig();
+        outputChannel.appendLine('  → Key space resolver cache configuration reloaded');
+    }
+
+    // Show user-friendly notification for important changes
+    const userVisibleChanges = changedKeys.filter(key =>
+        ['logLevel', 'autoValidate', 'previewAutoRefresh', 'validationEngine', 'ditaOtPath'].includes(key)
     );
+
+    if (userVisibleChanges.length > 0) {
+        const changeDescriptions = userVisibleChanges.map(key => {
+            const newValue = event.newValues.get(key);
+            return `${key}: ${JSON.stringify(newValue)}`;
+        });
+
+        vscode.window.setStatusBarMessage(
+            `DitaCraft: Settings updated (${changeDescriptions.join(', ')})`,
+            5000
+        );
+    }
 }
 
 /**

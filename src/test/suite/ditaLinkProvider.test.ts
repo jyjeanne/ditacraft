@@ -13,6 +13,47 @@ suite('DITA Link Provider Test Suite', () => {
     let linkProvider: DitaLinkProvider;
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
 
+    /**
+     * Helper function to check if a link targets a specific file
+     * Works with both file URIs and command URIs (for element navigation)
+     */
+    function linkTargetsFile(link: vscode.DocumentLink, filename: string): boolean {
+        if (!link.target) {
+            return false;
+        }
+        const targetString = link.target.toString();
+        // For file URIs, check fsPath
+        if (link.target.scheme === 'file') {
+            return link.target.fsPath.includes(filename);
+        }
+        // For command URIs, check the encoded arguments
+        if (link.target.scheme === 'command') {
+            return targetString.includes(encodeURIComponent(filename)) ||
+                   decodeURIComponent(targetString).includes(filename);
+        }
+        return targetString.includes(filename);
+    }
+
+    /**
+     * Helper function to check if a link is a content reference link
+     * Works with both old and new tooltip formats
+     */
+    function isConrefLink(link: vscode.DocumentLink): boolean {
+        const tooltip = link.tooltip?.toLowerCase() || '';
+        return tooltip.includes('content reference') ||
+               tooltip.includes('go to element');
+    }
+
+    /**
+     * Helper function to check if a link is a cross-reference or related link
+     */
+    function isXrefOrRelatedLink(link: vscode.DocumentLink): boolean {
+        const tooltip = link.tooltip?.toLowerCase() || '';
+        return tooltip.includes('cross-reference') ||
+               tooltip.includes('related link') ||
+               tooltip.includes('go to element');
+    }
+
     suiteSetup(async () => {
         linkProvider = new DitaLinkProvider();
 
@@ -332,17 +373,16 @@ suite('DITA Link Provider Test Suite', () => {
             console.log('Conref links found:', links?.length || 0);
             if (links) {
                 links.forEach(link => {
-                    console.log('  - Link to:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                    console.log('  - Link to:', document.getText(link.range), '-> Target:', link.target?.toString(), 'Tooltip:', link.tooltip);
                 });
             }
 
             assert.ok(links, 'Should return links');
             assert.ok(links!.length > 0, 'Should find conref links in topic');
 
-            // Should find link to valid-topic.dita via conref
+            // Should find link to valid-topic.dita via conref (may use element navigation)
             const conrefLink = links!.find(link =>
-                link.target?.fsPath.includes('valid-topic.dita') &&
-                link.tooltip?.includes('content reference')
+                linkTargetsFile(link, 'valid-topic.dita') && isConrefLink(link)
             );
             assert.ok(conrefLink, 'Should find conref link to valid-topic.dita');
         });
@@ -353,13 +393,14 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Conref with fragment should still link to the file (fragment stripped)
-            const fragmentLink = links!.find(link =>
-                link.target?.fsPath.includes('empty-elements.dita')
-            );
+            // Conref with fragment should link to the file (may use command URI for element navigation)
+            const fragmentLink = links!.find(link => linkTargetsFile(link, 'empty-elements.dita'));
 
             assert.ok(fragmentLink, 'Should handle conref with fragment identifier');
-            assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be removed from path');
+            // If it's a file URI, the fragment should be stripped; if it's a command URI, that's also valid
+            if (fragmentLink!.target?.scheme === 'file') {
+                assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be removed from file path');
+            }
         });
 
         test('Should handle conref with relative paths', async () => {
@@ -368,9 +409,9 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // All conref links should have absolute paths
+            // All conref links with file scheme should have absolute paths
             links!.forEach(link => {
-                if (link.target) {
+                if (link.target && link.target.scheme === 'file') {
                     assert.ok(path.isAbsolute(link.target.fsPath),
                         `Conref link target should be absolute path: ${link.target.fsPath}`);
                 }
@@ -383,14 +424,10 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Find a conref link
-            const conrefLink = links!.find(link =>
-                link.tooltip?.includes('content reference')
-            );
+            // Find a conref link (may have "content reference" or "Go to element" tooltip)
+            const conrefLink = links!.find(link => isConrefLink(link));
 
             assert.ok(conrefLink, 'Should have at least one conref link');
-            assert.ok(conrefLink!.tooltip!.toLowerCase().includes('content reference'),
-                'Conref tooltip should mention "content reference"');
         });
     });
 
@@ -504,8 +541,8 @@ suite('DITA Link Provider Test Suite', () => {
 
             console.log('Total links found:', links?.length || 0);
 
-            // Should have links from conref, conkeyref, and keyref
-            const conrefLinks = links!.filter(link => link.tooltip?.includes('content reference'));
+            // Should have links from conref, conkeyref, and keyref (updated to use helper)
+            const conrefLinks = links!.filter(link => isConrefLink(link));
             const conkeyrefLinks = links!.filter(link => link.tooltip?.includes('content key reference'));
             const keyrefLinks = links!.filter(link => link.tooltip?.includes('key reference') && !link.tooltip?.includes('content'));
 
@@ -542,14 +579,13 @@ suite('DITA Link Provider Test Suite', () => {
             console.log('User guide links found:', links?.length || 0);
             if (links) {
                 links.forEach(link => {
-                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.toString());
                 });
             }
 
-            // Should find multiple conref links to common_notes.dita
+            // Should find multiple conref links to common_notes.dita (use helper for command URIs)
             const conrefLinks = links!.filter(link =>
-                link.target?.fsPath.includes('common_notes.dita') &&
-                link.tooltip?.includes('content reference')
+                linkTargetsFile(link, 'common_notes.dita') && isConrefLink(link)
             );
 
             assert.ok(conrefLinks.length > 0, 'Should find conref links to common_notes.dita');
@@ -562,14 +598,15 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Check that fragments are stripped from file paths
-            const commonNotesLinks = links!.filter(link =>
-                link.target?.fsPath.includes('common_notes.dita')
-            );
+            // Check links to common_notes.dita (may be file or command URIs)
+            const commonNotesLinks = links!.filter(link => linkTargetsFile(link, 'common_notes.dita'));
 
+            // For file URIs, fragments should be stripped; command URIs handle element navigation
             commonNotesLinks.forEach(link => {
-                assert.ok(!link.target?.fsPath.includes('#'),
-                    'Fragment identifiers should be stripped from file path');
+                if (link.target?.scheme === 'file') {
+                    assert.ok(!link.target?.fsPath.includes('#'),
+                        'Fragment identifiers should be stripped from file path');
+                }
             });
         });
 
@@ -678,10 +715,8 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Count different types of references
-            const conrefLinks = links!.filter(link =>
-                link.tooltip?.includes('content reference') && !link.tooltip?.includes('key')
-            );
+            // Count different types of references (using helper for conref detection)
+            const conrefLinks = links!.filter(link => isConrefLink(link));
 
             console.log('User guide reference analysis:');
             console.log('  - Total links:', links!.length);
@@ -691,9 +726,7 @@ suite('DITA Link Provider Test Suite', () => {
             assert.ok(conrefLinks.length > 0, 'Should find conref links');
 
             // Verify all links are to common_notes.dita (the only file-based references)
-            const validLinks = links!.filter(link =>
-                link.target?.fsPath.includes('common_notes.dita')
-            );
+            const validLinks = links!.filter(link => linkTargetsFile(link, 'common_notes.dita'));
 
             assert.strictEqual(validLinks.length, conrefLinks.length,
                 'All file-based links should be to common_notes.dita');
@@ -710,14 +743,13 @@ suite('DITA Link Provider Test Suite', () => {
             console.log('Main topic conref links found:', links?.length || 0);
             if (links) {
                 links.forEach(link => {
-                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.toString());
                 });
             }
 
-            // Should find links to additional-info.dita
+            // Should find links to additional-info.dita (may be file or command URI)
             const conrefLinks = links!.filter(link =>
-                link.target?.fsPath.includes('additional-info.dita') &&
-                link.tooltip?.includes('content reference')
+                linkTargetsFile(link, 'additional-info.dita') && isConrefLink(link)
             );
 
             assert.ok(conrefLinks.length > 0, 'Should find conref links to additional-info.dita');
@@ -730,11 +762,11 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Should handle both formats:
+            // Should handle both formats (may be file or command URIs):
             // 1. additional-info.dita#additional-content
             // 2. additional-info.dita#additional-info/more-details
             const allConrefLinks = links!.filter(link =>
-                link.target?.fsPath.includes('additional-info.dita')
+                linkTargetsFile(link, 'additional-info.dita')
             );
 
             assert.ok(allConrefLinks.length >= 2, 'Should find multiple conref links with different formats');
@@ -746,10 +778,8 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Should find conref on <p> and <note> elements
-            const conrefLinks = links!.filter(link =>
-                link.tooltip?.includes('content reference')
-            );
+            // Should find conref on <p> and <note> elements (may use element navigation)
+            const conrefLinks = links!.filter(link => isConrefLink(link));
 
             assert.ok(conrefLinks.length >= 3, 'Should find conref on multiple element types');
         });
@@ -760,9 +790,9 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // All resolved paths should be absolute
+            // All resolved paths should be absolute (for file URIs)
             links!.forEach(link => {
-                if (link.target) {
+                if (link.target && link.target.scheme === 'file') {
                     assert.ok(path.isAbsolute(link.target.fsPath),
                         `Should resolve relative path to absolute: ${link.target.fsPath}`);
                 }
@@ -793,13 +823,13 @@ suite('DITA Link Provider Test Suite', () => {
             console.log('Product map links found:', links?.length || 0);
             if (links) {
                 links.forEach(link => {
-                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath);
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.toString());
                 });
             }
 
-            // Should find links to product-info-v2.dita
+            // Should find links to product-info-v2.dita (may be file or command URI)
             const productInfoLinks = links!.filter(link =>
-                link.target?.fsPath.includes('product-info-v2.dita')
+                linkTargetsFile(link, 'product-info-v2.dita')
             );
 
             assert.ok(productInfoLinks.length > 0, 'Should find links to product-info-v2.dita in keydef');
@@ -811,9 +841,9 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Should find links to usage-info.dita
+            // Should find links to usage-info.dita (may be file or command URI)
             const usageInfoLinks = links!.filter(link =>
-                link.target?.fsPath.includes('usage-info.dita')
+                linkTargetsFile(link, 'usage-info.dita')
             );
 
             assert.ok(usageInfoLinks.length > 0, 'Should find links to usage-info.dita in keydef');
@@ -825,10 +855,10 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Should find standard topicref links
+            // Should find standard topicref links (may be file or command URIs)
             const topicrefLinks = links!.filter(link =>
-                link.target?.fsPath.includes('main-topic.dita') ||
-                link.target?.fsPath.includes('additional-info.dita')
+                linkTargetsFile(link, 'main-topic.dita') ||
+                linkTargetsFile(link, 'additional-info.dita')
             );
 
             assert.ok(topicrefLinks.length >= 2, 'Should find standard topicref href links');
@@ -840,18 +870,23 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Count unique target files
-            const uniqueTargets = new Set(
-                links!.map(link => path.basename(link.target?.fsPath || '')).filter(name => name)
-            );
+            // Check for links to each expected file using helper
+            const hasProductInfo = links!.some(link => linkTargetsFile(link, 'product-info-v2.dita'));
+            const hasUsageInfo = links!.some(link => linkTargetsFile(link, 'usage-info.dita'));
+            const hasMainTopic = links!.some(link => linkTargetsFile(link, 'main-topic.dita'));
+            const hasAdditionalInfo = links!.some(link => linkTargetsFile(link, 'additional-info.dita'));
 
-            console.log('Unique targets in product map:', Array.from(uniqueTargets));
+            console.log('Unique targets in product map:');
+            console.log('  - product-info-v2.dita:', hasProductInfo);
+            console.log('  - usage-info.dita:', hasUsageInfo);
+            console.log('  - main-topic.dita:', hasMainTopic);
+            console.log('  - additional-info.dita:', hasAdditionalInfo);
 
             // Should link to at least: product-info-v2.dita, usage-info.dita, main-topic.dita, additional-info.dita
-            assert.ok(uniqueTargets.has('product-info-v2.dita'), 'Should link to product-info-v2.dita');
-            assert.ok(uniqueTargets.has('usage-info.dita'), 'Should link to usage-info.dita');
-            assert.ok(uniqueTargets.has('main-topic.dita'), 'Should link to main-topic.dita');
-            assert.ok(uniqueTargets.has('additional-info.dita'), 'Should link to additional-info.dita');
+            assert.ok(hasProductInfo, 'Should link to product-info-v2.dita');
+            assert.ok(hasUsageInfo, 'Should link to usage-info.dita');
+            assert.ok(hasMainTopic, 'Should link to main-topic.dita');
+            assert.ok(hasAdditionalInfo, 'Should link to additional-info.dita');
         });
     });
 
@@ -930,9 +965,9 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Check that all link targets exist
+            // Check that all file link targets exist (skip command URIs)
             for (const link of links!) {
-                if (link.target && !link.target.toString().startsWith('http')) {
+                if (link.target && link.target.scheme === 'file' && !link.target.toString().startsWith('http')) {
                     const targetExists = fs.existsSync(link.target.fsPath);
                     assert.ok(targetExists,
                         `Link target should exist: ${path.basename(link.target.fsPath)}`);
@@ -958,11 +993,11 @@ suite('DITA Link Provider Test Suite', () => {
             assert.ok(mainTopicLinks!.length > 0, 'Should find @conref links in topics');
             assert.ok(mapLinks!.length > 0, 'Should find @href links in maps');
 
-            // Verify tooltip differentiation
-            const conrefCount = mainTopicLinks!.filter(l => l.tooltip?.includes('content reference')).length;
-            console.log('  - Content reference links:', conrefCount);
+            // Verify tooltip differentiation (may be "content reference" or "Go to element")
+            const conrefCount = mainTopicLinks!.filter(l => isConrefLink(l)).length;
+            console.log('  - Content reference/element navigation links:', conrefCount);
 
-            assert.ok(conrefCount > 0, 'Should have content reference tooltips');
+            assert.ok(conrefCount > 0, 'Should have content reference or element navigation tooltips');
         });
     });
 
@@ -976,14 +1011,12 @@ suite('DITA Link Provider Test Suite', () => {
             console.log('Xref links found:', links?.length || 0);
             if (links) {
                 links.forEach(link => {
-                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.fsPath, 'Tooltip:', link.tooltip);
+                    console.log('  - Link:', document.getText(link.range), '-> Target:', link.target?.toString(), 'Tooltip:', link.tooltip);
                 });
             }
 
-            // Should find xref links with href
-            const xrefLinks = links!.filter(link =>
-                link.tooltip?.includes('cross-reference')
-            );
+            // Should find xref links with href (may be cross-reference or element navigation)
+            const xrefLinks = links!.filter(link => isXrefOrRelatedLink(link));
 
             assert.ok(xrefLinks.length > 0, 'Should find xref links');
         });
@@ -994,10 +1027,9 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Should find link to valid-topic.dita via xref
+            // Should find link to valid-topic.dita via xref (may be file or command URI)
             const validTopicLink = links!.find(link =>
-                link.target?.fsPath.includes('valid-topic.dita') &&
-                link.tooltip?.includes('cross-reference')
+                linkTargetsFile(link, 'valid-topic.dita') && isXrefOrRelatedLink(link)
             );
 
             assert.ok(validTopicLink, 'Should find xref link to valid-topic.dita');
@@ -1010,13 +1042,18 @@ suite('DITA Link Provider Test Suite', () => {
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
             // Should find xref with fragment (valid-topic.dita#valid_topic/intro)
+            // May be file URI with stripped fragment or command URI for element navigation
+            // New element navigation uses "Go to element" tooltip format
             const fragmentLink = links!.find(link =>
-                link.target?.fsPath.includes('valid-topic.dita') &&
-                link.tooltip?.includes('#')
+                linkTargetsFile(link, 'valid-topic.dita') &&
+                (link.tooltip?.includes('#') || link.tooltip?.includes('Go to element'))
             );
 
             assert.ok(fragmentLink, 'Should handle xref with fragment identifier');
-            assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be stripped from file path');
+            // For file URIs, fragment should be stripped; command URIs handle element navigation
+            if (fragmentLink!.target?.scheme === 'file') {
+                assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be stripped from file path');
+            }
         });
 
         test('Should handle xref with same-file fragment references', async () => {
@@ -1089,10 +1126,9 @@ suite('DITA Link Provider Test Suite', () => {
 
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
-            // Should find link to user_guide.dita
+            // Should find link to user_guide.dita (may be file or command URI)
             const userGuideLink = links!.find(link =>
-                link.target?.fsPath.includes('user_guide.dita') &&
-                link.tooltip?.includes('related link')
+                linkTargetsFile(link, 'user_guide.dita') && isXrefOrRelatedLink(link)
             );
 
             assert.ok(userGuideLink, 'Should find link element to user_guide.dita');
@@ -1105,13 +1141,18 @@ suite('DITA Link Provider Test Suite', () => {
             const links = await linkProvider.provideDocumentLinks(document, new vscode.CancellationTokenSource().token);
 
             // Should find link with fragment (product_info.dita#product_info/overview)
+            // May be file URI or command URI for element navigation
+            // New element navigation uses "Go to element" tooltip format
             const fragmentLink = links!.find(link =>
-                link.target?.fsPath.includes('product_info.dita') &&
-                link.tooltip?.includes('#')
+                linkTargetsFile(link, 'product_info.dita') &&
+                (link.tooltip?.includes('#') || link.tooltip?.includes('Go to element'))
             );
 
             assert.ok(fragmentLink, 'Should handle link element with fragment identifier');
-            assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be stripped from file path');
+            // For file URIs, fragment should be stripped; command URIs handle element navigation
+            if (fragmentLink!.target?.scheme === 'file') {
+                assert.ok(!fragmentLink!.target?.fsPath.includes('#'), 'Fragment should be stripped from file path');
+            }
         });
 
         test('Should handle link element with same-file fragment references', async () => {

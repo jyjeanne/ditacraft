@@ -14,7 +14,6 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 import { KeySpaceResolver } from '../utils/keySpaceResolver';
 import { logger } from '../utils/logger';
 
@@ -190,22 +189,37 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             if (conrefValue.startsWith('#')) {
                 // Same-file reference - create command URI to navigate to element
                 const elementPath = conrefValue.substring(1);
-                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementPath]));
-                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
-                const link = new vscode.DocumentLink(range, commandUri);
-                link.tooltip = `Go to element: ${elementPath}`;
+                const link = this.createElementNavigationLink(
+                    range,
+                    document.uri,
+                    elementPath,
+                    `Go to element: ${elementPath}`
+                );
                 links.push(link);
                 continue;
             }
 
-            // Resolve the target file path
-            const targetPath = this.resolveReference(conrefValue, documentDir);
+            // Resolve the target file path and fragment
+            const resolved = this.resolveReferenceWithFragment(conrefValue, documentDir);
 
-            if (targetPath) {
-                const targetUri = vscode.Uri.file(targetPath);
-                const link = new vscode.DocumentLink(range, targetUri);
-                link.tooltip = `Open content reference: ${path.basename(targetPath)}`;
-                links.push(link);
+            if (resolved) {
+                const targetUri = vscode.Uri.file(resolved.filePath);
+
+                // If there's a fragment (element ID), use element navigation
+                if (resolved.fragment) {
+                    const link = this.createElementNavigationLink(
+                        range,
+                        targetUri,
+                        resolved.fragment,
+                        `Go to element: ${resolved.fragment} in ${path.basename(resolved.filePath)}`
+                    );
+                    links.push(link);
+                } else {
+                    // No fragment - just open the file
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    link.tooltip = `Open content reference: ${path.basename(resolved.filePath)}`;
+                    links.push(link);
+                }
             }
         }
     }
@@ -444,37 +458,51 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             // Handle same-file references (e.g., "#elementId")
             if (hrefValue.startsWith('#')) {
                 const elementId = hrefValue.substring(1);
-                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementId]));
-                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
-                const link = new vscode.DocumentLink(range, commandUri);
-                link.tooltip = `Go to element: ${elementId}`;
+                const link = this.createElementNavigationLink(
+                    range,
+                    document.uri,
+                    elementId,
+                    `Go to element: ${elementId}`
+                );
                 links.push(link);
                 continue;
             }
 
-            // Resolve the target file path
-            const targetPath = this.resolveReference(hrefValue, documentDir);
+            // Resolve the target file path and fragment
+            const resolved = this.resolveReferenceWithFragment(hrefValue, documentDir);
 
-            if (targetPath) {
-                const targetUri = vscode.Uri.file(targetPath);
-                const link = new vscode.DocumentLink(range, targetUri);
-                // Extract fragment if present for tooltip
-                const hasFragment = hrefValue.includes('#');
-                let baseTooltip: string;
-                if (hasFragment) {
-                    const fragment = hrefValue.split('#')[1];
-                    baseTooltip = `Open cross-reference: ${path.basename(targetPath)}#${fragment}`;
+            if (resolved) {
+                const targetUri = vscode.Uri.file(resolved.filePath);
+
+                // If there's a fragment (element ID), use element navigation
+                if (resolved.fragment) {
+                    let tooltip = `Go to element: ${resolved.fragment} in ${path.basename(resolved.filePath)}`;
+                    // Enhance tooltip with scope, format, linktext, and rev
+                    tooltip = this.buildEnhancedTooltip(tooltip, match[0], {
+                        showScope: true,
+                        showFormat: true,
+                        showLinktext: true,
+                        showRev: true
+                    });
+                    const link = this.createElementNavigationLink(
+                        range,
+                        targetUri,
+                        resolved.fragment,
+                        tooltip
+                    );
+                    links.push(link);
                 } else {
-                    baseTooltip = `Open cross-reference: ${path.basename(targetPath)}`;
+                    // No fragment - just open the file
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    const baseTooltip = `Open cross-reference: ${path.basename(resolved.filePath)}`;
+                    link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
+                        showScope: true,
+                        showFormat: true,
+                        showLinktext: true,
+                        showRev: true
+                    });
+                    links.push(link);
                 }
-                // Enhance tooltip with scope, format, linktext, and rev
-                link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
-                    showScope: true,
-                    showFormat: true,
-                    showLinktext: true,
-                    showRev: true
-                });
-                links.push(link);
             }
         }
     }
@@ -587,38 +615,53 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             // Handle same-file references (e.g., "#elementId")
             if (hrefValue.startsWith('#')) {
                 const elementId = hrefValue.substring(1);
-                const args = encodeURIComponent(JSON.stringify([document.uri.toString(), elementId]));
-                const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
-                const link = new vscode.DocumentLink(range, commandUri);
-                link.tooltip = `Go to element: ${elementId}`;
+                const link = this.createElementNavigationLink(
+                    range,
+                    document.uri,
+                    elementId,
+                    `Go to element: ${elementId}`
+                );
                 links.push(link);
                 continue;
             }
 
-            // Resolve the target file path
-            const targetPath = this.resolveReference(hrefValue, documentDir);
+            // Resolve the target file path and fragment
+            const resolved = this.resolveReferenceWithFragment(hrefValue, documentDir);
 
-            if (targetPath) {
-                const targetUri = vscode.Uri.file(targetPath);
-                const link = new vscode.DocumentLink(range, targetUri);
-                // Extract fragment if present for tooltip
-                const hasFragment = hrefValue.includes('#');
-                let baseTooltip: string;
-                if (hasFragment) {
-                    const fragment = hrefValue.split('#')[1];
-                    baseTooltip = `Open related link: ${path.basename(targetPath)}#${fragment}`;
+            if (resolved) {
+                const targetUri = vscode.Uri.file(resolved.filePath);
+
+                // If there's a fragment (element ID), use element navigation
+                if (resolved.fragment) {
+                    let tooltip = `Go to element: ${resolved.fragment} in ${path.basename(resolved.filePath)}`;
+                    // Enhance tooltip with scope, format, linktext, type, and rev
+                    tooltip = this.buildEnhancedTooltip(tooltip, match[0], {
+                        showScope: true,
+                        showFormat: true,
+                        showLinktext: true,
+                        showType: true,
+                        showRev: true
+                    });
+                    const link = this.createElementNavigationLink(
+                        range,
+                        targetUri,
+                        resolved.fragment,
+                        tooltip
+                    );
+                    links.push(link);
                 } else {
-                    baseTooltip = `Open related link: ${path.basename(targetPath)}`;
+                    // No fragment - just open the file
+                    const link = new vscode.DocumentLink(range, targetUri);
+                    const baseTooltip = `Open related link: ${path.basename(resolved.filePath)}`;
+                    link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
+                        showScope: true,
+                        showFormat: true,
+                        showLinktext: true,
+                        showType: true,
+                        showRev: true
+                    });
+                    links.push(link);
                 }
-                // Enhance tooltip with scope, format, linktext, type, and rev
-                link.tooltip = this.buildEnhancedTooltip(baseTooltip, match[0], {
-                    showScope: true,
-                    showFormat: true,
-                    showLinktext: true,
-                    showType: true,
-                    showRev: true
-                });
-                links.push(link);
             }
         }
     }
@@ -628,9 +671,26 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
      * Handles relative paths and fragments (e.g., "file.dita#topic_id")
      */
     private resolveReference(reference: string, baseDir: string): string | null {
-        // Remove fragment identifier if present (e.g., "file.dita#topic_id" -> "file.dita")
-        const parts = reference.split('#');
-        const referenceWithoutFragment = parts.length > 0 ? parts[0] : reference;
+        const result = this.resolveReferenceWithFragment(reference, baseDir);
+        return result?.filePath ?? null;
+    }
+
+    /**
+     * Resolve reference to absolute file path AND extract fragment identifier
+     * Returns both the file path and the element path (fragment)
+     */
+    private resolveReferenceWithFragment(reference: string, baseDir: string): { filePath: string; fragment?: string } | null {
+        // Split into file path and fragment (e.g., "file.dita#topic_id/element_id")
+        const hashIndex = reference.indexOf('#');
+        let referenceWithoutFragment: string;
+        let fragment: string | undefined;
+
+        if (hashIndex >= 0) {
+            referenceWithoutFragment = reference.substring(0, hashIndex);
+            fragment = reference.substring(hashIndex + 1);
+        } else {
+            referenceWithoutFragment = reference;
+        }
 
         if (!referenceWithoutFragment) {
             return null;
@@ -656,13 +716,27 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
         }
 
-        // Check if file exists
-        if (fs.existsSync(absolutePath)) {
-            return absolutePath;
-        }
+        return {
+            filePath: absolutePath,
+            fragment: fragment
+        };
+    }
 
-        // File doesn't exist - still return the path so user gets feedback
-        return absolutePath;
+    /**
+     * Create a command URI for element navigation
+     * Used for both same-file and cross-file references with element IDs
+     */
+    private createElementNavigationLink(
+        range: vscode.Range,
+        targetUri: vscode.Uri,
+        elementPath: string,
+        tooltip: string
+    ): vscode.DocumentLink {
+        const args = encodeURIComponent(JSON.stringify([targetUri.toString(), elementPath]));
+        const commandUri = vscode.Uri.parse(`command:ditacraft.navigateToElement?${args}`);
+        const link = new vscode.DocumentLink(range, commandUri);
+        link.tooltip = tooltip;
+        return link;
     }
 
     /**

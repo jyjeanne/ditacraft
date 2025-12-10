@@ -9,15 +9,16 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Feature | Status | Completeness |
 |---------|--------|--------------|
 | Syntax Highlighting | Complete | 100% |
-| Smart Navigation (Ctrl+Click) | Complete | 95% |
+| Smart Navigation (Ctrl+Click) | Complete | 100% |
 | DTD Validation (DITA 1.3) | Complete | 100% |
 | Key Space Resolution | Complete | 95% |
-| Real-time Validation | Complete | 95% |
+| Real-time Validation | Complete | 100% |
 | DITA-OT Publishing | Complete | 95% |
 | Live HTML5 Preview | Complete | 90% |
 | Code Snippets (21) | Complete | 100% |
 | Security (XXE, Path Traversal) | Complete | 100% |
 | cSpell Integration | Complete | 100% |
+| Dynamic Configuration | Complete | 100% |
 
 ---
 
@@ -45,6 +46,14 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] Make key space cache TTL configurable (1-30 minutes)
 - [x] Make DITA-OT process timeout configurable (5-30 minutes)
 - [x] Add `ditacraft.maxLinkMatches` setting (currently hardcoded at 10,000)
+- [x] Implement dynamic configuration reloading (no extension reload required)
+- [x] Add centralized ConfigurationManager with change notifications
+- [x] Add dynamic auto-validate toggle (effective immediately)
+
+### Navigation Improvements
+- [x] Implement precise element navigation for same-file conref (`#element`)
+- [x] Add element navigation for cross-file references with fragments
+- [x] Support element navigation in xref and link elements
 
 **Good First Issues:**
 - Remove `xml2js` from package.json
@@ -332,4 +341,4 @@ Have ideas for features not listed here? We'd love to hear from you!
 
 ---
 
-*Last updated: November 2024*
+*Last updated: December 2024*

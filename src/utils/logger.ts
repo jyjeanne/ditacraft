@@ -22,16 +22,39 @@ export class Logger {
     private constructor() {
         this.outputChannel = vscode.window.createOutputChannel('DitaCraft');
 
-        // Get configuration
+        // Initialize with empty values - will be set by loadConfiguration
+        this.logLevel = LogLevel.INFO;
+        this.enableFileLogging = false;
+        this.enableConsoleLogging = true;
+        this.logFilePath = '';
+
+        // Load configuration
+        this.loadConfiguration();
+
+        // Log initialization
+        this.info('Logger initialized', {
+            logFilePath: this.logFilePath || 'File logging disabled (enable debug mode)',
+            logLevel: LogLevel[this.logLevel],
+            enableFileLogging: this.enableFileLogging,
+            enableConsoleLogging: this.enableConsoleLogging
+        });
+    }
+
+    /**
+     * Load or reload configuration from VS Code settings
+     */
+    private loadConfiguration(): void {
         const config = vscode.workspace.getConfiguration('ditacraft');
+        const previousLogLevel = this.logLevel;
+
         this.logLevel = this.parseLogLevel(config.get<string>('logLevel', 'info'));
-        this.enableFileLogging = config.get<boolean>('enableFileLogging', true);
+        this.enableFileLogging = config.get<boolean>('enableFileLogging', false);
         this.enableConsoleLogging = config.get<boolean>('enableConsoleLogging', true);
 
         // Only create log directory and file if file logging is enabled AND in debug mode
         const shouldCreateLogFile = this.enableFileLogging && this.logLevel === LogLevel.DEBUG;
 
-        if (shouldCreateLogFile) {
+        if (shouldCreateLogFile && !this.logFilePath) {
             // Always use temp directory for logs (never create .ditacraft folder in workspace)
             const logDir = path.join(os.tmpdir(), 'ditacraft-logs');
 
@@ -47,17 +70,31 @@ export class Logger {
             // Generate log file name with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
             this.logFilePath = path.join(logDir, `ditacraft-${timestamp}.log`);
-        } else {
-            // Use empty path when file logging is disabled or not in debug mode
+        } else if (!shouldCreateLogFile) {
+            // Disable file logging
             this.logFilePath = '';
         }
 
-        // Log initialization
-        this.info('Logger initialized', {
-            logFilePath: this.logFilePath || 'File logging disabled (enable debug mode)',
+        // Log level change if it changed
+        if (previousLogLevel !== this.logLevel && Logger.instance) {
+            this.info('Log level changed', {
+                from: LogLevel[previousLogLevel],
+                to: LogLevel[this.logLevel]
+            });
+        }
+    }
+
+    /**
+     * Reload configuration from VS Code settings
+     * Call this when settings change to dynamically update logging behavior
+     */
+    public reloadConfiguration(): void {
+        this.loadConfiguration();
+        this.info('Logger configuration reloaded', {
             logLevel: LogLevel[this.logLevel],
             enableFileLogging: this.enableFileLogging,
-            enableConsoleLogging: this.enableConsoleLogging
+            enableConsoleLogging: this.enableConsoleLogging,
+            logFilePath: this.logFilePath || 'disabled'
         });
     }
 

@@ -23,6 +23,13 @@ function getValidationDebounceMs(): number {
 }
 
 /**
+ * Check if auto-validation is enabled (reads fresh value)
+ */
+function isAutoValidateEnabled(): boolean {
+    return vscode.workspace.getConfiguration('ditacraft').get<boolean>('autoValidate', true);
+}
+
+/**
  * Initialize the validator
  */
 export function initializeValidator(context: vscode.ExtensionContext): void {
@@ -30,33 +37,35 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
     validator = new DitaValidator(context);
     context.subscriptions.push(validator);
 
-    // Auto-validate on save if enabled
-    const autoValidateEnabled = vscode.workspace.getConfiguration('ditacraft').get<boolean>('autoValidate', true);
+    // Register save listener - checks autoValidate dynamically on each save
+    // This allows the setting to be changed without extension reload
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(async (document) => {
+            // Check autoValidate setting dynamically (allows runtime changes)
+            if (!isAutoValidateEnabled()) {
+                return;
+            }
 
-    if (autoValidateEnabled) {
-        context.subscriptions.push(
-            vscode.workspace.onDidSaveTextDocument(async (document) => {
-                const ext = path.extname(document.uri.fsPath).toLowerCase();
-                if (['.dita', '.ditamap', '.bookmap'].includes(ext)) {
-                    const filePath = document.uri.fsPath;
+            const ext = path.extname(document.uri.fsPath).toLowerCase();
+            if (['.dita', '.ditamap', '.bookmap'].includes(ext)) {
+                const filePath = document.uri.fsPath;
 
-                    // Clear existing timer for this file
-                    const existingTimer = validationDebounceTimers.get(filePath);
-                    if (existingTimer) {
-                        clearTimeout(existingTimer);
-                    }
-
-                    // Set new debounced validation
-                    const timer = setTimeout(async () => {
-                        validationDebounceTimers.delete(filePath);
-                        await validator?.validateFile(document.uri);
-                    }, getValidationDebounceMs());
-
-                    validationDebounceTimers.set(filePath, timer);
+                // Clear existing timer for this file
+                const existingTimer = validationDebounceTimers.get(filePath);
+                if (existingTimer) {
+                    clearTimeout(existingTimer);
                 }
-            })
-        );
-    }
+
+                // Set new debounced validation
+                const timer = setTimeout(async () => {
+                    validationDebounceTimers.delete(filePath);
+                    await validator?.validateFile(document.uri);
+                }, getValidationDebounceMs());
+
+                validationDebounceTimers.set(filePath, timer);
+            }
+        })
+    );
 
     // Clean up debounce timers on deactivation
     context.subscriptions.push({
