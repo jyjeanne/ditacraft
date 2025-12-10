@@ -145,6 +145,17 @@ async function executePublish(
     const fileName = path.basename(inputFile, path.extname(inputFile));
     const outputDir = path.join(ditaOt.getOutputDirectory(), transtype, fileName);
 
+    // Clean output directory before publishing to avoid stale files
+    const fs = await import('fs');
+    if (fs.existsSync(outputDir)) {
+        try {
+            fs.rmSync(outputDir, { recursive: true, force: true });
+            logger.debug('Cleaned output directory', { outputDir });
+        } catch (error) {
+            logger.warn('Failed to clean output directory', { outputDir, error });
+        }
+    }
+
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: `Publishing to ${transtype.toUpperCase()}`,

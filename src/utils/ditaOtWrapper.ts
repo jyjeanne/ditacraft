@@ -250,17 +250,23 @@ export class DitaOtWrapper {
         return new Promise((resolve) => {
             const command = this.ditaOtCommand || 'dita';
 
+            // Normalize paths on Windows to avoid DOTJ083E errors (drive letter case)
+            const normalizedInputFile = this.normalizeFilePath(options.inputFile);
+            const normalizedOutputDir = this.normalizeFilePath(options.outputDir);
+
             // Build command arguments
             // Note: Pass arguments as array elements without quotes - spawn handles escaping
             const args: string[] = [
-                '--input', options.inputFile,
+                '--input', normalizedInputFile,
                 '--format', options.transtype,
-                '--output', options.outputDir,
+                '--output', normalizedOutputDir,
                 // Add verbose mode for better error messages
-                '--verbose'
+                '--verbose',
+                // Force overwrite of existing output and clean temp files
+                '--clean.temp=yes'
             ];
 
-            logger.debug('DITA-OT command', { command, args: args.join(' ') });
+            logger.info('DITA-OT command', { command, args: args.join(' ') });
 
             // Add temp directory if specified
             if (options.tempDir) {
@@ -312,16 +318,31 @@ export class DitaOtWrapper {
 
             // Spawn DITA-OT process
             // On Windows, .bat and .cmd files need to be executed through cmd.exe
-            logger.debug('Spawning DITA-OT process', { cwd: path.dirname(options.inputFile) });
+            // Set DITA_HOME environment variable for proper DITA-OT execution
+            const ditaHome = this.config.ditaOtPath || '';
+            const processEnv = { ...process.env };
+            if (ditaHome) {
+                processEnv['DITA_HOME'] = ditaHome;
+            }
+
+            const normalizedCwd = this.normalizeFilePath(path.dirname(options.inputFile));
+
+            logger.info('Spawning DITA-OT process', {
+                cwd: normalizedCwd,
+                ditaHome: ditaHome || 'not set (using system PATH)'
+            });
+
             let ditaProcess;
             if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
                 // Execute through cmd.exe for Windows batch files
                 ditaProcess = spawn('cmd.exe', ['/c', command, ...args], {
-                    cwd: path.dirname(options.inputFile)
+                    cwd: normalizedCwd,
+                    env: processEnv
                 });
             } else {
                 ditaProcess = spawn(command, args, {
-                    cwd: path.dirname(options.inputFile)
+                    cwd: normalizedCwd,
+                    env: processEnv
                 });
             }
 
@@ -350,6 +371,9 @@ export class DitaOtWrapper {
                 const output = data.toString();
                 outputBuffer += output;
 
+                // Log DITA-OT output for visibility
+                logger.info('DITA-OT', { output: output.trim() });
+
                 // Parse progress from output
                 if (progressCallback) {
                     const progress = this.parseProgress(output);
@@ -364,8 +388,18 @@ export class DitaOtWrapper {
                 const error = data.toString();
                 errorBuffer += error;
 
-                // Log all stderr for debugging
-                logger.debug('DITA-OT stderr output', { error });
+                // Log all stderr - DITA-OT outputs important info here
+                const trimmedError = error.trim();
+                if (trimmedError) {
+                    // Check if it's an error or just info
+                    if (trimmedError.toLowerCase().includes('error') ||
+                        trimmedError.toLowerCase().includes('failed') ||
+                        trimmedError.toLowerCase().includes('exception')) {
+                        logger.error('DITA-OT', { error: trimmedError });
+                    } else {
+                        logger.info('DITA-OT', { output: trimmedError });
+                    }
+                }
 
                 // DITA-OT sometimes outputs progress to stderr
                 if (progressCallback) {
@@ -522,6 +556,18 @@ export class DitaOtWrapper {
                 );
             }
         }
+    }
+
+    /**
+     * Normalize file path for DITA-OT
+     * On Windows, ensures drive letter is uppercase to avoid DOTJ083E errors
+     */
+    private normalizeFilePath(filePath: string): string {
+        if (process.platform === 'win32' && filePath.length >= 2 && filePath[1] === ':') {
+            // Uppercase the drive letter on Windows
+            return filePath[0].toUpperCase() + filePath.slice(1);
+        }
+        return filePath;
     }
 
     /**
