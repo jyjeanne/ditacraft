@@ -8,9 +8,63 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    # Run security audit weekly on Mondays at 9:00 AM UTC
+    - cron: '0 9 * * 1'
 
 jobs:
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run security audit
+      id: audit
+      run: |
+        echo "## 🔒 Security Audit Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Run audit and capture output
+        if npm audit --audit-level=high 2>&1 | tee audit-output.txt; then
+          echo "✅ **No high or critical vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Security vulnerabilities detected**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat audit-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+    - name: Generate audit report (JSON)
+      if: always()
+      run: npm audit --json > audit-report.json 2>/dev/null || true
+
+    - name: Upload audit report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-audit-report
+        path: |
+          audit-output.txt
+          audit-report.json
+        retention-days: 30
+        if-no-files-found: ignore
+
   lint-and-test:
+    needs: security
     strategy:
       fail-fast: false
       matrix:
@@ -30,10 +84,6 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
-
-    - name: Security audit
-      run: npm audit --audit-level=moderate
-      continue-on-error: true
 
     - name: Run linter
       run: npm run lint
