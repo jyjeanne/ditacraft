@@ -18,7 +18,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
 👁️ **Live Preview** - Side-by-side HTML5 preview with auto-refresh
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
-🧪 **144+ Tests** - Extensively tested with comprehensive integration and security tests
+🧪 **307+ Tests** - Extensively tested with comprehensive integration and security tests
 
 ## Features
 
@@ -488,7 +488,7 @@ DitaCraft includes comprehensive test coverage for all key features:
 - **Key Space Resolution Tests** - Tests key space building and caching
 
 **Test Coverage:**
-- ✅ 144+ passing tests covering all key features
+- ✅ 307+ passing tests covering all key features
 - ✅ Real-time validation on file open, save, and change (with debouncing)
 - ✅ DTD resolution and bundled DTD files
 - ✅ Error highlighting with line/column accuracy
@@ -629,12 +629,19 @@ Contributions are welcome! Please:
 
 ## Recent Updates
 
-### Version 0.2.0 (Current)
+### Version 0.2.4 (Current)
+- ✅ **Fixed DITA-OT HTML5 Publishing** - Resolved Windows path case sensitivity issue causing topics not to generate
+- ✅ **CI Security Audit** - Added dedicated security audit job with weekly scheduled scans and vulnerability reporting
+- ✅ **Dynamic Configuration Management** - Centralized ConfigurationManager with real-time change propagation
+- ✅ **Advanced Element Navigation** - Same-file and cross-file element navigation with fragment support
+- ✅ **Comprehensive Test Suite** - 307+ tests covering all core features including new error handling tests
+- ✅ **Improved Error Handling** - Added `fireAndForget` utility for safe async error handling
+
+### Version 0.2.0
 - ✅ **Full Key Space Resolution** - Navigate `@keyref`, `@conkeyref`, and key-based references with automatic key space building
 - ✅ **Enhanced Security** - XXE neutralization, path traversal protection, and command injection prevention
 - ✅ **Performance Optimizations** - Async file operations, intelligent caching (1-min TTL), and file watcher debouncing
 - ✅ **Content Reference Navigation** - Ctrl+Click on `@conref` attributes to navigate to referenced content
-- ✅ **Comprehensive Test Suite** - 144+ tests covering key resolution, security, and all core features
 - ✅ **Better UI Responsiveness** - Async operations prevent UI blocking during file operations
 
 ### Version 0.1.3 Fixes

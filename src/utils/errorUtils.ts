@@ -3,6 +3,8 @@
  * Provides safe error message extraction and handling utilities
  */
 
+import { logger } from './logger';
+
 /**
  * Safely extract error message from unknown error type
  * Handles various error shapes commonly encountered in TypeScript
@@ -75,7 +77,7 @@ interface Thenable<T> {
 
 /**
  * Execute a promise or thenable without awaiting it (fire-and-forget pattern)
- * Logs any errors to console to avoid unhandled promise rejections
+ * Logs any errors to the logger to avoid unhandled promise rejections
  *
  * @param promiseOrThenable - Promise or Thenable to execute
  * @param context - Optional context string for error logging
@@ -84,7 +86,9 @@ export function fireAndForget(promiseOrThenable: Promise<unknown> | Thenable<unk
     Promise.resolve(promiseOrThenable).catch((error: unknown) => {
         const message = getErrorMessage(error);
         if (context) {
-            console.error(`[${context}] Fire-and-forget error: ${message}`);
+            logger.error(`[${context}] Fire-and-forget error: ${message}`);
+        } else {
+            logger.error(`Fire-and-forget error: ${message}`);
         }
         // Silently handled - prevents unhandled promise rejection
     });
@@ -135,4 +139,147 @@ export function isFileNotFoundError(error: unknown): boolean {
     return message.toLowerCase().includes('file not found') ||
            message.toLowerCase().includes('no such file') ||
            message.toLowerCase().includes('does not exist');
+}
+
+/**
+ * Format error message for user display with consistent styling
+ * Adds context, error codes, and helpful suggestions
+ *
+ * @param error - Error to format
+ * @param context - Context for the error (e.g., "Preview", "Validation")
+ * @param suggestions - Optional array of suggestions for resolving the error
+ * @returns Formatted error message string
+ */
+export function formatErrorMessage(
+    error: unknown,
+    context: string,
+    suggestions?: string[]
+): string {
+    const errorMessage = getErrorMessage(error);
+    const formattedParts: string[] = [];
+
+    // Add context
+    formattedParts.push(`🚨 ${context} Error`);
+
+    // Add main error message
+    formattedParts.push(`**${errorMessage}**`);
+
+    // Add suggestions if provided
+    if (suggestions && suggestions.length > 0) {
+        formattedParts.push('');
+        formattedParts.push('💡 Suggestions:');
+        suggestions.forEach((suggestion, index) => {
+            formattedParts.push(`  ${index + 1}. ${suggestion}`);
+        });
+    }
+
+    // Add error code if available
+    if (typeof error === 'object' && error !== null) {
+        const errorObj = error as Record<string, unknown>;
+        if (errorObj.code) {
+            formattedParts.push('');
+            formattedParts.push(`📋 Error Code: ${errorObj.code}`);
+        }
+    }
+
+    return formattedParts.join('\n');
+}
+
+/**
+ * Create a user-friendly error message for DITA-specific errors
+ * Handles common DITA error patterns and provides context-specific help
+ *
+ * @param error - Error to format
+ * @param errorType - Type of DITA error (e.g., "validation", "publishing", "preview")
+ * @returns Formatted DITA error message
+ */
+export function formatDitaError(
+    error: unknown,
+    errorType: 'validation' | 'publishing' | 'preview' | 'general'
+): string {
+    const errorMessage = getErrorMessage(error);
+    const suggestions: string[] = [];
+
+    // Generate context-specific suggestions
+    switch (errorType) {
+        case 'validation':
+            if (errorMessage.includes('DOCTYPE')) {
+                suggestions.push('Add a proper DOCTYPE declaration to your DITA file');
+                suggestions.push('Check that your DITA file has the correct root element (topic, concept, task, etc.)');
+            }
+            if (errorMessage.includes('id attribute')) {
+                suggestions.push('Add a unique id attribute to the root element');
+                suggestions.push('Ensure the id value is not empty and follows DITA naming conventions');
+            }
+            if (errorMessage.includes('title')) {
+                suggestions.push('Add a <title> element as the first child of your root element');
+                suggestions.push('Ensure the title is not empty');
+            }
+            break;
+
+        case 'publishing':
+            if (errorMessage.includes('DITA-OT')) {
+                suggestions.push('Verify DITA-OT is properly installed and configured');
+                suggestions.push('Check the DITA-OT path in DitaCraft settings');
+            }
+            if (errorMessage.includes('timeout')) {
+                suggestions.push('Increase the DITA-OT timeout in settings');
+                suggestions.push('Try publishing a smaller DITA project first');
+            }
+            break;
+
+        case 'preview':
+            if (errorMessage.includes('HTML file')) {
+                suggestions.push('Try regenerating the preview');
+                suggestions.push('Check that DITA-OT completed successfully');
+            }
+            break;
+
+        case 'general':
+            suggestions.push('Check the DitaCraft output channel for detailed logs');
+            suggestions.push('Try restarting VS Code');
+            break;
+    }
+
+    // Add common DITA suggestions
+    suggestions.push('Consult the DITA specification for your document type');
+    suggestions.push('Check the DitaCraft documentation for troubleshooting tips');
+
+    return formatErrorMessage(error, `DITA ${errorType.charAt(0).toUpperCase() + errorType.slice(1)}`, suggestions);
+}
+
+/**
+ * Create an error object with additional context for logging
+ * Preserves the original error while adding debugging information
+ *
+ * @param error - Original error
+ * @param context - Additional context for debugging
+ * @param metadata - Optional metadata to include
+ * @returns Enhanced error object
+ */
+export function createEnhancedError(
+    error: unknown,
+    context: string,
+    metadata?: Record<string, unknown>
+): Error {
+    const errorMessage = getErrorMessage(error);
+    const enhancedError = new Error(`[${context}] ${errorMessage}`);
+
+    // Preserve original error details
+    if (error instanceof Error) {
+        enhancedError.stack = error.stack;
+        // Check for error.cause (ES2022+) using 'in' operator for compatibility
+        if ('cause' in error && error.cause !== undefined) {
+            (enhancedError as unknown as { cause: unknown }).cause = error.cause;
+        }
+    }
+
+    // Add metadata if provided
+    if (metadata) {
+        Object.keys(metadata).forEach(key => {
+            (enhancedError as any)[key] = metadata[key];
+        });
+    }
+
+    return enhancedError;
 }

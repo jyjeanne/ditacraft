@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { logger } from './logger';
+import { MAX_LINK_MATCHES, MAX_MAP_REFERENCES, TIME_CONSTANTS, CACHE_DEFAULTS, DEBOUNCE_CONSTANTS } from './constants';
 
 /**
  * Represents a single key definition in DITA
@@ -59,7 +60,7 @@ export class KeySpaceResolver implements vscode.Disposable {
     private fileWatcher: vscode.FileSystemWatcher | undefined;
     private cacheConfig: CacheConfig;
     private disposables: vscode.Disposable[] = [];
-    private rootMapCacheTtl: number = 60 * 1000; // 1 minute cache for root map lookups
+    private rootMapCacheTtl: number = CACHE_DEFAULTS.ROOT_MAP_CACHE_TTL; // 1 minute cache for root map lookups
     private debounceTimer: NodeJS.Timeout | undefined;
     private pendingInvalidations: Set<string> = new Set();
 
@@ -69,7 +70,30 @@ export class KeySpaceResolver implements vscode.Disposable {
         // Set up file watcher for map files
         this.setupFileWatcher();
 
+        // Set up periodic cache cleanup
+        this.setupPeriodicCleanup();
+
         logger.debug('KeySpaceResolver initialized');
+    }
+
+    /**
+     * Set up periodic cache cleanup timer
+     * Runs cleanup every 1/3 of TTL to ensure timely cleanup
+     */
+    private setupPeriodicCleanup(): void {
+        const cleanupInterval = Math.max(DEBOUNCE_CONSTANTS.MIN_CLEANUP_INTERVAL_MS, this.cacheConfig.ttlMs / 3); // At least 5 minutes
+        
+        const cleanupTimer = setInterval(() => {
+            logger.debug('Running periodic cache cleanup');
+            this.cleanupExpiredCacheEntries();
+        }, cleanupInterval);
+
+        this.disposables.push({ dispose: () => clearInterval(cleanupTimer) });
+        
+        logger.debug('Periodic cache cleanup scheduled', {
+            intervalMs: cleanupInterval,
+            ttlMs: this.cacheConfig.ttlMs
+        });
     }
 
     /**
@@ -77,10 +101,10 @@ export class KeySpaceResolver implements vscode.Disposable {
      */
     private loadCacheConfig(): CacheConfig {
         const config = vscode.workspace.getConfiguration('ditacraft');
-        const ttlMinutes = config.get<number>('keySpaceCacheTtlMinutes', 5);
+        const ttlMinutes = config.get<number>('keySpaceCacheTtlMinutes', CACHE_DEFAULTS.DEFAULT_TTL_MINUTES);
         return {
-            ttlMs: ttlMinutes * 60 * 1000,
-            maxSize: 10  // Max 10 root maps
+            ttlMs: ttlMinutes * TIME_CONSTANTS.ONE_MINUTE,
+            maxSize: CACHE_DEFAULTS.MAX_KEY_SPACES  // Max 10 root maps
         };
     }
 
@@ -88,10 +112,17 @@ export class KeySpaceResolver implements vscode.Disposable {
      * Reload cache configuration (call when settings change)
      */
     public reloadCacheConfig(): void {
+        const oldConfig = this.cacheConfig;
         this.cacheConfig = this.loadCacheConfig();
+        
         logger.debug('KeySpaceResolver cache config reloaded', {
-            ttlMinutes: this.cacheConfig.ttlMs / 60000
+            oldTtlMinutes: oldConfig.ttlMs / 60000,
+            newTtlMinutes: this.cacheConfig.ttlMs / 60000,
+            maxSize: this.cacheConfig.maxSize
         });
+        
+        // Immediately clean up with new TTL
+        this.cleanupExpiredCacheEntries();
     }
 
     /**
@@ -99,7 +130,7 @@ export class KeySpaceResolver implements vscode.Disposable {
      */
     private getMaxMatches(): number {
         const config = vscode.workspace.getConfiguration('ditacraft');
-        return config.get<number>('maxLinkMatches', 10000);
+        return config.get<number>('maxLinkMatches', MAX_LINK_MATCHES);
     }
 
     /**
@@ -176,7 +207,7 @@ export class KeySpaceResolver implements vscode.Disposable {
 
             this.pendingInvalidations.clear();
             this.debounceTimer = undefined;
-        }, 300); // 300ms debounce
+        }, DEBOUNCE_CONSTANTS.FILE_WATCHER_DEBOUNCE_MS); // 300ms debounce
     }
 
     /**
@@ -289,10 +320,13 @@ export class KeySpaceResolver implements vscode.Disposable {
     }
 
     /**
-     * Cache a key space with LRU eviction
+     * Cache a key space with LRU eviction and TTL cleanup
      */
     private cacheKeySpace(keySpace: KeySpace): void {
-        // Evict oldest entries if cache is full
+        // First, clean up expired entries based on TTL
+        this.cleanupExpiredCacheEntries();
+
+        // Evict oldest entries if cache is still full after TTL cleanup
         while (this.keySpaceCache.size >= this.cacheConfig.maxSize) {
             let oldestKey: string | null = null;
             let oldestTime = Infinity;
@@ -311,6 +345,36 @@ export class KeySpaceResolver implements vscode.Disposable {
         }
 
         this.keySpaceCache.set(keySpace.rootMap, keySpace);
+    }
+
+    /**
+     * Clean up expired cache entries based on TTL
+     * Removes all entries older than cacheConfig.ttlMs
+     */
+    private cleanupExpiredCacheEntries(): void {
+        const now = Date.now();
+        const expiredKeys: string[] = [];
+
+        for (const [key, space] of this.keySpaceCache.entries()) {
+            if ((now - space.buildTime) > this.cacheConfig.ttlMs) {
+                expiredKeys.push(key);
+            }
+        }
+
+        if (expiredKeys.length > 0) {
+            expiredKeys.forEach(key => {
+                logger.debug('Removing expired key space from cache', {
+                    rootMap: key,
+                    ageMs: now - this.keySpaceCache.get(key)!.buildTime
+                });
+                this.keySpaceCache.delete(key);
+            });
+
+            logger.info('Cache cleanup completed', {
+                removedCount: expiredKeys.length,
+                remainingCount: this.keySpaceCache.size
+            });
+        }
     }
 
     /**
@@ -435,7 +499,7 @@ export class KeySpaceResolver implements vscode.Disposable {
         let match: RegExpExecArray | null;
         let matchCount = 0;
         // Use 1/10 of maxLinkMatches for map references (minimum 1000)
-        const maxMatches = Math.max(1000, Math.floor(this.getMaxMatches() / 10));
+        const maxMatches = Math.max(MAX_MAP_REFERENCES, Math.floor(this.getMaxMatches() / 10));
 
         while ((match = mapRefRegex.exec(mapContent)) !== null) {
             if (++matchCount > maxMatches) {

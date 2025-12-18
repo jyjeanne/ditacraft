@@ -116,6 +116,9 @@ export class DitaPreviewPanel {
                             );
                         }
                         return;
+                    case 'scrollSync':
+                        this._handleScrollSync(message.scrollPosition);
+                        return;
                 }
             },
             null,
@@ -156,6 +159,43 @@ export class DitaPreviewPanel {
      */
     public getSourceFile(): string | undefined {
         return this._currentSourceFile;
+    }
+
+    /**
+     * Handle scroll synchronization from webview
+     */
+    private _handleScrollSync(scrollPosition: number): void {
+        if (!this._currentSourceFile) {
+            return;
+        }
+
+        fireAndForget(
+            (async () => {
+                try {
+                    // Open the source file if not already open
+                    const document = await vscode.workspace.openTextDocument(this._currentSourceFile!);
+                    const editor = vscode.window.activeTextEditor;
+
+                    if (editor && editor.document.uri.fsPath === this._currentSourceFile) {
+                        // Calculate line number based on scroll position
+                        // This is a simplified approach - for more accurate sync, we'd need
+                        // to map HTML elements to source lines
+                        const lineCount = document.lineCount;
+                        const targetLine = Math.min(Math.floor(scrollPosition / 10), lineCount - 1);
+
+                        // Reveal the line in the editor
+                        const position = new vscode.Position(targetLine, 0);
+                        editor.revealRange(
+                            new vscode.Range(position, position),
+                            vscode.TextEditorRevealType.InCenter
+                        );
+                    }
+                } catch (error) {
+                    logger.error('Scroll sync failed', error);
+                }
+            })(),
+            'scroll-sync'
+        );
     }
 
     /**
@@ -303,7 +343,7 @@ export class DitaPreviewPanel {
     }
 
     /**
-     * Inject preview enhancements (toolbar, theme integration)
+     * Inject preview enhancements (toolbar, theme integration, scroll sync)
      */
     private _injectPreviewEnhancements(html: string): string {
         // Create toolbar HTML
@@ -348,16 +388,76 @@ export class DitaPreviewPanel {
     " title="Open Source File">
         Source
     </button>
+    <button onclick="ditacraftToggleScrollSync()" id="scrollSyncButton" style="
+        background: var(--vscode-button-secondaryBackground, #3a3d41);
+        color: var(--vscode-button-secondaryForeground, #fff);
+        border: none;
+        padding: 4px 10px;
+        margin-left: 8px;
+        cursor: pointer;
+        border-radius: 2px;
+    " title="Toggle Scroll Sync">
+        Sync: ON
+    </button>
 </div>
 <div style="height: 32px;"></div>
 <script>
     const vscode = acquireVsCodeApi();
+    let scrollSyncEnabled = true;
+    let lastScrollTime = 0;
+    const scrollDebounce = 100; // ms
+
     function ditacraftRefresh() {
         vscode.postMessage({ command: 'refresh' });
     }
+
     function ditacraftOpenSource() {
         vscode.postMessage({ command: 'openSource' });
     }
+
+    function ditacraftToggleScrollSync() {
+        scrollSyncEnabled = !scrollSyncEnabled;
+        const button = document.getElementById('scrollSyncButton');
+        if (button) {
+            button.textContent = scrollSyncEnabled ? 'Sync: ON' : 'Sync: OFF';
+            button.title = scrollSyncEnabled ? 'Disable Scroll Sync' : 'Enable Scroll Sync';
+        }
+    }
+
+    // Add scroll event listener for scroll synchronization
+    window.addEventListener('scroll', () => {
+        const now = Date.now();
+        if (scrollSyncEnabled && (now - lastScrollTime) > scrollDebounce) {
+            lastScrollTime = now;
+            const scrollPosition = window.scrollY;
+            vscode.postMessage({
+                command: 'scrollSync',
+                scrollPosition: scrollPosition
+            });
+        }
+    });
+
+    // Apply VS Code theme colors to the preview
+    document.addEventListener('DOMContentLoaded', function() {
+        var style = document.createElement('style');
+        style.textContent = \`
+            body {
+                background-color: var(--vscode-editor-background, #1e1e1e) !important;
+                color: var(--vscode-editor-foreground, #d4d4d4) !important;
+            }
+            a {
+                color: var(--vscode-textLink-foreground, #3794ff) !important;
+            }
+            a:hover {
+                color: var(--vscode-textLink-activeForeground, #3794ff) !important;
+            }
+            code {
+                background-color: var(--vscode-editorCodeLens-background, rgba(220, 220, 220, 0.1)) !important;
+                border: 1px solid var(--vscode-editorCodeLens-border, rgba(220, 220, 220, 0.2)) !important;
+            }
+        \`;
+        document.head.appendChild(style);
+    });
 </script>`;
 
         // Inject toolbar after opening body tag

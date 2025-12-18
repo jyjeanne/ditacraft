@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.2.x)
+## Current Status (v0.2.4)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -13,12 +13,21 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | DTD Validation (DITA 1.3) | Complete | 100% |
 | Key Space Resolution | Complete | 95% |
 | Real-time Validation | Complete | 100% |
-| DITA-OT Publishing | Complete | 95% |
+| DITA-OT Publishing | Complete | 100% |
 | Live HTML5 Preview | Complete | 90% |
 | Code Snippets (21) | Complete | 100% |
 | Security (XXE, Path Traversal) | Complete | 100% |
 | cSpell Integration | Complete | 100% |
 | Dynamic Configuration | Complete | 100% |
+| CI Security Audit | Complete | 100% |
+| Error Handling Utilities | Complete | 100% |
+
+### Recent Fixes (v0.2.4)
+- Fixed DITA-OT HTML5 publishing on Windows (path case sensitivity)
+- Added CI security audit job with weekly scheduled scans
+- Added centralized ConfigurationManager with change notifications
+- Improved element navigation for same-file and cross-file references
+- Added comprehensive error handling tests (307+ total tests)
 
 ---
 
@@ -29,11 +38,12 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 ### Testing & CI/CD
 - [x] Add code coverage reporting with nyc/istanbul
 - [ ] Add coverage threshold enforcement (minimum 70%)
-- [x] Add security scanning (npm audit) to CI pipeline
+- [x] Add security scanning (npm audit) to CI pipeline with weekly schedule
 - [x] Test DITA-OT integration (currently untested)
 - [x] Test publish/preview/file creation commands
-- [ ] Test cSpell setup command
+- [x] Test cSpell setup command
 - [x] Add Windows and macOS to CI test matrix
+- [x] Add error handling utility tests (fireAndForget, getErrorMessage, tryAsync)
 
 ### Code Quality
 - [x] Remove unused `xml2js` dependency
@@ -56,9 +66,9 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] Support element navigation in xref and link elements
 
 **Good First Issues:**
-- Remove `xml2js` from package.json
-- Add npm audit to CI workflow
-- Create error message utility function
+- ~~Remove `xml2js` from package.json~~ (Done)
+- ~~Add npm audit to CI workflow~~ (Done)
+- ~~Create error message utility function~~ (Done)
 
 ---
 
@@ -330,8 +340,8 @@ Have ideas for features not listed here? We'd love to hear from you!
 | Version | Focus | Status |
 |---------|-------|--------|
 | v0.1.x | Initial release, basic features | Released |
-| v0.2.x | Key space, navigation, security | Released |
-| v0.3.0 | Developer experience & quality | Planned |
+| v0.2.x | Key space, navigation, security, CI security audit | Released |
+| v0.3.0 | Developer experience & quality | In Progress |
 | v0.4.0 | Preview & visualization | Planned |
 | v0.5.0 | IntelliSense & content assistance | Planned |
 | v0.6.0 | Project views & navigation | Planned |
@@ -341,4 +351,4 @@ Have ideas for features not listed here? We'd love to hear from you!
 
 ---
 
-*Last updated: December 2024*
+*Last updated: December 2024 (v0.2.4)*

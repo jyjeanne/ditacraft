@@ -100,7 +100,7 @@ jobs:
       shell: bash
       run: |
         set -o pipefail
-        xvfb-run -a npm run coverage:c8 2>&1 | tee test-output.log
+        xvfb-run -a npm run coverage 2>&1 | tee test-output.log
 
     - name: Run tests (Windows)
       id: test-windows

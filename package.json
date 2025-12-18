@@ -371,13 +371,18 @@
     "all": true,
     "report-dir": "coverage",
     "temp-dir": ".nyc_output",
-    "check-coverage": false
+    "check-coverage": true,
+    "lines": 70,
+    "statements": 70,
+    "functions": 70,
+    "branches": 70
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.8.0",
+    "@types/sinon": "^17.0.3",
     "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
@@ -390,6 +395,7 @@
     "mocha": "^10.2.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^17.1.0",
+    "sinon": "^17.0.1",
     "typescript": "^5.2.2"
   },
   "dependencies": {

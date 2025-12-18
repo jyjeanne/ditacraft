@@ -12,6 +12,7 @@ import { XMLValidator } from 'fast-xml-parser';
 import { DOMParser } from '@xmldom/xmldom';
 import { DtdResolver } from '../utils/dtdResolver';
 import { getErrorMessage, fireAndForget } from '../utils/errorUtils';
+import { VALIDATION_ENGINES } from '../utils/constants';
 
 const execFileAsync = promisify(execFile);
 
@@ -49,7 +50,7 @@ export class DitaValidator {
      */
     private getValidationEngine(): 'xmllint' | 'built-in' {
         const config = vscode.workspace.getConfiguration('ditacraft');
-        return config.get<'xmllint' | 'built-in'>('validationEngine', 'xmllint');
+        return config.get<'xmllint' | 'built-in'>('validationEngine', VALIDATION_ENGINES.XMLLINT);
     }
 
     /**
