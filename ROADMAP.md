@@ -36,8 +36,8 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 **Focus:** Improve code quality, test coverage, and developer experience.
 
 ### Testing & CI/CD
-- [x] Add code coverage reporting with nyc/istanbul
-- [ ] Add coverage threshold enforcement (minimum 70%)
+- [x] Add code coverage reporting with c8 (nyc doesn't work with VS Code extensions)
+- [x] Add coverage threshold enforcement (gradual: 62% lines, 65% functions, 73% branches)
 - [x] Add security scanning (npm audit) to CI pipeline with weekly schedule
 - [x] Test DITA-OT integration (currently untested)
 - [x] Test publish/preview/file creation commands

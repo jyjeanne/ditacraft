@@ -29,6 +29,7 @@ Thumbs.db
 # Testing
 coverage
 .nyc_output
+.c8_output
 
 # Temporary files
 *.tmp

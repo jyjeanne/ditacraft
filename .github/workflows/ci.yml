@@ -102,6 +102,10 @@ jobs:
         set -o pipefail
         xvfb-run -a npm run coverage 2>&1 | tee test-output.log
 
+    - name: Check coverage threshold (Linux)
+      if: runner.os == 'Linux'
+      run: npm run coverage:check
+
     - name: Run tests (Windows)
       id: test-windows
       if: runner.os == 'Windows'
@@ -138,6 +142,8 @@ jobs:
 
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Thresholds:** Lines: 62% | Statements: 62% | Functions: 65% | Branches: 73%" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         npx c8 report --reporter=text-summary 2>/dev/null | tail -n 6 >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY

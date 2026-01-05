@@ -350,11 +350,36 @@
     "compile-tests": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "coverage": "npx nyc npm test",
-    "coverage:report": "npx nyc report --reporter=html --reporter=text",
-    "coverage:c8": "npx c8 --reporter=html --reporter=text --reporter=lcov npm test"
+    "coverage": "npx c8 npm test",
+    "coverage:check": "npx c8 check-coverage",
+    "coverage:report": "npx c8 report --reporter=html --reporter=text --reporter=lcov"
+  },
+  "c8": {
+    "include": [
+      "out/**/*.js"
+    ],
+    "exclude": [
+      "out/test/**",
+      "**/*.test.js",
+      "**/*.d.ts"
+    ],
+    "reporter": [
+      "text",
+      "html",
+      "lcov"
+    ],
+    "report-dir": "coverage",
+    "temp-directory": ".c8_output",
+    "clean": true,
+    "all": false,
+    "check-coverage": true,
+    "lines": 62,
+    "statements": 62,
+    "functions": 65,
+    "branches": 73
   },
   "nyc": {
+    "_NOTE": "nyc does not work with VS Code extension tests - use c8 instead",
     "extends": "@istanbuljs/nyc-config-typescript",
     "include": [
       "out/**/*.js"
