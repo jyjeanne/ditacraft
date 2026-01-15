@@ -629,13 +629,22 @@ Contributions are welcome! Please:
 
 ## Recent Updates
 
-### Version 0.2.4 (Current)
-- ✅ **Fixed DITA-OT HTML5 Publishing** - Resolved Windows path case sensitivity issue causing topics not to generate
-- ✅ **CI Security Audit** - Added dedicated security audit job with weekly scheduled scans and vulnerability reporting
-- ✅ **Dynamic Configuration Management** - Centralized ConfigurationManager with real-time change propagation
+### Version 0.3.0 (Current)
+**Developer Experience & Quality Milestone**
+- ✅ **Code Coverage with c8** - Switched from nyc to c8 for VS Code extension-compatible coverage
+- ✅ **Coverage Threshold Enforcement** - CI enforces minimum coverage (62% lines, 65% functions, 73% branches)
+- ✅ **CI Security Audit** - Dedicated security audit job with weekly scheduled scans
+- ✅ **Cross-Platform CI** - Tests run on Windows, macOS, and Linux
+- ✅ **Dynamic Configuration** - Centralized ConfigurationManager with real-time change propagation
 - ✅ **Advanced Element Navigation** - Same-file and cross-file element navigation with fragment support
-- ✅ **Comprehensive Test Suite** - 307+ tests covering all core features including new error handling tests
-- ✅ **Improved Error Handling** - Added `fireAndForget` utility for safe async error handling
+- ✅ **Configurable Settings** - Validation debounce, key space TTL, DITA-OT timeout, max link matches
+- ✅ **Code Quality** - Removed unused dependencies, consolidated file reading, standardized async patterns
+- ✅ **307+ Tests** - Comprehensive test suite covering all core features
+
+### Version 0.2.4
+- ✅ **Fixed DITA-OT HTML5 Publishing** - Resolved Windows path case sensitivity issue
+- ✅ **Comprehensive Test Suite** - 307+ tests including error handling tests
+- ✅ **Improved Error Handling** - Added `fireAndForget` utility for safe async handling
 
 ### Version 0.2.0
 - ✅ **Full Key Space Resolution** - Navigate `@keyref`, `@conkeyref`, and key-based references with automatic key space building
@@ -656,8 +665,8 @@ Contributions are welcome! Please:
 
 We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md](ROADMAP.md) for:
 
-- **v0.3.0** - Developer Experience & Quality (test coverage, CI improvements)
-- **v0.4.0** - Enhanced Preview & Visualization (WebView, DITA map visualizer)
+- **v0.3.0** - Developer Experience & Quality ✅ **COMPLETE**
+- **v0.4.0** - Enhanced Preview & Visualization (WebView, DITA map visualizer) **NEXT**
 - **v0.5.0** - IntelliSense & Content Assistance (hover, completion, code actions)
 - **v0.6.0** - Project Management & Views (DITA Explorer, Key Space browser)
 - **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation)

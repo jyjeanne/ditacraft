@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.2.4)
+## Current Status (v0.3.0)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -21,17 +21,22 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Dynamic Configuration | Complete | 100% |
 | CI Security Audit | Complete | 100% |
 | Error Handling Utilities | Complete | 100% |
+| Code Coverage (c8) | Complete | 100% |
 
-### Recent Fixes (v0.2.4)
-- Fixed DITA-OT HTML5 publishing on Windows (path case sensitivity)
-- Added CI security audit job with weekly scheduled scans
-- Added centralized ConfigurationManager with change notifications
-- Improved element navigation for same-file and cross-file references
-- Added comprehensive error handling tests (307+ total tests)
+### Recent Changes (v0.3.0)
+- Completed Milestone 1: Developer Experience & Quality
+- Code coverage with c8 (nyc doesn't work with VS Code extensions)
+- Coverage threshold enforcement in CI (62% lines, 65% functions, 73% branches)
+- CI security audit job with weekly scheduled scans
+- Cross-platform CI testing (Windows, macOS, Linux)
+- Centralized ConfigurationManager with change notifications
+- Element navigation for same-file and cross-file references
+- Configurable settings: validation debounce, key space TTL, DITA-OT timeout
+- Removed unused dependencies, consolidated file reading, standardized async patterns
 
 ---
 
-## Milestone 1: Developer Experience & Quality (v0.3.0)
+## Milestone 1: Developer Experience & Quality (v0.3.0) ✅ COMPLETE
 
 **Focus:** Improve code quality, test coverage, and developer experience.
 
@@ -72,7 +77,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ---
 
-## Milestone 2: Enhanced Preview & Visualization (v0.4.0)
+## Milestone 2: Enhanced Preview & Visualization (v0.4.0) 🎯 NEXT
 
 **Focus:** Complete the preview feature and add visual tools for DITA navigation.
 
@@ -341,8 +346,8 @@ Have ideas for features not listed here? We'd love to hear from you!
 |---------|-------|--------|
 | v0.1.x | Initial release, basic features | Released |
 | v0.2.x | Key space, navigation, security, CI security audit | Released |
-| v0.3.0 | Developer experience & quality | In Progress |
-| v0.4.0 | Preview & visualization | Planned |
+| v0.3.0 | Developer experience & quality | **Complete** |
+| v0.4.0 | Preview & visualization | Next |
 | v0.5.0 | IntelliSense & content assistance | Planned |
 | v0.6.0 | Project views & navigation | Planned |
 | v0.7.0 | Advanced validation & DTD | Planned |
@@ -351,4 +356,4 @@ Have ideas for features not listed here? We'd love to hear from you!
 
 ---
 
-*Last updated: December 2024 (v0.2.4)*
+*Last updated: January 2025 (v0.3.0 released)*
