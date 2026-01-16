@@ -130,6 +130,10 @@
         "title": "DITA: Clear Output Channel"
       },
       {
+        "command": "ditacraft.showBuildOutput",
+        "title": "DITA: Show Build Output"
+      },
+      {
         "command": "ditacraft.testLogger",
         "title": "DITA: Test Logger (Debug)"
       }
@@ -244,11 +248,39 @@
           "description": "Automatically refresh HTML5 preview when file is saved.",
           "order": 5
         },
+        "ditacraft.previewTheme": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ],
+          "enumDescriptions": [
+            "Follow VS Code's current theme",
+            "Always use light theme",
+            "Always use dark theme"
+          ],
+          "description": "Theme for the HTML5 preview panel.",
+          "order": 6
+        },
+        "ditacraft.previewCustomCss": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a custom CSS file to apply to the preview. Supports ${workspaceFolder} variable.",
+          "order": 7
+        },
+        "ditacraft.previewScrollSync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable bidirectional scroll synchronization between the source editor and HTML5 preview.",
+          "order": 8
+        },
         "ditacraft.showProgressNotifications": {
           "type": "boolean",
           "default": true,
           "description": "Show progress notifications during DITA-OT processing.",
-          "order": 6
+          "order": 8
         },
         "ditacraft.validationEngine": {
           "type": "string",
@@ -258,19 +290,19 @@
             "built-in"
           ],
           "description": "XML validation engine to use (xmllint requires libxml2 installed).",
-          "order": 7
+          "order": 9
         },
         "ditacraft.ditaOtArgs": {
           "type": "array",
           "default": [],
           "description": "Additional command-line arguments to pass to DITA-OT (e.g., ['--verbose', '--filter=myfilter.ditaval']).",
-          "order": 8
+          "order": 10
         },
         "ditacraft.enableSnippets": {
           "type": "boolean",
           "default": true,
           "description": "Enable DITA code snippets and auto-completion.",
-          "order": 9
+          "order": 11
         },
         "ditacraft.logLevel": {
           "type": "string",
@@ -282,19 +314,19 @@
             "error"
           ],
           "description": "Logging level for debugging. Set to 'debug' to enable detailed logging.",
-          "order": 10
+          "order": 12
         },
         "ditacraft.enableFileLogging": {
           "type": "boolean",
           "default": false,
           "description": "Enable logging to file in system temp directory. Only active when logLevel is set to 'debug'.",
-          "order": 11
+          "order": 13
         },
         "ditacraft.enableConsoleLogging": {
           "type": "boolean",
           "default": true,
           "description": "Enable logging to Output channel in VS Code.",
-          "order": 12
+          "order": 14
         },
         "ditacraft.validationDebounceMs": {
           "type": "number",
@@ -302,7 +334,7 @@
           "minimum": 100,
           "maximum": 2000,
           "description": "Debounce delay (in milliseconds) before validating a file after changes. Lower values provide faster feedback but may impact performance.",
-          "order": 13
+          "order": 15
         },
         "ditacraft.keySpaceCacheTtlMinutes": {
           "type": "number",
@@ -310,7 +342,7 @@
           "minimum": 1,
           "maximum": 30,
           "description": "Time-to-live (in minutes) for cached key space data. Increase for better performance with large DITA projects.",
-          "order": 14
+          "order": 16
         },
         "ditacraft.ditaOtTimeoutMinutes": {
           "type": "number",
@@ -318,7 +350,7 @@
           "minimum": 5,
           "maximum": 30,
           "description": "Maximum time (in minutes) to wait for DITA-OT processing to complete before timing out.",
-          "order": 15
+          "order": 17
         },
         "ditacraft.maxLinkMatches": {
           "type": "number",
@@ -326,7 +358,7 @@
           "minimum": 1000,
           "maximum": 100000,
           "description": "Maximum number of link matches to process per file. Increase for very large DITA files.",
-          "order": 16
+          "order": 18
         }
       }
     },

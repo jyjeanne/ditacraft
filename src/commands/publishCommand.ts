@@ -8,6 +8,7 @@ import * as path from 'path';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
 import { fireAndForget } from '../utils/errorUtils';
+import { parseDitaOtOutput, getDitaOtDiagnostics } from '../utils/ditaOtErrorParser';
 
 /**
  * Command: ditacraft.publish
@@ -156,6 +157,9 @@ async function executePublish(
         }
     }
 
+    // Get the diagnostics manager (outside progress callback for clarity)
+    const diagnostics = getDitaOtDiagnostics();
+
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: `Publishing to ${transtype.toUpperCase()}`,
@@ -176,6 +180,20 @@ async function executePublish(
         });
 
         if (result.success) {
+            // Clear any previous publishing errors
+            diagnostics.clear();
+
+            // Parse output for warnings even on success
+            if (result.output) {
+                const parsed = parseDitaOtOutput(result.output, path.dirname(inputFile));
+                if (parsed.warnings.length > 0) {
+                    diagnostics.updateFromParsedOutput(parsed, vscode.Uri.file(inputFile));
+                    logger.info('Publishing completed with warnings', {
+                        warningCount: parsed.warnings.length
+                    });
+                }
+            }
+
             // Show success notification with action
             const buttons = transtype === 'html5'
                 ? ['Open Output Folder', 'Show Preview']
@@ -207,16 +225,32 @@ async function executePublish(
                 error: result.error
             });
 
-            // Show error
+            // Parse output and show errors in Problems panel
+            if (result.output) {
+                const parsed = parseDitaOtOutput(result.output, path.dirname(inputFile));
+                diagnostics.updateFromParsedOutput(parsed, vscode.Uri.file(inputFile));
+
+                logger.info('Parsed DITA-OT errors', {
+                    errorCount: parsed.errors.length,
+                    warningCount: parsed.warnings.length,
+                    summary: parsed.summary
+                });
+            }
+
+            // Show error with options
             const viewOutput = await vscode.window.showErrorMessage(
                 `Publishing failed: ${result.error}`,
-                'View Output',
+                'View Problems',
+                'View Build Output',
                 'View Logs'
             );
 
-            if (viewOutput === 'View Output') {
-                // Show the output channel with detailed logs
-                logger.show();
+            if (viewOutput === 'View Problems') {
+                // Focus the Problems panel
+                await vscode.commands.executeCommand('workbench.actions.view.problems');
+            } else if (viewOutput === 'View Build Output') {
+                // Show the DITA-OT build output channel (syntax-highlighted)
+                await vscode.commands.executeCommand('ditacraft.showBuildOutput');
             } else if (viewOutput === 'View Logs') {
                 // Open the log file for detailed analysis
                 logger.openLogFile();

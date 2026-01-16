@@ -27,6 +27,8 @@ import {
     setupCSpellCommand
 } from './commands';
 import { registerPreviewPanelSerializer } from './providers/previewPanel';
+import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
+import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
@@ -123,6 +125,12 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
     logger.info('DitaCraft extension deactivation started');
 
+    // Dispose of DITA-OT publishing diagnostics
+    disposeDitaOtDiagnostics();
+
+    // Dispose of DITA-OT output channel
+    disposeDitaOtOutputChannel();
+
     if (outputChannel) {
         outputChannel.appendLine('DitaCraft extension deactivated');
         outputChannel.dispose();
@@ -196,6 +204,14 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ditacraft.setupCSpell', setupCSpellCommand)
+    );
+
+    // Command to show DITA-OT build output
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.showBuildOutput', () => {
+            const ditaOtOutput = getDitaOtOutputChannel();
+            ditaOtOutput.show(false);
+        })
     );
 
     // Test command for debugging (intentionally throws error)

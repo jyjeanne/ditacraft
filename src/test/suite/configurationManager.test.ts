@@ -90,6 +90,7 @@ suite('Configuration Manager Test Suite', () => {
             // Boolean properties
             assert.strictEqual(typeof config.autoValidate, 'boolean');
             assert.strictEqual(typeof config.previewAutoRefresh, 'boolean');
+            assert.strictEqual(typeof config.previewScrollSync, 'boolean');
             assert.strictEqual(typeof config.showProgressNotifications, 'boolean');
             assert.strictEqual(typeof config.enableSnippets, 'boolean');
             assert.strictEqual(typeof config.enableFileLogging, 'boolean');
@@ -120,6 +121,10 @@ suite('Configuration Manager Test Suite', () => {
             const validLogLevels = ['debug', 'info', 'warn', 'error'];
             assert.ok(validLogLevels.includes(config.logLevel),
                 `logLevel should be one of: ${validLogLevels.join(', ')}`);
+
+            const validPreviewThemes = ['auto', 'light', 'dark'];
+            assert.ok(validPreviewThemes.includes(config.previewTheme),
+                `previewTheme should be one of: ${validPreviewThemes.join(', ')}`);
         });
     });
 
@@ -231,6 +236,9 @@ suite('Configuration Manager Test Suite', () => {
                 'validationEngine',
                 'validationDebounceMs',
                 'previewAutoRefresh',
+                'previewTheme',
+                'previewCustomCss',
+                'previewScrollSync',
                 'showProgressNotifications',
                 'enableSnippets',
                 'logLevel',
@@ -257,6 +265,85 @@ suite('Configuration Manager Test Suite', () => {
             const defaults3 = configManager.getDefaults();
             assert.strictEqual(defaults3.logLevel, 'info',
                 'Modifying returned defaults should not affect internal defaults');
+        });
+    });
+
+    suite('Preview Configuration', () => {
+        test('Should have previewScrollSync boolean setting', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const config = configManager.getConfiguration();
+
+            assert.strictEqual(typeof config.previewScrollSync, 'boolean',
+                'previewScrollSync should be a boolean');
+        });
+
+        test('Should have previewScrollSync default to true', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const defaults = configManager.getDefaults();
+
+            assert.strictEqual(defaults.previewScrollSync, true,
+                'previewScrollSync should default to true');
+        });
+
+        test('Should have previewTheme string setting', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const config = configManager.getConfiguration();
+
+            assert.strictEqual(typeof config.previewTheme, 'string',
+                'previewTheme should be a string');
+        });
+
+        test('Should have previewTheme default to auto', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const defaults = configManager.getDefaults();
+
+            assert.strictEqual(defaults.previewTheme, 'auto',
+                'previewTheme should default to "auto"');
+        });
+
+        test('Should have previewCustomCss string setting', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const config = configManager.getConfiguration();
+
+            assert.strictEqual(typeof config.previewCustomCss, 'string',
+                'previewCustomCss should be a string');
+        });
+
+        test('Should have previewCustomCss default to empty string', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const defaults = configManager.getDefaults();
+
+            assert.strictEqual(defaults.previewCustomCss, '',
+                'previewCustomCss should default to empty string');
+        });
+
+        test('Should have previewAutoRefresh boolean setting', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const config = configManager.getConfiguration();
+
+            assert.strictEqual(typeof config.previewAutoRefresh, 'boolean',
+                'previewAutoRefresh should be a boolean');
+        });
+
+        test('Should have previewAutoRefresh default to true', () => {
+            const configManager = ConfigurationManager.getInstance();
+            const defaults = configManager.getDefaults();
+
+            assert.strictEqual(defaults.previewAutoRefresh, true,
+                'previewAutoRefresh should default to true');
+        });
+
+        test('Preview settings should be accessible via get method', () => {
+            const configManager = ConfigurationManager.getInstance();
+
+            const scrollSync = configManager.get('previewScrollSync');
+            assert.strictEqual(typeof scrollSync, 'boolean', 'Should get previewScrollSync');
+
+            const theme = configManager.get('previewTheme');
+            assert.strictEqual(typeof theme, 'string', 'Should get previewTheme');
+
+            const customCss = configManager.get('previewCustomCss');
+            assert.strictEqual(typeof customCss, 'string', 'Should get previewCustomCss');
         });
     });
 });

@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import { execFile, spawn } from 'child_process';
 import { promisify } from 'util';
 import { logger } from './logger';
+import { getDitaOtOutputChannel } from './ditaOtOutputChannel';
 
 const execFileAsync = promisify(execFile);
 
@@ -31,6 +32,14 @@ export interface PublishProgress {
     stage: string;
     percentage: number;
     message: string;
+}
+
+export interface PublishResult {
+    success: boolean;
+    outputPath: string;
+    error?: string;
+    /** Combined stdout and stderr output for error parsing */
+    output?: string;
 }
 
 export class DitaOtWrapper {
@@ -239,7 +248,7 @@ export class DitaOtWrapper {
     public async publish(
         options: PublishOptions,
         progressCallback?: (progress: PublishProgress) => void
-    ): Promise<{ success: boolean; outputPath: string; error?: string }> {
+    ): Promise<PublishResult> {
 
         logger.debug('Publishing with options', {
             inputFile: options.inputFile,
@@ -316,6 +325,12 @@ export class DitaOtWrapper {
 
             logger.debug('Input file validated successfully');
 
+            // Get the DITA-OT output channel for syntax-highlighted output (before spawn)
+            const ditaOtOutput = getDitaOtOutputChannel();
+            ditaOtOutput.clear();
+            ditaOtOutput.logBuildStart(options.inputFile, options.transtype);
+            ditaOtOutput.show(true);
+
             // Spawn DITA-OT process
             // On Windows, .bat and .cmd files need to be executed through cmd.exe
             // Set DITA_HOME environment variable for proper DITA-OT execution
@@ -332,6 +347,7 @@ export class DitaOtWrapper {
                 ditaHome: ditaHome || 'not set (using system PATH)'
             });
 
+            const buildStartTime = Date.now();
             let ditaProcess;
             if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
                 // Execute through cmd.exe for Windows batch files
@@ -371,8 +387,11 @@ export class DitaOtWrapper {
                 const output = data.toString();
                 outputBuffer += output;
 
-                // Log DITA-OT output for visibility
-                logger.info('DITA-OT', { output: output.trim() });
+                // Log to syntax-highlighted output channel
+                ditaOtOutput.logOutput(output);
+
+                // Also log to main logger for file logging
+                logger.debug('DITA-OT stdout', { output: output.trim() });
 
                 // Parse progress from output
                 if (progressCallback) {
@@ -388,17 +407,13 @@ export class DitaOtWrapper {
                 const error = data.toString();
                 errorBuffer += error;
 
-                // Log all stderr - DITA-OT outputs important info here
+                // Log to syntax-highlighted output channel (level detection is automatic)
+                ditaOtOutput.logOutput(error);
+
+                // Also log to main logger for file logging
                 const trimmedError = error.trim();
                 if (trimmedError) {
-                    // Check if it's an error or just info
-                    if (trimmedError.toLowerCase().includes('error') ||
-                        trimmedError.toLowerCase().includes('failed') ||
-                        trimmedError.toLowerCase().includes('exception')) {
-                        logger.error('DITA-OT', { error: trimmedError });
-                    } else {
-                        logger.info('DITA-OT', { output: trimmedError });
-                    }
+                    logger.debug('DITA-OT stderr', { output: trimmedError });
                 }
 
                 // DITA-OT sometimes outputs progress to stderr
@@ -415,13 +430,19 @@ export class DitaOtWrapper {
                 // Clear the timeout since process has completed
                 clearTimeout(timeoutHandle);
 
-                logger.debug('DITA-OT process closed', { exitCode: code });
+                const buildDuration = Date.now() - buildStartTime;
+                logger.debug('DITA-OT process closed', { exitCode: code, durationMs: buildDuration });
+
+                // Combine output for error parsing
+                const combinedOutput = outputBuffer + '\n' + errorBuffer;
 
                 if (processTimedOut) {
+                    ditaOtOutput.logBuildComplete(false, options.outputDir, buildDuration);
                     resolve({
                         success: false,
                         outputPath: options.outputDir,
-                        error: 'DITA-OT process timed out after 10 minutes'
+                        error: `DITA-OT process timed out after ${timeoutMinutes} minutes`,
+                        output: combinedOutput
                     });
                 } else if (code === 0) {
                     if (progressCallback) {
@@ -432,12 +453,15 @@ export class DitaOtWrapper {
                         });
                     }
 
+                    ditaOtOutput.logBuildComplete(true, options.outputDir, buildDuration);
                     logger.info('Publishing successful', { outputPath: options.outputDir });
                     resolve({
                         success: true,
-                        outputPath: options.outputDir
+                        outputPath: options.outputDir,
+                        output: combinedOutput
                     });
                 } else {
+                    ditaOtOutput.logBuildComplete(false, options.outputDir, buildDuration);
                     logger.error('Publishing failed', {
                         exitCode: code,
                         errorOutput: errorBuffer,
@@ -447,7 +471,8 @@ export class DitaOtWrapper {
                     resolve({
                         success: false,
                         outputPath: options.outputDir,
-                        error: errorBuffer || 'DITA-OT process failed with code ' + code
+                        error: errorBuffer || 'DITA-OT process failed with code ' + code,
+                        output: combinedOutput
                     });
                 }
             });
@@ -458,7 +483,8 @@ export class DitaOtWrapper {
                 resolve({
                     success: false,
                     outputPath: options.outputDir,
-                    error: `Failed to start DITA-OT: ${error.message}`
+                    error: `Failed to start DITA-OT: ${error.message}`,
+                    output: errorBuffer || ''
                 });
             });
         });

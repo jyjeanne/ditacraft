@@ -14,7 +14,13 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Key Space Resolution | Complete | 95% |
 | Real-time Validation | Complete | 100% |
 | DITA-OT Publishing | Complete | 100% |
-| Live HTML5 Preview | Complete | 90% |
+| Live HTML5 Preview | Complete | 95% |
+| Preview Theme Support | Complete | 100% |
+| Preview Custom CSS | Complete | 100% |
+| Preview Scroll Sync | Complete | 100% |
+| Preview Print Mode | Complete | 100% |
+| DITA-OT Output Highlighting | Complete | 100% |
+| DITA-OT Error Diagnostics | Complete | 100% |
 | Code Snippets (21) | Complete | 100% |
 | Security (XXE, Path Traversal) | Complete | 100% |
 | cSpell Integration | Complete | 100% |
@@ -83,10 +89,10 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ### WebView Preview
 - [x] Implement full WebView panel for HTML5 preview
-- [ ] Add preview synchronization (scroll sync between source and preview)
-- [ ] Add preview theme support (light/dark)
-- [ ] Add print preview mode
-- [ ] Support custom CSS for preview styling
+- [x] Add preview synchronization (scroll sync between source and preview)
+- [x] Add preview theme support (light/dark)
+- [x] Add print preview mode
+- [x] Support custom CSS for preview styling
 
 ### DITA Map Visualizer
 - [ ] Create WebView showing visual hierarchy of maps and topics
@@ -95,12 +101,12 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [ ] Show validation status on nodes
 
 ### Output Panel Improvements
-- [ ] Add syntax highlighting to DITA-OT output
-- [ ] Parse errors and link back to source files
-- [ ] Add problem matcher for DITA-OT errors in Problems panel
+- [x] Add syntax highlighting to DITA-OT output
+- [x] Parse errors and link back to source files
+- [x] Add problem matcher for DITA-OT errors in Problems panel
 
 **Good First Issues:**
-- Add preview theme toggle (light/dark)
+- ~~Add preview theme toggle (light/dark)~~ (Done)
 - Create basic tree visualization component
 
 ---

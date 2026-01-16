@@ -26,6 +26,11 @@ export type ValidationEngineType = 'xmllint' | 'built-in';
 export type TranstypeType = 'html5' | 'pdf' | 'xhtml' | 'epub' | 'htmlhelp' | 'markdown';
 
 /**
+ * Preview theme type
+ */
+export type PreviewThemeType = 'auto' | 'light' | 'dark';
+
+/**
  * Configuration change event
  */
 export interface ConfigurationChangeEvent {
@@ -57,6 +62,9 @@ export interface DitaCraftConfiguration {
 
     // Preview settings
     previewAutoRefresh: boolean;
+    previewTheme: PreviewThemeType;
+    previewCustomCss: string;
+    previewScrollSync: boolean;
 
     // UI settings
     showProgressNotifications: boolean;
@@ -85,6 +93,9 @@ const DEFAULT_CONFIG: DitaCraftConfiguration = {
     validationEngine: 'xmllint',
     validationDebounceMs: 500,
     previewAutoRefresh: true,
+    previewTheme: 'auto',
+    previewCustomCss: '',
+    previewScrollSync: true,
     showProgressNotifications: true,
     enableSnippets: true,
     logLevel: 'info',
@@ -161,6 +172,9 @@ export class ConfigurationManager implements vscode.Disposable {
             validationEngine: config.get<ValidationEngineType>('validationEngine', DEFAULT_CONFIG.validationEngine),
             validationDebounceMs: config.get<number>('validationDebounceMs', DEFAULT_CONFIG.validationDebounceMs),
             previewAutoRefresh: config.get<boolean>('previewAutoRefresh', DEFAULT_CONFIG.previewAutoRefresh),
+            previewTheme: config.get<PreviewThemeType>('previewTheme', DEFAULT_CONFIG.previewTheme),
+            previewCustomCss: config.get<string>('previewCustomCss', DEFAULT_CONFIG.previewCustomCss),
+            previewScrollSync: config.get<boolean>('previewScrollSync', DEFAULT_CONFIG.previewScrollSync),
             showProgressNotifications: config.get<boolean>('showProgressNotifications', DEFAULT_CONFIG.showProgressNotifications),
             enableSnippets: config.get<boolean>('enableSnippets', DEFAULT_CONFIG.enableSnippets),
             logLevel: config.get<LogLevelType>('logLevel', DEFAULT_CONFIG.logLevel),
