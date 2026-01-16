@@ -25,8 +25,9 @@ interface FileCreationOptions {
 
 /**
  * Validate file name input
+ * Exported for testing
  */
-function validateFileName(value: string): string | null {
+export function validateFileName(value: string): string | null {
     if (!value) {
         return 'File name is required';
     }
@@ -249,8 +250,9 @@ export async function newBookmapCommand(): Promise<void> {
 
 /**
  * Generate DITA topic content based on type
+ * Exported for testing
  */
-function generateTopicContent(topicType: string, id: string): string {
+export function generateTopicContent(topicType: string, id: string): string {
     switch (topicType) {
         case 'concept':
             return `<?xml version="1.0" encoding="UTF-8"?>
@@ -344,8 +346,9 @@ function generateTopicContent(topicType: string, id: string): string {
 
 /**
  * Generate DITA map content
+ * Exported for testing
  */
-function generateMapContent(id: string): string {
+export function generateMapContent(id: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
 <map id="${id}">
@@ -361,8 +364,9 @@ function generateMapContent(id: string): string {
 
 /**
  * Generate DITA bookmap content
+ * Exported for testing
  */
-function generateBookmapContent(title: string, id: string): string {
+export function generateBookmapContent(title: string, id: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd">
 <bookmap id="${id}">

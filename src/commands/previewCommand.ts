@@ -81,8 +81,9 @@ async function getAndValidateFileUri(uri?: vscode.Uri): Promise<vscode.Uri> {
 
 /**
  * Validate file path and extension
+ * Exported for testing
  */
-function validateFilePath(filePath: string): void {
+export function validateFilePath(filePath: string): void {
     // Check if filePath is valid and not empty
     if (!filePath || filePath.trim() === '') {
         throw new Error('Invalid file path. Please open a DITA file.');
@@ -227,8 +228,9 @@ function handlePreviewError(error: unknown): void {
 
 /**
  * Find the main HTML file in the output directory
+ * Exported for testing
  */
-function findMainHtmlFile(outputDir: string, baseName: string): string | null {
+export function findMainHtmlFile(outputDir: string, baseName: string): string | null {
     // Try common patterns
     const patterns = [
         `${baseName}.html`,
