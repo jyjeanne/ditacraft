@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.3.0)
+## Current Status (v0.4.0)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -21,6 +21,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Preview Print Mode | Complete | 100% |
 | DITA-OT Output Highlighting | Complete | 100% |
 | DITA-OT Error Diagnostics | Complete | 100% |
+| DITA Map Visualizer | Complete | 100% |
 | Code Snippets (21) | Complete | 100% |
 | Security (XXE, Path Traversal) | Complete | 100% |
 | cSpell Integration | Complete | 100% |
@@ -29,16 +30,17 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Error Handling Utilities | Complete | 100% |
 | Code Coverage (c8) | Complete | 100% |
 
-### Recent Changes (v0.3.0)
-- Completed Milestone 1: Developer Experience & Quality
-- Code coverage with c8 (nyc doesn't work with VS Code extensions)
-- Coverage threshold enforcement in CI (62% lines, 65% functions, 73% branches)
-- CI security audit job with weekly scheduled scans
-- Cross-platform CI testing (Windows, macOS, Linux)
-- Centralized ConfigurationManager with change notifications
-- Element navigation for same-file and cross-file references
-- Configurable settings: validation debounce, key space TTL, DITA-OT timeout
-- Removed unused dependencies, consolidated file reading, standardized async patterns
+### Recent Changes (v0.4.0)
+- Completed Milestone 2: Enhanced Preview & Build Output
+- Completed Milestone 2.1: DITA Map Visualizer
+- Bidirectional scroll sync between editor and preview
+- Print preview mode with dedicated print button
+- Syntax-highlighted DITA-OT build output using LogOutputChannel
+- Automatic log level detection (error, warn, info, debug, trace)
+- Build timestamps and duration display
+- Interactive DITA map visualizer with tree hierarchy
+- Circular reference detection in map parsing
+- 450+ passing tests with comprehensive coverage
 
 ---
 
@@ -83,35 +85,50 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ---
 
-## Milestone 2: Enhanced Preview & Visualization (v0.4.0) 🎯 NEXT
+## Milestone 2: Enhanced Preview & Build Output (v0.4.0) ✅ COMPLETE
 
-**Focus:** Complete the preview feature and add visual tools for DITA navigation.
+**Focus:** Complete the preview feature and enhance build output.
 
-### WebView Preview
+### WebView Preview ✅
 - [x] Implement full WebView panel for HTML5 preview
 - [x] Add preview synchronization (scroll sync between source and preview)
-- [x] Add preview theme support (light/dark)
-- [x] Add print preview mode
+- [x] Add preview theme support (light/dark/auto)
+- [x] Add print preview mode with print button
 - [x] Support custom CSS for preview styling
 
-### DITA Map Visualizer
-- [ ] Create WebView showing visual hierarchy of maps and topics
-- [ ] Display topic relationships and references
-- [ ] Add interactive navigation from visualization to source
-- [ ] Show validation status on nodes
-
-### Output Panel Improvements
-- [x] Add syntax highlighting to DITA-OT output
+### Output Panel Improvements ✅
+- [x] Add syntax highlighting to DITA-OT output (LogOutputChannel)
+- [x] Automatic log level detection (error, warn, info, debug, trace)
 - [x] Parse errors and link back to source files
 - [x] Add problem matcher for DITA-OT errors in Problems panel
+- [x] Build timestamps and duration display
 
-**Good First Issues:**
-- ~~Add preview theme toggle (light/dark)~~ (Done)
-- Create basic tree visualization component
+### Test Coverage ✅
+- [x] 60+ tests for DitaOtOutputChannel (log level detection, patterns)
+- [x] Tests for preview configuration settings
+- [x] Tests for file creation commands (validate, generate content)
+- [x] Tests for preview command (validateFilePath, findMainHtmlFile)
+- [x] Total: 430+ passing tests
 
 ---
 
-## Milestone 3: IntelliSense & Content Assistance (v0.5.0)
+## Milestone 2.1: DITA Map Visualizer (v0.4.0) ✅ COMPLETE
+
+**Focus:** Add visual tools for DITA map navigation.
+
+### DITA Map Visualizer ✅
+- [x] Create WebView showing visual hierarchy of maps and topics
+- [x] Display topic relationships and references
+- [x] Add interactive navigation from visualization to source
+- [x] Show validation status on nodes (missing files highlighted)
+- [x] Circular reference detection and warning
+- [x] Element type icons (map, chapter, appendix, part, topic, key)
+- [x] Expand/collapse all controls
+- [x] Real-time refresh capability
+
+---
+
+## Milestone 3: IntelliSense & Content Assistance (v0.5.0) 🎯 NEXT
 
 **Focus:** Add intelligent editing features similar to professional DITA editors like oXygen.
 
@@ -352,9 +369,9 @@ Have ideas for features not listed here? We'd love to hear from you!
 |---------|-------|--------|
 | v0.1.x | Initial release, basic features | Released |
 | v0.2.x | Key space, navigation, security, CI security audit | Released |
-| v0.3.0 | Developer experience & quality | **Complete** |
-| v0.4.0 | Preview & visualization | Next |
-| v0.5.0 | IntelliSense & content assistance | Planned |
+| v0.3.0 | Developer experience & quality | Released |
+| v0.4.0 | Preview, build output & Map Visualizer | **Released** |
+| v0.5.0 | IntelliSense & content assistance | Next |
 | v0.6.0 | Project views & navigation | Planned |
 | v0.7.0 | Advanced validation & DTD | Planned |
 | v0.8.0 | Refactoring & productivity | Planned |
@@ -362,4 +379,4 @@ Have ideas for features not listed here? We'd love to hear from you!
 
 ---
 
-*Last updated: January 2025 (v0.3.0 released)*
+*Last updated: January 2025 (v0.4.0 released with Map Visualizer)*

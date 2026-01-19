@@ -17,8 +17,10 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, and command injection prevention
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
 👁️ **Live Preview** - Side-by-side HTML5 preview with auto-refresh
+🗺️ **Map Visualizer** - Interactive tree view of DITA map hierarchies with navigation
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
-🧪 **307+ Tests** - Extensively tested with comprehensive integration and security tests
+🖨️ **Print Preview** - Print-optimized preview with dedicated print button
+🧪 **450+ Tests** - Extensively tested with comprehensive integration and security tests
 
 ## Features
 
@@ -81,9 +83,28 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - Smart caching for faster preview generation
 
 ### 👁️ **Live Preview**
-- Side-by-side HTML5 preview
-- Auto-refresh on save
+- Side-by-side HTML5 preview with WebView panel
+- Auto-refresh on save with configurable behavior
+- **Bidirectional scroll sync** - Editor and preview scroll positions stay synchronized
+- **Theme support** - Light, dark, and auto modes (follows VS Code theme)
+- **Custom CSS** - Apply custom stylesheets to preview
+- **Print preview mode** - Print-optimized view with dedicated print button
 - Navigate directly from source to preview
+
+### 📊 **Build Output**
+- **Syntax-highlighted output** - DITA-OT build output with automatic colorization
+- **Log level detection** - Errors, warnings, info, and debug messages color-coded
+- **Error diagnostics** - Build errors parsed and shown in Problems panel
+- **Timestamped builds** - Build start and completion times displayed
+
+### 🗺️ **Map Visualizer**
+- **Interactive tree view** - Visual hierarchy of DITA maps, bookmaps, and topics
+- **Element type icons** - Different icons for maps, chapters, appendices, parts, topics, and keys
+- **Missing file detection** - Missing referenced files shown with strikethrough styling
+- **Circular reference protection** - Detects and marks circular map references
+- **Double-click navigation** - Open any topic or map directly from the visualizer
+- **Expand/Collapse controls** - Easily navigate large map hierarchies
+- **Real-time refresh** - Update the visualization when map content changes
 
 ### 🎯 **Quick File Creation**
 - Create DITA topics from templates (concept, task, reference)
@@ -284,6 +305,7 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Publish (Select Format)** | `Ctrl+Shift+B` | Publish with format selection |
 | **DITA: Publish to HTML5** | - | Quick publish to HTML5 |
 | **DITA: Preview HTML5** | `Ctrl+Shift+H` | Show live HTML5 preview |
+| **DITA: Show Map Visualizer** | - | Show interactive map hierarchy |
 | **DITA: Create New Topic** | - | Create new DITA topic |
 | **DITA: Create New Map** | - | Create new DITA map |
 | **DITA: Create New Bookmap** | - | Create new bookmap |
@@ -346,6 +368,9 @@ The default cSpell configuration includes:
 | `ditacraft.outputDirectory` | string | `"${workspaceFolder}/out"` | Output directory |
 | `ditacraft.autoValidate` | boolean | `true` | Auto-validate on save |
 | `ditacraft.previewAutoRefresh` | boolean | `true` | Auto-refresh preview |
+| `ditacraft.previewScrollSync` | boolean | `true` | Bidirectional scroll sync |
+| `ditacraft.previewTheme` | string | `"auto"` | Preview theme (auto/light/dark) |
+| `ditacraft.previewCustomCss` | string | `""` | Custom CSS for preview |
 | `ditacraft.showProgressNotifications` | boolean | `true` | Show progress notifications |
 | `ditacraft.validationEngine` | string | `"xmllint"` | Validation engine |
 | `ditacraft.ditaOtArgs` | array | `[]` | Custom DITA-OT arguments |
@@ -488,7 +513,7 @@ DitaCraft includes comprehensive test coverage for all key features:
 - **Key Space Resolution Tests** - Tests key space building and caching
 
 **Test Coverage:**
-- ✅ 307+ passing tests covering all key features
+- ✅ 450+ passing tests covering all key features
 - ✅ Real-time validation on file open, save, and change (with debouncing)
 - ✅ DTD resolution and bundled DTD files
 - ✅ Error highlighting with line/column accuracy
@@ -629,7 +654,18 @@ Contributions are welcome! Please:
 
 ## Recent Updates
 
-### Version 0.3.0 (Current)
+### Version 0.4.0 (Current)
+**Enhanced Preview, Build Output & Map Visualizer Milestone**
+- ✅ **DITA Map Visualizer** - Interactive tree view showing map hierarchies with navigation
+- ✅ **Bidirectional Scroll Sync** - Editor and preview scroll positions stay synchronized
+- ✅ **Print Preview Mode** - Print-optimized view with dedicated print button
+- ✅ **Syntax-Highlighted Build Output** - DITA-OT output with automatic colorization by log level
+- ✅ **Log Level Detection** - Errors, warnings, info, debug messages auto-classified
+- ✅ **Build Timestamps** - Build start and completion times displayed
+- ✅ **Circular Reference Detection** - Map visualizer detects and warns about circular map references
+- ✅ **450+ Tests** - Comprehensive test suite with new feature coverage
+
+### Version 0.3.0
 **Developer Experience & Quality Milestone**
 - ✅ **Code Coverage with c8** - Switched from nyc to c8 for VS Code extension-compatible coverage
 - ✅ **Coverage Threshold Enforcement** - CI enforces minimum coverage (62% lines, 65% functions, 73% branches)
@@ -639,7 +675,6 @@ Contributions are welcome! Please:
 - ✅ **Advanced Element Navigation** - Same-file and cross-file element navigation with fragment support
 - ✅ **Configurable Settings** - Validation debounce, key space TTL, DITA-OT timeout, max link matches
 - ✅ **Code Quality** - Removed unused dependencies, consolidated file reading, standardized async patterns
-- ✅ **307+ Tests** - Comprehensive test suite covering all core features
 
 ### Version 0.2.4
 - ✅ **Fixed DITA-OT HTML5 Publishing** - Resolved Windows path case sensitivity issue
@@ -666,8 +701,8 @@ Contributions are welcome! Please:
 We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md](ROADMAP.md) for:
 
 - **v0.3.0** - Developer Experience & Quality ✅ **COMPLETE**
-- **v0.4.0** - Enhanced Preview & Visualization (WebView, DITA map visualizer) **NEXT**
-- **v0.5.0** - IntelliSense & Content Assistance (hover, completion, code actions)
+- **v0.4.0** - Enhanced Preview, Build Output & Map Visualizer ✅ **COMPLETE**
+- **v0.5.0** - IntelliSense & Content Assistance (hover, completion, code actions) **NEXT**
 - **v0.6.0** - Project Management & Views (DITA Explorer, Key Space browser)
 - **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation)
 - **v0.8.0** - Refactoring & Productivity (rename keys, templates)

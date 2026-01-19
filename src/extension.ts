@@ -29,6 +29,7 @@ import {
 import { registerPreviewPanelSerializer } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
+import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
@@ -131,6 +132,11 @@ export function deactivate() {
     // Dispose of DITA-OT output channel
     disposeDitaOtOutputChannel();
 
+    // Dispose of Map Visualizer panel
+    if (MapVisualizerPanel.currentPanel) {
+        MapVisualizerPanel.currentPanel.dispose();
+    }
+
     if (outputChannel) {
         outputChannel.appendLine('DitaCraft extension deactivated');
         outputChannel.dispose();
@@ -211,6 +217,27 @@ function registerCommands(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand('ditacraft.showBuildOutput', () => {
             const ditaOtOutput = getDitaOtOutputChannel();
             ditaOtOutput.show(false);
+        })
+    );
+
+    // Command to show Map Visualizer
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.showMapVisualizer', () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                vscode.window.showWarningMessage('No file is currently open');
+                return;
+            }
+
+            const filePath = editor.document.uri.fsPath;
+            const ext = filePath.toLowerCase();
+
+            if (!ext.endsWith('.ditamap') && !ext.endsWith('.bookmap')) {
+                vscode.window.showWarningMessage('Map Visualizer requires a .ditamap or .bookmap file');
+                return;
+            }
+
+            MapVisualizerPanel.createOrShow(context.extensionUri, filePath);
         })
     );
 
