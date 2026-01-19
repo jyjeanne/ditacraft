@@ -81,6 +81,21 @@ export interface DitaCraftConfiguration {
 }
 
 /**
+ * Validate a numeric configuration value and return default if invalid
+ * Exported for testing
+ * @param value The value to validate
+ * @param defaultValue The default value to use if validation fails
+ * @param minValue Minimum allowed value (inclusive)
+ * @returns The validated value or default
+ */
+export function validateNumericConfig(value: number, defaultValue: number, minValue: number): number {
+    if (typeof value !== 'number' || isNaN(value) || value < minValue) {
+        return defaultValue;
+    }
+    return value;
+}
+
+/**
  * Default configuration values
  */
 const DEFAULT_CONFIG: DitaCraftConfiguration = {
@@ -162,15 +177,37 @@ export class ConfigurationManager implements vscode.Disposable {
     private loadConfiguration(): DitaCraftConfiguration {
         const config = vscode.workspace.getConfiguration('ditacraft');
 
+        // Load and validate numeric values
+        const ditaOtTimeoutMinutes = validateNumericConfig(
+            config.get<number>('ditaOtTimeoutMinutes', DEFAULT_CONFIG.ditaOtTimeoutMinutes),
+            DEFAULT_CONFIG.ditaOtTimeoutMinutes,
+            1 // Minimum 1 minute
+        );
+        const validationDebounceMs = validateNumericConfig(
+            config.get<number>('validationDebounceMs', DEFAULT_CONFIG.validationDebounceMs),
+            DEFAULT_CONFIG.validationDebounceMs,
+            0 // Minimum 0ms (immediate validation allowed)
+        );
+        const keySpaceCacheTtlMinutes = validateNumericConfig(
+            config.get<number>('keySpaceCacheTtlMinutes', DEFAULT_CONFIG.keySpaceCacheTtlMinutes),
+            DEFAULT_CONFIG.keySpaceCacheTtlMinutes,
+            1 // Minimum 1 minute
+        );
+        const maxLinkMatches = validateNumericConfig(
+            config.get<number>('maxLinkMatches', DEFAULT_CONFIG.maxLinkMatches),
+            DEFAULT_CONFIG.maxLinkMatches,
+            1 // Minimum 1 match
+        );
+
         return {
             ditaOtPath: config.get<string>('ditaOtPath', DEFAULT_CONFIG.ditaOtPath),
             defaultTranstype: config.get<TranstypeType>('defaultTranstype', DEFAULT_CONFIG.defaultTranstype),
             outputDirectory: config.get<string>('outputDirectory', DEFAULT_CONFIG.outputDirectory),
             ditaOtArgs: config.get<string[]>('ditaOtArgs', DEFAULT_CONFIG.ditaOtArgs),
-            ditaOtTimeoutMinutes: config.get<number>('ditaOtTimeoutMinutes', DEFAULT_CONFIG.ditaOtTimeoutMinutes),
+            ditaOtTimeoutMinutes,
             autoValidate: config.get<boolean>('autoValidate', DEFAULT_CONFIG.autoValidate),
             validationEngine: config.get<ValidationEngineType>('validationEngine', DEFAULT_CONFIG.validationEngine),
-            validationDebounceMs: config.get<number>('validationDebounceMs', DEFAULT_CONFIG.validationDebounceMs),
+            validationDebounceMs,
             previewAutoRefresh: config.get<boolean>('previewAutoRefresh', DEFAULT_CONFIG.previewAutoRefresh),
             previewTheme: config.get<PreviewThemeType>('previewTheme', DEFAULT_CONFIG.previewTheme),
             previewCustomCss: config.get<string>('previewCustomCss', DEFAULT_CONFIG.previewCustomCss),
@@ -180,8 +217,8 @@ export class ConfigurationManager implements vscode.Disposable {
             logLevel: config.get<LogLevelType>('logLevel', DEFAULT_CONFIG.logLevel),
             enableFileLogging: config.get<boolean>('enableFileLogging', DEFAULT_CONFIG.enableFileLogging),
             enableConsoleLogging: config.get<boolean>('enableConsoleLogging', DEFAULT_CONFIG.enableConsoleLogging),
-            keySpaceCacheTtlMinutes: config.get<number>('keySpaceCacheTtlMinutes', DEFAULT_CONFIG.keySpaceCacheTtlMinutes),
-            maxLinkMatches: config.get<number>('maxLinkMatches', DEFAULT_CONFIG.maxLinkMatches)
+            keySpaceCacheTtlMinutes,
+            maxLinkMatches
         };
     }
 

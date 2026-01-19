@@ -224,6 +224,36 @@ suite('File Creation Commands Test Suite', () => {
             assert.ok(validateFileName('my/topic') !== null);
             assert.ok(validateFileName('my\\topic') !== null);
         });
+
+        test('Should return error for Windows reserved filenames', () => {
+            // Test common reserved names
+            const reservedNames = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM9', 'LPT1', 'LPT9'];
+            for (const name of reservedNames) {
+                const result = validateFileName(name);
+                assert.ok(result !== null, `Should reject reserved name: ${name}`);
+                assert.ok(result!.includes('reserved'), `Error should mention reserved for: ${name}`);
+            }
+        });
+
+        test('Should reject Windows reserved names case-insensitively', () => {
+            assert.ok(validateFileName('con') !== null);
+            assert.ok(validateFileName('Con') !== null);
+            assert.ok(validateFileName('CON') !== null);
+            assert.ok(validateFileName('nul') !== null);
+            assert.ok(validateFileName('Nul') !== null);
+            assert.ok(validateFileName('com1') !== null);
+            assert.ok(validateFileName('Com1') !== null);
+        });
+
+        test('Should accept names similar to but not matching reserved names', () => {
+            // These should be valid as they're not exact matches
+            assert.strictEqual(validateFileName('CON1'), null);
+            assert.strictEqual(validateFileName('CONSOLE'), null);
+            assert.strictEqual(validateFileName('mycon'), null);
+            assert.strictEqual(validateFileName('NULLify'), null);
+            assert.strictEqual(validateFileName('COM10'), null);
+            assert.strictEqual(validateFileName('LPT10'), null);
+        });
     });
 
     suite('generateTopicContent Function', () => {

@@ -98,3 +98,21 @@ export const CONFIG_KEYS = {
     VALIDATION_ENGINE: 'validationEngine',
     DITA_OT_PATH: 'ditaOtPath'
 };
+
+/**
+ * UI-related timeout constants
+ * Used for status bar messages and notifications
+ */
+export const UI_TIMEOUTS = {
+    /** Duration for status bar messages in milliseconds */
+    STATUS_BAR_MESSAGE_MS: 5000
+};
+
+/**
+ * Process management constants
+ * Used for DITA-OT process lifecycle management
+ */
+export const PROCESS_CONSTANTS = {
+    /** Grace period to wait for process termination before force kill (ms) */
+    KILL_GRACE_PERIOD_MS: 5000
+};

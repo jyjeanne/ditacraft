@@ -12,6 +12,13 @@ import { logger } from '../utils/logger';
 const FILE_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
 const FILE_NAME_VALIDATION_MESSAGE = 'File name can only contain letters, numbers, hyphens, and underscores';
 
+// Windows reserved filenames that cannot be used
+const WINDOWS_RESERVED_NAMES = [
+    'CON', 'PRN', 'AUX', 'NUL',
+    'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+    'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+];
+
 /**
  * Options for creating a DITA file
  */
@@ -33,6 +40,10 @@ export function validateFileName(value: string): string | null {
     }
     if (!FILE_NAME_PATTERN.test(value)) {
         return FILE_NAME_VALIDATION_MESSAGE;
+    }
+    // Check for Windows reserved filenames (case-insensitive)
+    if (WINDOWS_RESERVED_NAMES.includes(value.toUpperCase())) {
+        return `"${value}" is a reserved filename and cannot be used`;
     }
     return null;
 }

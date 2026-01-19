@@ -86,8 +86,8 @@ suite('cSpell Setup Command Tests', () => {
             showInformationMessageStub.onFirstCall().resolves('Open Config File');
 
             // Mock document opening
-            const mockDocument = { uri: { fsPath: 'test-path' } };
-            openTextDocumentStub.resolves(mockDocument as any);
+            const mockDocument = { uri: { fsPath: 'test-path' } } as Partial<vscode.TextDocument>;
+            openTextDocumentStub.resolves(mockDocument as vscode.TextDocument);
 
             await setupCSpellCommand();
 
@@ -143,8 +143,8 @@ suite('cSpell Setup Command Tests', () => {
             showInformationMessageStub.onFirstCall().resolves('Open Existing File');
 
             // Mock document opening
-            const mockDocument = { uri: { fsPath: 'test-path' } };
-            openTextDocumentStub.resolves(mockDocument as any);
+            const mockDocument = { uri: { fsPath: 'test-path' } } as Partial<vscode.TextDocument>;
+            openTextDocumentStub.resolves(mockDocument as vscode.TextDocument);
 
             await setupCSpellCommand();
 

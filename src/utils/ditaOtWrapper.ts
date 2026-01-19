@@ -10,6 +10,7 @@ import { execFile, spawn } from 'child_process';
 import { promisify } from 'util';
 import { logger } from './logger';
 import { getDitaOtOutputChannel } from './ditaOtOutputChannel';
+import { PROCESS_CONSTANTS } from './constants';
 
 const execFileAsync = promisify(execFile);
 
@@ -379,7 +380,7 @@ export class DitaOtWrapper {
                     if (!ditaProcess.killed) {
                         ditaProcess.kill('SIGKILL');
                     }
-                }, 5000);
+                }, PROCESS_CONSTANTS.KILL_GRACE_PERIOD_MS);
             }, processTimeoutMs);
 
             // Capture stdout

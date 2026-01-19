@@ -101,7 +101,9 @@ const ERROR_PATTERNS = [
  * Map severity strings to our severity type
  */
 function mapSeverity(severity: string | undefined): 'error' | 'warning' | 'info' {
-    if (!severity) return 'error';
+    if (!severity) {
+        return 'error';
+    }
     const s = severity.toUpperCase();
     if (s === 'ERROR' || s === 'FATAL' || s === 'SEVERE' || s.endsWith('E') || s.endsWith('F')) {
         return 'error';
@@ -125,10 +127,14 @@ export function parseDitaOtOutput(output: string, baseDir?: string): ParsedDitaO
 
     for (const line of lines) {
         const trimmedLine = line.trim();
-        if (!trimmedLine) continue;
+        if (!trimmedLine) {
+            continue;
+        }
 
         // Skip non-error lines
-        if (!isErrorLine(trimmedLine)) continue;
+        if (!isErrorLine(trimmedLine)) {
+            continue;
+        }
 
         const parsed = parseErrorLine(trimmedLine, baseDir);
         if (parsed) {
@@ -315,7 +321,9 @@ export class DitaOtDiagnostics implements vscode.Disposable {
                 vscode.Uri.file(issue.filePath) :
                 fallbackUri;
 
-            if (!fileUri) continue;
+            if (!fileUri) {
+                continue;
+            }
 
             const fileKey = fileUri.fsPath;
 

@@ -276,8 +276,9 @@ export function createEnhancedError(
 
     // Add metadata if provided
     if (metadata) {
+        const errorWithMeta = enhancedError as Error & Record<string, unknown>;
         Object.keys(metadata).forEach(key => {
-            (enhancedError as any)[key] = metadata[key];
+            errorWithMeta[key] = metadata[key];
         });
     }
 

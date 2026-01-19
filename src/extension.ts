@@ -28,6 +28,7 @@ import {
 } from './commands';
 import { registerPreviewPanelSerializer } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
+import { UI_TIMEOUTS } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
 
@@ -369,7 +370,7 @@ function handleConfigurationChange(event: ConfigurationChangeEvent): void {
 
         vscode.window.setStatusBarMessage(
             `DitaCraft: Settings updated (${changeDescriptions.join(', ')})`,
-            5000
+            UI_TIMEOUTS.STATUS_BAR_MESSAGE_MS
         );
     }
 }
