@@ -42,9 +42,10 @@ node_modules/**
 .gitignore
 .github
 
-# Testing
+# Testing & Coverage
 coverage
 .nyc_output
+.c8_output/**
 **/*.test.ts
 **/*.spec.ts
 
@@ -62,3 +63,12 @@ nul
 add-missing-data.png
 *.png
 !resources/*.png
+
+# Development docs (not needed in production)
+docs/**
+workspace_ditacraft/**
+scripts/**
+ANALYSIS_SUMMARY.txt
+IMPROVEMENT_PLAN.md
+ARCHITECTURE.md
+ROADMAP.md
