@@ -73,6 +73,7 @@ export const DITA_ELEMENTS = {
  * Used for XML validation configuration
  */
 export const VALIDATION_ENGINES = {
+    TYPESXML: 'typesxml',
     XMLLINT: 'xmllint',
     BUILT_IN: 'built-in'
 } as const;

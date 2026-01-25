@@ -5,6 +5,44 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-01-25
+
+### Added
+- **TypesXML DTD Validation**: Full DTD validation using TypesXML (pure TypeScript)
+  - 100% W3C XML Conformance Test Suite compliance
+  - OASIS XML Catalog support for DITA public identifier resolution
+  - No native dependencies required (works on all platforms without compilation)
+  - Detects invalid elements (e.g., `<p>` in `<map>`), missing required attributes, content model violations
+  - Graceful fallback to built-in validation if TypesXML unavailable
+
+- **Three Validation Engines**: Configurable validation with engine selection
+  - **TypesXML** (default, recommended): Full DTD validation, pure TypeScript
+  - **Built-in**: Lightweight content model checking without full DTD
+  - **xmllint**: External validation using libxml2 (requires installation)
+
+- **TypesXML Validator Tests**: 15 new tests for DTD validation
+  - Valid document tests (concept, topic, map, task, reference)
+  - Invalid document detection (`<p>` in map, `<ul>` in map, `<topicref>` in concept)
+  - Missing required attribute detection (id on topic)
+  - Malformed XML detection
+  - Integration tests with DitaValidator
+
+### Changed
+- Default validation engine changed from `xmllint` to `typesxml`
+- Validation architecture improved to avoid duplicate errors when using TypesXML
+- Content model validation skipped when TypesXML active (DTD covers it)
+- Structure validation skips id/title checks when TypesXML active (DTD covers it)
+- Test count increased from 476 to 491 passing tests
+
+### Dependencies
+- Added `typesxml` (^1.17.0) - Pure TypeScript XML/DTD validation with OASIS catalog support
+- Removed `node-libxml` - No longer needed (had native compilation issues)
+
+### Documentation
+- Updated README.md with TypesXML validation details
+- Updated ROADMAP.md with TypesXML completion status
+- Created `docs/TYPESXML-DTD-VALIDATION-STUDY.md` with implementation research
+
 ## [0.2.2] - 2025-11-17
 
 ### Added

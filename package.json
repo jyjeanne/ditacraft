@@ -2,7 +2,7 @@
   "name": "ditacraft",
   "displayName": "DitaCraft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
@@ -298,12 +298,18 @@
         },
         "ditacraft.validationEngine": {
           "type": "string",
-          "default": "xmllint",
+          "default": "typesxml",
           "enum": [
-            "xmllint",
-            "built-in"
+            "typesxml",
+            "built-in",
+            "xmllint"
           ],
-          "description": "XML validation engine to use (xmllint requires libxml2 installed).",
+          "enumDescriptions": [
+            "Full DTD validation using TypesXML (recommended, pure TypeScript)",
+            "Built-in validation with content model checking (no DTD, lightweight)",
+            "External xmllint for DTD validation (requires libxml2 installed)"
+          ],
+          "description": "XML validation engine. TypesXML provides full DTD validation. Built-in provides content model checking without full DTD.",
           "order": 9
         },
         "ditacraft.ditaOtArgs": {
@@ -450,7 +456,6 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
-    "@types/glob": "^9.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^25.0.9",
     "@types/sinon": "^21.0.0",
@@ -471,6 +476,7 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
-    "fast-xml-parser": "^5.3.3"
+    "fast-xml-parser": "^5.3.3",
+    "typesxml": "^1.17.0"
   }
 }

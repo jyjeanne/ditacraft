@@ -13,6 +13,8 @@ import { DOMParser } from '@xmldom/xmldom';
 import { DtdResolver } from '../utils/dtdResolver';
 import { getErrorMessage, fireAndForget } from '../utils/errorUtils';
 import { VALIDATION_ENGINES } from '../utils/constants';
+import { validateDitaContentModel } from './ditaContentModelValidator';
+import { TypesXMLValidator } from './typesxmlValidator';
 
 const execFileAsync = promisify(execFile);
 
@@ -32,8 +34,10 @@ export interface ValidationResult {
 
 export class DitaValidator {
     private diagnosticCollection: vscode.DiagnosticCollection;
-    private validationEngine: 'xmllint' | 'built-in';
+    private validationEngine: 'typesxml' | 'xmllint' | 'built-in';
     private dtdResolver: DtdResolver | null = null;
+    private typesxmlValidator: TypesXMLValidator | null = null;
+    private extensionPath: string | null = null;
 
     constructor(extensionContext?: vscode.ExtensionContext) {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection('dita');
@@ -41,16 +45,62 @@ export class DitaValidator {
 
         // Initialize DTD resolver if extension context is provided
         if (extensionContext) {
+            this.extensionPath = extensionContext.extensionPath;
             this.dtdResolver = new DtdResolver(extensionContext.extensionPath);
+
+            // Initialize TypesXML validator if engine is 'typesxml'
+            if (this.validationEngine === VALIDATION_ENGINES.TYPESXML) {
+                this.initializeTypesXMLValidator();
+            }
+        }
+    }
+
+    /**
+     * Initialize the TypesXML validator with fallback
+     */
+    private initializeTypesXMLValidator(): void {
+        if (!this.extensionPath) {
+            return;
+        }
+
+        try {
+            this.typesxmlValidator = new TypesXMLValidator(this.extensionPath);
+
+            if (!this.typesxmlValidator.isAvailable) {
+                const error = this.typesxmlValidator.loadError;
+                console.warn('TypesXMLValidator not available:', error);
+
+                // Show warning to user (fire-and-forget)
+                fireAndForget(
+                    (async () => {
+                        const action = await vscode.window.showWarningMessage(
+                            `TypesXML validation not available: ${error}. Falling back to built-in validation.`,
+                            'Change Engine'
+                        );
+                        if (action === 'Change Engine') {
+                            await vscode.commands.executeCommand('workbench.action.openSettings', 'ditacraft.validationEngine');
+                        }
+                    })(),
+                    'typesxml-warning'
+                );
+
+                // Fall back to built-in
+                this.validationEngine = VALIDATION_ENGINES.BUILT_IN as 'built-in';
+                this.typesxmlValidator = null;
+            }
+        } catch (error) {
+            console.warn('Failed to initialize TypesXMLValidator:', error);
+            this.validationEngine = VALIDATION_ENGINES.BUILT_IN as 'built-in';
+            this.typesxmlValidator = null;
         }
     }
 
     /**
      * Get the configured validation engine
      */
-    private getValidationEngine(): 'xmllint' | 'built-in' {
+    private getValidationEngine(): 'typesxml' | 'xmllint' | 'built-in' {
         const config = vscode.workspace.getConfiguration('ditacraft');
-        return config.get<'xmllint' | 'built-in'>('validationEngine', VALIDATION_ENGINES.XMLLINT);
+        return config.get<'typesxml' | 'xmllint' | 'built-in'>('validationEngine', VALIDATION_ENGINES.TYPESXML);
     }
 
     /**
@@ -78,21 +128,42 @@ export class DitaValidator {
         }
 
         // Reload configuration
-        this.validationEngine = this.getValidationEngine();
+        const newEngine = this.getValidationEngine();
+
+        // Initialize TypesXML if engine changed to typesxml
+        if (newEngine === VALIDATION_ENGINES.TYPESXML && this.validationEngine !== VALIDATION_ENGINES.TYPESXML) {
+            this.initializeTypesXMLValidator();
+        }
+        this.validationEngine = newEngine;
+
+        // Check if TypesXML is active and available (used multiple times below)
+        const useTypesXML = this.validationEngine === VALIDATION_ENGINES.TYPESXML &&
+            this.typesxmlValidator?.isAvailable === true;
 
         // Validate based on engine
         let result: ValidationResult;
 
-        if (this.validationEngine === 'xmllint') {
+        if (useTypesXML) {
+            result = await this.validateWithTypesXML(filePath, fileContent);
+        } else if (this.validationEngine === 'xmllint') {
             result = await this.validateWithXmllint(filePath);
         } else {
             result = await this.validateWithBuiltIn(filePath, fileContent);
         }
 
         // Add DITA-specific validation (pass cached content)
-        const ditaValidation = await this.validateDitaStructure(filePath, fileContent);
+        // Skip structure validation for TypesXML since DTD already validates id/title requirements
+        const ditaValidation = await this.validateDitaStructure(filePath, fileContent, useTypesXML);
         result.errors.push(...ditaValidation.errors);
         result.warnings.push(...ditaValidation.warnings);
+
+        // Add content model validation ONLY if NOT using TypesXML
+        // TypesXML provides full DTD validation which covers content model rules
+        if (!useTypesXML) {
+            const contentModelValidation = validateDitaContentModel(fileContent);
+            result.errors.push(...contentModelValidation.errors);
+            result.warnings.push(...contentModelValidation.warnings);
+        }
 
         // Recalculate validity based on total errors
         result.valid = result.errors.length === 0;
@@ -112,7 +183,7 @@ export class DitaValidator {
             // We skip --valid flag because DTD files may not be available
             // DITA-specific validation is done separately in validateDitaStructure
             // --noout: don't output the parsed document
-            const command = process.platform === 'win32' ? 'xmllint' : 'xmllint';
+            const command = 'xmllint';
 
             // Basic XML well-formedness check without DTD validation
             // Use execFile instead of exec to avoid command injection
@@ -168,6 +239,18 @@ export class DitaValidator {
                 warnings: []
             };
         }
+    }
+
+    /**
+     * Validate using TypesXML (pure TypeScript DTD validation)
+     */
+    private async validateWithTypesXML(_filePath: string, content: string): Promise<ValidationResult> {
+        if (!this.typesxmlValidator || !this.typesxmlValidator.isAvailable) {
+            // Fall back to built-in if TypesXML not available
+            return this.validateWithBuiltIn(_filePath, content);
+        }
+
+        return this.typesxmlValidator.validate(content);
     }
 
     /**
@@ -416,8 +499,11 @@ export class DitaValidator {
 
     /**
      * Validate DITA-specific structure and rules
+     * @param filePath - Path to the file being validated
+     * @param content - File content (optional, will read from file if not provided)
+     * @param skipDtdChecks - Skip checks that are covered by DTD validation (e.g., when TypesXML is used)
      */
-    private async validateDitaStructure(filePath: string, content?: string): Promise<ValidationResult> {
+    private async validateDitaStructure(filePath: string, content?: string, skipDtdChecks: boolean = false): Promise<ValidationResult> {
         const errors: ValidationError[] = [];
         const warnings: ValidationError[] = [];
 
@@ -426,7 +512,7 @@ export class DitaValidator {
             const fileContent = content || await fsPromises.readFile(filePath, 'utf8');
             const ext = path.extname(filePath).toLowerCase();
 
-            // Check DOCTYPE declaration
+            // Check DOCTYPE declaration (always check, even with DTD validation)
             if (!fileContent.includes('<!DOCTYPE')) {
                 warnings.push({
                     line: 0,
@@ -438,16 +524,17 @@ export class DitaValidator {
             }
 
             // Validate based on file type
+            // Skip id/title checks if DTD validation is active (TypesXML handles these)
             try {
                 if (ext === '.dita') {
-                    this.validateDitaTopic(fileContent, errors, warnings);
+                    this.validateDitaTopic(fileContent, errors, warnings, skipDtdChecks);
                 } else if (ext === '.ditamap') {
-                    this.validateDitaMap(fileContent, errors, warnings);
+                    this.validateDitaMap(fileContent, errors, warnings, skipDtdChecks);
                 } else if (ext === '.bookmap') {
-                    this.validateBookmap(fileContent, errors, warnings);
+                    this.validateBookmap(fileContent, errors, warnings, skipDtdChecks);
                 }
 
-                // Check for common DITA issues
+                // Check for common DITA issues (always run - these are warnings)
                 this.checkCommonIssues(fileContent, errors, warnings);
             } catch (validationError: unknown) {
                 // Ignore validation errors in structure checking
@@ -475,9 +562,11 @@ export class DitaValidator {
 
     /**
      * Validate DITA topic structure
+     * @param skipDtdChecks - Skip checks covered by DTD validation (id, title requirements)
      */
-    private validateDitaTopic(content: string, errors: ValidationError[], _warnings: ValidationError[]): void {
+    private validateDitaTopic(content: string, errors: ValidationError[], _warnings: ValidationError[], skipDtdChecks: boolean = false): void {
         // Check for root element (topic, concept, task, reference, etc.)
+        // This is a basic sanity check, always run
         const topicTypes = ['<topic', '<concept', '<task', '<reference'];
         const hasTopicRoot = topicTypes.some(type => content.includes(type));
 
@@ -489,6 +578,11 @@ export class DitaValidator {
                 message: 'DITA topic must have a valid root element (topic, concept, task, or reference)',
                 source: 'dita-validator'
             });
+        }
+
+        // Skip id/title checks if DTD validation is active (TypesXML validates these)
+        if (skipDtdChecks) {
+            return;
         }
 
         // Check for id attribute on root (REQUIRED per DITA DTD)
@@ -566,9 +660,10 @@ export class DitaValidator {
 
     /**
      * Validate DITA map structure
+     * @param skipDtdChecks - Skip checks covered by DTD validation
      */
-    private validateDitaMap(content: string, errors: ValidationError[], warnings: ValidationError[]): void {
-        // Check for map root element
+    private validateDitaMap(content: string, errors: ValidationError[], warnings: ValidationError[], skipDtdChecks: boolean = false): void {
+        // Check for map root element (basic sanity check, always run)
         if (!content.includes('<map')) {
             errors.push({
                 line: 0,
@@ -579,18 +674,21 @@ export class DitaValidator {
             });
         }
 
-        // Check for title
-        if (!content.includes('<title>')) {
-            warnings.push({
-                line: 0,
-                column: 0,
-                severity: 'warning',
-                message: 'DITA map should contain a <title> element',
-                source: 'dita-validator'
-            });
+        // Skip title check if DTD validation is active
+        if (!skipDtdChecks) {
+            // Check for title
+            if (!content.includes('<title>')) {
+                warnings.push({
+                    line: 0,
+                    column: 0,
+                    severity: 'warning',
+                    message: 'DITA map should contain a <title> element',
+                    source: 'dita-validator'
+                });
+            }
         }
 
-        // Check topicref elements have href
+        // Check topicref elements have href (always useful as a warning)
         const topicrefMatches = content.matchAll(/<topicref([^>]*)>/g);
         for (const match of topicrefMatches) {
             if (!match[1].includes('href=')) {
@@ -607,9 +705,10 @@ export class DitaValidator {
 
     /**
      * Validate bookmap structure
+     * @param skipDtdChecks - Skip checks covered by DTD validation
      */
-    private validateBookmap(content: string, errors: ValidationError[], warnings: ValidationError[]): void {
-        // Check for bookmap root element
+    private validateBookmap(content: string, errors: ValidationError[], warnings: ValidationError[], skipDtdChecks: boolean = false): void {
+        // Check for bookmap root element (basic sanity check, always run)
         if (!content.includes('<bookmap')) {
             errors.push({
                 line: 0,
@@ -618,6 +717,11 @@ export class DitaValidator {
                 message: 'Bookmap must have a <bookmap> root element',
                 source: 'dita-validator'
             });
+        }
+
+        // Skip title checks if DTD validation is active
+        if (skipDtdChecks) {
+            return;
         }
 
         // Check for booktitle
@@ -742,5 +846,11 @@ export class DitaValidator {
      */
     public dispose(): void {
         this.diagnosticCollection.dispose();
+
+        // Dispose TypesXML validator if it exists
+        if (this.typesxmlValidator) {
+            this.typesxmlValidator.dispose();
+            this.typesxmlValidator = null;
+        }
     }
 }

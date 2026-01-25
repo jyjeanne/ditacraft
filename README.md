@@ -12,7 +12,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 🔗 **Smart Navigation** - Ctrl+Click on `href`, `conref`, `keyref`, and `conkeyref` attributes with full key space resolution
 🔑 **Key Space Resolution** - Automatic resolution of DITA keys from map hierarchies with intelligent caching
-✅ **DTD Validation** - Complete DITA 1.3 DTD support with 168 bundled DTD files
+✅ **Full DTD Validation** - TypesXML-powered validation with 100% W3C conformance and OASIS catalog support
 ⚡ **Real-time Validation** - Automatic validation on open, save, and change with debouncing
 🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, and command injection prevention
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
@@ -20,7 +20,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 🗺️ **Map Visualizer** - Interactive tree view of DITA map hierarchies with navigation
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🖨️ **Print Preview** - Print-optimized preview with dedicated print button
-🧪 **450+ Tests** - Extensively tested with comprehensive integration and security tests
+🧪 **490+ Tests** - Extensively tested with comprehensive integration and security tests
 
 ## Features
 
@@ -54,13 +54,15 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 ### ✅ **Advanced Validation**
 - **Real-time validation** on file open, save, and change (with 500ms debouncing)
-- **DTD-based validation** against DITA 1.3 specifications
+- **Full DTD validation** against DITA 1.3 specifications using TypesXML
   - Bundled DITA 1.3 DTD files (topic, concept, task, reference, map, bookmap, learning, etc.)
-  - Validates required elements (id, title) and proper structure
-  - Accurate PUBLIC ID resolution with caching
-- **Dual validation engines**:
-  - Built-in parser with DTD support (default)
-  - xmllint integration for advanced validation
+  - OASIS XML Catalog support for resolving DITA public identifiers
+  - 100% W3C XML Conformance Test Suite compliance
+  - Validates required elements (id, title), content models, and proper structure
+- **Three validation engines**:
+  - **TypesXML** (default, recommended) - Pure TypeScript DTD validation with no native dependencies
+  - Built-in parser with content model checking (lightweight, no full DTD)
+  - xmllint integration for external validation (requires libxml2 installation)
 - **Enterprise Security Features** (NEW in v0.2.0):
   - XXE (XML External Entity) neutralization to prevent injection attacks
   - Path traversal protection with workspace bounds validation
@@ -270,8 +272,8 @@ npm run lint
 ### For Publishing
 - **DITA-OT** 4.2.1 or higher ([Download](https://www.dita-ot.org/download))
 
-### For Advanced Validation (Optional)
-- **xmllint** (libxml2) for strict XML validation
+### For Alternative Validation (Optional)
+- **xmllint** (libxml2) for external XML validation (TypesXML is the default and recommended engine)
 
 ## Quick Start
 
@@ -372,7 +374,7 @@ The default cSpell configuration includes:
 | `ditacraft.previewTheme` | string | `"auto"` | Preview theme (auto/light/dark) |
 | `ditacraft.previewCustomCss` | string | `""` | Custom CSS for preview |
 | `ditacraft.showProgressNotifications` | boolean | `true` | Show progress notifications |
-| `ditacraft.validationEngine` | string | `"xmllint"` | Validation engine |
+| `ditacraft.validationEngine` | string | `"typesxml"` | Validation engine (typesxml/built-in/xmllint) |
 | `ditacraft.ditaOtArgs` | array | `[]` | Custom DITA-OT arguments |
 | `ditacraft.enableSnippets` | boolean | `true` | Enable code snippets |
 
@@ -513,7 +515,7 @@ DitaCraft includes comprehensive test coverage for all key features:
 - **Key Space Resolution Tests** - Tests key space building and caching
 
 **Test Coverage:**
-- ✅ 450+ passing tests covering all key features
+- ✅ 490+ passing tests covering all key features
 - ✅ Real-time validation on file open, save, and change (with debouncing)
 - ✅ DTD resolution and bundled DTD files
 - ✅ Error highlighting with line/column accuracy
@@ -654,8 +656,14 @@ Contributions are welcome! Please:
 
 ## Recent Updates
 
-### Version 0.4.0 (Current)
-**Enhanced Preview, Build Output & Map Visualizer Milestone**
+### Version 0.4.1 (Current)
+**TypesXML DTD Validation**
+- ✅ **TypesXML DTD Validation** - Pure TypeScript validation with 100% W3C conformance (no native dependencies)
+- ✅ **OASIS XML Catalog Support** - Full DITA public identifier resolution via TypesXML
+- ✅ **Three Validation Engines** - TypesXML (default), built-in, xmllint
+
+### Version 0.4.0
+**Enhanced Preview, Build Output & Map Visualizer**
 - ✅ **DITA Map Visualizer** - Interactive tree view showing map hierarchies with navigation
 - ✅ **Bidirectional Scroll Sync** - Editor and preview scroll positions stay synchronized
 - ✅ **Print Preview Mode** - Print-optimized view with dedicated print button
@@ -663,7 +671,7 @@ Contributions are welcome! Please:
 - ✅ **Log Level Detection** - Errors, warnings, info, debug messages auto-classified
 - ✅ **Build Timestamps** - Build start and completion times displayed
 - ✅ **Circular Reference Detection** - Map visualizer detects and warns about circular map references
-- ✅ **450+ Tests** - Comprehensive test suite with new feature coverage
+- ✅ **490+ Tests** - Comprehensive test suite with new feature coverage
 
 ### Version 0.3.0
 **Developer Experience & Quality Milestone**
@@ -738,6 +746,30 @@ See [ROADMAP.md](ROADMAP.md) for detailed feature breakdown and contribution opp
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+## Third-Party Licenses & Attributions
+
+DitaCraft includes third-party components with the following licenses:
+
+### OASIS DITA 1.3 Grammar Files
+
+This extension bundles DITA 1.3 DTD files for validation purposes.
+
+- **Copyright:** OASIS Open 2005, 2015. All rights reserved.
+- **Source:** [OASIS DITA Technical Committee](https://www.oasis-open.org/committees/dita/)
+- **License:** [OASIS IPR Policy](https://www.oasis-open.org/policies-guidelines/ipr/) (RF on Limited Terms)
+
+These grammar files are included to enable DTD-based validation of DITA documents, as permitted under the OASIS IPR Policy for implementing the standard.
+
+### NPM Dependencies
+
+| Package | License | Purpose |
+|---------|---------|---------|
+| `typesxml` | EPL-1.0 | Full DTD validation with OASIS catalog support |
+| `@xmldom/xmldom` | MIT | XML DOM parsing for fallback validation |
+| `fast-xml-parser` | MIT | Fast XML validation and parsing |
+
+For complete license texts, see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## License
 

@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.4.0)
+## Current Status (v0.4.1)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -10,7 +10,9 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 |---------|--------|--------------|
 | Syntax Highlighting | Complete | 100% |
 | Smart Navigation (Ctrl+Click) | Complete | 100% |
+| **TypesXML DTD Validation** | Complete | 100% |
 | DTD Validation (DITA 1.3) | Complete | 100% |
+| OASIS XML Catalog Support | Complete | 100% |
 | Key Space Resolution | Complete | 95% |
 | Real-time Validation | Complete | 100% |
 | DITA-OT Publishing | Complete | 100% |
@@ -31,6 +33,8 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Code Coverage (c8) | Complete | 100% |
 
 ### Recent Changes (v0.4.0)
+- **TypesXML DTD Validation** - Pure TypeScript validation engine with 100% W3C conformance
+- **OASIS XML Catalog Support** - Full DITA public identifier resolution (no native dependencies)
 - Completed Milestone 2: Enhanced Preview & Build Output
 - Completed Milestone 2.1: DITA Map Visualizer
 - Bidirectional scroll sync between editor and preview
@@ -40,7 +44,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - Build timestamps and duration display
 - Interactive DITA map visualizer with tree hierarchy
 - Circular reference detection in map parsing
-- 450+ passing tests with comprehensive coverage
+- 490+ passing tests with comprehensive coverage
 
 ---
 
@@ -199,6 +203,18 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 **Focus:** Expand validation capabilities and DTD support.
 
+### Validation Architecture (Completed in v0.4.0)
+- [x] TypesXML integration for pure TypeScript DTD validation
+- [x] OASIS XML Catalog support for DITA public identifier resolution
+- [x] 100% W3C XML Conformance Test Suite compliance
+- [x] Three validation engines: TypesXML (default), built-in, xmllint
+
+### Validation Architecture Improvements
+- [ ] Add DITA-OT validation option ("piggy-back" approach for comprehensive validation)
+- [ ] Allow external XML catalog configuration for users with custom DTDs
+- [ ] Document validation architecture for transparency (see `docs/VALIDATION-SPECIFICATION.md`)
+- [ ] Multi-layer validation: real-time (fast) → on-save (DTD) → deep (DITA-OT)
+
 ### Extended DTD Support
 - [ ] Add DITA 1.2 DTD support
 - [ ] Add DITA 2.0 DTD support (when stable)
@@ -212,6 +228,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [ ] Duplicate ID detection across topics
 - [ ] DITAVAL filter validation
 - [ ] Schematron rule support for custom validation
+- [ ] Conref/keyref target validation
 
 ### Workspace-Level Analysis
 - [ ] Validate entire workspace command
@@ -223,6 +240,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 **Good First Issues:**
 - Add command to validate all DITA files in workspace
 - Implement duplicate ID detection
+- ~~Add external catalog configuration setting~~ (Done via TypesXML OASIS catalog)
 
 ---
 
@@ -370,7 +388,8 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.1.x | Initial release, basic features | Released |
 | v0.2.x | Key space, navigation, security, CI security audit | Released |
 | v0.3.0 | Developer experience & quality | Released |
-| v0.4.0 | Preview, build output & Map Visualizer | **Released** |
+| v0.4.0 | Preview, build output & Map Visualizer | Released |
+| v0.4.1 | TypesXML DTD Validation | **Current** |
 | v0.5.0 | IntelliSense & content assistance | Next |
 | v0.6.0 | Project views & navigation | Planned |
 | v0.7.0 | Advanced validation & DTD | Planned |
@@ -379,4 +398,4 @@ Have ideas for features not listed here? We'd love to hear from you!
 
 ---
 
-*Last updated: January 2025 (v0.4.0 released with Map Visualizer)*
+*Last updated: January 2025 (v0.4.1 with TypesXML DTD validation)*
