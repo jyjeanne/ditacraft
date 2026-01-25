@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { KeySpaceResolver } from '../utils/keySpaceResolver';
 import { logger } from '../utils/logger';
+import { configManager } from '../utils/configurationManager';
 
 /**
  * Custom DocumentLink that stores additional metadata for deferred resolution
@@ -52,11 +53,50 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
     }
 
     /**
+     * P1-7 Fix: Safely calculate the start position of a captured value within a match
+     * Searches backwards from the end to find the opening quote, avoiding indexOf unreliability
+     * @param matchText The full matched text (match[0])
+     * @param capturedValue The captured group value (match[1])
+     * @returns Offset within matchText where capturedValue starts
+     */
+    private getValueStartOffset(matchText: string, capturedValue: string): number {
+        // The captured value is always followed by a closing quote at the end of the match
+        // Search backwards from the end to find the opening quote of the captured value
+
+        // Find where the closing quote is (should be at end of match, possibly followed by > or />)
+        const trimmedMatch = matchText.replace(/\/?>\s*$/, ''); // Remove trailing > if present
+        const lastChar = trimmedMatch.charAt(trimmedMatch.length - 1);
+
+        if (lastChar === '"' || lastChar === "'") {
+            // The value ends just before this quote
+            // Search backwards to find the matching opening quote
+            const valueEndPos = trimmedMatch.length - 1;
+            const valueStartPos = valueEndPos - capturedValue.length;
+
+            // Verify that what's at this position matches our captured value
+            const extracted = trimmedMatch.substring(valueStartPos, valueEndPos);
+            if (extracted === capturedValue) {
+                return valueStartPos;
+            }
+        }
+
+        // Fallback: use lastIndexOf which is more reliable than indexOf for this case
+        // since the value appears at the end of the relevant portion
+        const lastIndex = matchText.lastIndexOf(capturedValue);
+        if (lastIndex !== -1) {
+            return lastIndex;
+        }
+
+        // Final fallback to indexOf
+        return matchText.indexOf(capturedValue);
+    }
+
+    /**
      * Get max link matches from configuration
+     * P1-4 Fix: Use centralized configManager
      */
     private getMaxMatches(): number {
-        const config = vscode.workspace.getConfiguration('ditacraft');
-        return config.get<number>('maxLinkMatches', 10000);
+        return configManager.get('maxLinkMatches');
     }
 
     /**
@@ -130,7 +170,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
 
             // Calculate the position of the href value (not the attribute name)
-            const hrefValueStart = match.index + match[0].indexOf(hrefValue);
+            const hrefValueStart = match.index! + this.getValueStartOffset(match[0], hrefValue);
             const startPos = document.positionAt(hrefValueStart);
             const endPos = document.positionAt(hrefValueStart + hrefValue.length);
             const range = new vscode.Range(startPos, endPos);
@@ -180,7 +220,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
 
             // Calculate position
-            const valueStart = match.index + match[0].indexOf(conrefValue);
+            const valueStart = match.index! + this.getValueStartOffset(match[0], conrefValue);
             const startPos = document.positionAt(valueStart);
             const endPos = document.positionAt(valueStart + conrefValue.length);
             const range = new vscode.Range(startPos, endPos);
@@ -259,7 +299,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             const elementPart = parts.length > 1 ? parts.slice(1).join('/') : undefined;
 
             // Calculate position
-            const valueStart = match.index + match[0].indexOf(conkeyrefValue);
+            const valueStart = match.index! + this.getValueStartOffset(match[0], conkeyrefValue);
             const startPos = document.positionAt(valueStart);
             const endPos = document.positionAt(valueStart + conkeyrefValue.length);
             const range = new vscode.Range(startPos, endPos);
@@ -355,7 +395,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
 
             // Calculate position
-            const valueStart = match.index + match[0].indexOf(keyrefValue);
+            const valueStart = match.index! + this.getValueStartOffset(match[0], keyrefValue);
             const startPos = document.positionAt(valueStart);
             const endPos = document.positionAt(valueStart + keyrefValue.length);
             const range = new vscode.Range(startPos, endPos);
@@ -450,7 +490,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
 
             // Calculate the position of the href value
-            const valueStart = match.index + match[0].indexOf(hrefValue);
+            const valueStart = match.index! + this.getValueStartOffset(match[0], hrefValue);
             const startPos = document.positionAt(valueStart);
             const endPos = document.positionAt(valueStart + hrefValue.length);
             const range = new vscode.Range(startPos, endPos);
@@ -536,7 +576,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
 
             // Calculate position
-            const valueStart = match.index + match[0].indexOf(keyrefValue);
+            const valueStart = match.index! + this.getValueStartOffset(match[0], keyrefValue);
             const startPos = document.positionAt(valueStart);
             const endPos = document.positionAt(valueStart + keyrefValue.length);
             const range = new vscode.Range(startPos, endPos);
@@ -607,7 +647,7 @@ export class DitaLinkProvider implements vscode.DocumentLinkProvider {
             }
 
             // Calculate the position of the href value
-            const valueStart = match.index + match[0].indexOf(hrefValue);
+            const valueStart = match.index! + this.getValueStartOffset(match[0], hrefValue);
             const startPos = document.positionAt(valueStart);
             const endPos = document.positionAt(valueStart + hrefValue.length);
             const range = new vscode.Range(startPos, endPos);

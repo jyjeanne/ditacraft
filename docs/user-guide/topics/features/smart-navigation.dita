@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="smart-navigation">
+    <title>Smart Navigation</title>
+    <shortdesc>Navigate between DITA files using Ctrl+Click on reference attributes.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>Smart Navigation allows you to quickly move between related DITA files by clicking on reference attributes. Hold <uicontrol>Ctrl</uicontrol> (or <uicontrol>Cmd</uicontrol> on Mac) and click on any supported attribute value to navigate to the target.</p>
+        </section>
+
+        <section id="href-navigation">
+            <title>href Navigation</title>
+            <p>The <codeph>href</codeph> attribute is used in maps to reference topics and in topics to link to other content.</p>
+            <p><b>Examples:</b></p>
+            <codeblock>&lt;!-- In a ditamap --&gt;
+&lt;topicref href="topics/getting-started.dita"/&gt;
+
+&lt;!-- In a topic --&gt;
+&lt;xref href="reference-guide.dita#config-settings"/&gt;</codeblock>
+            <p>Ctrl+Click on the href value opens the referenced file. If the href includes a fragment identifier (#id), the cursor moves to that element.</p>
+        </section>
+
+        <section id="conref-navigation">
+            <title>conref Navigation</title>
+            <p>Content references (<codeph>conref</codeph>) pull content from one location to another. Navigation takes you to the source element.</p>
+            <p><b>Example:</b></p>
+            <codeblock>&lt;p conref="shared/warnings.dita#warnings/safety-note"/&gt;</codeblock>
+            <p>Ctrl+Click navigates to <filepath>shared/warnings.dita</filepath> and positions the cursor at the element with <codeph>id="safety-note"</codeph>.</p>
+        </section>
+
+        <section id="keyref-navigation">
+            <title>keyref Navigation</title>
+            <p>Key references use indirect addressing through keys defined in a map.</p>
+            <p><b>Map Definition:</b></p>
+            <codeblock>&lt;keydef keys="product-name"&gt;
+    &lt;topicmeta&gt;
+        &lt;keywords&gt;&lt;keyword&gt;DitaCraft&lt;/keyword&gt;&lt;/keywords&gt;
+    &lt;/topicmeta&gt;
+&lt;/keydef&gt;
+
+&lt;keydef keys="install-guide" href="topics/installation.dita"/&gt;</codeblock>
+            <p><b>Usage:</b></p>
+            <codeblock>&lt;ph keyref="product-name"/&gt;  &lt;!-- Resolves to "DitaCraft" --&gt;
+&lt;xref keyref="install-guide"/&gt;  &lt;!-- Links to installation.dita --&gt;</codeblock>
+            <p>Ctrl+Click on a keyref:</p>
+            <ol>
+                <li>Resolves the key using the current key space</li>
+                <li>Navigates to the key's target (href or definition)</li>
+            </ol>
+        </section>
+
+        <section id="conkeyref-navigation">
+            <title>conkeyref Navigation</title>
+            <p>Content key references combine key resolution with content referencing.</p>
+            <p><b>Example:</b></p>
+            <codeblock>&lt;!-- Key definition --&gt;
+&lt;keydef keys="shared-content" href="shared/common.dita"/&gt;
+
+&lt;!-- Usage --&gt;
+&lt;note conkeyref="shared-content/warning-note"/&gt;</codeblock>
+            <p>Ctrl+Click resolves <codeph>shared-content</codeph> to <filepath>shared/common.dita</filepath>, then navigates to <codeph>#warning-note</codeph>.</p>
+        </section>
+
+        <section id="navigation-tips">
+            <title>Navigation Tips</title>
+            <ul>
+                <li><b>Hover Preview:</b> Hover over a reference to see a preview without navigating</li>
+                <li><b>Go Back:</b> Use <uicontrol>Alt+Left Arrow</uicontrol> to return to the previous location</li>
+                <li><b>Peek Definition:</b> Use <uicontrol>Alt+F12</uicontrol> to peek without leaving your file</li>
+                <li><b>Open to Side:</b> <uicontrol>Ctrl+Alt+Click</uicontrol> opens the target in a split editor</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

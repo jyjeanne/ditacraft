@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd">
+<bookmap id="ditacraft-user-guide">
+    <booktitle>
+        <mainbooktitle>DitaCraft User Guide</mainbooktitle>
+        <booktitlealt>The Complete Guide to DITA Editing in VS Code</booktitlealt>
+    </booktitle>
+
+    <bookmeta>
+        <authorinformation>
+            <personinfo>
+                <namedetails>
+                    <personname>Jeremy Jeanne</personname>
+                </namedetails>
+            </personinfo>
+        </authorinformation>
+        <critdates>
+            <created date="2025-01-25"/>
+            <revised modified="2025-01-25"/>
+        </critdates>
+        <bookrights>
+            <copyrfirst><year>2025</year></copyrfirst>
+            <bookowner>
+                <organization>DitaCraft Project</organization>
+            </bookowner>
+        </bookrights>
+        <bookid>
+            <bookpartno>UG-001</bookpartno>
+            <edition>1.0</edition>
+            <volume>1</volume>
+            <vrm version="0" release="4" modification="2"/>
+        </bookid>
+        <prodinfo>
+            <prodname>DitaCraft</prodname>
+            <vrmlist>
+                <vrm version="0" release="4" modification="2"/>
+            </vrmlist>
+        </prodinfo>
+    </bookmeta>
+
+    <!-- Frontmatter -->
+    <frontmatter>
+        <topicref href="topics/frontmatter/cover.dita" toc="no">
+            <topicmeta>
+                <navtitle>Cover</navtitle>
+            </topicmeta>
+        </topicref>
+        <booklists>
+            <toc/>
+        </booklists>
+        <preface href="topics/frontmatter/preface.dita">
+            <topicmeta>
+                <navtitle>Preface</navtitle>
+            </topicmeta>
+        </preface>
+        <notices href="topics/frontmatter/notices.dita">
+            <topicmeta>
+                <navtitle>Notices</navtitle>
+            </topicmeta>
+        </notices>
+    </frontmatter>
+
+    <!-- Part I: Getting Started -->
+    <part navtitle="Getting Started">
+        <chapter href="topics/introduction.dita">
+            <topicmeta>
+                <navtitle>Introduction to DitaCraft</navtitle>
+            </topicmeta>
+        </chapter>
+        <chapter href="topics/getting-started.dita">
+            <topicmeta>
+                <navtitle>Installation and Setup</navtitle>
+            </topicmeta>
+        </chapter>
+    </part>
+
+    <!-- Part II: Using DitaCraft -->
+    <part navtitle="Using DitaCraft">
+        <chapter format="ditamap" href="topics/commands/commands.ditamap">
+            <topicmeta>
+                <navtitle>Commands</navtitle>
+            </topicmeta>
+        </chapter>
+        <chapter format="ditamap" href="topics/features/features.ditamap">
+            <topicmeta>
+                <navtitle>Features</navtitle>
+            </topicmeta>
+        </chapter>
+    </part>
+
+    <!-- Part III: Configuration -->
+    <part navtitle="Configuration">
+        <chapter format="ditamap" href="topics/settings/settings.ditamap">
+            <topicmeta>
+                <navtitle>Settings</navtitle>
+            </topicmeta>
+        </chapter>
+    </part>
+
+    <!-- Appendixes -->
+    <appendix href="topics/reference/keyboard-shortcuts.dita">
+        <topicmeta>
+            <navtitle>Keyboard Shortcuts</navtitle>
+        </topicmeta>
+    </appendix>
+
+    <!-- Backmatter -->
+    <backmatter>
+        <amendments href="topics/glossary/glossary.ditamap" format="ditamap">
+            <topicmeta>
+                <navtitle>Glossary</navtitle>
+            </topicmeta>
+        </amendments>
+        <booklists>
+            <glossarylist/>
+            <indexlist/>
+        </booklists>
+    </backmatter>
+</bookmap>

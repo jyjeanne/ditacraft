@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-topicref">
+    <glossterm>topicref</glossterm>
+    <glossdef>
+        <p>A DITA map element that references a topic to include in the publication. The <codeph>&lt;topicref&gt;</codeph> element uses the <codeph>href</codeph> attribute to specify the topic file and can be nested to create hierarchy.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/file-creation-commands.dita"/>
+        <link href="../features/map-visualizer.dita"/>
+    </related-links>
+</glossentry>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="glossary-map">
+    <title>Glossary</title>
+
+    <!-- A -->
+    <topicref href="gloss-auto-validate.dita" keys="gloss-auto-validate"/>
+
+    <!-- B -->
+    <topicref href="gloss-bookmap.dita" keys="gloss-bookmap"/>
+    <topicref href="gloss-built-in-engine.dita" keys="gloss-built-in"/>
+
+    <!-- C -->
+    <topicref href="gloss-conkeyref.dita" keys="gloss-conkeyref"/>
+    <topicref href="gloss-conref.dita" keys="gloss-conref"/>
+    <topicref href="gloss-concept.dita" keys="gloss-concept"/>
+
+    <!-- D -->
+    <topicref href="gloss-dita.dita" keys="gloss-dita"/>
+    <topicref href="gloss-dita-ot.dita" keys="gloss-dita-ot"/>
+    <topicref href="gloss-ditamap.dita" keys="gloss-ditamap"/>
+    <topicref href="gloss-dtd.dita" keys="gloss-dtd"/>
+
+    <!-- H -->
+    <topicref href="gloss-href.dita" keys="gloss-href"/>
+
+    <!-- K -->
+    <topicref href="gloss-keyboard-shortcuts.dita" keys="gloss-keyboard-shortcuts"/>
+    <topicref href="gloss-keydef.dita" keys="gloss-keydef"/>
+    <topicref href="gloss-keyref.dita" keys="gloss-keyref"/>
+    <topicref href="gloss-keyspace.dita" keys="gloss-keyspace"/>
+
+    <!-- L -->
+    <topicref href="gloss-live-preview.dita" keys="gloss-live-preview"/>
+
+    <!-- M -->
+    <topicref href="gloss-map-visualizer.dita" keys="gloss-map-visualizer"/>
+
+    <!-- R -->
+    <topicref href="gloss-rate-limiting.dita" keys="gloss-rate-limiting"/>
+    <topicref href="gloss-reference.dita" keys="gloss-reference"/>
+
+    <!-- S -->
+    <topicref href="gloss-scroll-sync.dita" keys="gloss-scroll-sync"/>
+    <topicref href="gloss-smart-navigation.dita" keys="gloss-smart-navigation"/>
+
+    <!-- T -->
+    <topicref href="gloss-task.dita" keys="gloss-task"/>
+    <topicref href="gloss-topic.dita" keys="gloss-topic"/>
+    <topicref href="gloss-topicref.dita" keys="gloss-topicref"/>
+    <topicref href="gloss-typesxml.dita" keys="gloss-typesxml"/>
+
+    <!-- V -->
+    <topicref href="gloss-validation.dita" keys="gloss-validation"/>
+    <topicref href="gloss-validation-engine.dita" keys="gloss-validation-engine"/>
+
+    <!-- X -->
+    <topicref href="gloss-xmllint.dita" keys="gloss-xmllint"/>
+</map>

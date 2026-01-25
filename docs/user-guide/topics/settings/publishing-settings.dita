@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="publishing-settings">
+    <title>Publishing Settings</title>
+    <shortdesc>Configure output directory and DITA-OT publishing options.</shortdesc>
+
+    <refbody>
+        <section id="output-directory">
+            <title>ditacraft.outputDirectory</title>
+            <p><b>Type:</b> String</p>
+            <p><b>Default:</b> <codeph>"out"</codeph></p>
+            <p>The directory where published output is generated. Can be an absolute path or relative to the workspace root.</p>
+            <p><b>Examples:</b></p>
+            <ul>
+                <li><codeph>"out"</codeph> - Creates <filepath>{workspace}/out/</filepath></li>
+                <li><codeph>"build/output"</codeph> - Creates <filepath>{workspace}/build/output/</filepath></li>
+                <li><codeph>"C:/Documentation/Output"</codeph> - Uses absolute path</li>
+            </ul>
+            <p><b>Output Structure:</b></p>
+            <p>Within the output directory, DitaCraft creates subdirectories for each format:</p>
+            <codeblock>out/
+├── html5/
+│   ├── index.html
+│   └── topics/
+├── pdf/
+│   └── document.pdf
+└── xhtml/
+    └── ...</codeblock>
+        </section>
+
+        <section id="default-format">
+            <title>Default Publishing Format</title>
+            <p>DitaCraft supports publishing to multiple formats via DITA-OT:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Format</stentry>
+                    <stentry>Description</stentry>
+                    <stentry>Requirements</stentry>
+                </sthead>
+                <strow>
+                    <stentry>html5</stentry>
+                    <stentry>Modern responsive HTML5</stentry>
+                    <stentry>None (built-in)</stentry>
+                </strow>
+                <strow>
+                    <stentry>pdf</stentry>
+                    <stentry>PDF via Apache FOP</stentry>
+                    <stentry>FOP (included in DITA-OT)</stentry>
+                </strow>
+                <strow>
+                    <stentry>xhtml</stentry>
+                    <stentry>XHTML 1.0 Transitional</stentry>
+                    <stentry>None (built-in)</stentry>
+                </strow>
+                <strow>
+                    <stentry>eclipsehelp</stentry>
+                    <stentry>Eclipse Help System</stentry>
+                    <stentry>None (built-in)</stentry>
+                </strow>
+                <strow>
+                    <stentry>htmlhelp</stentry>
+                    <stentry>Microsoft HTML Help</stentry>
+                    <stentry>HTML Help Compiler</stentry>
+                </strow>
+                <strow>
+                    <stentry>markdown</stentry>
+                    <stentry>Markdown output</stentry>
+                    <stentry>None (built-in)</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="build-parameters">
+            <title>DITA-OT Build Parameters</title>
+            <p>DitaCraft passes the following parameters to DITA-OT during publishing:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Parameter</stentry>
+                    <stentry>Value</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>-i</codeph></stentry>
+                    <stentry>Input file (current map or topic)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>-f</codeph></stentry>
+                    <stentry>Output format (html5, pdf, etc.)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>-o</codeph></stentry>
+                    <stentry>Output directory</stentry>
+                </strow>
+            </simpletable>
+            <p>For advanced DITA-OT configuration, use a <filepath>build.xml</filepath> or <filepath>plugin.xml</filepath> file in your project.</p>
+        </section>
+
+        <section id="clean-output">
+            <title>Clean Output</title>
+            <p>By default, publishing overwrites existing output in the target directory. To ensure a clean build:</p>
+            <ol>
+                <li>Delete the output directory manually, or</li>
+                <li>Use a different output directory for each build</li>
+            </ol>
+        </section>
+
+        <section id="viewing-output">
+            <title>Viewing Published Output</title>
+            <p>After publishing completes:</p>
+            <ul>
+                <li><b>HTML5:</b> Open <filepath>out/html5/index.html</filepath> in a browser</li>
+                <li><b>PDF:</b> Open the generated PDF file in a PDF reader</li>
+                <li><b>VS Code:</b> Right-click HTML files and select "Open with Live Server"</li>
+            </ul>
+        </section>
+    </refbody>
+</reference>

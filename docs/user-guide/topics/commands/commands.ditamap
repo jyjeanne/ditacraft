@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="commands-chapter">
+    <title>Commands</title>
+
+    <topicref href="commands-overview.dita" keys="commands-overview">
+        <topicmeta>
+            <navtitle>Commands Overview</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="validation-commands.dita" keys="validation-commands">
+        <topicmeta>
+            <navtitle>Validation Commands</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="publishing-commands.dita" keys="publishing-commands">
+        <topicmeta>
+            <navtitle>Publishing Commands</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="file-creation-commands.dita" keys="file-creation-commands">
+        <topicmeta>
+            <navtitle>File Creation Commands</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="navigation-commands.dita" keys="navigation-commands">
+        <topicmeta>
+            <navtitle>Navigation Commands</navtitle>
+        </topicmeta>
+    </topicref>
+</map>

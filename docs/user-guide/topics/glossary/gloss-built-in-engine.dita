@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-built-in-engine">
+    <glossterm>Built-in Engine</glossterm>
+    <glossdef>
+        <p>A lightweight validation engine bundled with DitaCraft that provides fast XML syntax checking and basic content model validation. Faster than TypesXML but with limited DTD support.</p>
+    </glossdef>
+    <related-links>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

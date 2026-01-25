@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-keydef">
+    <glossterm>keydef</glossterm>
+    <glossdef>
+        <p>Key definition. A DITA map element that defines a key and its associated resource or value. Keys enable indirect addressing and centralized management of reusable content.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/key-resolution.dita"/>
+    </related-links>
+</glossentry>

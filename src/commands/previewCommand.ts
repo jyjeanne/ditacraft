@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
 import { DitaPreviewPanel } from '../providers/previewPanel';
@@ -142,6 +142,7 @@ function validateInputFile(ditaOt: DitaOtWrapper, filePath: string): void {
 
 /**
  * Generate HTML5 output if needed (checks cache and publishes if necessary)
+ * P1-1 Fix: Use async file operations
  */
 async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: string): Promise<string> {
     // Generate HTML5 output
@@ -150,14 +151,18 @@ async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: stri
 
     // Check if preview already exists
     let needsPublish = true;
-    if (fs.existsSync(outputDir)) {
-        const fileStats = fs.statSync(filePath);
-        const outputStats = fs.statSync(outputDir);
+    try {
+        const [fileStats, outputStats] = await Promise.all([
+            fs.stat(filePath),
+            fs.stat(outputDir)
+        ]);
 
         // If output is newer than source, use cached version
         if (outputStats.mtime > fileStats.mtime) {
             needsPublish = false;
         }
+    } catch {
+        // Output directory doesn't exist or can't be accessed - needs publish
     }
 
     // Publish to HTML5 if needed
@@ -193,8 +198,8 @@ async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: stri
 async function displayPreview(sourceFilePath: string, outputDir: string): Promise<void> {
     const fileName = path.basename(sourceFilePath, path.extname(sourceFilePath));
 
-    // Find the main HTML file
-    const htmlFile = findMainHtmlFile(outputDir, fileName);
+    // Find the main HTML file (P1-1 Fix: await async function)
+    const htmlFile = await findMainHtmlFile(outputDir, fileName);
 
     if (!htmlFile) {
         throw new Error('Could not find generated HTML file');
@@ -229,25 +234,28 @@ function handlePreviewError(error: unknown): void {
 /**
  * Find the main HTML file in the output directory
  * Exported for testing
+ * P1-1 Fix: Use async file operations
  */
-export function findMainHtmlFile(outputDir: string, baseName: string): string | null {
+export async function findMainHtmlFile(outputDir: string, baseName: string): Promise<string | null> {
     // Try common patterns
     const patterns = [
         `${baseName}.html`,
-        'index.html',
-        path.join('index.html')
+        'index.html'
     ];
 
     for (const pattern of patterns) {
         const fullPath = path.join(outputDir, pattern);
-        if (fs.existsSync(fullPath)) {
+        try {
+            await fs.access(fullPath);
             return fullPath;
+        } catch {
+            // File doesn't exist, try next pattern
         }
     }
 
     // Fallback: find any .html file
     try {
-        const files = fs.readdirSync(outputDir);
+        const files = await fs.readdir(outputDir);
         const htmlFiles = files.filter((f: string) => f.endsWith('.html'));
 
         if (htmlFiles.length > 0) {

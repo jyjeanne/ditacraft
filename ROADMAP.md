@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.4.1)
+## Current Status (v0.4.2)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -11,12 +11,14 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | Syntax Highlighting | Complete | 100% |
 | Smart Navigation (Ctrl+Click) | Complete | 100% |
 | **TypesXML DTD Validation** | Complete | 100% |
+| **Modular Validation Engines** | Complete | 100% |
 | DTD Validation (DITA 1.3) | Complete | 100% |
 | OASIS XML Catalog Support | Complete | 100% |
 | Key Space Resolution | Complete | 95% |
 | Real-time Validation | Complete | 100% |
+| **Rate Limiting (DoS Protection)** | Complete | 100% |
 | DITA-OT Publishing | Complete | 100% |
-| Live HTML5 Preview | Complete | 95% |
+| Live HTML5 Preview | Complete | 100% |
 | Preview Theme Support | Complete | 100% |
 | Preview Custom CSS | Complete | 100% |
 | Preview Scroll Sync | Complete | 100% |
@@ -31,20 +33,22 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | CI Security Audit | Complete | 100% |
 | Error Handling Utilities | Complete | 100% |
 | Code Coverage (c8) | Complete | 100% |
+| **Architecture Documentation** | Complete | 100% |
+| **DITA User Guide** | Complete | 100% |
 
-### Recent Changes (v0.4.0)
+### Recent Changes (v0.4.2)
+- **Modular Validation Engine** - Refactored to pluggable architecture with Strategy pattern
+- **Rate Limiting** - DoS protection for validation (10 req/sec per file)
+- **Adaptive Cache Cleanup** - Skip cleanup when caches empty (performance optimization)
+- **Architecture Documentation** - Comprehensive ARCHITECTURE.md with data flow diagrams
+- **DITA User Guide** - Complete 55-file documentation in DITA format (bookmap, glossary, keyboard shortcuts, index)
+- **Preview Scroll Sync Fix** - Fixed scroll sync for content smaller than viewport (scrollHeight guards)
+- **Preview Print Mode Fix** - Fixed toolbar injection fallback for non-standard HTML structures
+- **547+ Tests** - Expanded test suite with security and edge case coverage
+
+### Previous Changes (v0.4.1)
 - **TypesXML DTD Validation** - Pure TypeScript validation engine with 100% W3C conformance
 - **OASIS XML Catalog Support** - Full DITA public identifier resolution (no native dependencies)
-- Completed Milestone 2: Enhanced Preview & Build Output
-- Completed Milestone 2.1: DITA Map Visualizer
-- Bidirectional scroll sync between editor and preview
-- Print preview mode with dedicated print button
-- Syntax-highlighted DITA-OT build output using LogOutputChannel
-- Automatic log level detection (error, warn, info, debug, trace)
-- Build timestamps and duration display
-- Interactive DITA map visualizer with tree hierarchy
-- Circular reference detection in map parsing
-- 490+ passing tests with comprehensive coverage
 
 ---
 
@@ -112,7 +116,9 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] Tests for preview configuration settings
 - [x] Tests for file creation commands (validate, generate content)
 - [x] Tests for preview command (validateFilePath, findMainHtmlFile)
-- [x] Total: 430+ passing tests
+- [x] Rate limiter integration tests
+- [x] Security and edge case tests
+- [x] Total: 547+ passing tests
 
 ---
 
@@ -389,7 +395,8 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.2.x | Key space, navigation, security, CI security audit | Released |
 | v0.3.0 | Developer experience & quality | Released |
 | v0.4.0 | Preview, build output & Map Visualizer | Released |
-| v0.4.1 | TypesXML DTD Validation | **Current** |
+| v0.4.1 | TypesXML DTD Validation | Released |
+| v0.4.2 | Architecture, Rate Limiting, 547+ Tests | **Current** |
 | v0.5.0 | IntelliSense & content assistance | Next |
 | v0.6.0 | Project views & navigation | Planned |
 | v0.7.0 | Advanced validation & DTD | Planned |
@@ -398,4 +405,4 @@ Have ideas for features not listed here? We'd love to hear from you!
 
 ---
 
-*Last updated: January 2025 (v0.4.1 with TypesXML DTD validation)*
+*Last updated: January 2025 (v0.4.2 with modular validation, rate limiting, DITA User Guide, and preview fixes)*

@@ -359,7 +359,13 @@ export class DitaOtDiagnostics implements vscode.Disposable {
             diagnostic.source = 'DITA-OT';
             diagnostic.code = issue.code !== 'UNKNOWN' ? issue.code : undefined;
 
-            diagnosticsByFile.get(fileKey)!.push(diagnostic);
+            // P0-2 Fix: Safe access to map entry (avoid non-null assertion)
+            const fileDiagnostics = diagnosticsByFile.get(fileKey);
+            if (fileDiagnostics) {
+                fileDiagnostics.push(diagnostic);
+            } else {
+                diagnosticsByFile.set(fileKey, [diagnostic]);
+            }
         }
 
         // Set diagnostics for each file

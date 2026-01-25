@@ -8,7 +8,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { logger } from './logger';
-import { MAX_LINK_MATCHES, MAX_MAP_REFERENCES, TIME_CONSTANTS, CACHE_DEFAULTS, DEBOUNCE_CONSTANTS } from './constants';
+import { MAX_MAP_REFERENCES, TIME_CONSTANTS, CACHE_DEFAULTS, DEBOUNCE_CONSTANTS } from './constants';
+import { configManager } from './configurationManager';
 
 /**
  * Represents a single key definition in DITA
@@ -57,12 +58,13 @@ interface CacheConfig {
 export class KeySpaceResolver implements vscode.Disposable {
     private keySpaceCache: Map<string, KeySpace> = new Map();
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
-    private fileWatcher: vscode.FileSystemWatcher | undefined;
     private cacheConfig: CacheConfig;
     private disposables: vscode.Disposable[] = [];
     private rootMapCacheTtl: number = CACHE_DEFAULTS.ROOT_MAP_CACHE_TTL; // 1 minute cache for root map lookups
     private debounceTimer: NodeJS.Timeout | undefined;
     private pendingInvalidations: Set<string> = new Set();
+    // P1-2 Fix: Track in-progress builds to prevent duplicate concurrent work
+    private pendingBuilds: Map<string, Promise<KeySpace>> = new Map();
 
     constructor() {
         this.cacheConfig = this.loadCacheConfig();
@@ -79,17 +81,32 @@ export class KeySpaceResolver implements vscode.Disposable {
     /**
      * Set up periodic cache cleanup timer
      * Runs cleanup every 1/3 of TTL to ensure timely cleanup
+     * P2-3 Fix: Use named constant for cleanup interval ratio
+     * P3-7 Fix: Adaptive cleanup - only runs when cache has entries
      */
     private setupPeriodicCleanup(): void {
-        const cleanupInterval = Math.max(DEBOUNCE_CONSTANTS.MIN_CLEANUP_INTERVAL_MS, this.cacheConfig.ttlMs / 3); // At least 5 minutes
-        
+        const cleanupInterval = Math.max(
+            DEBOUNCE_CONSTANTS.MIN_CLEANUP_INTERVAL_MS,
+            this.cacheConfig.ttlMs / DEBOUNCE_CONSTANTS.CACHE_CLEANUP_INTERVAL_RATIO
+        );
+
         const cleanupTimer = setInterval(() => {
-            logger.debug('Running periodic cache cleanup');
+            // P3-7: Skip cleanup if caches are empty (adaptive cleanup)
+            if (this.keySpaceCache.size === 0 && this.rootMapCache.size === 0) {
+                logger.debug('Skipping cache cleanup - caches are empty');
+                return;
+            }
+
+            logger.debug('Running periodic cache cleanup', {
+                keySpaceCacheSize: this.keySpaceCache.size,
+                rootMapCacheSize: this.rootMapCache.size
+            });
             this.cleanupExpiredCacheEntries();
+            this.cleanupExpiredRootMapCache();
         }, cleanupInterval);
 
         this.disposables.push({ dispose: () => clearInterval(cleanupTimer) });
-        
+
         logger.debug('Periodic cache cleanup scheduled', {
             intervalMs: cleanupInterval,
             ttlMs: this.cacheConfig.ttlMs
@@ -98,10 +115,10 @@ export class KeySpaceResolver implements vscode.Disposable {
 
     /**
      * Load cache configuration from VS Code settings
+     * P1-4 Fix: Use centralized configManager
      */
     private loadCacheConfig(): CacheConfig {
-        const config = vscode.workspace.getConfiguration('ditacraft');
-        const ttlMinutes = config.get<number>('keySpaceCacheTtlMinutes', CACHE_DEFAULTS.DEFAULT_TTL_MINUTES);
+        const ttlMinutes = configManager.get('keySpaceCacheTtlMinutes');
         return {
             ttlMs: ttlMinutes * TIME_CONSTANTS.ONE_MINUTE,
             maxSize: CACHE_DEFAULTS.MAX_KEY_SPACES  // Max 10 root maps
@@ -114,28 +131,30 @@ export class KeySpaceResolver implements vscode.Disposable {
     public reloadCacheConfig(): void {
         const oldConfig = this.cacheConfig;
         this.cacheConfig = this.loadCacheConfig();
-        
+
         logger.debug('KeySpaceResolver cache config reloaded', {
             oldTtlMinutes: oldConfig.ttlMs / 60000,
             newTtlMinutes: this.cacheConfig.ttlMs / 60000,
             maxSize: this.cacheConfig.maxSize
         });
-        
+
         // Immediately clean up with new TTL
         this.cleanupExpiredCacheEntries();
     }
 
     /**
      * Get max link matches from configuration
+     * P1-4 Fix: Use centralized configManager
      */
     private getMaxMatches(): number {
-        const config = vscode.workspace.getConfiguration('ditacraft');
-        return config.get<number>('maxLinkMatches', MAX_LINK_MATCHES);
+        return configManager.get('maxLinkMatches');
     }
 
     /**
-     * Validate that a path is within workspace bounds
-     * Prevents path traversal attacks (e.g., ../../etc/passwd)
+     * Check if a path is safely within the workspace boundaries.
+     * Prevents path traversal attacks (e.g., ../../etc/passwd).
+     * Only allows paths INSIDE workspace folders, not the root itself,
+     * to prevent potential access to sensitive files at workspace root level.
      */
     private isPathWithinWorkspace(absolutePath: string): boolean {
         const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -147,40 +166,50 @@ export class KeySpaceResolver implements vscode.Disposable {
         const normalizedPath = path.normalize(absolutePath);
         return workspaceFolders.some(folder => {
             const normalizedWorkspace = path.normalize(folder.uri.fsPath);
-            return normalizedPath.startsWith(normalizedWorkspace + path.sep) ||
-                   normalizedPath === normalizedWorkspace;
+            // Only allow paths that are INSIDE the workspace, not equal to workspace root
+            return normalizedPath.startsWith(normalizedWorkspace + path.sep);
         });
     }
 
     /**
      * Set up file system watcher for map files
+     * P2-7 Fix: Use try-finally to ensure watcher is disposed if setup fails
      */
     private setupFileWatcher(): void {
         // Watch for changes to .ditamap and .bookmap files
-        this.fileWatcher = vscode.workspace.createFileSystemWatcher(
-            '**/*.{ditamap,bookmap}',
-            false,  // Don't ignore creates
-            false,  // Don't ignore changes
-            false   // Don't ignore deletes
-        );
+        let watcher: vscode.FileSystemWatcher | null = null;
+        try {
+            watcher = vscode.workspace.createFileSystemWatcher(
+                '**/*.{ditamap,bookmap}',
+                false,  // Don't ignore creates
+                false,  // Don't ignore changes
+                false   // Don't ignore deletes
+            );
 
-        // Invalidate cache when maps change (with debouncing)
-        this.fileWatcher.onDidChange(uri => {
-            logger.debug('Map file changed, queueing invalidation', { file: uri.fsPath });
-            this.queueInvalidation(uri.fsPath);
-        });
+            // Invalidate cache when maps change (with debouncing)
+            watcher.onDidChange(uri => {
+                logger.debug('Map file changed, queueing invalidation', { file: uri.fsPath });
+                this.queueInvalidation(uri.fsPath);
+            });
 
-        this.fileWatcher.onDidCreate(uri => {
-            logger.debug('Map file created, queueing invalidation', { file: uri.fsPath });
-            this.queueInvalidation(uri.fsPath);
-        });
+            watcher.onDidCreate(uri => {
+                logger.debug('Map file created, queueing invalidation', { file: uri.fsPath });
+                this.queueInvalidation(uri.fsPath);
+            });
 
-        this.fileWatcher.onDidDelete(uri => {
-            logger.debug('Map file deleted, queueing invalidation', { file: uri.fsPath });
-            this.queueInvalidation(uri.fsPath);
-        });
+            watcher.onDidDelete(uri => {
+                logger.debug('Map file deleted, queueing invalidation', { file: uri.fsPath });
+                this.queueInvalidation(uri.fsPath);
+            });
 
-        this.disposables.push(this.fileWatcher);
+            // Successfully set up - add to disposables for cleanup
+            this.disposables.push(watcher);
+        } catch (error) {
+            // If any error occurs during setup, dispose the watcher to prevent leak
+            watcher?.dispose();
+            logger.error('Failed to set up file watcher', error);
+            throw error;
+        }
     }
 
     /**
@@ -233,7 +262,41 @@ export class KeySpaceResolver implements vscode.Disposable {
 
     /**
      * Build key space from a root map
-     * Uses breadth-first traversal to respect key precedence (first definition wins)
+     *
+     * This is the main entry point for building a DITA key space. It implements
+     * caching and deduplication to optimize performance.
+     *
+     * ## Caching Strategy
+     * 1. **TTL-based cache**: Returns cached key space if within TTL (default 5 min)
+     * 2. **In-flight deduplication**: If a build is already in progress for the same
+     *    root map, returns the existing promise instead of starting a duplicate build
+     *
+     * ## Algorithm Overview
+     * Uses **Breadth-First Search (BFS)** to traverse the map hierarchy. This is
+     * critical for DITA key precedence semantics where the **first definition wins**.
+     *
+     * ```
+     * root.ditamap
+     *     ├── chapter1.ditamap  (keys defined here win)
+     *     │   └── submap.ditamap
+     *     └── chapter2.ditamap  (same keys defined here lose)
+     * ```
+     *
+     * ## Thread Safety (P1-2 Fix)
+     * Multiple concurrent calls for the same root map will share a single build:
+     * - First caller triggers the actual build
+     * - Subsequent callers receive the same Promise
+     * - Promise is removed from tracking after build completes
+     *
+     * @param rootMapPath - Absolute or relative path to the root DITA map
+     * @returns Promise resolving to a KeySpace containing all key definitions
+     *
+     * @example
+     * ```typescript
+     * const keySpace = await resolver.buildKeySpace('/path/to/root.ditamap');
+     * console.log(`Found ${keySpace.keys.size} key definitions`);
+     * console.log(`Traversed ${keySpace.mapHierarchy.length} maps`);
+     * ```
      */
     public async buildKeySpace(rootMapPath: string): Promise<KeySpace> {
         const absoluteRootPath = path.isAbsolute(rootMapPath)
@@ -247,6 +310,59 @@ export class KeySpaceResolver implements vscode.Disposable {
             return cached;
         }
 
+        // P1-2 Fix: Check if build is already in progress for this root map
+        const pendingBuild = this.pendingBuilds.get(absoluteRootPath);
+        if (pendingBuild) {
+            logger.debug('Waiting for in-progress key space build', { rootMap: absoluteRootPath });
+            return pendingBuild;
+        }
+
+        // Start the actual build and track it
+        const buildPromise = this.doBuildKeySpace(absoluteRootPath);
+        this.pendingBuilds.set(absoluteRootPath, buildPromise);
+
+        try {
+            const result = await buildPromise;
+            return result;
+        } finally {
+            // Always clean up the pending build entry
+            this.pendingBuilds.delete(absoluteRootPath);
+        }
+    }
+
+    /**
+     * Internal method that performs the actual key space build
+     *
+     * Implements the core BFS algorithm for traversing the DITA map hierarchy
+     * and collecting key definitions.
+     *
+     * ## Algorithm
+     * ```
+     * 1. Initialize empty KeySpace with root map
+     * 2. Create queue with root map, visited set
+     * 3. While queue not empty:
+     *    a. Dequeue next map
+     *    b. Skip if already visited (circular reference protection)
+     *    c. Read and parse map content
+     *    d. Extract key definitions (first-wins precedence)
+     *    e. Extract submap references, add to queue
+     * 4. Cache and return completed KeySpace
+     * ```
+     *
+     * ## Key Precedence
+     * DITA specifies that when the same key is defined multiple times,
+     * the **first definition wins**. BFS ensures maps closer to the root
+     * in the hierarchy have their keys processed first.
+     *
+     * ## Security Measures
+     * - **Circular reference protection**: Tracks visited maps in a Set
+     * - **Path traversal prevention**: All resolved paths validated against workspace boundaries
+     * - **Match limiting**: Regex operations bounded by `maxLinkMatches` config
+     *
+     * @param absoluteRootPath - Absolute path to the root map
+     * @returns Promise resolving to the fully built KeySpace
+     */
+    private async doBuildKeySpace(absoluteRootPath: string): Promise<KeySpace> {
         logger.info('Building key space', { rootMap: absoluteRootPath });
 
         const keySpace: KeySpace = {
@@ -363,14 +479,16 @@ export class KeySpaceResolver implements vscode.Disposable {
 
         if (expiredKeys.length > 0) {
             expiredKeys.forEach(key => {
+                // P0-3 Fix: Safe access to cache entry (avoid non-null assertion)
+                const cachedEntry = this.keySpaceCache.get(key);
                 logger.debug('Removing expired key space from cache', {
                     rootMap: key,
-                    ageMs: now - this.keySpaceCache.get(key)!.buildTime
+                    ageMs: cachedEntry ? now - cachedEntry.buildTime : 0
                 });
                 this.keySpaceCache.delete(key);
             });
 
-            logger.info('Cache cleanup completed', {
+            logger.info('Key space cache cleanup completed', {
                 removedCount: expiredKeys.length,
                 remainingCount: this.keySpaceCache.size
             });
@@ -378,7 +496,66 @@ export class KeySpaceResolver implements vscode.Disposable {
     }
 
     /**
+     * Clean up expired root map cache entries
+     * P3-7: Added for comprehensive adaptive cache cleanup
+     */
+    private cleanupExpiredRootMapCache(): void {
+        const now = Date.now();
+        const expiredKeys: string[] = [];
+
+        for (const [key, entry] of this.rootMapCache.entries()) {
+            if ((now - entry.timestamp) > this.rootMapCacheTtl) {
+                expiredKeys.push(key);
+            }
+        }
+
+        if (expiredKeys.length > 0) {
+            expiredKeys.forEach(key => this.rootMapCache.delete(key));
+
+            logger.debug('Root map cache cleanup completed', {
+                removedCount: expiredKeys.length,
+                remainingCount: this.rootMapCache.size
+            });
+        }
+    }
+
+    /**
      * Extract key definitions from map content
+     *
+     * Parses DITA map XML to extract all key definitions. A key definition can
+     * come from any element with a `@keys` attribute, not just `<keydef>`.
+     *
+     * ## Supported Key Definition Patterns
+     * ```xml
+     * <!-- Standard keydef -->
+     * <keydef keys="product-name" href="product.dita"/>
+     *
+     * <!-- Multiple keys on single element -->
+     * <keydef keys="alias1 alias2 alias3" href="target.dita"/>
+     *
+     * <!-- Key on topicref -->
+     * <topicref keys="chapter1" href="chapter1.dita"/>
+     *
+     * <!-- Inline key definition (no href) -->
+     * <keydef keys="version">
+     *   <topicmeta><keywords><keyword>2.0</keyword></keywords></topicmeta>
+     * </keydef>
+     * ```
+     *
+     * ## Extracted Attributes
+     * - `keys`: Space-separated key names (required)
+     * - `href`: Target file path (optional, resolved relative to map)
+     * - `scope`: local, peer, or external
+     * - `processing-role`: resource-only, normal, etc.
+     *
+     * ## Security
+     * - All resolved paths validated against workspace boundaries
+     * - Match count bounded by `maxLinkMatches` config (ReDoS protection)
+     * - Path traversal attempts logged and blocked
+     *
+     * @param mapContent - Raw XML content of the DITA map
+     * @param mapPath - Absolute path to the map file (used for relative path resolution)
+     * @returns Array of KeyDefinition objects extracted from the map
      */
     private extractKeyDefinitions(mapContent: string, mapPath: string): KeyDefinition[] {
         const keys: KeyDefinition[] = [];
@@ -529,6 +706,43 @@ export class KeySpaceResolver implements vscode.Disposable {
 
     /**
      * Resolve a key name to its definition
+     *
+     * This is the primary API for key resolution. Given a key name and context file,
+     * finds the appropriate key definition from the governing root map's key space.
+     *
+     * ## Resolution Process
+     * 1. **Find root map**: Search upward from context file to find governing `.ditamap`
+     * 2. **Build key space**: Traverse map hierarchy using BFS (cached if available)
+     * 3. **Lookup key**: Return definition from key space, or null if not defined
+     *
+     * ## Key Scoping
+     * Key definitions are scoped to their root map. A key defined in one documentation
+     * project won't be visible from files in a different project (different root map).
+     *
+     * ## Performance
+     * Both root map finding and key space building are heavily cached:
+     * - Root map cache: 1-minute TTL per directory
+     * - Key space cache: Configurable TTL (default 5 minutes)
+     *
+     * @param keyName - The key name to resolve (e.g., "product-name")
+     * @param contextFilePath - Path to the file containing the key reference
+     * @returns Promise resolving to KeyDefinition if found, null otherwise
+     *
+     * @example
+     * ```typescript
+     * // In topic.dita: <ph keyref="product-name"/>
+     * const def = await resolver.resolveKey('product-name', '/path/to/topic.dita');
+     *
+     * if (def?.targetFile) {
+     *     // Key resolves to another file
+     *     console.log('Points to:', def.targetFile);
+     * } else if (def?.inlineContent) {
+     *     // Key has inline content
+     *     console.log('Value:', def.inlineContent);
+     * } else {
+     *     console.log('Key not found or has no content');
+     * }
+     * ```
      */
     public async resolveKey(
         keyName: string,
@@ -563,8 +777,42 @@ export class KeySpaceResolver implements vscode.Disposable {
 
     /**
      * Find root map for a given file
-     * Strategy: Look for .ditamap files in the same directory and parent directories
-     * Uses caching to avoid expensive directory scans
+     *
+     * Discovers the root DITA map that governs key resolution for a given file.
+     * This is essential because key definitions are scoped to their root map.
+     *
+     * ## Search Strategy
+     * 1. Start from the directory containing the input file
+     * 2. Search upward through parent directories
+     * 3. Stop at workspace root (or filesystem root if no workspace)
+     *
+     * ## Map Selection Priority
+     * When multiple maps exist in a directory, selects in order:
+     * 1. `root.ditamap` (conventional name)
+     * 2. `main.ditamap` (common alternative)
+     * 3. `master.ditamap` (legacy name)
+     * 4. First map alphabetically
+     *
+     * ## Caching
+     * Results are cached by directory with 1-minute TTL to avoid expensive
+     * directory scans during rapid operations (typing, multiple file opens).
+     *
+     * ## Performance Considerations
+     * - Uses async `readdir` to avoid blocking the UI thread
+     * - Cache key is the containing directory, not the input file
+     * - Cache is invalidated when map files change (via file watcher)
+     *
+     * @param filePath - Absolute or relative path to any DITA file
+     * @returns Promise resolving to absolute path to root map, or null if not found
+     *
+     * @example
+     * ```typescript
+     * // File: /project/docs/topics/intro.dita
+     * // Maps: /project/docs/root.ditamap
+     *
+     * const rootMap = await resolver.findRootMap('/project/docs/topics/intro.dita');
+     * // Returns: '/project/docs/root.ditamap'
+     * ```
      */
     public async findRootMap(filePath: string): Promise<string | null> {
         const absolutePath = path.isAbsolute(filePath)

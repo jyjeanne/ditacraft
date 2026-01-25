@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-task">
+    <glossterm>Task</glossterm>
+    <glossdef>
+        <p>A DITA topic type designed for procedural information with step-by-step instructions. Tasks explain "how to" perform actions. Uses the <codeph>&lt;task&gt;</codeph> root element with <codeph>&lt;taskbody&gt;</codeph> containing <codeph>&lt;steps&gt;</codeph>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/file-creation-commands.dita"/>
+    </related-links>
+</glossentry>

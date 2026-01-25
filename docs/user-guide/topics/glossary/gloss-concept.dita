@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-concept">
+    <glossterm>Concept</glossterm>
+    <glossdef>
+        <p>A DITA topic type designed for conceptual information that helps users understand a subject. Concepts explain "what" and "why" rather than "how". Uses the <codeph>&lt;concept&gt;</codeph> root element with <codeph>&lt;conbody&gt;</codeph>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/file-creation-commands.dita"/>
+    </related-links>
+</glossentry>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-xmllint">
+    <glossterm>xmllint</glossterm>
+    <glossdef>
+        <p>A command-line XML validation tool from the libxml2 library. DitaCraft can use xmllint as an external validation engine. Provides excellent performance and accuracy but requires separate installation on your system.</p>
+    </glossdef>
+    <related-links>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

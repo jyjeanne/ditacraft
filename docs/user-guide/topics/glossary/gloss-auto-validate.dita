@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-auto-validate">
+    <glossterm>Auto-validation</glossterm>
+    <glossdef>
+        <p>A DitaCraft feature that automatically validates DITA files when they are opened, saved, or modified. Controlled by the <codeph>ditacraft.autoValidate</codeph> setting.</p>
+    </glossdef>
+    <related-links>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

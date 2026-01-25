@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="navigation-commands">
+    <title>Navigation Commands</title>
+    <shortdesc>Commands for navigating and visualizing DITA content structure.</shortdesc>
+
+    <refbody>
+        <section id="show-map-visualizer">
+            <title>DITA: Show Map Visualizer</title>
+            <p>Opens an interactive tree view showing your DITA map hierarchy.</p>
+            <p><b>Features:</b></p>
+            <ul>
+                <li><b>Hierarchical View:</b> Displays maps, chapters, and topics in a tree structure</li>
+                <li><b>Click Navigation:</b> Click any node to open the corresponding file</li>
+                <li><b>Real-time Updates:</b> Tree updates when files are added or removed</li>
+                <li><b>Status Indicators:</b> Shows validation status for each file</li>
+            </ul>
+            <p><b>Usage:</b></p>
+            <ol>
+                <li>Open a <filepath>.ditamap</filepath> or <filepath>.bookmap</filepath> file</li>
+                <li>Run the command from Command Palette</li>
+                <li>The visualizer opens in a side panel</li>
+            </ol>
+        </section>
+
+        <section id="ctrl-click-navigation">
+            <title>Ctrl+Click Navigation</title>
+            <p>DitaCraft provides smart navigation using Ctrl+Click (Cmd+Click on Mac) on various attributes.</p>
+            <p><b>Supported Attributes:</b></p>
+            <simpletable>
+                <sthead>
+                    <stentry>Attribute</stentry>
+                    <stentry>Navigation Behavior</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>href</codeph></stentry>
+                    <stentry>Opens the referenced file</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>conref</codeph></stentry>
+                    <stentry>Navigates to the content reference target (file#id)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>keyref</codeph></stentry>
+                    <stentry>Resolves the key and navigates to its target</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>conkeyref</codeph></stentry>
+                    <stentry>Resolves the key and navigates to the content reference</stentry>
+                </strow>
+            </simpletable>
+            <p><b>Example:</b></p>
+            <codeblock>&lt;topicref href="topics/intro.dita"/&gt;  &lt;!-- Ctrl+Click opens intro.dita --&gt;
+&lt;p conref="shared.dita#shared/note1"/&gt;  &lt;!-- Ctrl+Click opens shared.dita at #note1 --&gt;
+&lt;ph keyref="product-name"/&gt;  &lt;!-- Ctrl+Click resolves key and navigates --&gt;</codeblock>
+        </section>
+
+        <section id="go-to-definition">
+            <title>Go to Definition</title>
+            <p>Press <uicontrol>F12</uicontrol> or right-click and select <uicontrol>Go to Definition</uicontrol> to navigate to referenced content.</p>
+            <p>This works on the same attributes as Ctrl+Click navigation.</p>
+        </section>
+
+        <section id="peek-definition">
+            <title>Peek Definition</title>
+            <p>Press <uicontrol>Alt+F12</uicontrol> to peek at the definition without leaving your current file.</p>
+            <p>A small inline editor shows the referenced content, allowing you to:</p>
+            <ul>
+                <li>View the target content</li>
+                <li>Make quick edits</li>
+                <li>Navigate to the full file</li>
+            </ul>
+        </section>
+
+        <section id="find-references">
+            <title>Find All References</title>
+            <p>Press <uicontrol>Shift+F12</uicontrol> to find all places where the current element or ID is referenced.</p>
+            <p>Useful for:</p>
+            <ul>
+                <li>Finding all conrefs to a specific element</li>
+                <li>Locating topic references in maps</li>
+                <li>Understanding content reuse patterns</li>
+            </ul>
+        </section>
+    </refbody>
+</reference>

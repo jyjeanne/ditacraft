@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-dtd">
+    <glossterm>DTD</glossterm>
+    <glossdef>
+        <p>Document Type Definition. A set of rules that define the valid structure, elements, and attributes for an XML document. DitaCraft validates DITA files against DITA 1.3 DTDs.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/validation.dita"/>
+    </related-links>
+</glossentry>

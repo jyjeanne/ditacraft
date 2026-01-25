@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-keyspace">
+    <glossterm>Key Space</glossterm>
+    <glossdef>
+        <p>The collection of all key definitions available in a DITA map and its submaps. DitaCraft builds the key space from the root map to resolve keyref and conkeyref attributes. The key space is cached for performance.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/key-resolution.dita"/>
+    </related-links>
+</glossentry>

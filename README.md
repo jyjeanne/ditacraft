@@ -20,7 +20,9 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 🗺️ **Map Visualizer** - Interactive tree view of DITA map hierarchies with navigation
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🖨️ **Print Preview** - Print-optimized preview with dedicated print button
-🧪 **490+ Tests** - Extensively tested with comprehensive integration and security tests
+🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
+🧪 **547+ Tests** - Extensively tested with comprehensive integration and security tests
+📚 **DITA User Guide** - Comprehensive documentation written in DITA (55 files, bookmap structure)
 
 ## Features
 
@@ -473,33 +475,32 @@ ditacraft/
 │   │   ├── previewCommand.ts
 │   │   └── fileCreationCommands.ts
 │   ├── providers/
-│   │   ├── ditaValidator.ts   # DITA validation engine
-│   │   └── ditaLinkProvider.ts # Ctrl+Click navigation
+│   │   ├── ditaValidator.ts   # DITA validation orchestrator
+│   │   ├── ditaLinkProvider.ts # Ctrl+Click navigation
+│   │   └── validation/        # Modular validation engines
+│   │       ├── typesxmlEngine.ts
+│   │       ├── builtinEngine.ts
+│   │       └── xmllintEngine.ts
 │   ├── utils/
 │   │   ├── ditaOtWrapper.ts   # DITA-OT integration
-│   │   ├── dtdResolver.ts     # DTD catalog resolver
+│   │   ├── keySpaceResolver.ts # Key space building & caching
+│   │   ├── rateLimiter.ts     # DoS protection
+│   │   ├── configurationManager.ts # Centralized settings
 │   │   └── logger.ts          # Logging utility
-│   ├── preview/
-│   │   └── previewPanel.ts    # WebView preview
-│   └── test/                  # Test suites
+│   └── test/                  # Test suites (547+ tests)
 │       ├── suite/
 │       │   ├── ditaValidator.test.ts
-│       │   ├── dtdValidation.test.ts
-│       │   ├── realtimeValidation.test.ts
-│       │   ├── commandAndDetection.test.ts
-│       │   └── ditaLinkProvider.test.ts
+│       │   ├── rateLimiter.test.ts
+│       │   ├── securityAndEdgeCases.test.ts
+│       │   └── ...
 │       └── fixtures/          # Test fixtures
 ├── dtds/                      # DITA 1.3 DTD files
-│   ├── base/
-│   ├── technicalContent/
-│   ├── bookmap/
-│   └── learning/
-├── syntaxes/
-│   └── dita.tmLanguage.json   # Syntax highlighting
-├── snippets/
-│   └── dita.json              # Code snippets (21 snippets)
-├── package.json               # Extension manifest
-├── README.md
+├── docs/
+│   └── user-guide/            # DITA User Guide (55 files)
+│       ├── ditacraft-user-guide.bookmap
+│       └── topics/            # Commands, Features, Settings, Glossary
+├── ARCHITECTURE.md            # Technical architecture docs
+├── ROADMAP.md                 # Feature roadmap
 └── CHANGELOG.md               # Version history
 ```
 
@@ -515,7 +516,7 @@ DitaCraft includes comprehensive test coverage for all key features:
 - **Key Space Resolution Tests** - Tests key space building and caching
 
 **Test Coverage:**
-- ✅ 490+ passing tests covering all key features
+- ✅ 547+ passing tests covering all key features
 - ✅ Real-time validation on file open, save, and change (with debouncing)
 - ✅ DTD resolution and bundled DTD files
 - ✅ Error highlighting with line/column accuracy
@@ -643,6 +644,24 @@ Contributions are welcome! Please:
 3. Look for JavaScript errors in Developer Tools
 4. Try republishing: `Ctrl+Shift+B` → HTML5
 
+## Documentation
+
+DitaCraft includes comprehensive documentation written in DITA format:
+
+### 📖 User Guide (`docs/user-guide/`)
+
+A complete DITA bookmap with 55 files covering:
+
+| Section | Contents |
+|---------|----------|
+| **Part I: Getting Started** | Introduction, Installation & Setup |
+| **Part II: Using DitaCraft** | Commands (validation, publishing, file creation, navigation), Features (smart navigation, validation, preview, map visualizer, key resolution) |
+| **Part III: Configuration** | Settings (general, validation, publishing, preview) |
+| **Appendix** | Keyboard Shortcuts reference |
+| **Backmatter** | Glossary (28 terms), Index |
+
+The user guide demonstrates DitaCraft's own capabilities - you can open it in VS Code to test validation, navigation, preview, and publishing features.
+
 ## Resources
 
 ### DITA Resources
@@ -656,7 +675,18 @@ Contributions are welcome! Please:
 
 ## Recent Updates
 
-### Version 0.4.1 (Current)
+### Version 0.4.2 (Current)
+**Architecture, Security & Documentation**
+- ✅ **Modular Validation Engine** - Refactored validation with pluggable engine architecture
+- ✅ **Rate Limiting** - DoS protection for validation operations (10 req/sec per file)
+- ✅ **Adaptive Cache Cleanup** - Intelligent cache management that skips cleanup when empty
+- ✅ **Architecture Documentation** - Comprehensive ARCHITECTURE.md with data flow diagrams
+- ✅ **DITA User Guide** - Complete user documentation in DITA format (55 files with bookmap, glossary, index)
+- ✅ **Preview Scroll Sync Fix** - Fixed scroll sync for content smaller than viewport
+- ✅ **Preview Print Mode Fix** - Fixed toolbar injection for non-standard HTML structures
+- ✅ **547+ Tests** - Expanded test suite with security and edge case coverage
+
+### Version 0.4.1
 **TypesXML DTD Validation**
 - ✅ **TypesXML DTD Validation** - Pure TypeScript validation with 100% W3C conformance (no native dependencies)
 - ✅ **OASIS XML Catalog Support** - Full DITA public identifier resolution via TypesXML

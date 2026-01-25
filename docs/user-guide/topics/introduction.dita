@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="introduction">
+    <title>Introduction to DitaCraft</title>
+    <shortdesc>DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA content.</shortdesc>
+
+    <conbody>
+        <section id="what-is-ditacraft">
+            <title>What is DitaCraft?</title>
+            <p>DitaCraft is the easiest way to edit and publish your DITA (Darwin Information Typing Architecture) files directly from Visual Studio Code. It provides a complete authoring environment with:</p>
+            <ul>
+                <li>Full DTD validation using TypesXML</li>
+                <li>Smart navigation with Ctrl+Click support</li>
+                <li>Key space resolution for keyref and conkeyref</li>
+                <li>Live HTML5 preview with scroll sync</li>
+                <li>One-click publishing via DITA-OT</li>
+                <li>Interactive map visualizer</li>
+            </ul>
+        </section>
+
+        <section id="key-features">
+            <title>Key Features</title>
+            <p>DitaCraft offers the following key features:</p>
+            <dl>
+                <dlentry>
+                    <dt>Smart Navigation</dt>
+                    <dd>Ctrl+Click on <codeph>href</codeph>, <codeph>conref</codeph>, <codeph>keyref</codeph>, and <codeph>conkeyref</codeph> attributes to navigate directly to referenced content.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Full DTD Validation</dt>
+                    <dd>Real-time validation against DITA 1.3 DTDs using TypesXML with 100% W3C conformance.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Live Preview</dt>
+                    <dd>Side-by-side HTML5 preview with bidirectional scroll sync, theme support, and print mode.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>DITA-OT Integration</dt>
+                    <dd>Publish to HTML5, PDF, EPUB, and more with direct DITA Open Toolkit integration.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Map Visualizer</dt>
+                    <dd>Interactive tree view showing your DITA map hierarchy with navigation support.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="supported-files">
+            <title>Supported File Types</title>
+            <p>DitaCraft supports the following DITA file types:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Extension</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><filepath>.dita</filepath></stentry>
+                    <stentry>DITA topics (concept, task, reference, topic)</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>.ditamap</filepath></stentry>
+                    <stentry>DITA maps for organizing topics</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>.bookmap</filepath></stentry>
+                    <stentry>Book-oriented maps with chapters and parts</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="version-info">
+            <title>Version Information</title>
+            <p>This guide covers DitaCraft version 0.4.2, which includes:</p>
+            <ul>
+                <li>Modular validation engine architecture</li>
+                <li>Rate limiting for DoS protection</li>
+                <li>547+ comprehensive tests</li>
+                <li>Enhanced security features</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

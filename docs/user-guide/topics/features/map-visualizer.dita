@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="map-visualizer">
+    <title>Map Visualizer</title>
+    <shortdesc>View your DITA map structure as an interactive tree diagram.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The Map Visualizer provides a graphical representation of your DITA map hierarchy. It displays the relationship between maps, chapters, and topics in an easy-to-navigate tree view.</p>
+            <p><b>Command:</b> <uicontrol>DITA: Show Map Visualizer</uicontrol></p>
+        </section>
+
+        <section id="opening-visualizer">
+            <title>Opening the Visualizer</title>
+            <ol>
+                <li>Open a <filepath>.ditamap</filepath> or <filepath>.bookmap</filepath> file</li>
+                <li>Open Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>)</li>
+                <li>Type <userinput>DITA: Show Map Visualizer</userinput></li>
+                <li>The visualizer opens in a side panel</li>
+            </ol>
+        </section>
+
+        <section id="tree-structure">
+            <title>Tree Structure</title>
+            <p>The visualizer displays your map hierarchy with different node types:</p>
+            <dl>
+                <dlentry>
+                    <dt>Map Node</dt>
+                    <dd>The root of the tree, representing the ditamap or bookmap file.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Chapter/Part Nodes</dt>
+                    <dd>Major divisions in bookmaps, shown as expandable folders.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Topic References</dt>
+                    <dd>Individual topic files referenced by the map.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Nested Maps</dt>
+                    <dd>Submaps referenced via <codeph>&lt;mapref&gt;</codeph> appear as expandable subtrees.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="navigation">
+            <title>Navigating the Tree</title>
+            <ul>
+                <li><b>Click:</b> Select a node and open the corresponding file in the editor</li>
+                <li><b>Double-click:</b> Open the file and close the visualizer panel</li>
+                <li><b>Expand/Collapse:</b> Click the arrow icons to show or hide child nodes</li>
+                <li><b>Right-click:</b> Access context menu with additional options</li>
+            </ul>
+        </section>
+
+        <section id="visual-indicators">
+            <title>Visual Indicators</title>
+            <p>The visualizer uses icons and colors to convey information:</p>
+            <ul>
+                <li><b>File Icons:</b> Different icons for maps, topics, and other file types</li>
+                <li><b>Validation Status:</b> Red indicators show files with errors</li>
+                <li><b>Missing Files:</b> Broken references are highlighted</li>
+                <li><b>Current File:</b> The currently edited file is highlighted</li>
+            </ul>
+        </section>
+
+        <section id="real-time-updates">
+            <title>Real-time Updates</title>
+            <p>The visualizer updates automatically when:</p>
+            <ul>
+                <li>You add or remove topicref elements from the map</li>
+                <li>You create or delete topic files</li>
+                <li>Validation status changes for any file</li>
+                <li>You switch between maps</li>
+            </ul>
+        </section>
+
+        <section id="use-cases">
+            <title>Use Cases</title>
+            <ul>
+                <li><b>Content Audit:</b> Review your document structure at a glance</li>
+                <li><b>Navigation:</b> Quickly jump to any topic in a large documentation set</li>
+                <li><b>Validation Review:</b> Identify which files have errors</li>
+                <li><b>Structure Planning:</b> Visualize how content is organized</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

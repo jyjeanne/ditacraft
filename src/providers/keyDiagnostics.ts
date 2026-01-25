@@ -7,6 +7,8 @@ import * as vscode from 'vscode';
 import { KeySpaceResolver } from '../utils/keySpaceResolver';
 import { logger } from '../utils/logger';
 import { fireAndForget } from '../utils/errorUtils';
+import { configManager } from '../utils/configurationManager';
+import { DEBOUNCE_CONSTANTS } from '../utils/constants';
 
 export class KeyDiagnosticsProvider implements vscode.Disposable {
     private diagnosticCollection: vscode.DiagnosticCollection;
@@ -37,10 +39,11 @@ export class KeyDiagnosticsProvider implements vscode.Disposable {
 
     /**
      * Get max matches from configuration (use 1/10 of maxLinkMatches)
+     * P1-4 Fix: Use centralized configManager
+     * P2-3 Fix: Use named constant for minimum matches
      */
     private getMaxMatches(): number {
-        const config = vscode.workspace.getConfiguration('ditacraft');
-        return Math.max(1000, Math.floor(config.get<number>('maxLinkMatches', 10000) / 10));
+        return Math.max(DEBOUNCE_CONSTANTS.MIN_KEY_MATCHES, Math.floor(configManager.get('maxLinkMatches') / 10));
     }
 
     /**
@@ -57,12 +60,13 @@ export class KeyDiagnosticsProvider implements vscode.Disposable {
             clearTimeout(this.changeTimeout);
         }
 
+        // P2-3 Fix: Use named constant for debounce delay
         this.changeTimeout = setTimeout(() => {
             fireAndForget(
                 this.checkDocument(event.document),
                 'key-diagnostics-check'
             );
-        }, 1000);
+        }, DEBOUNCE_CONSTANTS.KEY_DIAGNOSTICS_DEBOUNCE_MS);
     }
 
     /**

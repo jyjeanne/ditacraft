@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import { logger } from '../utils/logger';
 
 /**
@@ -159,26 +159,33 @@ export class MapVisualizerPanel {
 
     /**
      * Update the webview content
+     * P1-1 Fix: Use async file operations
      */
     private _update(): void {
-        try {
-            const mapTree = this._parseMapFile(this._mapFilePath);
-            this._panel.webview.html = this._getHtmlContent(mapTree);
-        } catch (error) {
+        this._updateAsync().catch(error => {
             logger.error('Failed to update map visualizer', error);
             this._panel.webview.html = this._getErrorHtml(error);
-        }
+        });
+    }
+
+    /**
+     * Update the webview content asynchronously
+     */
+    private async _updateAsync(): Promise<void> {
+        const mapTree = await this._parseMapFileAsync(this._mapFilePath);
+        this._panel.webview.html = this._getHtmlContent(mapTree);
     }
 
     /**
      * Parse a DITA map file and return its tree structure
+     * P1-1 Fix: Use async file operations
      */
-    private _parseMapFile(mapFilePath: string): MapNode {
+    private async _parseMapFileAsync(mapFilePath: string): Promise<MapNode> {
         const mapDir = path.dirname(mapFilePath);
         const mapName = path.basename(mapFilePath);
 
-        // Read and parse the map file
-        const content = fs.readFileSync(mapFilePath, 'utf-8');
+        // Read and parse the map file asynchronously
+        const content = await fsPromises.readFile(mapFilePath, 'utf-8');
 
         const rootNode: MapNode = {
             id: 'root',
@@ -193,8 +200,8 @@ export class MapVisualizerPanel {
         // Track visited files to prevent circular references
         const visitedFiles = new Set<string>([mapFilePath]);
 
-        // Parse topicrefs and other references
-        rootNode.children = this._parseReferences(content, mapDir, visitedFiles);
+        // Parse topicrefs and other references asynchronously
+        rootNode.children = await this._parseReferencesAsync(content, mapDir, visitedFiles);
 
         return rootNode;
     }
@@ -212,11 +219,12 @@ export class MapVisualizerPanel {
 
     /**
      * Parse topic references from map content
+     * P1-1 Fix: Use async file operations
      * @param content - The XML content to parse
      * @param mapDir - The directory containing the map file
      * @param visitedFiles - Set of already visited file paths (for circular reference detection)
      */
-    private _parseReferences(content: string, mapDir: string, visitedFiles: Set<string>): MapNode[] {
+    private async _parseReferencesAsync(content: string, mapDir: string, visitedFiles: Set<string>): Promise<MapNode[]> {
         const nodes: MapNode[] = [];
 
         // Element types to parse with their tag names
@@ -259,15 +267,22 @@ export class MapVisualizerPanel {
                 if (href) {
                     const fullPath = path.resolve(mapDir, href);
                     node.filePath = fullPath;
-                    node.exists = fs.existsSync(fullPath);
+
+                    // Check if file exists asynchronously
+                    try {
+                        await fsPromises.access(fullPath);
+                        node.exists = true;
+                    } catch {
+                        node.exists = false;
+                    }
 
                     // If it's a map/ditamap, parse its children (but check for circular references)
                     if (node.exists && (href.endsWith('.ditamap') || href.endsWith('.bookmap') || element.type === 'map')) {
                         if (!visitedFiles.has(fullPath)) {
                             visitedFiles.add(fullPath);
                             try {
-                                const subContent = fs.readFileSync(fullPath, 'utf-8');
-                                node.children = this._parseReferences(subContent, path.dirname(fullPath), visitedFiles);
+                                const subContent = await fsPromises.readFile(fullPath, 'utf-8');
+                                node.children = await this._parseReferencesAsync(subContent, path.dirname(fullPath), visitedFiles);
                             } catch {
                                 // Ignore errors parsing sub-maps
                             }

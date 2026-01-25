@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-ditamap">
+    <glossterm>DITA Map</glossterm>
+    <glossdef>
+        <p>An XML file that defines the structure and organization of DITA topics. Maps specify which topics to include, their hierarchy, and relationships. File extension: <filepath>.ditamap</filepath>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/file-creation-commands.dita"/>
+        <link href="../features/map-visualizer.dita"/>
+    </related-links>
+</glossentry>

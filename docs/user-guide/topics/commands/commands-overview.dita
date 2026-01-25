@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="commands-overview">
+    <title>Commands Overview</title>
+    <shortdesc>DitaCraft provides commands for validation, publishing, file creation, and navigation.</shortdesc>
+
+    <conbody>
+        <section id="accessing-commands">
+            <title>Accessing Commands</title>
+            <p>All DitaCraft commands are accessible via the Command Palette:</p>
+            <ol>
+                <li>Press <uicontrol>Ctrl+Shift+P</uicontrol> (or <uicontrol>Cmd+Shift+P</uicontrol> on Mac)</li>
+                <li>Type <userinput>DITA:</userinput> to see all available commands</li>
+                <li>Select the desired command</li>
+            </ol>
+        </section>
+
+        <section id="command-categories">
+            <title>Command Categories</title>
+            <p>DitaCraft commands are organized into the following categories:</p>
+            <dl>
+                <dlentry>
+                    <dt>Validation Commands</dt>
+                    <dd>Validate DITA files for XML syntax and DTD conformance</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Publishing Commands</dt>
+                    <dd>Publish DITA content to HTML5, PDF, and other formats</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>File Creation Commands</dt>
+                    <dd>Create new DITA topics, maps, and bookmaps</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Navigation Commands</dt>
+                    <dd>Navigate and visualize DITA content structure</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="command-reference">
+            <title>Quick Command Reference</title>
+            <simpletable>
+                <sthead>
+                    <stentry>Command</stentry>
+                    <stentry>Shortcut</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry>DITA: Validate Current File</stentry>
+                    <stentry>Ctrl+Shift+V</stentry>
+                    <stentry>Validate the active DITA file</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Publish (Select Format)</stentry>
+                    <stentry>Ctrl+Shift+B</stentry>
+                    <stentry>Publish with format selection</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Publish to HTML5</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Quick publish to HTML5</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Preview HTML5</stentry>
+                    <stentry>Ctrl+Shift+H</stentry>
+                    <stentry>Show live HTML5 preview</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Show Map Visualizer</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Display interactive map hierarchy</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Create New Topic</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Create a new DITA topic</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Create New Map</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Create a new DITA map</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Create New Bookmap</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Create a new bookmap</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Configure DITA-OT Path</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Set DITA-OT installation path</stentry>
+                </strow>
+            </simpletable>
+        </section>
+    </conbody>
+</concept>

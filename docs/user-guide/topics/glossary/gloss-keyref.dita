@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-keyref">
+    <glossterm>keyref</glossterm>
+    <glossdef>
+        <p>Key reference. A DITA attribute that references a key defined in a map. When processed, the keyref is resolved to the key's target value or resource. Supports Ctrl+Click navigation in DitaCraft.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/key-resolution.dita"/>
+        <link href="../features/smart-navigation.dita"/>
+    </related-links>
+</glossentry>

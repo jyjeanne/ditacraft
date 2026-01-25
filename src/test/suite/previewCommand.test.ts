@@ -83,7 +83,7 @@ suite('Preview Command Test Suite', () => {
 
     suite('findMainHtmlFile Function', () => {
 
-        test('Should find HTML file by base name', () => {
+        test('Should find HTML file by base name', async () => {
             // Create a temp directory structure for testing
             const tempDir = path.join(fixturesPath, 'html-test-temp');
             const testHtmlFile = path.join(tempDir, 'test-topic.html');
@@ -95,7 +95,7 @@ suite('Preview Command Test Suite', () => {
             fs.writeFileSync(testHtmlFile, '<html></html>');
 
             try {
-                const result = findMainHtmlFile(tempDir, 'test-topic');
+                const result = await findMainHtmlFile(tempDir, 'test-topic');
                 assert.ok(result !== null, 'Should find the HTML file');
                 assert.ok(result!.endsWith('test-topic.html'), 'Should return correct file');
             } finally {
@@ -105,7 +105,7 @@ suite('Preview Command Test Suite', () => {
             }
         });
 
-        test('Should find index.html as fallback', () => {
+        test('Should find index.html as fallback', async () => {
             const tempDir = path.join(fixturesPath, 'html-test-temp2');
             const indexFile = path.join(tempDir, 'index.html');
 
@@ -115,7 +115,7 @@ suite('Preview Command Test Suite', () => {
             fs.writeFileSync(indexFile, '<html></html>');
 
             try {
-                const result = findMainHtmlFile(tempDir, 'nonexistent');
+                const result = await findMainHtmlFile(tempDir, 'nonexistent');
                 assert.ok(result !== null, 'Should find index.html');
                 assert.ok(result!.endsWith('index.html'), 'Should return index.html');
             } finally {
@@ -124,7 +124,7 @@ suite('Preview Command Test Suite', () => {
             }
         });
 
-        test('Should find any HTML file as last resort', () => {
+        test('Should find any HTML file as last resort', async () => {
             const tempDir = path.join(fixturesPath, 'html-test-temp3');
             const anyHtmlFile = path.join(tempDir, 'some-random.html');
 
@@ -134,7 +134,7 @@ suite('Preview Command Test Suite', () => {
             fs.writeFileSync(anyHtmlFile, '<html></html>');
 
             try {
-                const result = findMainHtmlFile(tempDir, 'different-name');
+                const result = await findMainHtmlFile(tempDir, 'different-name');
                 assert.ok(result !== null, 'Should find some HTML file');
                 assert.ok(result!.endsWith('.html'), 'Should return an HTML file');
             } finally {
@@ -143,12 +143,12 @@ suite('Preview Command Test Suite', () => {
             }
         });
 
-        test('Should return null for non-existent directory', () => {
-            const result = findMainHtmlFile('/non/existent/path', 'test');
+        test('Should return null for non-existent directory', async () => {
+            const result = await findMainHtmlFile('/non/existent/path', 'test');
             assert.strictEqual(result, null, 'Should return null for non-existent directory');
         });
 
-        test('Should return null for empty directory', () => {
+        test('Should return null for empty directory', async () => {
             const tempDir = path.join(fixturesPath, 'html-test-empty');
 
             if (!fs.existsSync(tempDir)) {
@@ -156,14 +156,14 @@ suite('Preview Command Test Suite', () => {
             }
 
             try {
-                const result = findMainHtmlFile(tempDir, 'test');
+                const result = await findMainHtmlFile(tempDir, 'test');
                 assert.strictEqual(result, null, 'Should return null for empty directory');
             } finally {
                 fs.rmdirSync(tempDir);
             }
         });
 
-        test('Should return null for directory with no HTML files', () => {
+        test('Should return null for directory with no HTML files', async () => {
             const tempDir = path.join(fixturesPath, 'html-test-nohtml');
             const txtFile = path.join(tempDir, 'readme.txt');
 
@@ -173,7 +173,7 @@ suite('Preview Command Test Suite', () => {
             fs.writeFileSync(txtFile, 'text content');
 
             try {
-                const result = findMainHtmlFile(tempDir, 'test');
+                const result = await findMainHtmlFile(tempDir, 'test');
                 assert.strictEqual(result, null, 'Should return null when no HTML files');
             } finally {
                 fs.unlinkSync(txtFile);

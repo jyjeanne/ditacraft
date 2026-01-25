@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-conref">
+    <glossterm>conref</glossterm>
+    <glossdef>
+        <p>Content reference. A DITA mechanism for reusing content by referencing an element in another file. The referenced content is pulled in during processing. Format: <codeph>conref="file.dita#topicid/elementid"</codeph>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/smart-navigation.dita"/>
+    </related-links>
+</glossentry>

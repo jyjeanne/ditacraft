@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="settings-chapter">
+    <title>Settings</title>
+
+    <topicref href="settings-overview.dita" keys="settings-overview">
+        <topicmeta>
+            <navtitle>Settings Overview</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="general-settings.dita" keys="general-settings">
+        <topicmeta>
+            <navtitle>General Settings</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="validation-settings.dita" keys="validation-settings">
+        <topicmeta>
+            <navtitle>Validation Settings</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="publishing-settings.dita" keys="publishing-settings">
+        <topicmeta>
+            <navtitle>Publishing Settings</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="preview-settings.dita" keys="preview-settings">
+        <topicmeta>
+            <navtitle>Preview Settings</navtitle>
+        </topicmeta>
+    </topicref>
+</map>

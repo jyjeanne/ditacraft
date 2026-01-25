@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-keyboard-shortcuts">
+    <glossterm>Keyboard Shortcuts</glossterm>
+    <glossdef>
+        <p>Key combinations that provide quick access to DitaCraft commands and VS Code features. Primary shortcuts include <uicontrol>Ctrl+Shift+V</uicontrol> (validate), <uicontrol>Ctrl+Shift+H</uicontrol> (preview), and <uicontrol>Ctrl+Click</uicontrol> (navigate).</p>
+    </glossdef>
+    <related-links>
+        <link href="../reference/keyboard-shortcuts.dita"/>
+    </related-links>
+</glossentry>

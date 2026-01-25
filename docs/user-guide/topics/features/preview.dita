@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="preview">
+    <title>Live Preview</title>
+    <shortdesc>View your DITA content as formatted HTML5 in a side-by-side preview panel.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The Live Preview feature renders your DITA content as HTML5 in real-time, allowing you to see how your documentation will look without running a full DITA-OT build.</p>
+            <p><b>Shortcut:</b> <uicontrol>Ctrl+Shift+H</uicontrol> (Windows/Linux) or <uicontrol>Cmd+Shift+H</uicontrol> (Mac)</p>
+        </section>
+
+        <section id="features">
+            <title>Preview Features</title>
+            <dl>
+                <dlentry>
+                    <dt>Live Updates</dt>
+                    <dd>The preview refreshes automatically as you type. Changes appear within milliseconds, providing instant feedback on your edits.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Bidirectional Scroll Sync</dt>
+                    <dd>Scrolling in the editor scrolls the preview to the corresponding position, and vice versa. Keep your place when reviewing long documents.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Theme Support</dt>
+                    <dd>The preview adapts to VS Code's current theme. Light themes show light preview; dark themes show dark preview.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Print Mode</dt>
+                    <dd>Toggle print mode to see how your content will appear when printed. Useful for reviewing PDF output styling.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="content-rendering">
+            <title>Content Rendering</title>
+            <p>The preview renders the following DITA elements with appropriate styling:</p>
+            <ul>
+                <li><b>Structure:</b> Sections, paragraphs, titles, and nested content</li>
+                <li><b>Lists:</b> Ordered, unordered, and definition lists</li>
+                <li><b>Tables:</b> Simple tables and complex tables with spanning</li>
+                <li><b>Code:</b> Code blocks and inline code with syntax highlighting</li>
+                <li><b>Notes:</b> Note, tip, warning, caution, and danger admonitions</li>
+                <li><b>Steps:</b> Task steps with numbering and substeps</li>
+                <li><b>Images:</b> Referenced images with alt text</li>
+            </ul>
+        </section>
+
+        <section id="conref-resolution">
+            <title>Conref Resolution</title>
+            <p>The preview resolves content references (conref) and displays the referenced content inline. This lets you see your complete document with all reused content in place.</p>
+            <p><b>Example:</b></p>
+            <codeblock>&lt;p conref="shared/common.dita#common/legal-notice"/&gt;</codeblock>
+            <p>In the preview, this shows the actual content from the referenced element, not just a placeholder.</p>
+        </section>
+
+        <section id="keyref-resolution">
+            <title>Keyref Resolution</title>
+            <p>Key references are resolved using the current key space. If you have key definitions in your map, the preview shows the resolved values.</p>
+        </section>
+
+        <section id="preview-controls">
+            <title>Preview Controls</title>
+            <p>The preview panel includes a toolbar with these controls:</p>
+            <ul>
+                <li><b>Refresh:</b> Manually refresh the preview</li>
+                <li><b>Toggle Scroll Sync:</b> Enable/disable scroll synchronization</li>
+                <li><b>Toggle Print Mode:</b> Switch between screen and print styling</li>
+                <li><b>Open in Browser:</b> Open the preview in your default browser</li>
+            </ul>
+        </section>
+
+        <section id="limitations">
+            <title>Limitations</title>
+            <p>The live preview is designed for quick content review and has some limitations compared to full DITA-OT output:</p>
+            <ul>
+                <li>Styling may differ from your DITA-OT configuration</li>
+                <li>Some advanced features like relationship tables are not rendered</li>
+                <li>Custom plugins and extensions are not applied</li>
+            </ul>
+            <p>For final output review, use <uicontrol>DITA: Publish to HTML5</uicontrol> to generate full DITA-OT output.</p>
+        </section>
+    </conbody>
+</concept>

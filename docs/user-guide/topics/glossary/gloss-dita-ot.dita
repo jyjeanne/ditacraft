@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-dita-ot">
+    <glossterm>DITA-OT</glossterm>
+    <glossdef>
+        <p>DITA Open Toolkit. An open-source publishing engine that transforms DITA content into various output formats including HTML5, PDF, EPUB, and more. Required for DitaCraft publishing features.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/publishing-commands.dita"/>
+        <link href="../settings/general-settings.dita"/>
+    </related-links>
+</glossentry>

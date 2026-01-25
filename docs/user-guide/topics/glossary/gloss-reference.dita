@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-reference">
+    <glossterm>Reference</glossterm>
+    <glossdef>
+        <p>A DITA topic type designed for reference information such as API documentation, command syntax, or configuration parameters. Uses the <codeph>&lt;reference&gt;</codeph> root element with <codeph>&lt;refbody&gt;</codeph>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/file-creation-commands.dita"/>
+    </related-links>
+</glossentry>

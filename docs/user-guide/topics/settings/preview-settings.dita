@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="preview-settings">
+    <title>Preview Settings</title>
+    <shortdesc>Configure live preview behavior and appearance.</shortdesc>
+
+    <refbody>
+        <section id="scroll-sync">
+            <title>ditacraft.previewScrollSync</title>
+            <p><b>Type:</b> Boolean</p>
+            <p><b>Default:</b> <codeph>true</codeph></p>
+            <p>Enables bidirectional scroll synchronization between the editor and preview panel.</p>
+            <p><b>Behavior when enabled:</b></p>
+            <ul>
+                <li>Scrolling in the editor scrolls the preview to the corresponding position</li>
+                <li>Scrolling in the preview scrolls the editor to match</li>
+                <li>Cursor position in editor highlights the corresponding preview element</li>
+            </ul>
+            <p><b>When to Disable:</b></p>
+            <ul>
+                <li>Working with very long documents where sync causes performance issues</li>
+                <li>When you prefer independent scrolling of editor and preview</li>
+                <li>When editing and viewing different sections simultaneously</li>
+            </ul>
+        </section>
+
+        <section id="theme-integration">
+            <title>Theme Integration</title>
+            <p>The preview automatically adapts to VS Code's current theme:</p>
+            <ul>
+                <li><b>Light Themes:</b> White background, dark text</li>
+                <li><b>Dark Themes:</b> Dark background, light text</li>
+                <li><b>High Contrast:</b> Enhanced contrast for accessibility</li>
+            </ul>
+            <p>Preview styling follows VS Code's color theme to provide a consistent experience.</p>
+        </section>
+
+        <section id="preview-refresh">
+            <title>Preview Refresh Behavior</title>
+            <p>The preview refreshes automatically with the following characteristics:</p>
+            <ul>
+                <li><b>Debounce:</b> 300ms delay after typing stops</li>
+                <li><b>Preservation:</b> Scroll position is preserved during refresh</li>
+                <li><b>Efficiency:</b> Only changed content is re-rendered when possible</li>
+            </ul>
+        </section>
+
+        <section id="preview-controls">
+            <title>Preview Panel Controls</title>
+            <p>The preview panel toolbar provides these controls:</p>
+            <dl>
+                <dlentry>
+                    <dt>Refresh Button</dt>
+                    <dd>Manually refresh the preview content.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Scroll Sync Toggle</dt>
+                    <dd>Enable or disable scroll synchronization.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Print Mode Toggle</dt>
+                    <dd>Switch between screen and print styling. Print mode shows how content will appear when printed.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Open in Browser</dt>
+                    <dd>Open the preview in your default web browser for full-screen viewing.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="content-resolution">
+            <title>Content Resolution</title>
+            <p>The preview resolves the following content types:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Content Type</stentry>
+                    <stentry>Resolution Behavior</stentry>
+                </sthead>
+                <strow>
+                    <stentry>conref</stentry>
+                    <stentry>Fetches and displays referenced content inline</stentry>
+                </strow>
+                <strow>
+                    <stentry>keyref</stentry>
+                    <stentry>Resolves key to display value or creates link</stentry>
+                </strow>
+                <strow>
+                    <stentry>conkeyref</stentry>
+                    <stentry>Resolves key then fetches referenced content</stentry>
+                </strow>
+                <strow>
+                    <stentry>images</stentry>
+                    <stentry>Displays images from relative or absolute paths</stentry>
+                </strow>
+            </simpletable>
+            <note type="note">If a reference cannot be resolved, the preview shows a placeholder indicating the missing content.</note>
+        </section>
+
+        <section id="known-limitations">
+            <title>Known Limitations</title>
+            <p>The live preview has some limitations compared to full DITA-OT output:</p>
+            <ul>
+                <li>Custom DITA-OT plugins are not applied</li>
+                <li>Relationship tables are not rendered</li>
+                <li>Some advanced table features may display differently</li>
+                <li>PDF-specific formatting is not shown</li>
+            </ul>
+            <p>For final output review, use the publishing commands to generate full DITA-OT output.</p>
+        </section>
+    </refbody>
+</reference>

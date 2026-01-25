@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-typesxml">
+    <glossterm>TypesXML</glossterm>
+    <glossdef>
+        <p>A pure TypeScript XML parser used by DitaCraft for DTD validation. TypesXML provides 100% W3C conformance and full DTD support without requiring external dependencies. The default and recommended validation engine.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/validation.dita"/>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

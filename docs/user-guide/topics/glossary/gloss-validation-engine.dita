@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-validation-engine">
+    <glossterm>Validation Engine</glossterm>
+    <glossdef>
+        <p>A component that performs XML and DTD validation. DitaCraft supports three engines: TypesXML (default, full DTD support), built-in (lightweight, fast), and xmllint (external, industry-standard). Configured via <codeph>ditacraft.validationEngine</codeph>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/validation.dita"/>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

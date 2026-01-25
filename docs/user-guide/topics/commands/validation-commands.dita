@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="validation-commands">
+    <title>Validation Commands</title>
+    <shortdesc>Commands for validating DITA files against XML syntax and DTD specifications.</shortdesc>
+
+    <refbody>
+        <section id="validate-current-file">
+            <title>DITA: Validate Current File</title>
+            <p><b>Shortcut:</b> <uicontrol>Ctrl+Shift+V</uicontrol> (Windows/Linux) or <uicontrol>Cmd+Shift+V</uicontrol> (Mac)</p>
+            <p>Validates the currently active DITA file for:</p>
+            <ul>
+                <li>XML well-formedness (proper tags, attributes, encoding)</li>
+                <li>DTD conformance (valid elements, required attributes)</li>
+                <li>DITA structure (required elements like title, proper nesting)</li>
+                <li>Content model validation (correct child elements)</li>
+            </ul>
+            <p><b>Usage:</b></p>
+            <ol>
+                <li>Open a <filepath>.dita</filepath>, <filepath>.ditamap</filepath>, or <filepath>.bookmap</filepath> file</li>
+                <li>Press <uicontrol>Ctrl+Shift+V</uicontrol> or run the command from Command Palette</li>
+                <li>View results in the Problems panel</li>
+            </ol>
+            <p><b>Output:</b></p>
+            <ul>
+                <li><b>Errors</b> - Critical issues that must be fixed (red squiggles)</li>
+                <li><b>Warnings</b> - Potential issues to review (yellow squiggles)</li>
+                <li><b>Information</b> - Suggestions and notes (blue squiggles)</li>
+            </ul>
+        </section>
+
+        <section id="auto-validation">
+            <title>Automatic Validation</title>
+            <p>DitaCraft automatically validates DITA files when:</p>
+            <ul>
+                <li><b>On Open:</b> When you open a DITA file</li>
+                <li><b>On Save:</b> When you save a DITA file (if <codeph>autoValidate</codeph> is enabled)</li>
+                <li><b>On Change:</b> After you stop typing (with 500ms debounce)</li>
+            </ul>
+            <p>To disable automatic validation, set <codeph>ditacraft.autoValidate</codeph> to <codeph>false</codeph> in settings.</p>
+        </section>
+
+        <section id="validation-engines">
+            <title>Validation Engines</title>
+            <p>DitaCraft supports three validation engines:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Engine</stentry>
+                    <stentry>Description</stentry>
+                    <stentry>Requirements</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>typesxml</codeph></stentry>
+                    <stentry>Full DTD validation with 100% W3C conformance (default, recommended)</stentry>
+                    <stentry>None (bundled)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>built-in</codeph></stentry>
+                    <stentry>Lightweight XML and content model checking</stentry>
+                    <stentry>None (bundled)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>xmllint</codeph></stentry>
+                    <stentry>External validation using libxml2</stentry>
+                    <stentry>xmllint installed on system</stentry>
+                </strow>
+            </simpletable>
+            <p>To change the validation engine, set <codeph>ditacraft.validationEngine</codeph> in settings.</p>
+        </section>
+
+        <section id="rate-limiting">
+            <title>Rate Limiting</title>
+            <p>To prevent performance issues from rapid validation requests, DitaCraft includes rate limiting:</p>
+            <ul>
+                <li>Maximum 10 validation requests per second per file</li>
+                <li>Excess requests are silently skipped (auto-validation) or show a warning (manual validation)</li>
+                <li>Rate limits reset after the time window expires</li>
+            </ul>
+        </section>
+    </refbody>
+</reference>

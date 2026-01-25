@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="settings-overview">
+    <title>Settings Overview</title>
+    <shortdesc>Configure DitaCraft to match your workflow and preferences.</shortdesc>
+
+    <conbody>
+        <section id="accessing-settings">
+            <title>Accessing Settings</title>
+            <p>DitaCraft settings can be accessed in several ways:</p>
+            <ol>
+                <li>Open VS Code Settings (<uicontrol>Ctrl+,</uicontrol> or <uicontrol>Cmd+,</uicontrol>)</li>
+                <li>Search for <userinput>ditacraft</userinput></li>
+                <li>Or edit <filepath>settings.json</filepath> directly</li>
+            </ol>
+        </section>
+
+        <section id="settings-levels">
+            <title>Settings Levels</title>
+            <p>VS Code supports multiple settings levels:</p>
+            <dl>
+                <dlentry>
+                    <dt>User Settings</dt>
+                    <dd>Apply to all VS Code instances. Stored in your user profile.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Workspace Settings</dt>
+                    <dd>Apply only to the current workspace. Stored in <filepath>.vscode/settings.json</filepath>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Folder Settings</dt>
+                    <dd>Apply to a specific folder in a multi-root workspace.</dd>
+                </dlentry>
+            </dl>
+            <p>Workspace settings override user settings, allowing project-specific configuration.</p>
+        </section>
+
+        <section id="settings-categories">
+            <title>Settings Categories</title>
+            <p>DitaCraft settings are organized into these categories:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Category</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry>General</stentry>
+                    <stentry>DITA-OT path and basic configuration</stentry>
+                </strow>
+                <strow>
+                    <stentry>Validation</stentry>
+                    <stentry>Validation engine and auto-validation settings</stentry>
+                </strow>
+                <strow>
+                    <stentry>Publishing</stentry>
+                    <stentry>Output directory and publishing options</stentry>
+                </strow>
+                <strow>
+                    <stentry>Preview</stentry>
+                    <stentry>Live preview behavior and styling</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="quick-reference">
+            <title>Quick Settings Reference</title>
+            <simpletable>
+                <sthead>
+                    <stentry>Setting</stentry>
+                    <stentry>Default</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>ditacraft.ditaOtPath</codeph></stentry>
+                    <stentry><codeph>""</codeph></stentry>
+                    <stentry>Path to DITA-OT installation</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.validationEngine</codeph></stentry>
+                    <stentry><codeph>"typesxml"</codeph></stentry>
+                    <stentry>Validation engine to use</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.autoValidate</codeph></stentry>
+                    <stentry><codeph>true</codeph></stentry>
+                    <stentry>Enable automatic validation</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.outputDirectory</codeph></stentry>
+                    <stentry><codeph>"out"</codeph></stentry>
+                    <stentry>Output directory for publishing</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.previewScrollSync</codeph></stentry>
+                    <stentry><codeph>true</codeph></stentry>
+                    <stentry>Enable preview scroll sync</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="json-example">
+            <title>Example settings.json</title>
+            <codeblock>{
+    "ditacraft.ditaOtPath": "C:/DITA-OT-4.2.1",
+    "ditacraft.validationEngine": "typesxml",
+    "ditacraft.autoValidate": true,
+    "ditacraft.outputDirectory": "out",
+    "ditacraft.previewScrollSync": true
+}</codeblock>
+        </section>
+    </conbody>
+</concept>

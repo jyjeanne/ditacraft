@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="preface">
+    <title>Preface</title>
+    <shortdesc>Welcome to the DitaCraft User Guide.</shortdesc>
+
+    <body>
+        <section id="about-guide">
+            <title>About This Guide</title>
+            <p>This guide provides comprehensive documentation for DitaCraft, the Visual Studio Code extension for DITA authoring and publishing. Whether you are new to DITA or an experienced technical writer, this guide will help you get the most out of DitaCraft.</p>
+        </section>
+
+        <section id="audience">
+            <title>Intended Audience</title>
+            <p>This guide is intended for:</p>
+            <ul>
+                <li><b>Technical Writers</b> who create and maintain DITA documentation</li>
+                <li><b>Documentation Managers</b> who oversee DITA projects</li>
+                <li><b>Developers</b> who write technical documentation alongside code</li>
+                <li><b>Content Strategists</b> evaluating DITA tooling options</li>
+            </ul>
+        </section>
+
+        <section id="prerequisites">
+            <title>Prerequisites</title>
+            <p>To use DitaCraft effectively, you should have:</p>
+            <ul>
+                <li>Visual Studio Code 1.80 or higher installed</li>
+                <li>Basic familiarity with XML concepts</li>
+                <li>Understanding of DITA fundamentals (helpful but not required)</li>
+            </ul>
+        </section>
+
+        <section id="how-to-use">
+            <title>How to Use This Guide</title>
+            <p>This guide is organized into the following sections:</p>
+            <dl>
+                <dlentry>
+                    <dt>Part I: Getting Started</dt>
+                    <dd>Introduction to DitaCraft and installation steps</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Part II: Using DitaCraft</dt>
+                    <dd>Commands reference and detailed feature explanations</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Part III: Configuration</dt>
+                    <dd>Settings and customization options</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Appendix: Keyboard Shortcuts</dt>
+                    <dd>Quick reference for all keyboard shortcuts</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Glossary</dt>
+                    <dd>Definitions of key terms used throughout the guide</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="conventions">
+            <title>Conventions Used</title>
+            <p>This guide uses the following conventions:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Convention</stentry>
+                    <stentry>Meaning</stentry>
+                </sthead>
+                <strow>
+                    <stentry><uicontrol>Bold text</uicontrol></stentry>
+                    <stentry>UI elements, buttons, menu items</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>Monospace</codeph></stentry>
+                    <stentry>Code, commands, file names, settings</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>File paths</filepath></stentry>
+                    <stentry>Directory and file paths</stentry>
+                </strow>
+                <strow>
+                    <stentry><userinput>User input</userinput></stentry>
+                    <stentry>Text you should type</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="version">
+            <title>Version Information</title>
+            <p>This guide documents DitaCraft version 0.4.2. For the latest updates and release notes, visit the project repository.</p>
+        </section>
+    </body>
+</topic>

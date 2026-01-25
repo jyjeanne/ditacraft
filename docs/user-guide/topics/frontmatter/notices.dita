@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="notices">
+    <title>Notices</title>
+    <shortdesc>Legal notices and trademark information.</shortdesc>
+
+    <body>
+        <section id="copyright">
+            <title>Copyright</title>
+            <p>Copyright 2025 DitaCraft Project. All rights reserved.</p>
+            <p>This documentation is provided under the MIT License. You may freely copy, modify, and distribute this documentation subject to the license terms.</p>
+        </section>
+
+        <section id="trademarks">
+            <title>Trademarks</title>
+            <p>The following are trademarks or registered trademarks of their respective owners:</p>
+            <ul>
+                <li><b>Visual Studio Code</b> is a trademark of Microsoft Corporation</li>
+                <li><b>DITA</b> and <b>Darwin Information Typing Architecture</b> are trademarks of OASIS</li>
+                <li><b>DITA Open Toolkit</b> is a trademark of the DITA-OT Project</li>
+            </ul>
+            <p>All other trademarks are the property of their respective owners.</p>
+        </section>
+
+        <section id="disclaimer">
+            <title>Disclaimer</title>
+            <p>This documentation is provided "as is" without warranty of any kind, express or implied. The authors make no representations about the suitability of this information for any purpose.</p>
+        </section>
+    </body>
+</topic>

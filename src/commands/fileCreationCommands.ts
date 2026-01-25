@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import { logger } from '../utils/logger';
 
 // Constants for file name validation
@@ -78,16 +78,20 @@ async function createDitaFile(options: FileCreationOptions): Promise<void> {
 
     logger.debug('Creating file', { filePath });
 
-    // Check if file already exists
-    if (fs.existsSync(filePath)) {
+    // Check if file already exists (P1-1 Fix: Use async file operations)
+    try {
+        await fs.access(filePath);
+        // File exists if no error
         logger.warn('File already exists', { filePath });
         vscode.window.showErrorMessage(`File already exists: ${fullFileName}`);
         return;
+    } catch {
+        // File doesn't exist, continue with creation
     }
 
-    // Write file with error handling
+    // Write file with error handling (P1-1 Fix: Use async file operations)
     try {
-        fs.writeFileSync(filePath, options.content, 'utf8');
+        await fs.writeFile(filePath, options.content, 'utf8');
     } catch (writeError) {
         const writeErrorMessage = writeError instanceof Error ? writeError.message : 'Unknown write error';
         logger.error('Failed to write file', { filePath, error: writeErrorMessage });

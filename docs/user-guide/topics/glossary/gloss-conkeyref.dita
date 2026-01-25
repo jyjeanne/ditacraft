@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-conkeyref">
+    <glossterm>conkeyref</glossterm>
+    <glossdef>
+        <p>A DITA attribute that combines key resolution with content referencing. The key is first resolved to a file path, then the element ID is used to pull in specific content. Format: <codeph>conkeyref="keyname/elementid"</codeph>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/key-resolution.dita"/>
+        <link href="../features/smart-navigation.dita"/>
+    </related-links>
+</glossentry>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-href">
+    <glossterm>href</glossterm>
+    <glossdef>
+        <p>Hypertext reference. A DITA attribute that specifies the location of a referenced resource. Used in <codeph>&lt;topicref&gt;</codeph>, <codeph>&lt;xref&gt;</codeph>, <codeph>&lt;link&gt;</codeph>, and other elements. Supports Ctrl+Click navigation in DitaCraft.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/smart-navigation.dita"/>
+    </related-links>
+</glossentry>

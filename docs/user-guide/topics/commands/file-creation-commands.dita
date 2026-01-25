@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="file-creation-commands">
+    <title>File Creation Commands</title>
+    <shortdesc>Commands for creating new DITA topics, maps, and bookmaps.</shortdesc>
+
+    <refbody>
+        <section id="create-topic">
+            <title>DITA: Create New Topic</title>
+            <p>Creates a new DITA topic file with proper DOCTYPE and structure.</p>
+            <p><b>Topic Types:</b></p>
+            <dl>
+                <dlentry>
+                    <dt>Concept</dt>
+                    <dd>For conceptual information that helps users understand a subject. Uses <codeph>&lt;concept&gt;</codeph> root element with <codeph>&lt;conbody&gt;</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Task</dt>
+                    <dd>For procedural information with step-by-step instructions. Uses <codeph>&lt;task&gt;</codeph> root element with <codeph>&lt;taskbody&gt;</codeph> and <codeph>&lt;steps&gt;</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Reference</dt>
+                    <dd>For reference information like API documentation or command syntax. Uses <codeph>&lt;reference&gt;</codeph> root element with <codeph>&lt;refbody&gt;</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Topic</dt>
+                    <dd>Generic topic type for content that doesn't fit other categories. Uses <codeph>&lt;topic&gt;</codeph> root element with <codeph>&lt;body&gt;</codeph>.</dd>
+                </dlentry>
+            </dl>
+            <p><b>Usage:</b></p>
+            <ol>
+                <li>Run the command from Command Palette</li>
+                <li>Select the topic type</li>
+                <li>Enter a file name (without extension)</li>
+                <li>The file is created in the current folder with <filepath>.dita</filepath> extension</li>
+            </ol>
+        </section>
+
+        <section id="create-map">
+            <title>DITA: Create New Map</title>
+            <p>Creates a new DITA map file for organizing topics.</p>
+            <p><b>Map Structure:</b></p>
+            <codeblock>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd"&gt;
+&lt;map id="my-map"&gt;
+    &lt;title&gt;My Map Title&lt;/title&gt;
+    &lt;topicref href="topic1.dita"/&gt;
+    &lt;topicref href="topic2.dita"/&gt;
+&lt;/map&gt;</codeblock>
+            <p><b>Usage:</b></p>
+            <ol>
+                <li>Run the command from Command Palette</li>
+                <li>Enter a file name (without extension)</li>
+                <li>The file is created with <filepath>.ditamap</filepath> extension</li>
+            </ol>
+            <p>After creation, add <codeph>&lt;topicref&gt;</codeph> elements to reference your topics.</p>
+        </section>
+
+        <section id="create-bookmap">
+            <title>DITA: Create New Bookmap</title>
+            <p>Creates a new bookmap for book-oriented publications.</p>
+            <p><b>Bookmap Structure:</b></p>
+            <codeblock>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd"&gt;
+&lt;bookmap id="my-bookmap"&gt;
+    &lt;booktitle&gt;
+        &lt;mainbooktitle&gt;My Book Title&lt;/mainbooktitle&gt;
+    &lt;/booktitle&gt;
+    &lt;frontmatter&gt;
+        &lt;booklists&gt;&lt;toc/&gt;&lt;/booklists&gt;
+    &lt;/frontmatter&gt;
+    &lt;chapter href="chapter1.dita"/&gt;
+    &lt;backmatter&gt;
+        &lt;booklists&gt;&lt;indexlist/&gt;&lt;/booklists&gt;
+    &lt;/backmatter&gt;
+&lt;/bookmap&gt;</codeblock>
+            <p><b>Bookmap Elements:</b></p>
+            <ul>
+                <li><codeph>&lt;booktitle&gt;</codeph> - Book title information</li>
+                <li><codeph>&lt;bookmeta&gt;</codeph> - Metadata (author, dates, rights)</li>
+                <li><codeph>&lt;frontmatter&gt;</codeph> - TOC, preface, dedication</li>
+                <li><codeph>&lt;chapter&gt;</codeph> - Main content chapters</li>
+                <li><codeph>&lt;part&gt;</codeph> - Groups of chapters</li>
+                <li><codeph>&lt;appendix&gt;</codeph> - Supplementary content</li>
+                <li><codeph>&lt;backmatter&gt;</codeph> - Index, glossary</li>
+            </ul>
+        </section>
+
+        <section id="file-naming">
+            <title>File Naming Best Practices</title>
+            <ul>
+                <li>Use lowercase letters and hyphens (e.g., <filepath>getting-started.dita</filepath>)</li>
+                <li>Avoid spaces and special characters</li>
+                <li>Use descriptive names that reflect content</li>
+                <li>Keep names concise but meaningful</li>
+            </ul>
+        </section>
+    </refbody>
+</reference>

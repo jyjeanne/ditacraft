@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="cover" outputclass="cover-page">
+    <title>DitaCraft User Guide</title>
+    <shortdesc>The Complete Guide to DITA Editing in VS Code</shortdesc>
+
+    <body>
+        <fig id="cover-image">
+            <image href="../../front_page_picture.png" placement="break" align="center">
+                <alt>DitaCraft - DITA Editing in Visual Studio Code</alt>
+            </image>
+        </fig>
+
+        <section id="title-block" outputclass="title-block">
+            <p outputclass="main-title"><b>DitaCraft User Guide</b></p>
+            <p outputclass="subtitle">The Complete Guide to DITA Editing in VS Code</p>
+        </section>
+
+        <section id="version-info" outputclass="version-block">
+            <p outputclass="version"><b>Version 0.4.2</b></p>
+            <p outputclass="release-date">January 2025</p>
+        </section>
+
+        <section id="author-info" outputclass="author-block">
+            <p outputclass="author">Jeremy Jeanne</p>
+            <p outputclass="organization">DitaCraft Project</p>
+        </section>
+    </body>
+</topic>

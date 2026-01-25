@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-live-preview">
+    <glossterm>Live Preview</glossterm>
+    <glossdef>
+        <p>A DitaCraft feature that renders DITA content as HTML5 in real-time. The preview updates automatically as you edit and supports bidirectional scroll synchronization. Shortcut: <uicontrol>Ctrl+Shift+H</uicontrol>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/preview.dita"/>
+        <link href="../settings/preview-settings.dita"/>
+    </related-links>
+</glossentry>

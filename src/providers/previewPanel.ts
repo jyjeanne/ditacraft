@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import { logger } from '../utils/logger';
 import { fireAndForget } from '../utils/errorUtils';
 import { configManager, PreviewThemeType } from '../utils/configurationManager';
@@ -34,6 +34,9 @@ export class DitaPreviewPanel {
     private _isScrollingFromPreview: boolean = false;
     private _scrollSyncDebounceTimer: NodeJS.Timeout | undefined;
     private _scrollSyncResetTimers: NodeJS.Timeout[] = [];
+
+    // P2 Fix: Track update sequence to prevent stale content from race conditions
+    private _updateSequence: number = 0;
 
     /**
      * Create or show the preview panel
@@ -242,18 +245,28 @@ export class DitaPreviewPanel {
      */
     private _handleEditorScroll(editor: vscode.TextEditor): void {
         // Skip if scroll sync is disabled or we're currently syncing from preview
-        if (!this._scrollSyncEnabled || this._isScrollingFromPreview) {
+        if (!this._scrollSyncEnabled) {
+            logger.debug('Editor scroll sync skipped: sync disabled');
+            return;
+        }
+        if (this._isScrollingFromPreview) {
+            logger.debug('Editor scroll sync skipped: currently syncing from preview');
             return;
         }
 
         // Skip if panel is not visible
         if (!this._panel.visible) {
+            logger.debug('Editor scroll sync skipped: panel not visible');
             return;
         }
 
         // Only sync if this editor has the source file we're previewing
         if (!this._currentSourceFile ||
             editor.document.uri.fsPath !== this._currentSourceFile) {
+            logger.debug('Editor scroll sync skipped: editor file does not match source file', {
+                editorFile: editor.document.uri.fsPath,
+                sourceFile: this._currentSourceFile
+            });
             return;
         }
 
@@ -265,6 +278,7 @@ export class DitaPreviewPanel {
         this._scrollSyncDebounceTimer = setTimeout(() => {
             const visibleRanges = editor.visibleRanges;
             if (visibleRanges.length === 0) {
+                logger.debug('Editor scroll sync skipped: no visible ranges');
                 return;
             }
 
@@ -274,6 +288,12 @@ export class DitaPreviewPanel {
             const scrollPercentage = lineCount > 1
                 ? (firstVisibleLine / (lineCount - 1)) * 100
                 : 0;
+
+            logger.debug('Editor scroll sync: sending to preview', {
+                firstVisibleLine,
+                lineCount,
+                scrollPercentage: scrollPercentage.toFixed(2)
+            });
 
             // Send scroll position to webview
             this._isScrollingFromEditor = true;
@@ -285,6 +305,11 @@ export class DitaPreviewPanel {
             // Reset flag after a short delay (tracked for cleanup)
             const timer = setTimeout(() => {
                 this._isScrollingFromEditor = false;
+                // P1-3 Fix: Remove timer from array after it fires to prevent accumulation
+                const index = this._scrollSyncResetTimers.indexOf(timer);
+                if (index > -1) {
+                    this._scrollSyncResetTimers.splice(index, 1);
+                }
             }, SCROLL_SYNC_RESET_DELAY_MS);
             this._scrollSyncResetTimers.push(timer);
         }, EDITOR_SCROLL_DEBOUNCE_MS);
@@ -339,6 +364,11 @@ export class DitaPreviewPanel {
         // Reset flag after a short delay (tracked for cleanup)
         const timer = setTimeout(() => {
             this._isScrollingFromEditor = false;
+            // P1-3 Fix: Remove timer from array after it fires to prevent accumulation
+            const index = this._scrollSyncResetTimers.indexOf(timer);
+            if (index > -1) {
+                this._scrollSyncResetTimers.splice(index, 1);
+            }
         }, SCROLL_SYNC_RESET_DELAY_MS);
         this._scrollSyncResetTimers.push(timer);
     }
@@ -348,21 +378,29 @@ export class DitaPreviewPanel {
      */
     private _handlePreviewScroll(scrollPercentage: number): void {
         // Skip if scroll sync is disabled or we're currently syncing from editor
-        if (!this._scrollSyncEnabled || this._isScrollingFromEditor) {
+        if (!this._scrollSyncEnabled) {
+            logger.debug('Preview scroll sync skipped: sync disabled');
+            return;
+        }
+        if (this._isScrollingFromEditor) {
+            logger.debug('Preview scroll sync skipped: currently syncing from editor');
             return;
         }
 
         // Skip if panel is not visible
         if (!this._panel.visible) {
+            logger.debug('Preview scroll sync skipped: panel not visible');
             return;
         }
 
         if (!this._currentSourceFile) {
+            logger.debug('Preview scroll sync skipped: no source file');
             return;
         }
 
         // Validate input
         if (typeof scrollPercentage !== 'number' || isNaN(scrollPercentage)) {
+            logger.debug('Preview scroll sync skipped: invalid percentage', { scrollPercentage });
             return;
         }
         // Clamp to valid range
@@ -387,6 +425,12 @@ export class DitaPreviewPanel {
                             lineCount - 1
                         );
 
+                        logger.debug('Preview scroll sync: scrolling editor', {
+                            scrollPercentage: clampedPercentage.toFixed(2),
+                            targetLine,
+                            lineCount
+                        });
+
                         // Reveal the line in the editor at the center
                         const position = new vscode.Position(Math.max(0, targetLine), 0);
                         editor.revealRange(
@@ -397,8 +441,17 @@ export class DitaPreviewPanel {
                         // Reset flag after a short delay (tracked for cleanup)
                         const timer = setTimeout(() => {
                             this._isScrollingFromPreview = false;
+                            // P1-3 Fix: Remove timer from array after it fires to prevent accumulation
+                            const index = this._scrollSyncResetTimers.indexOf(timer);
+                            if (index > -1) {
+                                this._scrollSyncResetTimers.splice(index, 1);
+                            }
                         }, SCROLL_SYNC_RESET_DELAY_MS);
                         this._scrollSyncResetTimers.push(timer);
+                    } else {
+                        logger.debug('Preview scroll sync skipped: source editor not visible', {
+                            sourceFile: this._currentSourceFile
+                        });
                     }
                 } catch (error) {
                     logger.error('Preview to editor scroll sync failed', error);
@@ -441,6 +494,7 @@ export class DitaPreviewPanel {
 
     /**
      * Update the webview content
+     * P1-1 Fix: Use async file operations
      */
     private _update(): void {
         const webview = this._panel.webview;
@@ -454,8 +508,30 @@ export class DitaPreviewPanel {
         const fileName = path.basename(this._currentSourceFile || this._currentHtmlFile);
         this._panel.title = `Preview: ${fileName}`;
 
-        // Set the HTML content
-        webview.html = this._getHtmlForWebview(webview);
+        // Set the HTML content asynchronously
+        // P1 Fix: Show error page if async loading fails
+        // P2 Fix: Track update sequence to prevent stale content from race conditions
+        const currentSequence = ++this._updateSequence;
+        fireAndForget(
+            (async () => {
+                try {
+                    const html = await this._getHtmlForWebviewAsync(webview);
+                    // Only apply if this is still the most recent update request
+                    if (currentSequence === this._updateSequence) {
+                        webview.html = html;
+                    }
+                } catch (error) {
+                    // Only show error if this is still the most recent update request
+                    if (currentSequence === this._updateSequence) {
+                        logger.error('Failed to load preview content asynchronously', error);
+                        webview.html = this._getErrorHtml(
+                            error instanceof Error ? error.message : 'Failed to load preview'
+                        );
+                    }
+                }
+            })(),
+            'update-preview-content'
+        );
     }
 
     /**
@@ -499,24 +575,32 @@ export class DitaPreviewPanel {
 
     /**
      * Get the HTML content for the webview
+     * P1-1 Fix: Use async file operations
      */
-    private _getHtmlForWebview(webview: vscode.Webview): string {
-        if (!this._currentHtmlFile || !fs.existsSync(this._currentHtmlFile)) {
+    private async _getHtmlForWebviewAsync(webview: vscode.Webview): Promise<string> {
+        if (!this._currentHtmlFile) {
             return this._getNoContentHtml();
         }
 
         try {
-            // Read the generated HTML file
-            let htmlContent = fs.readFileSync(this._currentHtmlFile, 'utf-8');
+            // Check if file exists
+            await fsPromises.access(this._currentHtmlFile);
+        } catch {
+            return this._getNoContentHtml();
+        }
+
+        try {
+            // Read the generated HTML file asynchronously
+            let htmlContent = await fsPromises.readFile(this._currentHtmlFile, 'utf-8');
 
             // Get the directory of the HTML file for resolving relative paths
             const htmlDir = path.dirname(this._currentHtmlFile);
 
             // Convert local file references to webview URIs
-            htmlContent = this._convertLocalResources(htmlContent, htmlDir, webview);
+            htmlContent = await this._convertLocalResourcesAsync(htmlContent, htmlDir, webview);
 
-            // Inject VS Code theme integration and toolbar
-            htmlContent = this._injectPreviewEnhancements(htmlContent);
+            // Inject VS Code theme integration and toolbar (uses async custom CSS loading)
+            htmlContent = await this._injectPreviewEnhancementsAsync(htmlContent);
 
             return htmlContent;
 
@@ -528,8 +612,9 @@ export class DitaPreviewPanel {
 
     /**
      * Convert local resource references to webview URIs
+     * P1-1 Fix: Use async file operations
      */
-    private _convertLocalResources(html: string, baseDir: string, webview: vscode.Webview): string {
+    private async _convertLocalResourcesAsync(html: string, baseDir: string, webview: vscode.Webview): Promise<string> {
         // Convert relative src and href attributes
         const patterns = [
             { regex: /src="([^"]+)"/g, attr: 'src' },
@@ -537,13 +622,22 @@ export class DitaPreviewPanel {
             { regex: /href="([^"]+\.js)"/g, attr: 'href' }
         ];
 
+        // Collect all matches first to check file existence in parallel
+        const replacements: Array<{ fullMatch: string; replacement: string }> = [];
+
         for (const pattern of patterns) {
-            html = html.replace(pattern.regex, (match, relativePath) => {
+            // Reset regex state for each pattern
+            pattern.regex.lastIndex = 0;
+            let match;
+            while ((match = pattern.regex.exec(html)) !== null) {
+                const relativePath = match[1];
+                const fullMatch = match[0];
+
                 // Skip external URLs and data URIs
                 if (relativePath.startsWith('http') ||
                     relativePath.startsWith('//') ||
                     relativePath.startsWith('data:')) {
-                    return match;
+                    continue;
                 }
 
                 // Convert to absolute path
@@ -551,14 +645,25 @@ export class DitaPreviewPanel {
                     ? relativePath
                     : path.join(baseDir, relativePath);
 
-                // Convert to webview URI
-                if (fs.existsSync(absolutePath)) {
+                // Check if file exists asynchronously
+                try {
+                    await fsPromises.access(absolutePath);
                     const uri = webview.asWebviewUri(vscode.Uri.file(absolutePath));
-                    return `${pattern.attr}="${uri}"`;
+                    replacements.push({
+                        fullMatch,
+                        replacement: `${pattern.attr}="${uri}"`
+                    });
+                } catch {
+                    // File doesn't exist, keep original
                 }
+            }
+        }
 
-                return match;
-            });
+        // Apply all replacements (use replace_all to handle duplicates)
+        // P0 Fix: Use replaceAll to handle multiple occurrences of the same resource
+        for (const { fullMatch, replacement } of replacements) {
+            // Use split/join for replaceAll compatibility (works in all Node versions)
+            html = html.split(fullMatch).join(replacement);
         }
 
         return html;
@@ -575,8 +680,9 @@ export class DitaPreviewPanel {
 
     /**
      * Load custom CSS content from configured file path
+     * P1-1 Fix: Use async file operations
      */
-    private _loadCustomCss(): string {
+    private async _loadCustomCssAsync(): Promise<string> {
         const customCssPath = configManager.get('previewCustomCss');
         if (!customCssPath) {
             return '';
@@ -604,30 +710,31 @@ export class DitaPreviewPanel {
             }
         }
 
-        // Try to read the CSS file
+        // Try to read the CSS file asynchronously
         try {
-            if (fs.existsSync(resolvedPath)) {
-                const cssContent = fs.readFileSync(resolvedPath, 'utf-8');
-                logger.debug(`Loaded custom CSS from: ${resolvedPath}`);
-                // Sanitize CSS content to prevent injection
-                return this._sanitizeCss(cssContent);
-            } else {
-                logger.warn(`Custom CSS file not found: ${resolvedPath}`);
-                return '';
-            }
+            const cssContent = await fsPromises.readFile(resolvedPath, 'utf-8');
+            logger.debug(`Loaded custom CSS from: ${resolvedPath}`);
+            // Sanitize CSS content to prevent injection
+            return this._sanitizeCss(cssContent);
         } catch (error) {
-            logger.error(`Failed to load custom CSS from: ${resolvedPath}`, error);
+            const errorCode = (error as NodeJS.ErrnoException).code;
+            if (errorCode === 'ENOENT') {
+                logger.warn(`Custom CSS file not found: ${resolvedPath}`);
+            } else {
+                logger.error(`Failed to load custom CSS from: ${resolvedPath}`, error);
+            }
             return '';
         }
     }
 
     /**
      * Inject preview enhancements (toolbar, theme integration, scroll sync)
+     * P1-1 Fix: Use async file operations for custom CSS loading
      */
-    private _injectPreviewEnhancements(html: string): string {
+    private async _injectPreviewEnhancementsAsync(html: string): Promise<string> {
         // Get configuration
         const previewTheme = configManager.get('previewTheme');
-        const customCss = this._loadCustomCss();
+        const customCss = await this._loadCustomCssAsync();
 
         // Determine initial theme label for button
         const themeLabels: Record<PreviewThemeType, string> = {
@@ -637,7 +744,7 @@ export class DitaPreviewPanel {
         };
         const currentThemeLabel = themeLabels[previewTheme];
 
-        // Create toolbar HTML
+        // Create toolbar HTML (same template as sync version)
         const toolbar = `
 <div id="ditacraft-toolbar" style="
     position: fixed;
@@ -715,6 +822,7 @@ export class DitaPreviewPanel {
 </div>
 <div id="ditacraft-toolbar-spacer" style="height: 32px;"></div>
 <script>
+    // P2-4 Fix: Store references to event handlers for cleanup
     const vscode = acquireVsCodeApi();
     let scrollSyncEnabled = ${configManager.get('previewScrollSync')};
     let lastScrollTime = 0;
@@ -722,22 +830,13 @@ export class DitaPreviewPanel {
     let editorScrollResetTimer = null;
     const SCROLL_DEBOUNCE_MS = ${SCROLL_SYNC_RESET_DELAY_MS};
 
-    // Theme cycling
     const themes = ['auto', 'light', 'dark'];
     let currentThemeIndex = themes.indexOf('${previewTheme}');
     if (currentThemeIndex === -1) currentThemeIndex = 0;
 
-    function ditacraftRefresh() {
-        vscode.postMessage({ command: 'refresh' });
-    }
-
-    function ditacraftOpenSource() {
-        vscode.postMessage({ command: 'openSource' });
-    }
-
-    function ditacraftPrint() {
-        window.print();
-    }
+    function ditacraftRefresh() { vscode.postMessage({ command: 'refresh' }); }
+    function ditacraftOpenSource() { vscode.postMessage({ command: 'openSource' }); }
+    function ditacraftPrint() { window.print(); }
 
     function ditacraftToggleScrollSync() {
         scrollSyncEnabled = !scrollSyncEnabled;
@@ -746,237 +845,93 @@ export class DitaPreviewPanel {
             button.textContent = scrollSyncEnabled ? 'Sync: ON' : 'Sync: OFF';
             button.title = scrollSyncEnabled ? 'Disable Scroll Sync' : 'Enable Scroll Sync';
         }
-        // Notify VS Code of the change
         vscode.postMessage({ command: 'toggleScrollSync', enabled: scrollSyncEnabled });
     }
 
-    // Handle messages from VS Code (for editor-to-preview scroll sync)
-    window.addEventListener('message', event => {
+    // P2-4 Fix: Named handler function for proper cleanup
+    // Fix: Added guard for scrollHeight > 0 to handle content smaller than viewport
+    function handleMessage(event) {
         const message = event.data;
-        switch (message.command) {
-            case 'scrollToPercentage':
-                if (scrollSyncEnabled) {
-                    isScrollingFromEditor = true;
-                    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-                    // Validate and clamp scroll percentage
-                    const pct = Math.max(0, Math.min(100, message.scrollPercentage || 0));
-                    const targetScroll = (pct / 100) * scrollHeight;
-                    window.scrollTo({
-                        top: targetScroll,
-                        behavior: 'auto' // Use 'auto' to avoid smooth scroll delays
-                    });
-                    // Reset flag after scroll completes (clear previous timer first)
-                    if (editorScrollResetTimer) {
-                        clearTimeout(editorScrollResetTimer);
-                    }
-                    editorScrollResetTimer = setTimeout(() => {
-                        isScrollingFromEditor = false;
-                        editorScrollResetTimer = null;
-                    }, SCROLL_DEBOUNCE_MS);
-                }
-                break;
+        if (message.command === 'scrollToPercentage' && scrollSyncEnabled) {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            // Only scroll if there's actually scrollable content
+            if (scrollHeight > 0) {
+                isScrollingFromEditor = true;
+                const pct = Math.max(0, Math.min(100, message.scrollPercentage || 0));
+                window.scrollTo({ top: (pct / 100) * scrollHeight, behavior: 'auto' });
+                if (editorScrollResetTimer) clearTimeout(editorScrollResetTimer);
+                editorScrollResetTimer = setTimeout(() => { isScrollingFromEditor = false; editorScrollResetTimer = null; }, SCROLL_DEBOUNCE_MS);
+            }
         }
-    });
+    }
+    window.addEventListener('message', handleMessage);
 
     function ditacraftCycleTheme() {
         currentThemeIndex = (currentThemeIndex + 1) % themes.length;
         const newTheme = themes[currentThemeIndex];
         const themeLabels = { 'auto': 'Auto', 'light': 'Light', 'dark': 'Dark' };
-
         const button = document.getElementById('themeButton');
-        if (button) {
-            button.textContent = 'Theme: ' + themeLabels[newTheme];
-        }
-
-        // Apply theme immediately
+        if (button) button.textContent = 'Theme: ' + themeLabels[newTheme];
         applyTheme(newTheme);
-
-        // Notify VS Code to persist the setting
         vscode.postMessage({ command: 'setTheme', theme: newTheme });
     }
 
     function applyTheme(theme) {
-        // Remove existing theme style if present
         const existingStyle = document.getElementById('ditacraft-theme-style');
-        if (existingStyle) {
-            existingStyle.remove();
-        }
-
+        if (existingStyle) existingStyle.remove();
         const style = document.createElement('style');
         style.id = 'ditacraft-theme-style';
-
         if (theme === 'light') {
-            style.textContent = \`
-                body {
-                    background-color: #ffffff !important;
-                    color: #1e1e1e !important;
-                }
-                a { color: #0066cc !important; }
-                a:hover { color: #004499 !important; }
-                code, pre {
-                    background-color: #f5f5f5 !important;
-                    border: 1px solid #e0e0e0 !important;
-                }
-                #ditacraft-toolbar {
-                    background: #f3f3f3 !important;
-                    border-bottom-color: #d4d4d4 !important;
-                }
-                #ditacraft-toolbar span { color: #333 !important; }
-                #ditacraft-toolbar button {
-                    background: #d4d4d4 !important;
-                    color: #1e1e1e !important;
-                }
-                #ditacraft-toolbar button:hover {
-                    background: #c0c0c0 !important;
-                }
-            \`;
+            style.textContent = 'body{background-color:#fff!important;color:#1e1e1e!important}a{color:#0066cc!important}code,pre{background-color:#f5f5f5!important}#ditacraft-toolbar{background:#f3f3f3!important}#ditacraft-toolbar span{color:#333!important}#ditacraft-toolbar button{background:#d4d4d4!important;color:#1e1e1e!important}';
         } else if (theme === 'dark') {
-            style.textContent = \`
-                body {
-                    background-color: #1e1e1e !important;
-                    color: #d4d4d4 !important;
-                }
-                a { color: #3794ff !important; }
-                a:hover { color: #4da6ff !important; }
-                code, pre {
-                    background-color: #2d2d2d !important;
-                    border: 1px solid #404040 !important;
-                }
-                #ditacraft-toolbar {
-                    background: #252526 !important;
-                    border-bottom-color: #454545 !important;
-                }
-                #ditacraft-toolbar span { color: #ccc !important; }
-                #ditacraft-toolbar button {
-                    background: #3a3d41 !important;
-                    color: #fff !important;
-                }
-                #ditacraft-toolbar button:hover {
-                    background: #4a4d51 !important;
-                }
-            \`;
+            style.textContent = 'body{background-color:#1e1e1e!important;color:#d4d4d4!important}a{color:#3794ff!important}code,pre{background-color:#2d2d2d!important}#ditacraft-toolbar{background:#252526!important}#ditacraft-toolbar span{color:#ccc!important}#ditacraft-toolbar button{background:#3a3d41!important;color:#fff!important}';
         } else {
-            // auto - use VS Code CSS variables
-            style.textContent = \`
-                body {
-                    background-color: var(--vscode-editor-background, #1e1e1e) !important;
-                    color: var(--vscode-editor-foreground, #d4d4d4) !important;
-                }
-                a { color: var(--vscode-textLink-foreground, #3794ff) !important; }
-                a:hover { color: var(--vscode-textLink-activeForeground, #3794ff) !important; }
-                code, pre {
-                    background-color: var(--vscode-textCodeBlock-background, rgba(220, 220, 220, 0.1)) !important;
-                }
-            \`;
+            style.textContent = 'body{background-color:var(--vscode-editor-background,#1e1e1e)!important;color:var(--vscode-editor-foreground,#d4d4d4)!important}a{color:var(--vscode-textLink-foreground,#3794ff)!important}';
         }
-
         document.head.appendChild(style);
     }
 
-    // Add scroll event listener for scroll synchronization (preview to editor)
-    window.addEventListener('scroll', () => {
+    // P2-4 Fix: Named handler function for proper cleanup
+    // Fix: Only send scroll sync when there's scrollable content to prevent unnecessary messages
+    function handleScroll() {
         const now = Date.now();
-        // Skip if sync is disabled, too recent, or caused by editor sync
-        if (!scrollSyncEnabled || (now - lastScrollTime) < SCROLL_DEBOUNCE_MS || isScrollingFromEditor) {
-            return;
-        }
-        lastScrollTime = now;
-
-        // Calculate scroll percentage
+        if (!scrollSyncEnabled || (now - lastScrollTime) < SCROLL_DEBOUNCE_MS || isScrollingFromEditor) return;
         const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const scrollPercentage = scrollHeight > 0
-            ? (window.scrollY / scrollHeight) * 100
-            : 0;
+        // Only sync if there's actually scrollable content
+        if (scrollHeight <= 0) return;
+        lastScrollTime = now;
+        const scrollPercentage = (window.scrollY / scrollHeight) * 100;
+        vscode.postMessage({ command: 'scrollSync', scrollPercentage: scrollPercentage });
+    }
+    window.addEventListener('scroll', handleScroll);
 
-        vscode.postMessage({
-            command: 'scrollSync',
-            scrollPercentage: scrollPercentage
-        });
-    });
-
-    // Apply initial theme on load
-    document.addEventListener('DOMContentLoaded', function() {
+    // P2-4 Fix: Named handler function for proper cleanup
+    function handleDOMContentLoaded() {
         applyTheme('${previewTheme}');
+    }
+    document.addEventListener('DOMContentLoaded', handleDOMContentLoaded);
+
+    // P2-4 Fix: Cleanup event listeners when webview is disposed
+    window.addEventListener('beforeunload', function cleanupListeners() {
+        window.removeEventListener('message', handleMessage);
+        window.removeEventListener('scroll', handleScroll);
+        document.removeEventListener('DOMContentLoaded', handleDOMContentLoaded);
+        if (editorScrollResetTimer) clearTimeout(editorScrollResetTimer);
     });
 </script>
-<style id="ditacraft-custom-css">
-${customCss}
-</style>
+<style id="ditacraft-custom-css">${customCss}</style>
 <style id="ditacraft-print-styles">
 @media print {
-    /* Hide toolbar and its spacer when printing */
-    #ditacraft-toolbar,
-    #ditacraft-toolbar-spacer {
-        display: none !important;
-    }
-
-    /* Reset to print-friendly colors */
-    body {
-        background-color: white !important;
-        color: black !important;
-        font-size: 12pt !important;
-        line-height: 1.5 !important;
-        margin: 0 !important;
-        padding: 20px !important;
-    }
-
-    /* Links should be visible but not colored */
-    a {
-        color: black !important;
-        text-decoration: underline !important;
-    }
-
-    /* Code blocks with light background */
-    code, pre {
-        background-color: #f5f5f5 !important;
-        border: 1px solid #ddd !important;
-        color: black !important;
-        page-break-inside: avoid;
-    }
-
-    /* Ensure images don't overflow and avoid page breaks */
-    img {
-        max-width: 100% !important;
-        page-break-inside: avoid;
-    }
-
-    /* Headings - avoid orphaned headings */
-    h1, h2, h3, h4, h5, h6 {
-        color: black !important;
-        page-break-after: avoid;
-        page-break-inside: avoid;
-    }
-
-    /* Tables - avoid breaking inside rows */
-    table {
-        page-break-inside: auto;
-    }
-    tr {
-        page-break-inside: avoid;
-        page-break-after: auto;
-    }
-    thead {
-        display: table-header-group;
-    }
-
-    /* Paragraphs and list items */
-    p, li {
-        orphans: 3;
-        widows: 3;
-    }
-
-    /* Reset fixed/absolute positioning to static for proper print layout */
-    [style*="position: fixed"],
-    [style*="position:fixed"],
-    [style*="position: absolute"],
-    [style*="position:absolute"] {
-        position: static !important;
-    }
-
-    /* Ensure content is visible */
-    .hidden-print, .no-print {
-        display: none !important;
-    }
+    #ditacraft-toolbar, #ditacraft-toolbar-spacer { display: none !important; }
+    body { background-color: white !important; color: black !important; font-size: 12pt !important; }
+    a { color: black !important; text-decoration: underline !important; }
+    code, pre { background-color: #f5f5f5 !important; border: 1px solid #ddd !important; page-break-inside: avoid; }
+    img { max-width: 100% !important; page-break-inside: avoid; }
+    h1, h2, h3, h4, h5, h6 { color: black !important; page-break-after: avoid; }
+    table { page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    thead { display: table-header-group; }
+    p, li { orphans: 3; widows: 3; }
 }
 </style>`;
 
@@ -985,6 +940,32 @@ ${customCss}
         if (bodyMatch) {
             const insertPos = html.indexOf(bodyMatch[0]) + bodyMatch[0].length;
             html = html.slice(0, insertPos) + toolbar + html.slice(insertPos);
+        } else {
+            // Fallback: Try to inject body after </head>, or after <html> if no head
+            const headCloseMatch = html.match(/<\/head>/i);
+            if (headCloseMatch) {
+                // Insert <body> after </head> to maintain valid HTML structure
+                const insertPos = html.indexOf(headCloseMatch[0]) + headCloseMatch[0].length;
+                html = html.slice(0, insertPos) + '<body>' + toolbar + html.slice(insertPos);
+            } else {
+                const htmlMatch = html.match(/<html[^>]*>/i);
+                if (htmlMatch) {
+                    // No <head>, insert <body> after <html>
+                    const insertPos = html.indexOf(htmlMatch[0]) + htmlMatch[0].length;
+                    html = html.slice(0, insertPos) + '<body>' + toolbar + html.slice(insertPos);
+                } else {
+                    // Last resort: wrap entire content in valid HTML structure
+                    html = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' + toolbar + html + '</body></html>';
+                }
+            }
+            // Add closing body before </html> if not present
+            if (!html.includes('</body>')) {
+                const closeHtmlPos = html.lastIndexOf('</html>');
+                if (closeHtmlPos > -1) {
+                    html = html.slice(0, closeHtmlPos) + '</body>' + html.slice(closeHtmlPos);
+                }
+            }
+            logger.warn('Preview HTML missing <body> tag, using fallback injection');
         }
 
         return html;

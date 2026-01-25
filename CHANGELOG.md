@@ -5,6 +5,68 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2025-01-25
+
+### Added
+- **Rate Limiting**: DoS protection for validation operations
+  - Sliding window rate limiter (10 requests/second per file for validation)
+  - Configurable limits for different operation types (validation, file watcher, key space builds, preview)
+  - Automatic cleanup of expired entries to prevent memory leaks
+  - User-friendly warning message when rate limit exceeded
+
+- **Modular Validation Engine Architecture**: Refactored validation system
+  - Strategy pattern for swappable validation engines (TypesXML, Built-in, XMLLint)
+  - Clean separation of concerns with dedicated engine classes
+  - Fallback chain: TypesXML → Built-in when engine unavailable
+  - Hot-swapping of engines when configuration changes
+
+- **Architecture Documentation**: Comprehensive ARCHITECTURE.md
+  - Layer architecture diagrams (Commands, Providers, Utils, External)
+  - Data flow diagrams for validation, key resolution, and preview
+  - Extension lifecycle documentation
+  - Caching strategies and design patterns
+  - Security considerations (XXE, path traversal, command injection)
+
+- **Adaptive Cache Cleanup**: Performance optimization
+  - Skip cache cleanup when caches are empty
+  - Reduced unnecessary processing during idle periods
+
+- **Enhanced Test Coverage**: 547+ tests (up from 491)
+  - Rate limiter unit tests (17 tests)
+  - Rate limiter integration tests (6 tests)
+  - Security and edge case tests (16 tests)
+  - Path traversal prevention tests
+  - Cache expiration edge case tests
+  - Large file handling tests
+
+- **DITA User Guide**: Complete documentation in DITA format (`docs/user-guide/`)
+  - 55 files organized as a bookmap with parts, chapters, and appendixes
+  - Part I: Getting Started (Introduction, Installation)
+  - Part II: Using DitaCraft (Commands, Features)
+  - Part III: Configuration (Settings)
+  - Appendix: Keyboard Shortcuts reference (all shortcuts with descriptions)
+  - Glossary: 28 DITA and DitaCraft terms with cross-references
+  - Index support via glossentry mechanism
+  - Front matter with cover page, TOC, preface, and notices
+  - Demonstrates DitaCraft capabilities (can be used as test content)
+
+### Changed
+- Validation command now includes rate limiting protection
+- Auto-validation on save respects rate limits
+- Centralized configuration access via configManager (P1-4 fix)
+- Improved JSDoc documentation for complex functions
+
+### Fixed
+- **Preview Scroll Sync**: Fixed scroll sync for content smaller than viewport
+  - Added scrollHeight > 0 guard to prevent scroll sync issues with short documents
+  - Preview-to-editor sync now correctly handles non-scrollable content
+- **Preview Print Mode**: Fixed toolbar injection for non-standard HTML
+  - Added fallback for HTML without `<body>` tag (inserts after `</head>` or `<html>`)
+  - Fixed critical bug where `<body>` could be incorrectly placed before `<head>`
+  - Ensures valid HTML structure in all fallback scenarios
+- Whitespace-only strings now handled correctly in error extraction (P3-3)
+- Double disposal risk in provider factory eliminated (P2-2)
+
 ## [0.4.1] - 2025-01-25
 
 ### Added

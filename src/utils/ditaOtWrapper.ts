@@ -11,6 +11,7 @@ import { promisify } from 'util';
 import { logger } from './logger';
 import { getDitaOtOutputChannel } from './ditaOtOutputChannel';
 import { PROCESS_CONSTANTS } from './constants';
+import { configManager } from './configurationManager';
 
 const execFileAsync = promisify(execFile);
 
@@ -54,12 +55,31 @@ export class DitaOtWrapper {
 
     /**
      * Load configuration from VS Code settings
+     *
+     * Loads and validates all DITA-OT related configuration from VS Code settings.
+     * Uses the centralized configManager for consistent access (P1-4 Fix).
+     *
+     * ## Configuration Keys
+     * - `ditacraft.ditaOtPath`: Path to DITA-OT installation directory
+     * - `ditacraft.outputDirectory`: Output directory (supports `${workspaceFolder}` variable)
+     * - `ditacraft.defaultTranstype`: Default transformation type (html5, pdf, etc.)
+     * - `ditacraft.ditaOtArgs`: Additional command-line arguments
+     *
+     * ## Validation Rules
+     * 1. **Output Directory**: Replaces `${workspaceFolder}` placeholder, validates path characters
+     * 2. **DITA-OT Path**: Validates path doesn't contain null bytes or invalid characters
+     * 3. **Transtype**: Must be one of: html5, pdf, xhtml, epub, htmlhelp, markdown (defaults to html5)
+     *
+     * ## Security
+     * - Validates paths don't contain null bytes (prevents path injection)
+     * - On Windows, validates against reserved characters (<>"|?*)
+     *
+     * @returns DitaOtConfig object with validated settings
      */
     private loadConfiguration(): DitaOtConfig {
-        const config = vscode.workspace.getConfiguration('ditacraft');
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
 
-        let outputDir = config.get<string>('outputDirectory', '${workspaceFolder}/out');
+        let outputDir = configManager.get('outputDirectory');
         outputDir = outputDir.replace('${workspaceFolder}', workspaceFolder);
 
         // Validate output directory path
@@ -69,13 +89,13 @@ export class DitaOtWrapper {
         }
 
         // Validate DITA-OT path
-        const ditaOtPath = config.get<string>('ditaOtPath', '');
+        const ditaOtPath = configManager.get('ditaOtPath');
         if (ditaOtPath && !this.isValidPath(ditaOtPath)) {
             logger.warn('Invalid DITA-OT path in configuration');
         }
 
         // Validate transtype
-        const defaultTranstype = config.get<string>('defaultTranstype', 'html5');
+        const defaultTranstype = configManager.get('defaultTranstype');
         const validTranstypes = ['html5', 'pdf', 'xhtml', 'epub', 'htmlhelp', 'markdown'];
         const safeTranstype = validTranstypes.includes(defaultTranstype) ? defaultTranstype : 'html5';
 
@@ -83,16 +103,16 @@ export class DitaOtWrapper {
             ditaOtPath: ditaOtPath,
             defaultTranstype: safeTranstype,
             outputDirectory: outputDir,
-            additionalArgs: config.get<string[]>('ditaOtArgs', [])
+            additionalArgs: configManager.get('ditaOtArgs')
         };
     }
 
     /**
      * Get DITA-OT process timeout from configuration (in milliseconds)
+     * P1-4 Fix: Use centralized configManager
      */
     private getProcessTimeoutMs(): number {
-        const config = vscode.workspace.getConfiguration('ditacraft');
-        const timeoutMinutes = config.get<number>('ditaOtTimeoutMinutes', 10);
+        const timeoutMinutes = configManager.get('ditaOtTimeoutMinutes');
         return timeoutMinutes * 60 * 1000;
     }
 
@@ -129,6 +149,33 @@ export class DitaOtWrapper {
 
     /**
      * Detect DITA-OT command based on platform and configuration
+     *
+     * Implements a two-phase detection strategy:
+     *
+     * ## Phase 1: Custom Path (if configured)
+     * If `ditacraft.ditaOtPath` is set in VS Code settings:
+     * 1. Constructs path to `bin/dita.bat` (Windows) or `bin/dita` (Unix)
+     * 2. On Windows, falls back to `dita.cmd` if `dita.bat` doesn't exist
+     * 3. Verifies the command file exists on disk
+     * 4. Shows warning if file not found
+     *
+     * ## Phase 2: System PATH (fallback)
+     * If no custom path configured or verification failed:
+     * - Returns `dita.bat` (Windows) or `dita` (Unix)
+     * - Relies on DITA-OT being in system PATH
+     *
+     * @returns Full path to DITA-OT command, or platform-appropriate command name for PATH lookup.
+     *          Returns empty string if custom path is configured but command not found.
+     *
+     * @example
+     * ```typescript
+     * // With custom path on Windows:
+     * // config.ditaOtPath = 'C:\\dita-ot-4.0'
+     * // Returns: 'C:\\dita-ot-4.0\\bin\\dita.bat'
+     *
+     * // Without custom path on Unix:
+     * // Returns: 'dita'
+     * ```
      */
     private detectDitaOtCommand(): string {
         const platform = process.platform;
@@ -171,6 +218,32 @@ export class DitaOtWrapper {
 
     /**
      * Verify DITA-OT installation and get version
+     *
+     * Executes `dita --version` to check if DITA-OT is installed and accessible.
+     * Handles platform-specific execution requirements.
+     *
+     * ## Platform Handling
+     * - **Windows**: Batch files (.bat/.cmd) must be executed through `cmd.exe /c`
+     * - **Unix/macOS**: Direct execution of the `dita` command
+     *
+     * ## Version Parsing
+     * Parses version from output matching pattern: `DITA-OT version X.Y.Z`
+     * Returns "unknown" if pattern not found.
+     *
+     * @returns Object containing:
+     *   - `installed`: true if DITA-OT responds successfully
+     *   - `version`: Parsed version string (e.g., "4.0.2") or "unknown"
+     *   - `path`: Configured DITA-OT path or "System PATH" if using system installation
+     *
+     * @example
+     * ```typescript
+     * const result = await wrapper.verifyInstallation();
+     * if (result.installed) {
+     *     console.log(`DITA-OT ${result.version} found at ${result.path}`);
+     * } else {
+     *     console.log('DITA-OT not found');
+     * }
+     * ```
      */
     public async verifyInstallation(): Promise<{ installed: boolean; version?: string; path?: string }> {
         try {
@@ -245,6 +318,65 @@ export class DitaOtWrapper {
 
     /**
      * Publish DITA content using DITA-OT
+     *
+     * This is the main publishing method that orchestrates the entire DITA-OT build process.
+     * It handles:
+     *
+     * ## Process Lifecycle
+     * 1. **Validation**: Verifies input file exists and is a valid DITA file
+     * 2. **Process Spawning**: Launches DITA-OT via `spawn()` with appropriate platform handling
+     *    - Windows: Executes through `cmd.exe` for `.bat`/`.cmd` files
+     *    - Unix: Direct execution of `dita` binary
+     * 3. **Output Streaming**: Captures stdout/stderr in real-time to output channel
+     * 4. **Progress Reporting**: Parses DITA-OT output for progress callbacks
+     * 5. **Timeout Handling**: Implements multi-stage timeout with graceful shutdown
+     *
+     * ## Timeout Strategy
+     * The method implements a robust timeout mechanism to prevent hung processes:
+     *
+     * ```
+     * Time: 0 ─────────────────► timeoutMs ────► +5s ────► +5s
+     *       │                         │           │         │
+     *       │ Normal processing       │ SIGTERM   │ SIGKILL │ Force resolve
+     *       │                         │ sent      │ sent    │ (zombie protection)
+     * ```
+     *
+     * 1. After `ditaOtTimeoutMinutes` (default 5min): Send SIGTERM for graceful shutdown
+     * 2. After 5s grace period: Send SIGKILL to force terminate
+     * 3. After another 5s: Force-resolve promise if process becomes zombie
+     *
+     * ## Environment Setup
+     * - Sets `DITA_HOME` environment variable if custom path configured
+     * - Working directory set to input file's parent directory
+     * - Inherits parent process environment
+     *
+     * ## Output Handling
+     * - All output logged to dedicated "DITA-OT Output" channel with syntax highlighting
+     * - Combined stdout/stderr returned in result for error parsing
+     * - Progress parsed from DITA-OT [pipeline], [xslt], [move] markers
+     *
+     * @param options - Publishing options including input file, transtype, and output directory
+     * @param progressCallback - Optional callback invoked with progress updates during build
+     * @returns Promise resolving to PublishResult with success status, output path, and any errors
+     *
+     * @example
+     * ```typescript
+     * const result = await ditaOtWrapper.publish({
+     *     inputFile: '/path/to/document.ditamap',
+     *     transtype: 'html5',
+     *     outputDir: '/path/to/output'
+     * }, (progress) => {
+     *     console.log(`${progress.stage}: ${progress.percentage}%`);
+     * });
+     *
+     * if (result.success) {
+     *     console.log('Output at:', result.outputPath);
+     * } else {
+     *     console.error('Failed:', result.error);
+     * }
+     * ```
+     *
+     * @throws Never throws - all errors are returned in the result object
      */
     public async publish(
         options: PublishOptions,
@@ -370,16 +502,37 @@ export class DitaOtWrapper {
             // Add timeout protection for DITA-OT processing
             const processTimeoutMs = this.getProcessTimeoutMs();
             const timeoutMinutes = processTimeoutMs / 60000;
+            let processResolved = false;
+            let killGraceTimeout: NodeJS.Timeout | null = null;
+            let zombieCheckTimeout: NodeJS.Timeout | null = null;
+
             const timeoutHandle = setTimeout(() => {
                 processTimedOut = true;
                 logger.error(`DITA-OT process timeout after ${timeoutMinutes} minutes`);
                 ditaProcess.kill('SIGTERM');
 
                 // Give it a moment to terminate gracefully, then force kill
-                setTimeout(() => {
+                killGraceTimeout = setTimeout(() => {
                     if (!ditaProcess.killed) {
                         ditaProcess.kill('SIGKILL');
                     }
+
+                    // P0-1 Fix: Fallback resolution if process becomes zombie
+                    // If close event hasn't fired after SIGKILL + grace period, force resolve
+                    zombieCheckTimeout = setTimeout(() => {
+                        if (!processResolved) {
+                            processResolved = true;
+                            logger.error('DITA-OT process did not terminate cleanly, forcing resolution');
+                            const combinedOutput = outputBuffer + '\n' + errorBuffer;
+                            ditaOtOutput.logBuildComplete(false, options.outputDir, Date.now() - buildStartTime);
+                            resolve({
+                                success: false,
+                                outputPath: options.outputDir,
+                                error: `DITA-OT process timed out and failed to terminate after ${timeoutMinutes} minutes`,
+                                output: combinedOutput
+                            });
+                        }
+                    }, PROCESS_CONSTANTS.KILL_GRACE_PERIOD_MS);
                 }, PROCESS_CONSTANTS.KILL_GRACE_PERIOD_MS);
             }, processTimeoutMs);
 
@@ -428,8 +581,17 @@ export class DitaOtWrapper {
 
             // Handle process completion
             ditaProcess.on('close', (code: number) => {
-                // Clear the timeout since process has completed
+                // Mark as resolved to prevent fallback timeout from firing
+                processResolved = true;
+
+                // Clear all timeouts since process has completed
                 clearTimeout(timeoutHandle);
+                if (killGraceTimeout) {
+                    clearTimeout(killGraceTimeout);
+                }
+                if (zombieCheckTimeout) {
+                    clearTimeout(zombieCheckTimeout);
+                }
 
                 const buildDuration = Date.now() - buildStartTime;
                 logger.debug('DITA-OT process closed', { exitCode: code, durationMs: buildDuration });

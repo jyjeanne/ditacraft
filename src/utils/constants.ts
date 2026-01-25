@@ -1,6 +1,33 @@
 /**
  * Global Constants
  * Centralized configuration and magic numbers for DitaCraft
+ *
+ * ## Naming Conventions (P3-2)
+ *
+ * ### Variables
+ * - camelCase for local variables: `errorMessage`, `filePath`, `keySpace`
+ * - UPPER_SNAKE_CASE for constants: `MAX_LINK_MATCHES`, `TIME_CONSTANTS`
+ *
+ * ### Functions
+ * - camelCase for function names: `validateFile`, `buildKeySpace`
+ * - Prefixes indicate purpose:
+ *   - `get*` - Retrieves a value: `getValidator()`, `getKeySpaceResolver()`
+ *   - `create*` - Creates new instance: `createErrorResult()`, `createDebounced()`
+ *   - `validate*` - Validates something: `validateFile()`, `validateInputFile()`
+ *   - `is*` / `has*` - Boolean checks: `isAvailable`, `hasShownWarning`
+ *
+ * ### Error Variables (within catch blocks)
+ * - Use `error` for the caught exception parameter
+ * - Use descriptive names for extracted properties: `errorMessage`, `errorCode`
+ * - When type-casting, use `err` for the typed version: `const err = error as SomeType`
+ *
+ * ### Classes
+ * - PascalCase: `DitaValidator`, `KeySpaceResolver`, `ProviderFactory`
+ * - Suffixes indicate type:
+ *   - `*Provider` - VS Code providers: `DitaLinkProvider`, `KeyDiagnosticsProvider`
+ *   - `*Engine` - Validation engines: `BuiltinEngine`, `TypesxmlEngine`
+ *   - `*Manager` - Lifecycle management: `DiagnosticsManager`, `ConfigurationManager`
+ *   - `*Wrapper` - External tool wrappers: `DitaOtWrapper`
  */
 
 /**
@@ -39,11 +66,19 @@ export const CACHE_DEFAULTS = {
 
 /**
  * Debouncing constants
- * Used for file watcher debouncing
+ * Used for file watcher debouncing and document change handlers
  */
 export const DEBOUNCE_CONSTANTS = {
+    /** Debounce delay for file watcher events (ms) */
     FILE_WATCHER_DEBOUNCE_MS: 300,
-    MIN_CLEANUP_INTERVAL_MS: 5 * 60 * 1000
+    /** Minimum interval for cache cleanup operations (ms) */
+    MIN_CLEANUP_INTERVAL_MS: 5 * 60 * 1000,
+    /** P2-3: Debounce delay for key diagnostics document change (ms) */
+    KEY_DIAGNOSTICS_DEBOUNCE_MS: 1000,
+    /** P2-3: Ratio for calculating cache cleanup interval from TTL */
+    CACHE_CLEANUP_INTERVAL_RATIO: 3,
+    /** P2-3: Minimum matches for key reference search */
+    MIN_KEY_MATCHES: 1000
 };
 
 /**

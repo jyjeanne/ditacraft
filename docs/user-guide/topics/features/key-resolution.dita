@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="key-resolution">
+    <title>Key Resolution</title>
+    <shortdesc>Use keys for indirect addressing and content reuse in your DITA projects.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>DITA keys provide a powerful mechanism for indirect addressing. Instead of using direct file paths, you define keys in your map and reference them throughout your topics. This enables:</p>
+            <ul>
+                <li>Easy updates when file locations change</li>
+                <li>Conditional content through key scopes</li>
+                <li>Centralized management of reusable content</li>
+                <li>Simplified localization workflows</li>
+            </ul>
+        </section>
+
+        <section id="key-definitions">
+            <title>Defining Keys</title>
+            <p>Keys are defined in DITA maps using <codeph>&lt;keydef&gt;</codeph> elements or the <codeph>keys</codeph> attribute on <codeph>&lt;topicref&gt;</codeph>.</p>
+            <p><b>Basic Key Definition:</b></p>
+            <codeblock>&lt;keydef keys="product-name"&gt;
+    &lt;topicmeta&gt;
+        &lt;keywords&gt;
+            &lt;keyword&gt;DitaCraft&lt;/keyword&gt;
+        &lt;/keywords&gt;
+    &lt;/topicmeta&gt;
+&lt;/keydef&gt;</codeblock>
+            <p><b>Key with href:</b></p>
+            <codeblock>&lt;keydef keys="install-guide" href="topics/installation.dita"/&gt;</codeblock>
+            <p><b>Key on topicref:</b></p>
+            <codeblock>&lt;topicref keys="getting-started" href="topics/getting-started.dita"/&gt;</codeblock>
+        </section>
+
+        <section id="using-keyref">
+            <title>Using keyref</title>
+            <p>Reference keys using the <codeph>keyref</codeph> attribute to pull in text content or create links.</p>
+            <p><b>Text Replacement:</b></p>
+            <codeblock>&lt;!-- In your topic --&gt;
+&lt;p&gt;Welcome to &lt;ph keyref="product-name"/&gt;!&lt;/p&gt;
+
+&lt;!-- Renders as --&gt;
+&lt;p&gt;Welcome to DitaCraft!&lt;/p&gt;</codeblock>
+            <p><b>Link Creation:</b></p>
+            <codeblock>&lt;xref keyref="install-guide"&gt;Installation Guide&lt;/xref&gt;</codeblock>
+        </section>
+
+        <section id="using-conkeyref">
+            <title>Using conkeyref</title>
+            <p>The <codeph>conkeyref</codeph> attribute combines key resolution with content referencing. It first resolves the key to a file, then pulls content from a specific element.</p>
+            <codeblock>&lt;!-- Key definition --&gt;
+&lt;keydef keys="shared-warnings" href="shared/warnings.dita"/&gt;
+
+&lt;!-- Usage --&gt;
+&lt;note conkeyref="shared-warnings/safety-warning"/&gt;</codeblock>
+            <p>This resolves <codeph>shared-warnings</codeph> to <filepath>shared/warnings.dita</filepath>, then pulls the element with <codeph>id="safety-warning"</codeph>.</p>
+        </section>
+
+        <section id="key-space">
+            <title>Key Space</title>
+            <p>DitaCraft builds a key space from your root map. The key space includes:</p>
+            <ul>
+                <li>All key definitions in the root map</li>
+                <li>Keys from referenced submaps</li>
+                <li>Keys inherited through key scopes</li>
+            </ul>
+            <p><b>Key Precedence:</b> When the same key is defined multiple times, the first definition wins. Keys defined earlier in the map take precedence.</p>
+        </section>
+
+        <section id="key-scopes">
+            <title>Key Scopes</title>
+            <p>Key scopes allow you to define variations of the same content for different contexts.</p>
+            <codeblock>&lt;topicgroup keyscope="admin"&gt;
+    &lt;keydef keys="audience"&gt;
+        &lt;topicmeta&gt;&lt;keywords&gt;&lt;keyword&gt;administrators&lt;/keyword&gt;&lt;/keywords&gt;&lt;/topicmeta&gt;
+    &lt;/keydef&gt;
+    &lt;topicref href="admin-guide.dita"/&gt;
+&lt;/topicgroup&gt;
+
+&lt;topicgroup keyscope="user"&gt;
+    &lt;keydef keys="audience"&gt;
+        &lt;topicmeta&gt;&lt;keywords&gt;&lt;keyword&gt;end users&lt;/keyword&gt;&lt;/keywords&gt;&lt;/topicmeta&gt;
+    &lt;/keydef&gt;
+    &lt;topicref href="user-guide.dita"/&gt;
+&lt;/topicgroup&gt;</codeblock>
+        </section>
+
+        <section id="ditacraft-support">
+            <title>DitaCraft Key Support</title>
+            <p>DitaCraft provides full support for DITA keys:</p>
+            <ul>
+                <li><b>Key Resolution:</b> Automatically builds key space from root maps</li>
+                <li><b>Navigation:</b> Ctrl+Click on keyref navigates to the key's target</li>
+                <li><b>Preview:</b> Live preview shows resolved key values</li>
+                <li><b>Validation:</b> Warns about undefined or missing keys</li>
+                <li><b>Caching:</b> Key space is cached for performance with automatic invalidation</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

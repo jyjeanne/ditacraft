@@ -3,6 +3,7 @@
  * Provides safe error message extraction and handling utilities
  */
 
+import * as vscode from 'vscode';
 import { logger } from './logger';
 
 /**
@@ -28,13 +29,13 @@ export function getErrorMessage(error: unknown, defaultMessage = 'Unknown error'
     if (typeof error === 'object') {
         const errorObj = error as Record<string, unknown>;
 
-        // Check for message property
-        if (typeof errorObj.message === 'string' && errorObj.message.length > 0) {
+        // Check for message property (P3-3: handle whitespace-only strings)
+        if (typeof errorObj.message === 'string' && errorObj.message.trim().length > 0) {
             return errorObj.message;
         }
 
         // Check for msg property (used by some parsers like fast-xml-parser)
-        if (typeof errorObj.msg === 'string' && errorObj.msg.length > 0) {
+        if (typeof errorObj.msg === 'string' && errorObj.msg.trim().length > 0) {
             return errorObj.msg;
         }
 
@@ -47,8 +48,8 @@ export function getErrorMessage(error: unknown, defaultMessage = 'Unknown error'
         }
     }
 
-    // Handle string errors
-    if (typeof error === 'string' && error.length > 0) {
+    // Handle string errors (P3-3: handle whitespace-only strings)
+    if (typeof error === 'string' && error.trim().length > 0) {
         return error;
     }
 
@@ -76,21 +77,50 @@ interface Thenable<T> {
 }
 
 /**
+ * P2-5: Options for fire-and-forget error handling
+ */
+export interface FireAndForgetOptions {
+    /** If true, show an error message to the user when the operation fails */
+    notifyUser?: boolean;
+    /** Custom error message to show to the user (defaults to generic message with context) */
+    userMessage?: string;
+}
+
+/**
  * Execute a promise or thenable without awaiting it (fire-and-forget pattern)
  * Logs any errors to the logger to avoid unhandled promise rejections
+ * P2-5: Optionally shows error notification to user
  *
  * @param promiseOrThenable - Promise or Thenable to execute
  * @param context - Optional context string for error logging
+ * @param options - Optional settings for user notification
  */
-export function fireAndForget(promiseOrThenable: Promise<unknown> | Thenable<unknown>, context?: string): void {
+export function fireAndForget(
+    promiseOrThenable: Promise<unknown> | Thenable<unknown>,
+    context?: string,
+    options?: FireAndForgetOptions
+): void {
     Promise.resolve(promiseOrThenable).catch((error: unknown) => {
-        const message = getErrorMessage(error);
-        if (context) {
-            logger.error(`[${context}] Fire-and-forget error: ${message}`);
-        } else {
-            logger.error(`Fire-and-forget error: ${message}`);
+        const errorMessage = getErrorMessage(error);
+        const logContext = context ? `[${context}]` : '';
+
+        // Always log the error
+        logger.error(`${logContext} Fire-and-forget error: ${errorMessage}`);
+
+        // P2-5: Optionally notify the user
+        if (options?.notifyUser) {
+            const displayMessage = options.userMessage
+                ? options.userMessage
+                : context
+                    ? `Operation failed: ${context}`
+                    : 'An operation failed in the background';
+
+            // Show error message to user (fire-and-forget the notification itself)
+            vscode.window.showErrorMessage(displayMessage).then(
+                () => { /* notification shown */ },
+                () => { /* ignore notification errors */ }
+            );
         }
-        // Silently handled - prevents unhandled promise rejection
     });
 }
 

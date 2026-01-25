@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="publishing-commands">
+    <title>Publishing Commands</title>
+    <shortdesc>Commands for publishing DITA content to HTML5, PDF, and other output formats.</shortdesc>
+
+    <refbody>
+        <section id="publish-select-format">
+            <title>DITA: Publish (Select Format)</title>
+            <p><b>Shortcut:</b> <uicontrol>Ctrl+Shift+B</uicontrol> (Windows/Linux) or <uicontrol>Cmd+Shift+B</uicontrol> (Mac)</p>
+            <p>Opens a format selection dialog and publishes the current DITA map or topic.</p>
+            <p><b>Available Formats:</b></p>
+            <ul>
+                <li><b>html5</b> - Modern HTML5 output with responsive design</li>
+                <li><b>pdf</b> - PDF output (requires Apache FOP or similar)</li>
+                <li><b>xhtml</b> - XHTML 1.0 output</li>
+                <li><b>eclipsehelp</b> - Eclipse help system format</li>
+                <li><b>htmlhelp</b> - Microsoft HTML Help format</li>
+                <li><b>markdown</b> - Markdown output</li>
+            </ul>
+            <p><b>Requirements:</b></p>
+            <ul>
+                <li>DITA-OT must be installed and configured</li>
+                <li>Java Runtime Environment (JRE) 11 or higher</li>
+            </ul>
+        </section>
+
+        <section id="publish-html5">
+            <title>DITA: Publish to HTML5</title>
+            <p>Quickly publishes the current file to HTML5 format without format selection.</p>
+            <p><b>Usage:</b></p>
+            <ol>
+                <li>Open a <filepath>.ditamap</filepath> or <filepath>.bookmap</filepath> file</li>
+                <li>Run the command from Command Palette</li>
+                <li>Output is generated in the <filepath>out</filepath> folder</li>
+            </ol>
+            <p><b>Output Location:</b></p>
+            <p>By default, output is generated in <filepath>{workspace}/out/{format}</filepath>. You can customize this in settings with <codeph>ditacraft.outputDirectory</codeph>.</p>
+        </section>
+
+        <section id="preview-html5">
+            <title>DITA: Preview HTML5</title>
+            <p><b>Shortcut:</b> <uicontrol>Ctrl+Shift+H</uicontrol> (Windows/Linux) or <uicontrol>Cmd+Shift+H</uicontrol> (Mac)</p>
+            <p>Opens a live HTML5 preview panel alongside the editor.</p>
+            <p><b>Features:</b></p>
+            <ul>
+                <li><b>Live Updates:</b> Preview refreshes automatically as you type</li>
+                <li><b>Scroll Sync:</b> Bidirectional scroll synchronization between editor and preview</li>
+                <li><b>Theme Support:</b> Light and dark theme support</li>
+                <li><b>Print Mode:</b> Toggle print-friendly styling</li>
+                <li><b>Conref Resolution:</b> Displays resolved conref content</li>
+            </ul>
+            <note type="tip">The preview uses a lightweight renderer that does not require DITA-OT, making it instant for quick content review.</note>
+        </section>
+
+        <section id="configure-dita-ot">
+            <title>DITA: Configure DITA-OT Path</title>
+            <p>Opens a folder picker to select your DITA-OT installation directory.</p>
+            <p><b>Steps:</b></p>
+            <ol>
+                <li>Download DITA-OT from <xref href="https://www.dita-ot.org/download" format="html" scope="external">dita-ot.org</xref></li>
+                <li>Extract to a location on your system</li>
+                <li>Run this command and select the DITA-OT directory</li>
+            </ol>
+            <p><b>Verification:</b></p>
+            <p>After configuration, DitaCraft verifies the installation by checking for:</p>
+            <ul>
+                <li><filepath>bin/dita</filepath> or <filepath>bin/dita.bat</filepath> executable</li>
+                <li><filepath>lib/</filepath> directory with required JAR files</li>
+                <li>Valid version information</li>
+            </ul>
+        </section>
+
+        <section id="publishing-errors">
+            <title>Common Publishing Errors</title>
+            <p>If publishing fails, check the following:</p>
+            <dl>
+                <dlentry>
+                    <dt>DITA-OT not found</dt>
+                    <dd>Run <uicontrol>DITA: Configure DITA-OT Path</uicontrol> to set the correct path.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Java not found</dt>
+                    <dd>Install JRE 11+ and ensure <codeph>JAVA_HOME</codeph> is set correctly.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Build failed</dt>
+                    <dd>Check the Output panel for detailed error messages from DITA-OT.</dd>
+                </dlentry>
+            </dl>
+        </section>
+    </refbody>
+</reference>

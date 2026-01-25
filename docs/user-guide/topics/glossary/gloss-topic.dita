@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-topic">
+    <glossterm>Topic</glossterm>
+    <glossdef>
+        <p>The basic unit of content in DITA. A topic is a standalone unit of information that addresses a single subject. DITA provides specialized topic types: concept, task, reference, and generic topic. File extension: <filepath>.dita</filepath>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/file-creation-commands.dita"/>
+        <link href="../introduction.dita"/>
+    </related-links>
+</glossentry>

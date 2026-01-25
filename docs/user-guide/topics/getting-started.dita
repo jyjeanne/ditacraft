@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="getting-started">
+    <title>Getting Started</title>
+    <shortdesc>Learn how to install and configure DitaCraft for your first DITA project.</shortdesc>
+
+    <taskbody>
+        <prereq>
+            <p>Before installing DitaCraft, ensure you have:</p>
+            <ul>
+                <li>Visual Studio Code 1.80 or higher</li>
+                <li>DITA-OT 4.2.1 or higher (for publishing features)</li>
+            </ul>
+        </prereq>
+
+        <context>
+            <p>This guide walks you through installing DitaCraft and creating your first DITA file.</p>
+        </context>
+
+        <steps>
+            <step>
+                <cmd>Install DitaCraft from VS Code Marketplace</cmd>
+                <substeps>
+                    <substep>
+                        <cmd>Open VS Code</cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Press <uicontrol>Ctrl+P</uicontrol> (or <uicontrol>Cmd+P</uicontrol> on Mac)</cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Type <userinput>ext install ditacraft</userinput> and press Enter</cmd>
+                    </substep>
+                </substeps>
+            </step>
+
+            <step>
+                <cmd>Configure DITA-OT path (optional, required for publishing)</cmd>
+                <substeps>
+                    <substep>
+                        <cmd>Download DITA-OT from <xref href="https://www.dita-ot.org/download" format="html" scope="external">dita-ot.org</xref></cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Extract to a location (e.g., <filepath>C:\DITA-OT-4.2.1</filepath>)</cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Open Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>)</cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Type <userinput>DITA: Configure DITA-OT Path</userinput></cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Select your DITA-OT installation directory</cmd>
+                    </substep>
+                </substeps>
+            </step>
+
+            <step>
+                <cmd>Create your first DITA topic</cmd>
+                <substeps>
+                    <substep>
+                        <cmd>Open Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>)</cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Type <userinput>DITA: Create New Topic</userinput></cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Select topic type (concept, task, or reference)</cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Enter a file name for your topic</cmd>
+                    </substep>
+                </substeps>
+                <stepresult>A new DITA topic file is created with proper DOCTYPE and structure.</stepresult>
+            </step>
+
+            <step>
+                <cmd>Validate your DITA file</cmd>
+                <substeps>
+                    <substep>
+                        <cmd>Open your DITA file</cmd>
+                    </substep>
+                    <substep>
+                        <cmd>Press <uicontrol>Ctrl+Shift+V</uicontrol> to validate</cmd>
+                    </substep>
+                </substeps>
+                <stepresult>Validation results appear in the Problems panel. Errors and warnings are highlighted in the editor.</stepresult>
+            </step>
+
+            <step>
+                <cmd>Preview your content (optional)</cmd>
+                <substeps>
+                    <substep>
+                        <cmd>Press <uicontrol>Ctrl+Shift+H</uicontrol> to open HTML5 preview</cmd>
+                    </substep>
+                </substeps>
+                <stepresult>A side-by-side preview panel opens showing your rendered DITA content.</stepresult>
+            </step>
+        </steps>
+
+        <result>
+            <p>You now have DitaCraft installed and configured. You can:</p>
+            <ul>
+                <li>Create DITA topics, maps, and bookmaps</li>
+                <li>Validate your content in real-time</li>
+                <li>Navigate between files using Ctrl+Click</li>
+                <li>Preview and publish your documentation</li>
+            </ul>
+        </result>
+    </taskbody>
+</task>

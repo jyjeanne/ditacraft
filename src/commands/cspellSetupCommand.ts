@@ -4,7 +4,7 @@
  */
 
 import * as vscode from 'vscode';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 
 /**
@@ -24,8 +24,17 @@ export async function setupCSpellCommand(): Promise<void> {
         const extensionPath = path.dirname(path.dirname(__dirname));
         const templatePath = path.join(extensionPath, '.cspellrc.json');
 
+        // P1-1 Fix: Use async file operations
         // Check if .cspellrc.json already exists
-        if (fs.existsSync(cspellConfigPath)) {
+        let configExists = false;
+        try {
+            await fs.access(cspellConfigPath);
+            configExists = true;
+        } catch {
+            // File doesn't exist
+        }
+
+        if (configExists) {
             const choice = await vscode.window.showInformationMessage(
                 '.cspellrc.json already exists in your workspace.',
                 'Keep Current',
@@ -34,9 +43,9 @@ export async function setupCSpellCommand(): Promise<void> {
             );
 
             if (choice === 'Replace with DitaCraft Config') {
-                // Read template and copy
-                const templateContent = fs.readFileSync(templatePath, 'utf-8');
-                fs.writeFileSync(cspellConfigPath, templateContent);
+                // Read template and copy (async)
+                const templateContent = await fs.readFile(templatePath, 'utf-8');
+                await fs.writeFile(cspellConfigPath, templateContent);
                 vscode.window.showInformationMessage(
                     'cSpell configuration updated with DitaCraft DITA vocabulary.'
                 );
@@ -45,9 +54,9 @@ export async function setupCSpellCommand(): Promise<void> {
                 await vscode.window.showTextDocument(document);
             }
         } else {
-            // Copy template file to workspace
-            const templateContent = fs.readFileSync(templatePath, 'utf-8');
-            fs.writeFileSync(cspellConfigPath, templateContent);
+            // Copy template file to workspace (async)
+            const templateContent = await fs.readFile(templatePath, 'utf-8');
+            await fs.writeFile(cspellConfigPath, templateContent);
 
             const choice = await vscode.window.showInformationMessage(
                 'cSpell configuration created with DITA vocabulary! Would you like to install cSpell extension if not already installed?',

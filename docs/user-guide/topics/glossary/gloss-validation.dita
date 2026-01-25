@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-validation">
+    <glossterm>Validation</glossterm>
+    <glossdef>
+        <p>The process of checking DITA content for XML well-formedness and DTD conformance. DitaCraft provides real-time validation with detailed error messages and multiple validation engine options.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/validation.dita"/>
+        <link href="../commands/validation-commands.dita"/>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

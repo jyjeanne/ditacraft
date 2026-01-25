@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-rate-limiting">
+    <glossterm>Rate Limiting</glossterm>
+    <glossdef>
+        <p>A DitaCraft protection mechanism that limits validation requests to prevent performance issues during rapid editing. Maximum 10 requests per second per file. Excess requests during auto-validation are silently skipped.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/validation.dita"/>
+        <link href="../commands/validation-commands.dita"/>
+    </related-links>
+</glossentry>

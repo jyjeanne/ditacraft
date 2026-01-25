@@ -6,27 +6,33 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { DitaValidator } from '../providers/ditaValidator';
+import { configManager } from '../utils/configurationManager';
+import { createRateLimiter, RateLimiter } from '../utils/rateLimiter';
 
 // Global validator instance
 let validator: DitaValidator | undefined;
 let extensionContext: vscode.ExtensionContext | undefined;
+
+// Rate limiter for validation requests (P3-6: DoS protection)
+let validationRateLimiter: RateLimiter | undefined;
 
 // Debounce timers for validation (per file)
 const validationDebounceTimers: Map<string, NodeJS.Timeout> = new Map();
 
 /**
  * Get the validation debounce delay from configuration
+ * P1-4 Fix: Use centralized configManager
  */
 function getValidationDebounceMs(): number {
-    const config = vscode.workspace.getConfiguration('ditacraft');
-    return config.get<number>('validationDebounceMs', 500);
+    return configManager.get('validationDebounceMs');
 }
 
 /**
  * Check if auto-validation is enabled (reads fresh value)
+ * P1-4 Fix: Use centralized configManager
  */
 function isAutoValidateEnabled(): boolean {
-    return vscode.workspace.getConfiguration('ditacraft').get<boolean>('autoValidate', true);
+    return configManager.get('autoValidate');
 }
 
 /**
@@ -36,6 +42,10 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
     extensionContext = context;
     validator = new DitaValidator(context);
     context.subscriptions.push(validator);
+
+    // Initialize rate limiter (P3-6: DoS protection)
+    validationRateLimiter = createRateLimiter('VALIDATION');
+    context.subscriptions.push(validationRateLimiter);
 
     // Register save listener - checks autoValidate dynamically on each save
     // This allows the setting to be changed without extension reload
@@ -59,6 +69,12 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
                 // Set new debounced validation
                 const timer = setTimeout(async () => {
                     validationDebounceTimers.delete(filePath);
+
+                    // P3-6: Check rate limit before validation
+                    if (validationRateLimiter && !validationRateLimiter.isAllowed(filePath)) {
+                        return; // Skip if rate limited
+                    }
+
                     await validator?.validateFile(document.uri);
                 }, getValidationDebounceMs());
 
@@ -100,6 +116,12 @@ export async function validateCommand(uri?: vscode.Uri): Promise<void> {
         // Initialize validator if not already done
         if (!validator) {
             validator = new DitaValidator(extensionContext);
+        }
+
+        // P3-6: Check rate limit (allow manual validation to bypass with warning)
+        if (validationRateLimiter && !validationRateLimiter.isAllowed(fileUri.fsPath)) {
+            vscode.window.showWarningMessage('Validation rate limit exceeded. Please wait a moment.');
+            return;
         }
 
         // Show progress
@@ -149,4 +171,21 @@ export async function validateCommand(uri?: vscode.Uri): Promise<void> {
  */
 export function getValidator(): DitaValidator | undefined {
     return validator;
+}
+
+/**
+ * Get the rate limiter instance (for testing)
+ */
+export function getValidationRateLimiter(): RateLimiter | undefined {
+    return validationRateLimiter;
+}
+
+/**
+ * Reset the rate limiter (for testing)
+ * Clears all rate limit tracking without disposing the limiter
+ */
+export function resetValidationRateLimiter(): void {
+    if (validationRateLimiter) {
+        validationRateLimiter.resetAll();
+    }
 }

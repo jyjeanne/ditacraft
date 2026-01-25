@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="validation-settings">
+    <title>Validation Settings</title>
+    <shortdesc>Configure validation engine and automatic validation behavior.</shortdesc>
+
+    <refbody>
+        <section id="validation-engine">
+            <title>ditacraft.validationEngine</title>
+            <p><b>Type:</b> String (enum)</p>
+            <p><b>Default:</b> <codeph>"typesxml"</codeph></p>
+            <p><b>Options:</b></p>
+            <dl>
+                <dlentry>
+                    <dt><codeph>"typesxml"</codeph></dt>
+                    <dd>Full DTD validation using TypesXML parser. Provides 100% W3C conformance with complete DTD support. Recommended for most users.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt><codeph>"built-in"</codeph></dt>
+                    <dd>Lightweight validation with basic content model checking. Faster but may miss some errors. Useful for very large files.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt><codeph>"xmllint"</codeph></dt>
+                    <dd>External validation using libxml2's xmllint tool. Requires xmllint to be installed on your system. Provides excellent performance and accuracy.</dd>
+                </dlentry>
+            </dl>
+            <p><b>Choosing an Engine:</b></p>
+            <simpletable>
+                <sthead>
+                    <stentry>Use Case</stentry>
+                    <stentry>Recommended Engine</stentry>
+                </sthead>
+                <strow>
+                    <stentry>General DITA authoring</stentry>
+                    <stentry><codeph>typesxml</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry>Very large files (1000+ elements)</stentry>
+                    <stentry><codeph>built-in</codeph> or <codeph>xmllint</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry>Strict DTD conformance required</stentry>
+                    <stentry><codeph>typesxml</codeph> or <codeph>xmllint</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry>Quick syntax checking only</stentry>
+                    <stentry><codeph>built-in</codeph></stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="auto-validate">
+            <title>ditacraft.autoValidate</title>
+            <p><b>Type:</b> Boolean</p>
+            <p><b>Default:</b> <codeph>true</codeph></p>
+            <p>When enabled, DitaCraft validates DITA files automatically:</p>
+            <ul>
+                <li>When a file is opened</li>
+                <li>When a file is saved</li>
+                <li>After typing stops (with 500ms debounce)</li>
+            </ul>
+            <p>Set to <codeph>false</codeph> to disable automatic validation. You can still validate manually using <uicontrol>Ctrl+Shift+V</uicontrol>.</p>
+            <p><b>When to Disable:</b></p>
+            <ul>
+                <li>Working with very large files that cause performance issues</li>
+                <li>Editing files that are intentionally incomplete</li>
+                <li>When you prefer manual validation control</li>
+            </ul>
+        </section>
+
+        <section id="rate-limiting">
+            <title>Rate Limiting</title>
+            <p>DitaCraft includes built-in rate limiting to prevent performance issues:</p>
+            <ul>
+                <li><b>Limit:</b> 10 validation requests per second per file</li>
+                <li><b>Behavior:</b> Excess requests are silently skipped during auto-validation</li>
+                <li><b>Manual Validation:</b> Shows a warning if rate limited</li>
+            </ul>
+            <p>Rate limiting cannot be configured but ensures stable performance during rapid editing.</p>
+        </section>
+
+        <section id="xmllint-setup">
+            <title>Setting Up xmllint</title>
+            <p>To use the <codeph>xmllint</codeph> engine, install libxml2:</p>
+            <p><b>Windows:</b></p>
+            <ol>
+                <li>Download from <xref href="https://www.zlatkovic.com/libxml.en.html" format="html" scope="external">zlatkovic.com</xref></li>
+                <li>Add the bin directory to your PATH</li>
+            </ol>
+            <p><b>macOS:</b></p>
+            <codeblock>brew install libxml2</codeblock>
+            <p><b>Linux (Debian/Ubuntu):</b></p>
+            <codeblock>sudo apt-get install libxml2-utils</codeblock>
+            <p><b>Verification:</b></p>
+            <codeblock>xmllint --version</codeblock>
+        </section>
+    </refbody>
+</reference>

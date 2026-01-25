@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="features-chapter">
+    <title>Features</title>
+
+    <topicref href="features-overview.dita" keys="features-overview">
+        <topicmeta>
+            <navtitle>Features Overview</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="smart-navigation.dita" keys="smart-navigation">
+        <topicmeta>
+            <navtitle>Smart Navigation</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="validation.dita" keys="validation-feature">
+        <topicmeta>
+            <navtitle>Validation</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="preview.dita" keys="preview-feature">
+        <topicmeta>
+            <navtitle>Live Preview</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="map-visualizer.dita" keys="map-visualizer">
+        <topicmeta>
+            <navtitle>Map Visualizer</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="key-resolution.dita" keys="key-resolution">
+        <topicmeta>
+            <navtitle>Key Resolution</navtitle>
+        </topicmeta>
+    </topicref>
+</map>

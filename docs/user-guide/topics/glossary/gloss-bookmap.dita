@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-bookmap">
+    <glossterm>Bookmap</glossterm>
+    <glossdef>
+        <p>A specialized DITA map designed for book-oriented publications. Bookmaps support book-specific elements like chapters, parts, appendixes, frontmatter, and backmatter. File extension: <filepath>.bookmap</filepath>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../commands/file-creation-commands.dita"/>
+    </related-links>
+</glossentry>

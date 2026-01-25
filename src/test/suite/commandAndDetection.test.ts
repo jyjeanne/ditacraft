@@ -6,6 +6,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { getValidationRateLimiter, resetValidationRateLimiter } from '../../commands';
 
 suite('Command and Auto-Detection Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
@@ -24,6 +25,11 @@ suite('Command and Auto-Detection Test Suite', () => {
         // Configure validation engine
         const config = vscode.workspace.getConfiguration('ditacraft');
         await config.update('validationEngine', 'built-in', vscode.ConfigurationTarget.Global);
+    });
+
+    setup(() => {
+        // Reset rate limiter before each test to avoid rate limiting interference
+        resetValidationRateLimiter();
     });
 
     teardown(async () => {
@@ -270,6 +276,108 @@ suite('Command and Auto-Detection Test Suite', () => {
                 assert.ok(diagnostic.source, 'Diagnostic should have source attribution');
                 console.log('Diagnostic source:', diagnostic.source);
             }
+        });
+    });
+
+    suite('Rate Limiting Integration (P3-6)', () => {
+        setup(() => {
+            // Reset rate limiter before each test to avoid test pollution
+            resetValidationRateLimiter();
+        });
+
+        test('Should have rate limiter initialized after extension activation', () => {
+            const rateLimiter = getValidationRateLimiter();
+            assert.ok(rateLimiter, 'Rate limiter should be initialized');
+        });
+
+        test('Rate limiter should allow initial validations', async function() {
+            this.timeout(5000);
+
+            const rateLimiter = getValidationRateLimiter();
+            assert.ok(rateLimiter, 'Rate limiter should exist');
+
+            const fileUri = vscode.Uri.file(path.join(fixturesPath, 'valid-topic.dita'));
+
+            // First validation should be allowed
+            const allowed = rateLimiter!.isAllowed(fileUri.fsPath);
+            assert.strictEqual(allowed, true, 'First validation should be allowed');
+        });
+
+        test('Rate limiter should track remaining requests', async function() {
+            this.timeout(5000);
+
+            const rateLimiter = getValidationRateLimiter();
+            assert.ok(rateLimiter, 'Rate limiter should exist');
+
+            const testPath = '/test/file.dita';
+
+            // Check initial state
+            const initialRemaining = rateLimiter!.getRemainingRequests(testPath);
+            assert.ok(initialRemaining > 0, 'Should have remaining requests initially');
+
+            // Use one request
+            rateLimiter!.isAllowed(testPath);
+
+            // Check remaining decreased
+            const afterOneRemaining = rateLimiter!.getRemainingRequests(testPath);
+            assert.strictEqual(afterOneRemaining, initialRemaining - 1,
+                'Remaining requests should decrease after use');
+        });
+
+        test('Rate limiter reset should restore full capacity', async function() {
+            this.timeout(5000);
+
+            const rateLimiter = getValidationRateLimiter();
+            assert.ok(rateLimiter, 'Rate limiter should exist');
+
+            const testPath = '/test/reset-test.dita';
+
+            // Use some requests
+            rateLimiter!.isAllowed(testPath);
+            rateLimiter!.isAllowed(testPath);
+            rateLimiter!.isAllowed(testPath);
+
+            const beforeReset = rateLimiter!.getRemainingRequests(testPath);
+
+            // Reset
+            resetValidationRateLimiter();
+
+            const afterReset = rateLimiter!.getRemainingRequests(testPath);
+            assert.ok(afterReset > beforeReset, 'Reset should restore capacity');
+        });
+
+        test('Rate limiter should provide stats', () => {
+            const rateLimiter = getValidationRateLimiter();
+            assert.ok(rateLimiter, 'Rate limiter should exist');
+
+            const stats = rateLimiter!.getStats();
+
+            assert.ok(typeof stats.trackedKeys === 'number', 'Stats should have trackedKeys');
+            assert.ok(typeof stats.totalRequests === 'number', 'Stats should have totalRequests');
+            assert.ok(stats.config, 'Stats should have config');
+            assert.ok(typeof stats.config.maxRequests === 'number', 'Config should have maxRequests');
+            assert.ok(typeof stats.config.windowMs === 'number', 'Config should have windowMs');
+        });
+
+        test('Multiple files should be rate limited independently', async function() {
+            this.timeout(5000);
+
+            const rateLimiter = getValidationRateLimiter();
+            assert.ok(rateLimiter, 'Rate limiter should exist');
+
+            const file1 = '/test/file1.dita';
+            const file2 = '/test/file2.dita';
+
+            // Use requests on file1
+            rateLimiter!.isAllowed(file1);
+            rateLimiter!.isAllowed(file1);
+
+            const file1Remaining = rateLimiter!.getRemainingRequests(file1);
+            const file2Remaining = rateLimiter!.getRemainingRequests(file2);
+
+            // file2 should still have full capacity
+            assert.ok(file2Remaining > file1Remaining,
+                'Different files should be rate limited independently');
         });
     });
 });

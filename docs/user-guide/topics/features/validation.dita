@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="validation">
+    <title>Validation</title>
+    <shortdesc>DitaCraft validates DITA files against XML syntax and DTD specifications in real-time.</shortdesc>
+
+    <conbody>
+        <section id="validation-overview">
+            <title>Validation Overview</title>
+            <p>DitaCraft provides comprehensive validation to ensure your DITA content is well-formed and conforms to DITA specifications. Validation runs automatically as you edit and can also be triggered manually.</p>
+        </section>
+
+        <section id="what-is-validated">
+            <title>What Gets Validated</title>
+            <dl>
+                <dlentry>
+                    <dt>XML Well-formedness</dt>
+                    <dd>Checks for proper XML syntax: matching tags, valid attribute values, proper encoding, and correct entity references.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>DTD Conformance</dt>
+                    <dd>Validates elements and attributes against DITA 1.3 DTDs. Ensures elements appear in allowed contexts with required attributes.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Content Model</dt>
+                    <dd>Verifies child elements appear in the correct order and quantity according to the DTD content model.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>ID Uniqueness</dt>
+                    <dd>Checks that ID attributes are unique within a topic.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="validation-engines">
+            <title>Validation Engines</title>
+            <p>DitaCraft supports three validation engines, each with different capabilities:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Engine</stentry>
+                    <stentry>Pros</stentry>
+                    <stentry>Cons</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>typesxml</codeph></stentry>
+                    <stentry>Full DTD support, 100% W3C conformance, no external dependencies</stentry>
+                    <stentry>Slightly slower for very large files</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>built-in</codeph></stentry>
+                    <stentry>Very fast, lightweight, basic content model checking</stentry>
+                    <stentry>Limited DTD support, may miss some errors</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>xmllint</codeph></stentry>
+                    <stentry>Industry-standard libxml2, excellent performance</stentry>
+                    <stentry>Requires external installation</stentry>
+                </strow>
+            </simpletable>
+            <p><b>Recommendation:</b> Use <codeph>typesxml</codeph> (the default) for the best balance of accuracy and convenience.</p>
+        </section>
+
+        <section id="diagnostic-levels">
+            <title>Diagnostic Levels</title>
+            <p>Validation issues are reported at three severity levels:</p>
+            <ul>
+                <li><b>Error (Red):</b> Critical issues that must be fixed. The document is not valid DITA.</li>
+                <li><b>Warning (Yellow):</b> Potential issues that should be reviewed. The document may be valid but has problems.</li>
+                <li><b>Information (Blue):</b> Suggestions and notes. Not errors, but helpful for improvement.</li>
+            </ul>
+        </section>
+
+        <section id="viewing-results">
+            <title>Viewing Validation Results</title>
+            <p>Validation results appear in multiple places:</p>
+            <ul>
+                <li><b>Editor Squiggles:</b> Colored underlines appear on problematic content</li>
+                <li><b>Problems Panel:</b> Full list of all diagnostics (<uicontrol>Ctrl+Shift+M</uicontrol>)</li>
+                <li><b>Status Bar:</b> Shows error/warning count for the current file</li>
+                <li><b>File Explorer:</b> File icons show validation status</li>
+            </ul>
+        </section>
+
+        <section id="automatic-validation">
+            <title>Automatic Validation</title>
+            <p>By default, DitaCraft validates automatically:</p>
+            <ul>
+                <li><b>On Open:</b> When you open a DITA file</li>
+                <li><b>On Save:</b> When you save a file (configurable)</li>
+                <li><b>On Change:</b> After you stop typing (500ms debounce)</li>
+            </ul>
+            <p>To disable automatic validation, set <codeph>ditacraft.autoValidate</codeph> to <codeph>false</codeph> in settings.</p>
+        </section>
+
+        <section id="rate-limiting">
+            <title>Rate Limiting</title>
+            <p>To prevent performance issues, DitaCraft limits validation requests:</p>
+            <ul>
+                <li>Maximum 10 requests per second per file</li>
+                <li>Excess requests are silently skipped during auto-validation</li>
+                <li>Manual validation shows a warning if rate limited</li>
+            </ul>
+            <p>This protects against excessive CPU usage when making rapid edits.</p>
+        </section>
+    </conbody>
+</concept>

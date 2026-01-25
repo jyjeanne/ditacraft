@@ -3,7 +3,13 @@
  * Central export point for all DitaCraft commands
  */
 
-export { validateCommand, initializeValidator } from './validateCommand';
+export {
+    validateCommand,
+    initializeValidator,
+    getValidator,
+    getValidationRateLimiter,
+    resetValidationRateLimiter
+} from './validateCommand';
 export { publishCommand, publishHTML5Command } from './publishCommand';
 export { previewHTML5Command, initializePreview } from './previewCommand';
 export { newTopicCommand, newMapCommand, newBookmapCommand } from './fileCreationCommands';

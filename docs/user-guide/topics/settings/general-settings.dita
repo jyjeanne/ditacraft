@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="general-settings">
+    <title>General Settings</title>
+    <shortdesc>Configure DITA-OT path and basic DitaCraft settings.</shortdesc>
+
+    <refbody>
+        <section id="dita-ot-path">
+            <title>ditacraft.ditaOtPath</title>
+            <p><b>Type:</b> String</p>
+            <p><b>Default:</b> <codeph>""</codeph> (empty)</p>
+            <p>The path to your DITA Open Toolkit installation directory. This setting is required for publishing features.</p>
+            <p><b>Example Values:</b></p>
+            <ul>
+                <li>Windows: <codeph>"C:/DITA-OT-4.2.1"</codeph></li>
+                <li>macOS: <codeph>"/Users/username/dita-ot-4.2.1"</codeph></li>
+                <li>Linux: <codeph>"/opt/dita-ot-4.2.1"</codeph></li>
+            </ul>
+            <note type="tip">Use forward slashes (/) in paths, even on Windows. VS Code handles path conversion automatically.</note>
+            <p><b>How to Set:</b></p>
+            <ol>
+                <li>Run <uicontrol>DITA: Configure DITA-OT Path</uicontrol> from Command Palette, or</li>
+                <li>Set the value manually in settings.json</li>
+            </ol>
+            <p><b>Verification:</b></p>
+            <p>DitaCraft verifies the path by checking for:</p>
+            <ul>
+                <li><filepath>bin/dita</filepath> (Unix) or <filepath>bin/dita.bat</filepath> (Windows)</li>
+                <li><filepath>lib/</filepath> directory with required JAR files</li>
+            </ul>
+        </section>
+
+        <section id="java-home">
+            <title>Java Configuration</title>
+            <p>DITA-OT requires Java 11 or higher. DitaCraft uses the following to locate Java:</p>
+            <ol>
+                <li><codeph>JAVA_HOME</codeph> environment variable</li>
+                <li>Java in system PATH</li>
+            </ol>
+            <p>If Java is not found, publishing will fail with a "Java not found" error.</p>
+            <p><b>Setting JAVA_HOME:</b></p>
+            <codeblock># Windows (PowerShell)
+$env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
+
+# macOS/Linux
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk</codeblock>
+        </section>
+
+        <section id="workspace-detection">
+            <title>Workspace Detection</title>
+            <p>DitaCraft automatically detects workspace context:</p>
+            <ul>
+                <li><b>Single Folder:</b> Uses the folder as the workspace root</li>
+                <li><b>Multi-root Workspace:</b> Uses the folder containing the current file</li>
+                <li><b>No Workspace:</b> Uses the directory of the current file</li>
+            </ul>
+            <p>This affects relative path resolution for href, conref, and key definitions.</p>
+        </section>
+    </refbody>
+</reference>

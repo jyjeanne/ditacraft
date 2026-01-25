@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-scroll-sync">
+    <glossterm>Scroll Sync</glossterm>
+    <glossdef>
+        <p>Bidirectional scroll synchronization between the editor and preview panel. When enabled, scrolling in either pane automatically scrolls the other to the corresponding position. Controlled by <codeph>ditacraft.previewScrollSync</codeph>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/preview.dita"/>
+        <link href="../settings/preview-settings.dita"/>
+    </related-links>
+</glossentry>

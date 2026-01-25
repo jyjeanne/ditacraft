@@ -11,50 +11,66 @@ import { fireAndForget } from '../utils/errorUtils';
 import { parseDitaOtOutput, getDitaOtDiagnostics } from '../utils/ditaOtErrorParser';
 
 /**
+ * P1-5 Fix: Extracted shared validation logic for publish commands
+ * Validates file path and DITA-OT installation before publishing
+ * @returns DitaOtWrapper instance if validation passes, null if validation fails
+ */
+async function validateAndPrepareForPublish(uri?: vscode.Uri): Promise<{ ditaOt: DitaOtWrapper; filePath: string } | null> {
+    // Get the file URI
+    const fileUri = uri || vscode.window.activeTextEditor?.document.uri;
+
+    if (!fileUri) {
+        vscode.window.showErrorMessage('No DITA file is currently open');
+        return null;
+    }
+
+    const filePath = fileUri.fsPath;
+
+    // Check if filePath is valid and not empty
+    if (!filePath || filePath.trim() === '') {
+        vscode.window.showErrorMessage('Invalid file path. Please open a DITA file.');
+        return null;
+    }
+
+    // Initialize DITA-OT wrapper
+    const ditaOt = new DitaOtWrapper();
+
+    // Validate input file FIRST before checking DITA-OT
+    const validation = ditaOt.validateInputFile(filePath);
+    if (!validation.valid) {
+        vscode.window.showErrorMessage(`Cannot publish: ${validation.error}`);
+        return null;
+    }
+
+    // Validate DITA-OT installation
+    const verification = await ditaOt.verifyInstallation();
+    if (!verification.installed) {
+        const action = await vscode.window.showErrorMessage(
+            'DITA-OT is not installed or not configured. Please configure DITA-OT path.',
+            'Configure Now'
+        );
+
+        if (action === 'Configure Now') {
+            await ditaOt.configureOtPath();
+        }
+        return null;
+    }
+
+    return { ditaOt, filePath };
+}
+
+/**
  * Command: ditacraft.publish
  * Shows format picker and publishes to selected format
  */
 export async function publishCommand(uri?: vscode.Uri): Promise<void> {
     try {
-        // Get the file URI
-        const fileUri = uri || vscode.window.activeTextEditor?.document.uri;
-
-        if (!fileUri) {
-            vscode.window.showErrorMessage('No DITA file is currently open');
+        // Validate file and DITA-OT installation
+        const prepared = await validateAndPrepareForPublish(uri);
+        if (!prepared) {
             return;
         }
-
-        const filePath = fileUri.fsPath;
-
-        // Check if filePath is valid and not empty
-        if (!filePath || filePath.trim() === '') {
-            vscode.window.showErrorMessage('Invalid file path. Please open a DITA file.');
-            return;
-        }
-
-        // Initialize DITA-OT wrapper
-        const ditaOt = new DitaOtWrapper();
-
-        // Validate input file FIRST before checking DITA-OT
-        const validation = ditaOt.validateInputFile(filePath);
-        if (!validation.valid) {
-            vscode.window.showErrorMessage(`Cannot publish: ${validation.error}`);
-            return;
-        }
-
-        // Validate DITA-OT installation
-        const verification = await ditaOt.verifyInstallation();
-        if (!verification.installed) {
-            const action = await vscode.window.showErrorMessage(
-                'DITA-OT is not installed or not configured. Please configure DITA-OT path.',
-                'Configure Now'
-            );
-
-            if (action === 'Configure Now') {
-                await ditaOt.configureOtPath();
-            }
-            return;
-        }
+        const { ditaOt, filePath } = prepared;
 
         // Get available transtypes
         const transtypes = await ditaOt.getAvailableTranstypes();
@@ -86,45 +102,12 @@ export async function publishCommand(uri?: vscode.Uri): Promise<void> {
  */
 export async function publishHTML5Command(uri?: vscode.Uri): Promise<void> {
     try {
-        // Get the file URI
-        const fileUri = uri || vscode.window.activeTextEditor?.document.uri;
-
-        if (!fileUri) {
-            vscode.window.showErrorMessage('No DITA file is currently open');
+        // Validate file and DITA-OT installation
+        const prepared = await validateAndPrepareForPublish(uri);
+        if (!prepared) {
             return;
         }
-
-        const filePath = fileUri.fsPath;
-
-        // Check if filePath is valid and not empty
-        if (!filePath || filePath.trim() === '') {
-            vscode.window.showErrorMessage('Invalid file path. Please open a DITA file.');
-            return;
-        }
-
-        // Initialize DITA-OT wrapper
-        const ditaOt = new DitaOtWrapper();
-
-        // Validate input file FIRST before checking DITA-OT
-        const validation = ditaOt.validateInputFile(filePath);
-        if (!validation.valid) {
-            vscode.window.showErrorMessage(`Cannot publish: ${validation.error}`);
-            return;
-        }
-
-        // Validate DITA-OT installation
-        const verification = await ditaOt.verifyInstallation();
-        if (!verification.installed) {
-            const action = await vscode.window.showErrorMessage(
-                'DITA-OT is not installed or not configured. Please configure DITA-OT path.',
-                'Configure Now'
-            );
-
-            if (action === 'Configure Now') {
-                await ditaOt.configureOtPath();
-            }
-            return;
-        }
+        const { ditaOt, filePath } = prepared;
 
         // Execute publishing to HTML5
         await executePublish(filePath, 'html5', ditaOt);
@@ -147,12 +130,15 @@ async function executePublish(
     const outputDir = path.join(ditaOt.getOutputDirectory(), transtype, fileName);
 
     // Clean output directory before publishing to avoid stale files
-    const fs = await import('fs');
-    if (fs.existsSync(outputDir)) {
-        try {
-            fs.rmSync(outputDir, { recursive: true, force: true });
-            logger.debug('Cleaned output directory', { outputDir });
-        } catch (error) {
+    // P1-1 Fix: Use async file operations
+    const fsPromises = await import('fs/promises');
+    try {
+        await fsPromises.rm(outputDir, { recursive: true, force: true });
+        logger.debug('Cleaned output directory', { outputDir });
+    } catch (error) {
+        // Directory might not exist or failed to remove - continue anyway
+        const errorCode = (error as NodeJS.ErrnoException).code;
+        if (errorCode !== 'ENOENT') {
             logger.warn('Failed to clean output directory', { outputDir, error });
         }
     }
