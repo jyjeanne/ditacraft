@@ -7,19 +7,21 @@
     <refbody>
         <section id="overview">
             <title>Overview</title>
-            <p>DitaCraft provides keyboard shortcuts for common operations. On Mac, replace <uicontrol>Ctrl</uicontrol> with <uicontrol>Cmd</uicontrol>.</p>
+            <p>DitaCraft provides keyboard shortcuts for common operations. This reference lists shortcuts for both Windows/Linux and macOS.</p>
         </section>
 
         <section id="validation-shortcuts">
             <title>Validation</title>
             <simpletable>
                 <sthead>
-                    <stentry>Shortcut</stentry>
+                    <stentry>Windows/Linux</stentry>
+                    <stentry>Mac</stentry>
                     <stentry>Command</stentry>
                     <stentry>Description</stentry>
                 </sthead>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+V</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+V</uicontrol></stentry>
                     <stentry>DITA: Validate Current File</stentry>
                     <stentry>Validate the active DITA file against XML syntax and DTD</stentry>
                 </strow>
@@ -30,17 +32,20 @@
             <title>Publishing</title>
             <simpletable>
                 <sthead>
-                    <stentry>Shortcut</stentry>
+                    <stentry>Windows/Linux</stentry>
+                    <stentry>Mac</stentry>
                     <stentry>Command</stentry>
                     <stentry>Description</stentry>
                 </sthead>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+B</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+B</uicontrol></stentry>
                     <stentry>DITA: Publish (Select Format)</stentry>
                     <stentry>Publish with format selection dialog</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+H</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+H</uicontrol></stentry>
                     <stentry>DITA: Preview HTML5</stentry>
                     <stentry>Open live HTML5 preview panel</stentry>
                 </strow>
@@ -51,42 +56,50 @@
             <title>Navigation</title>
             <simpletable>
                 <sthead>
-                    <stentry>Shortcut</stentry>
+                    <stentry>Windows/Linux</stentry>
+                    <stentry>Mac</stentry>
                     <stentry>Action</stentry>
                     <stentry>Description</stentry>
                 </sthead>
                 <strow>
                     <stentry><uicontrol>Ctrl+Click</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Click</uicontrol></stentry>
                     <stentry>Go to Definition</stentry>
                     <stentry>Navigate to href, conref, keyref, or conkeyref target</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Alt+Click</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Option+Click</uicontrol></stentry>
                     <stentry>Open to Side</stentry>
                     <stentry>Open referenced file in split editor</stentry>
                 </strow>
                 <strow>
+                    <stentry><uicontrol>F12</uicontrol></stentry>
                     <stentry><uicontrol>F12</uicontrol></stentry>
                     <stentry>Go to Definition</stentry>
                     <stentry>Navigate to the definition of the reference under cursor</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Alt+F12</uicontrol></stentry>
+                    <stentry><uicontrol>Option+F12</uicontrol></stentry>
                     <stentry>Peek Definition</stentry>
                     <stentry>Peek at definition inline without leaving current file</stentry>
                 </strow>
                 <strow>
+                    <stentry><uicontrol>Shift+F12</uicontrol></stentry>
                     <stentry><uicontrol>Shift+F12</uicontrol></stentry>
                     <stentry>Find All References</stentry>
                     <stentry>Find all places where the current element is referenced</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Alt+Left Arrow</uicontrol></stentry>
+                    <stentry><uicontrol>Ctrl+- (minus)</uicontrol></stentry>
                     <stentry>Go Back</stentry>
                     <stentry>Return to previous location after navigation</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Alt+Right Arrow</uicontrol></stentry>
+                    <stentry><uicontrol>Ctrl+Shift+- (minus)</uicontrol></stentry>
                     <stentry>Go Forward</stentry>
                     <stentry>Move forward in navigation history</stentry>
                 </strow>
@@ -98,72 +111,86 @@
             <p>These VS Code shortcuts are useful when working with DITA files:</p>
             <simpletable>
                 <sthead>
-                    <stentry>Shortcut</stentry>
+                    <stentry>Windows/Linux</stentry>
+                    <stentry>Mac</stentry>
                     <stentry>Action</stentry>
                     <stentry>Description</stentry>
                 </sthead>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+P</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+P</uicontrol></stentry>
                     <stentry>Command Palette</stentry>
                     <stentry>Open Command Palette to access all DitaCraft commands</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+P</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+P</uicontrol></stentry>
                     <stentry>Quick Open</stentry>
                     <stentry>Quickly open files by name</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+M</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+M</uicontrol></stentry>
                     <stentry>Problems Panel</stentry>
                     <stentry>Show/hide validation errors and warnings</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+O</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+O</uicontrol></stentry>
                     <stentry>Go to Symbol</stentry>
                     <stentry>Navigate to elements within the current file</stentry>
                 </strow>
                 <strow>
+                    <stentry><uicontrol>Ctrl+G</uicontrol></stentry>
                     <stentry><uicontrol>Ctrl+G</uicontrol></stentry>
                     <stentry>Go to Line</stentry>
                     <stentry>Jump to a specific line number</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+/</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+/</uicontrol></stentry>
                     <stentry>Toggle Comment</stentry>
                     <stentry>Comment/uncomment XML content</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+[</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Option+[</uicontrol></stentry>
                     <stentry>Fold Region</stentry>
                     <stentry>Collapse the current XML element</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+]</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Option+]</uicontrol></stentry>
                     <stentry>Unfold Region</stentry>
                     <stentry>Expand the current XML element</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+K Ctrl+0</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+K Cmd+0</uicontrol></stentry>
                     <stentry>Fold All</stentry>
                     <stentry>Collapse all foldable regions</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+K Ctrl+J</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+K Cmd+J</uicontrol></stentry>
                     <stentry>Unfold All</stentry>
                     <stentry>Expand all folded regions</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+S</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+S</uicontrol></stentry>
                     <stentry>Save</stentry>
                     <stentry>Save file (triggers auto-validation if enabled)</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Z</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Z</uicontrol></stentry>
                     <stentry>Undo</stentry>
                     <stentry>Undo last edit</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+Z</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+Z</uicontrol></stentry>
                     <stentry>Redo</stentry>
                     <stentry>Redo last undone edit</stentry>
                 </strow>
@@ -174,52 +201,62 @@
             <title>XML Editing Shortcuts</title>
             <simpletable>
                 <sthead>
-                    <stentry>Shortcut</stentry>
+                    <stentry>Windows/Linux</stentry>
+                    <stentry>Mac</stentry>
                     <stentry>Action</stentry>
                     <stentry>Description</stentry>
                 </sthead>
                 <strow>
+                    <stentry><uicontrol>Ctrl+Space</uicontrol></stentry>
                     <stentry><uicontrol>Ctrl+Space</uicontrol></stentry>
                     <stentry>Trigger Suggestions</stentry>
                     <stentry>Show element and attribute auto-completion</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+Space</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+Space</uicontrol></stentry>
                     <stentry>Parameter Hints</stentry>
                     <stentry>Show attribute value suggestions</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+.</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+.</uicontrol></stentry>
                     <stentry>Quick Fix</stentry>
                     <stentry>Show available quick fixes for errors</stentry>
                 </strow>
                 <strow>
+                    <stentry><uicontrol>F2</uicontrol></stentry>
                     <stentry><uicontrol>F2</uicontrol></stentry>
                     <stentry>Rename Symbol</stentry>
                     <stentry>Rename element ID across files</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+D</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+D</uicontrol></stentry>
                     <stentry>Add Selection</stentry>
                     <stentry>Select next occurrence of current word</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+L</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+L</uicontrol></stentry>
                     <stentry>Select All Occurrences</stentry>
                     <stentry>Select all occurrences of current word</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Alt+Up/Down</uicontrol></stentry>
+                    <stentry><uicontrol>Option+Up/Down</uicontrol></stentry>
                     <stentry>Move Line</stentry>
                     <stentry>Move current line up or down</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Shift+Alt+Up/Down</uicontrol></stentry>
+                    <stentry><uicontrol>Shift+Option+Up/Down</uicontrol></stentry>
                     <stentry>Copy Line</stentry>
                     <stentry>Duplicate current line above or below</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+Shift+K</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Shift+K</uicontrol></stentry>
                     <stentry>Delete Line</stentry>
                     <stentry>Delete the current line</stentry>
                 </strow>
@@ -230,7 +267,7 @@
             <title>Customizing Shortcuts</title>
             <p>To customize keyboard shortcuts:</p>
             <ol>
-                <li>Press <uicontrol>Ctrl+K Ctrl+S</uicontrol> to open Keyboard Shortcuts</li>
+                <li>Press <uicontrol>Ctrl+K Ctrl+S</uicontrol> (Windows/Linux) or <uicontrol>Cmd+K Cmd+S</uicontrol> (Mac) to open Keyboard Shortcuts</li>
                 <li>Search for the command (e.g., "DITA: Validate")</li>
                 <li>Click the pencil icon to assign a new shortcut</li>
                 <li>Press your desired key combination</li>

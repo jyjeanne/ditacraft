@@ -10,7 +10,10 @@
         <authorinformation>
             <personinfo>
                 <namedetails>
-                    <personname>Jeremy Jeanne</personname>
+                    <personname>
+                        <firstname>Jeremy</firstname>
+                        <lastname>Jeanne</lastname>
+                    </personname>
                 </namedetails>
             </personinfo>
         </authorinformation>
@@ -18,24 +21,23 @@
             <created date="2025-01-25"/>
             <revised modified="2025-01-25"/>
         </critdates>
-        <bookrights>
-            <copyrfirst><year>2025</year></copyrfirst>
-            <bookowner>
-                <organization>DitaCraft Project</organization>
-            </bookowner>
-        </bookrights>
-        <bookid>
-            <bookpartno>UG-001</bookpartno>
-            <edition>1.0</edition>
-            <volume>1</volume>
-            <vrm version="0" release="4" modification="2"/>
-        </bookid>
         <prodinfo>
             <prodname>DitaCraft</prodname>
             <vrmlist>
                 <vrm version="0" release="4" modification="2"/>
             </vrmlist>
         </prodinfo>
+        <bookid>
+            <bookpartno>UG-001</bookpartno>
+            <edition>1.0</edition>
+            <volume>1</volume>
+        </bookid>
+        <bookrights>
+            <copyrfirst><year>2025</year></copyrfirst>
+            <bookowner>
+                <organization>DitaCraft Project</organization>
+            </bookowner>
+        </bookrights>
     </bookmeta>
 
     <!-- Frontmatter -->
@@ -106,13 +108,7 @@
 
     <!-- Backmatter -->
     <backmatter>
-        <amendments href="topics/glossary/glossary.ditamap" format="ditamap">
-            <topicmeta>
-                <navtitle>Glossary</navtitle>
-            </topicmeta>
-        </amendments>
         <booklists>
-            <glossarylist/>
             <indexlist/>
         </booklists>
     </backmatter>

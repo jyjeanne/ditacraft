@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<val>
+    <!-- PDF output filtering -->
+    <!-- Include all content by default -->
+
+    <!-- Exclude web-only content from PDF -->
+    <prop action="exclude" att="deliveryTarget" val="web"/>
+
+    <!-- Include print content -->
+    <prop action="include" att="deliveryTarget" val="print"/>
+    <prop action="include" att="deliveryTarget" val="pdf"/>
+
+    <!-- Flag draft content (shows with highlighting) -->
+    <prop action="flag" att="status" val="draft">
+        <startflag>
+            <alt-text>[DRAFT] </alt-text>
+        </startflag>
+    </prop>
+
+    <!-- Exclude internal-only content -->
+    <prop action="exclude" att="audience" val="internal"/>
+</val>
