@@ -457,10 +457,10 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/mocha": "^10.0.1",
-    "@types/node": "^25.0.9",
+    "@types/node": "^25.0.10",
     "@types/sinon": "^21.0.0",
     "@types/vscode": "^1.80.0",
-    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.53.1",
     "@vscode/test-electron": "^2.3.4",
     "@vscode/vsce": "^3.7.1",
