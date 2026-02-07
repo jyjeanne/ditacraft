@@ -33,6 +33,7 @@ suite('handleCompletion', () => {
             const labels = items.map(i => i.label);
             assert.ok(labels.includes('title'), 'should include <title>');
             assert.ok(labels.includes('body'), 'should include <body>');
+            assert.ok(labels.includes('titlealts'), 'should include <titlealts>');
         });
 
         test('unknown parent returns empty', () => {

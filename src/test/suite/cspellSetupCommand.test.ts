@@ -15,6 +15,9 @@ suite('cSpell Setup Command Tests', () => {
     let openTextDocumentStub: sinon.SinonStub;
     let showTextDocumentStub: sinon.SinonStub;
 
+    // Extension root: go up from out/test/suite/ to project root
+    const extensionRoot = path.join(__dirname, '..', '..', '..');
+
     setup(() => {
         sandbox = sinon.createSandbox();
 
@@ -55,7 +58,7 @@ suite('cSpell Setup Command Tests', () => {
             // Mock user choice to select 'Done'
             showInformationMessageStub.onFirstCall().resolves('Done');
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify config was created
             const testConfigPath = path.join(__dirname, '..', '..', '..', 'test-workspace', '.cspellrc.json');
@@ -70,7 +73,7 @@ suite('cSpell Setup Command Tests', () => {
             // Mock user choice to select 'Install cSpell'
             showInformationMessageStub.onFirstCall().resolves('Install cSpell');
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify config was created
             const testConfigPath = path.join(__dirname, '..', '..', '..', 'test-workspace', '.cspellrc.json');
@@ -89,7 +92,7 @@ suite('cSpell Setup Command Tests', () => {
             const mockDocument = { uri: { fsPath: 'test-path' } } as Partial<vscode.TextDocument>;
             openTextDocumentStub.resolves(mockDocument as vscode.TextDocument);
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify config was created
             const testConfigPath = path.join(__dirname, '..', '..', '..', 'test-workspace', '.cspellrc.json');
@@ -113,7 +116,7 @@ suite('cSpell Setup Command Tests', () => {
             // Mock user choice to select 'Keep Current'
             showInformationMessageStub.onFirstCall().resolves('Keep Current');
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify no changes were made to existing config
             const testConfigPath = path.join(__dirname, '..', '..', '..', 'test-workspace', '.cspellrc.json');
@@ -126,7 +129,7 @@ suite('cSpell Setup Command Tests', () => {
             // Mock user choice to select 'Replace with DitaCraft Config'
             showInformationMessageStub.onFirstCall().resolves('Replace with DitaCraft Config');
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify config was replaced
             const testConfigPath = path.join(__dirname, '..', '..', '..', 'test-workspace', '.cspellrc.json');
@@ -146,7 +149,7 @@ suite('cSpell Setup Command Tests', () => {
             const mockDocument = { uri: { fsPath: 'test-path' } } as Partial<vscode.TextDocument>;
             openTextDocumentStub.resolves(mockDocument as vscode.TextDocument);
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify document was opened
             assert.ok(openTextDocumentStub.called, 'Should open the existing config file');
@@ -160,7 +163,7 @@ suite('cSpell Setup Command Tests', () => {
             // Mock no workspace folders
             sandbox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify error message was shown
             assert.ok(showErrorMessageStub.calledWithMatch('No workspace folder open'), 
@@ -186,7 +189,7 @@ suite('cSpell Setup Command Tests', () => {
             // Mock user choice to select 'Done'
             showInformationMessageStub.onFirstCall().resolves('Done');
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify config content
             const testConfigPath = path.join(__dirname, '..', '..', '..', 'test-workspace', '.cspellrc.json');
@@ -209,7 +212,7 @@ suite('cSpell Setup Command Tests', () => {
             // Mock user choice to select 'Done'
             showInformationMessageStub.onFirstCall().resolves('Done');
 
-            await setupCSpellCommand();
+            await setupCSpellCommand(extensionRoot);
 
             // Verify config structure
             const testConfigPath = path.join(__dirname, '..', '..', '..', 'test-workspace', '.cspellrc.json');

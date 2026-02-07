@@ -113,6 +113,9 @@ export function activate(context: vscode.ExtensionContext) {
         // Show welcome message on first activation
         showWelcomeMessage(context);
 
+        // Suggest cSpell DITA dictionary setup if needed
+        suggestCSpellSetup(context);
+
         logger.info('DitaCraft extension activated successfully');
         outputChannel.appendLine('=== DitaCraft Activation Complete ===');
     } catch (error) {
@@ -221,7 +224,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ditacraft.setupCSpell', setupCSpellCommand)
+        vscode.commands.registerCommand('ditacraft.setupCSpell', () => setupCSpellCommand(context.extensionPath))
     );
 
     // Command to show DITA-OT build output
@@ -459,6 +462,57 @@ async function showWelcomeMessage(context: vscode.ExtensionContext): Promise<voi
         } catch (error) {
             logger.error('Error showing welcome message', error);
         }
+    }
+}
+
+/**
+ * Suggest cSpell DITA dictionary setup if cSpell is installed but no config exists
+ */
+async function suggestCSpellSetup(context: vscode.ExtensionContext): Promise<void> {
+    const dismissed = context.globalState.get<boolean>('ditacraft.cspellPromptDismissed', false);
+    if (dismissed) {
+        return;
+    }
+
+    // Only prompt if cSpell extension is installed
+    const cspellExt = vscode.extensions.getExtension('streetsidesoftware.code-spell-checker');
+    if (!cspellExt) {
+        return;
+    }
+
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        return;
+    }
+
+    // Check if workspace already has a cSpell config
+    const root = workspaceFolders[0].uri;
+    const configNames = ['.cspellrc.json', 'cspell.json', '.cspell.json'];
+    for (const name of configNames) {
+        try {
+            await vscode.workspace.fs.stat(vscode.Uri.joinPath(root, name));
+            return; // Config exists, no need to prompt
+        } catch {
+            // Not found, continue checking
+        }
+    }
+
+    try {
+        const action = await vscode.window.showInformationMessage(
+            'cSpell is installed but no DITA dictionary is configured. Set up DITA vocabulary to avoid false "unknown word" warnings?',
+            'Setup DITA Dictionary',
+            "Don't Show Again"
+        );
+
+        if (action === 'Setup DITA Dictionary') {
+            await vscode.commands.executeCommand('ditacraft.setupCSpell');
+        }
+
+        if (action === 'Setup DITA Dictionary' || action === "Don't Show Again") {
+            await context.globalState.update('ditacraft.cspellPromptDismissed', true);
+        }
+    } catch (error) {
+        logger.error('Error suggesting cSpell setup', error);
     }
 }
 

@@ -41,6 +41,23 @@ suite('handleHover', () => {
             assert.ok(result);
         });
 
+        test('cursor on <titlealts> returns documentation', () => {
+            const content = '<topic id="t1"><titlealts><navtitle>Nav</navtitle></titlealts></topic>';
+            const result = hover(content, 0, 18); // on "titlealts"
+            assert.ok(result);
+            const mc = result.contents as { kind: string; value: string };
+            assert.strictEqual(mc.kind, 'markdown');
+            assert.ok(mc.value.includes('Alternative titles'));
+        });
+
+        test('cursor on <navtitle> returns documentation', () => {
+            const content = '<topic id="t1"><titlealts><navtitle>Nav</navtitle></titlealts></topic>';
+            const result = hover(content, 0, 28); // on "navtitle"
+            assert.ok(result);
+            const mc = result.contents as { kind: string; value: string };
+            assert.ok(mc.value.includes('Navigation title'));
+        });
+
         test('hover result contains markdown', () => {
             const content = '<topic id="t1"><title>T</title></topic>';
             const result = hover(content, 0, 2);
