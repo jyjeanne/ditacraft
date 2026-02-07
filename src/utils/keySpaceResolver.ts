@@ -397,8 +397,11 @@ export class KeySpaceResolver implements vscode.Disposable {
             keySpace.mapHierarchy.push(currentMap);
 
             try {
-                // Read and parse current map
-                const mapContent = await this.readFileAsync(currentMap);
+                // Read and parse current map — strip comments/CDATA to avoid false matches
+                const rawContent = await this.readFileAsync(currentMap);
+                const mapContent = rawContent
+                    .replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length))
+                    .replace(/<!\[CDATA\[[\s\S]*?]]>/g, (m) => ' '.repeat(m.length));
 
                 // Extract key definitions
                 const keys = this.extractKeyDefinitions(mapContent, currentMap);
@@ -669,9 +672,10 @@ export class KeySpaceResolver implements vscode.Disposable {
         const submaps: string[] = [];
         const mapDir = path.dirname(mapPath);
 
-        // Pattern to match mapref elements or any element referencing another map
-        // Matches: <mapref href="...ditamap">, <topicref href="...ditamap">, etc.
-        const mapRefRegex = /<(?:mapref|topicref|chapter|appendix|part)[^>]*\bhref\s*=\s*["']([^"']+\.(?:ditamap|bookmap))["'][^>]*>/gi;
+        // Match ANY element with href pointing to a .ditamap or .bookmap file.
+        // This covers mapref, topicref, chapter, appendix, part, glossarylist,
+        // frontmatter, backmatter, notices, preface, topichead, anchorref, etc.
+        const mapRefRegex = /<\w+[^>]*\bhref\s*=\s*["']([^"']+\.(?:ditamap|bookmap))["'][^>]*>/gi;
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
@@ -834,48 +838,54 @@ export class KeySpaceResolver implements vscode.Disposable {
         // Safety: Don't go above workspace root
         const stopDir = workspaceRoot || path.parse(currentDir).root;
 
-        // Search up the directory tree
+        // Search up the directory tree to workspace root.
+        // Root maps are typically at the project root, so we search all the way
+        // up and prefer maps closest to the workspace root (highest level).
+        const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
+        let bestMap: string | null = null;
+
         while (currentDir && currentDir.length >= stopDir.length) {
-            // Look for .ditamap or .bookmap files in current directory
             try {
-                // Use async readdir to avoid blocking UI thread
                 const files = await fsPromises.readdir(currentDir);
                 const mapFiles = files.filter(f =>
                     f.endsWith('.ditamap') || f.endsWith('.bookmap')
                 );
 
                 if (mapFiles.length > 0) {
-                    // Prefer root.ditamap, main.ditamap, or first alphabetically
-                    const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
+                    let found: string | null = null;
 
+                    // Prefer conventional root map names
                     for (const preferred of preferredNames) {
                         if (mapFiles.includes(preferred)) {
-                            const result = path.join(currentDir, preferred);
-                            this.rootMapCache.set(cacheKey, { rootMap: result, timestamp: Date.now() });
-                            return result;
+                            found = path.join(currentDir, preferred);
+                            break;
                         }
                     }
 
-                    // Return first map file found
-                    const result = path.join(currentDir, mapFiles.sort()[0]);
-                    this.rootMapCache.set(cacheKey, { rootMap: result, timestamp: Date.now() });
-                    return result;
+                    // Fall back to first alphabetically
+                    if (!found) {
+                        found = path.join(currentDir, mapFiles.sort()[0]);
+                    }
+
+                    // Higher directories overwrite lower — root maps live at project root
+                    bestMap = found;
                 }
             } catch (_error) {
                 // Directory not readable
             }
 
-            // Move to parent directory
             const parentDir = path.dirname(currentDir);
             if (parentDir === currentDir) {
-                break; // Reached root
+                break; // Reached filesystem root
             }
             currentDir = parentDir;
         }
 
-        logger.debug('No root map found', { searchedFrom: absolutePath });
-        this.rootMapCache.set(cacheKey, { rootMap: null, timestamp: Date.now() });
-        return null;
+        if (!bestMap) {
+            logger.debug('No root map found', { searchedFrom: absolutePath });
+        }
+        this.rootMapCache.set(cacheKey, { rootMap: bestMap, timestamp: Date.now() });
+        return bestMap;
     }
 
     /**

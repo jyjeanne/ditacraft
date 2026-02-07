@@ -133,4 +133,57 @@ suite('handleCompletion', () => {
             assert.ok(idItem.insertText?.includes('="'));
         });
     });
+
+    suite('DITAVAL completions', () => {
+        test('after < inside val returns child elements', () => {
+            const content = '<val><</val>';
+            const items = complete(content, 0, 6);
+            assert.ok(items.length > 0);
+            const labels = items.map(i => i.label);
+            assert.ok(labels.includes('prop'), 'should include <prop>');
+            assert.ok(labels.includes('revprop'), 'should include <revprop>');
+            assert.ok(labels.includes('style-conflict'), 'should include <style-conflict>');
+        });
+
+        test('after < inside prop returns flag elements', () => {
+            const content = '<val><prop action="flag"><</prop></val>';
+            const items = complete(content, 0, 26);
+            assert.ok(items.length > 0);
+            const labels = items.map(i => i.label);
+            assert.ok(labels.includes('startflag'), 'should include <startflag>');
+            assert.ok(labels.includes('endflag'), 'should include <endflag>');
+        });
+
+        test('prop attributes include only DITAVAL attrs', () => {
+            const content = '<val><prop ></prop></val>';
+            const items = complete(content, 0, 11);
+            const labels = items.map(i => i.label);
+            assert.ok(labels.includes('action'), 'should include action');
+            assert.ok(labels.includes('att'), 'should include att');
+            assert.ok(labels.includes('val'), 'should include val');
+            assert.ok(!labels.includes('id'), 'should NOT include DITA common attr id');
+            assert.ok(!labels.includes('conref'), 'should NOT include DITA common attr conref');
+            assert.ok(!labels.includes('outputclass'), 'should NOT include DITA common attr outputclass');
+        });
+
+        test('revprop attributes exclude common DITA attrs', () => {
+            const content = '<val><revprop ></revprop></val>';
+            const items = complete(content, 0, 14);
+            const labels = items.map(i => i.label);
+            assert.ok(labels.includes('action'), 'should include action');
+            assert.ok(labels.includes('changebar'), 'should include changebar');
+            assert.ok(!labels.includes('keyref'), 'should NOT include keyref');
+        });
+
+        test('action attribute value completion', () => {
+            const content = '<val><prop action=""></prop></val>';
+            const items = complete(content, 0, 19);
+            assert.ok(items.length > 0);
+            const labels = items.map(i => i.label);
+            assert.ok(labels.includes('include'), 'should include include');
+            assert.ok(labels.includes('exclude'), 'should include exclude');
+            assert.ok(labels.includes('flag'), 'should include flag');
+            assert.ok(labels.includes('passthrough'), 'should include passthrough');
+        });
+    });
 });

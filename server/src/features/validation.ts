@@ -117,6 +117,12 @@ function validateDITAStructure(
 ): void {
     const ext = getFileExtension(uri);
 
+    // DITAVAL files have different structure — no DOCTYPE/title/id required
+    if (ext === '.ditaval') {
+        validateDitavalStructure(text, diagnostics);
+        return;
+    }
+
     // Missing DOCTYPE
     if (!text.includes('<!DOCTYPE')) {
         diagnostics.push({
@@ -231,6 +237,21 @@ function validateBookmapStructure(
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
             message: 'Bookmap must have a <bookmap> root element',
+            source: SOURCE,
+            code: CODES.INVALID_ROOT,
+        });
+    }
+}
+
+function validateDitavalStructure(
+    text: string,
+    diagnostics: Diagnostic[]
+): void {
+    if (!/<val[\s>]/.test(text)) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Error,
+            range: createRange(0, 0),
+            message: 'DITAVAL file must have a <val> root element',
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });

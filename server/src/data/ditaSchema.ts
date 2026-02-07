@@ -370,6 +370,15 @@ export const DITA_ELEMENTS: Record<string, string[]> = {
     dvrKeyscopePrefix: [],
     dvrKeyscopeSuffix: [],
 
+    // ===== DITAVAL file elements =====
+    val: ['style-conflict', 'prop', 'revprop'],
+    'style-conflict': [],
+    prop: ['startflag', 'endflag'],
+    revprop: ['startflag', 'endflag'],
+    startflag: ['alt-text'],
+    endflag: ['alt-text'],
+    'alt-text': [],
+
     // ===== Delay resolution domain =====
     exportanchors: ['anchorid', 'anchorkey'],
     anchorid: [],
@@ -432,6 +441,11 @@ export const DITA_ELEMENTS: Record<string, string[]> = {
     safecond: [],
 };
 
+/** DITAVAL-only elements (don't inherit DITA common attributes) */
+export const DITAVAL_ELEMENTS = new Set([
+    'val', 'style-conflict', 'prop', 'revprop', 'startflag', 'endflag', 'alt-text',
+]);
+
 /** Common attributes shared by all DITA elements */
 export const COMMON_ATTRIBUTES: string[] = [
     'id', 'conref', 'conkeyref', 'keyref', 'outputclass',
@@ -492,6 +506,12 @@ export const ELEMENT_ATTRIBUTES: Record<string, string[]> = {
     notices: ['href', 'keys', 'keyref', 'format', 'scope', 'toc'],
     // Properties table
     properties: ['relcolwidth', 'keycol'],
+    // DITAVAL elements
+    'style-conflict': ['foreground-conflict-color', 'background-conflict-color'],
+    prop: ['att', 'val', 'action', 'color', 'backcolor', 'style'],
+    revprop: ['val', 'action', 'changebar', 'color', 'backcolor', 'style'],
+    startflag: ['imageref'],
+    endflag: ['imageref'],
 };
 
 /** Attribute → allowed enumeration values */
@@ -518,6 +538,7 @@ export const ATTRIBUTE_VALUES: Record<string, string[]> = {
     tmtype: ['reg', 'service', 'tm'],
     chunk: ['to-content', 'to-navigation', 'by-topic', 'by-document', 'select-topic', 'select-document', 'select-branch'],
     experiencelevel: ['novice', 'general', 'expert'],
+    action: ['include', 'exclude', 'passthrough', 'flag'],
 };
 
 /** Element documentation (markdown) for hover */
@@ -686,4 +707,12 @@ export const ELEMENT_DOCS: Record<string, string> = {
     imagemap: '**`<imagemap>`** — Image map\n\nImage with clickable areas.\n\n**Children:** image, area',
     // DITAVAL ref
     ditavalref: '**`<ditavalref>`** — DITAVAL reference\n\nApplies a DITAVAL filter to a branch of the map.\n\n**Attributes:** href, format',
+    // DITAVAL file elements
+    val: '**`<val>`** — DITAVAL root element\n\nRoot element for a DITAVAL conditional processing profile. Defines include, exclude, and flag actions for conditional attributes.\n\n**Children:** style-conflict, prop, revprop',
+    'style-conflict': '**`<style-conflict>`** — Style conflict resolution\n\nDefines how conflicts between flagging styles are resolved when multiple conditions apply.\n\n**Attributes:** foreground-conflict-color, background-conflict-color',
+    prop: '**`<prop>`** — Property condition\n\nDefines a conditional processing action for a DITA attribute value. Specifies whether to include, exclude, passthrough, or flag content.\n\n**Attributes:** att (attribute name), val (attribute value), action (required), color, backcolor, style\n\n**Children:** startflag, endflag',
+    revprop: '**`<revprop>`** — Revision property condition\n\nDefines a flagging action for content marked with a specific revision value.\n\n**Attributes:** val, action (required: include|passthrough|flag), changebar, color, backcolor, style\n\n**Children:** startflag, endflag',
+    startflag: '**`<startflag>`** — Start flag\n\nDefines an image or text to insert before flagged content.\n\n**Attributes:** imageref\n\n**Children:** alt-text',
+    endflag: '**`<endflag>`** — End flag\n\nDefines an image or text to insert after flagged content.\n\n**Attributes:** imageref\n\n**Children:** alt-text',
+    'alt-text': '**`<alt-text>`** — Alternative text\n\nProvides alternative text for a start or end flag image.\n\n**Content:** text',
 };

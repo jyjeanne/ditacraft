@@ -38,6 +38,7 @@ export async function startLanguageClient(
                 vscode.workspace.createFileSystemWatcher('**/*.dita'),
                 vscode.workspace.createFileSystemWatcher('**/*.ditamap'),
                 vscode.workspace.createFileSystemWatcher('**/*.bookmap'),
+                vscode.workspace.createFileSystemWatcher('**/*.ditaval'),
             ],
         },
         outputChannelName: 'DITA Language Server',

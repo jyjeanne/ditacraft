@@ -135,4 +135,47 @@ suite('handleHover', () => {
             assert.strictEqual(result, null);
         });
     });
+
+    suite('DITAVAL elements', () => {
+        test('cursor on <val> returns documentation', () => {
+            const content = '<val><prop action="include"/></val>';
+            const result = hover(content, 0, 2); // on "al" of val
+            assert.ok(result);
+            const mc = result.contents as { kind: string; value: string };
+            assert.strictEqual(mc.kind, 'markdown');
+            assert.ok(mc.value.includes('DITAVAL root element'));
+        });
+
+        test('cursor on <prop> returns documentation', () => {
+            const content = '<val><prop action="include"/></val>';
+            const result = hover(content, 0, 7); // on "rop" of prop
+            assert.ok(result);
+            const mc = result.contents as { kind: string; value: string };
+            assert.ok(mc.value.includes('Property condition'));
+        });
+
+        test('cursor on <revprop> returns documentation', () => {
+            const content = '<val><revprop action="flag"/></val>';
+            const result = hover(content, 0, 8); // on "vprop" of revprop
+            assert.ok(result);
+            const mc = result.contents as { kind: string; value: string };
+            assert.ok(mc.value.includes('Revision property'));
+        });
+
+        test('cursor on <style-conflict> returns documentation', () => {
+            const content = '<val><style-conflict foreground-conflict-color="#000000"/></val>';
+            const result = hover(content, 0, 10); // on "e-conflict" of style-conflict
+            assert.ok(result);
+            const mc = result.contents as { kind: string; value: string };
+            assert.ok(mc.value.includes('Style conflict'));
+        });
+
+        test('cursor on <startflag> returns documentation', () => {
+            const content = '<val><prop action="flag"><startflag imageref="flag.png"/></prop></val>';
+            const result = hover(content, 0, 28); // on "artflag" of startflag
+            assert.ok(result);
+            const mc = result.contents as { kind: string; value: string };
+            assert.ok(mc.value.includes('Start flag'));
+        });
+    });
 });

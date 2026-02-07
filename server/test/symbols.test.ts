@@ -1,5 +1,9 @@
 import * as assert from 'assert';
-import { handleDocumentSymbol } from '../src/features/symbols';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { URI } from 'vscode-uri';
+import { handleDocumentSymbol, handleWorkspaceSymbol } from '../src/features/symbols';
 import { createDoc, createDocs, TEST_URI } from './helper';
 
 function symbols(content: string) {
@@ -125,5 +129,89 @@ suite('handleDocumentSymbol', () => {
             const result = symbols(content);
             assert.ok(result.length >= 1);
         });
+    });
+});
+
+suite('handleWorkspaceSymbol', () => {
+    let tmpDir: string;
+
+    setup(() => {
+        tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dita-ws-test-'));
+        // Create test DITA files
+        fs.writeFileSync(path.join(tmpDir, 'intro.dita'),
+            '<topic id="intro"><title>Introduction</title><body><p>text</p></body></topic>');
+        fs.writeFileSync(path.join(tmpDir, 'install.dita'),
+            '<task id="install-guide"><title>Installation Guide</title><taskbody><steps><step><cmd>Run</cmd></step></steps></taskbody></task>');
+        fs.writeFileSync(path.join(tmpDir, 'ref.dita'),
+            '<reference id="api-ref"><title>API Reference</title><refbody><section><title>Methods</title></section></refbody></reference>');
+    });
+
+    teardown(() => {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    function wsSymbols(query: string, workspaceFolders?: string[]) {
+        const docs = createDocs(); // empty — tests read from disk
+        return handleWorkspaceSymbol(
+            { query },
+            docs,
+            workspaceFolders ?? [tmpDir]
+        );
+    }
+
+    test('query matching title returns symbols', () => {
+        const results = wsSymbols('Introduction');
+        assert.ok(results.length > 0, 'should find Introduction');
+        assert.ok(results.some(s => s.name.includes('Introduction')));
+    });
+
+    test('case-insensitive matching', () => {
+        const results = wsSymbols('installation');
+        assert.ok(results.length > 0, 'should find installation case-insensitively');
+    });
+
+    test('matches by containerName (parent title)', () => {
+        // containerName is the parent element's display name (title text)
+        // body's containerName is "Introduction" (the topic's title)
+        const results = wsSymbols('Introduction');
+        // Should match both the topic itself and nested elements via containerName
+        assert.ok(results.length > 0, 'should match container names');
+    });
+
+    test('empty query returns empty', () => {
+        const results = wsSymbols('');
+        assert.strictEqual(results.length, 0);
+    });
+
+    test('no workspace folders returns empty', () => {
+        const results = wsSymbols('Introduction', []);
+        assert.strictEqual(results.length, 0);
+    });
+
+    test('query with no match returns empty', () => {
+        const results = wsSymbols('xyznonexistent');
+        assert.strictEqual(results.length, 0);
+    });
+
+    test('results include location info', () => {
+        const results = wsSymbols('API Reference');
+        assert.ok(results.length > 0);
+        assert.ok(results[0].location, 'should have location');
+        assert.ok(results[0].location.uri, 'should have URI');
+    });
+
+    test('prefers in-memory document over disk', () => {
+        // Open a file in the documents map with different content
+        const filePath = path.join(tmpDir, 'intro.dita');
+        const uri = URI.file(filePath).toString();
+        const doc = createDoc('<topic id="mem"><title>In Memory Topic</title></topic>', uri);
+        const docs = createDocs(doc);
+        const results = handleWorkspaceSymbol(
+            { query: 'In Memory' },
+            docs,
+            [tmpDir]
+        );
+        assert.ok(results.some(s => s.name.includes('In Memory')),
+            'should find in-memory content');
     });
 });

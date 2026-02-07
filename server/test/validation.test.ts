@@ -174,6 +174,77 @@ suite('validateDITADocument', () => {
         });
     });
 
+    suite('DITAVAL validation', () => {
+        test('valid ditaval produces no root error', () => {
+            const diags = validate(
+                '<val><prop att="audience" val="admin" action="include"/></val>',
+                'file:///test.ditaval'
+            );
+            const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
+            assert.strictEqual(rootDiags.length, 0);
+        });
+
+        test('missing val root produces error', () => {
+            const diags = validate(
+                '<prop att="audience" val="admin" action="include"/>',
+                'file:///test.ditaval'
+            );
+            const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
+            assert.ok(rootDiags.length > 0);
+            assert.ok(rootDiags[0].message.includes('<val>'));
+        });
+
+        test('ditaval skips DOCTYPE warning', () => {
+            const diags = validate(
+                '<val><prop att="platform" val="linux" action="exclude"/></val>',
+                'file:///test.ditaval'
+            );
+            const doctypeDiags = diags.filter(d => d.code === 'DITA-STRUCT-001');
+            assert.strictEqual(doctypeDiags.length, 0);
+        });
+
+        test('ditaval skips title warning', () => {
+            const diags = validate(
+                '<val></val>',
+                'file:///test.ditaval'
+            );
+            const titleDiags = diags.filter(d => d.code === 'DITA-STRUCT-004');
+            assert.strictEqual(titleDiags.length, 0);
+        });
+
+        test('ditaval still validates XML well-formedness', () => {
+            const diags = validate(
+                '<val><prop></val>',
+                'file:///test.ditaval'
+            );
+            const xmlDiags = diags.filter(d => d.code === 'DITA-XML-001');
+            assert.ok(xmlDiags.length > 0);
+        });
+    });
+
+    suite('Empty element variations', () => {
+        test('empty <p> produces warning', () => {
+            const diags = validate('<topic id="t1"><title>T</title><body><p></p></body></topic>');
+            const emptyDiags = diags.filter(d => d.code === 'DITA-STRUCT-005' && d.message.includes('<p>'));
+            assert.ok(emptyDiags.length > 0);
+        });
+
+        test('empty <shortdesc> produces warning', () => {
+            const diags = validate('<topic id="t1"><title>T</title><shortdesc></shortdesc></topic>');
+            const emptyDiags = diags.filter(d => d.code === 'DITA-STRUCT-005' && d.message.includes('<shortdesc>'));
+            assert.ok(emptyDiags.length > 0);
+        });
+    });
+
+    suite('Root element id edge cases', () => {
+        test('empty id attribute produces error', () => {
+            const diags = validate('<topic id=""><title>T</title></topic>');
+            const idDiags = diags.filter(d => d.code === 'DITA-STRUCT-003');
+            assert.ok(idDiags.length > 0);
+            assert.ok(idDiags[0].message.includes('cannot be empty'));
+        });
+    });
+
     suite('Max problems cap', () => {
         test('diagnostics are capped at maxNumberOfProblems', () => {
             const settings = defaultSettings();

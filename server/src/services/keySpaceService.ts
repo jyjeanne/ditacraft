@@ -166,6 +166,12 @@ export class KeySpaceService {
         let currentDir = path.dirname(absolutePath);
         const stopDir = this.workspaceFolders[0] || path.parse(currentDir).root;
 
+        // Search all the way up to workspace root.
+        // Root maps are typically at the project root, so prefer maps at
+        // the highest level (closest to workspace root).
+        const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
+        let bestMap: string | null = null;
+
         while (currentDir && currentDir.length >= stopDir.length) {
             try {
                 const files = await fsPromises.readdir(currentDir);
@@ -174,17 +180,21 @@ export class KeySpaceService {
                 );
 
                 if (mapFiles.length > 0) {
-                    const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
+                    let found: string | null = null;
+
                     for (const preferred of preferredNames) {
                         if (mapFiles.includes(preferred)) {
-                            const result = path.join(currentDir, preferred);
-                            this.rootMapCache.set(cacheKey, { rootMap: result, timestamp: Date.now() });
-                            return result;
+                            found = path.join(currentDir, preferred);
+                            break;
                         }
                     }
-                    const result = path.join(currentDir, mapFiles.sort()[0]);
-                    this.rootMapCache.set(cacheKey, { rootMap: result, timestamp: Date.now() });
-                    return result;
+
+                    if (!found) {
+                        found = path.join(currentDir, mapFiles.sort()[0]);
+                    }
+
+                    // Higher directories overwrite lower — root maps live at project root
+                    bestMap = found;
                 }
             } catch {
                 // Directory not readable
@@ -195,8 +205,8 @@ export class KeySpaceService {
             currentDir = parentDir;
         }
 
-        this.rootMapCache.set(cacheKey, { rootMap: null, timestamp: Date.now() });
-        return null;
+        this.rootMapCache.set(cacheKey, { rootMap: bestMap, timestamp: Date.now() });
+        return bestMap;
     }
 
     /** Invalidate cache entries for a changed file. */
@@ -405,7 +415,10 @@ export class KeySpaceService {
     ): string[] {
         const submaps: string[] = [];
         const mapDir = path.dirname(mapPath);
-        const mapRefRegex = /<(?:mapref|topicref|chapter|appendix|part)[^>]*\bhref\s*=\s*["']([^"']+\.(?:ditamap|bookmap))["'][^>]*>/gi;
+        // Match ANY element with href pointing to a .ditamap or .bookmap file.
+        // This covers mapref, topicref, chapter, appendix, part, glossarylist,
+        // frontmatter, backmatter, notices, preface, topichead, anchorref, etc.
+        const mapRefRegex = /<\w+[^>]*\bhref\s*=\s*["']([^"']+\.(?:ditamap|bookmap))["'][^>]*>/gi;
 
         let match: RegExpExecArray | null;
         let matchCount = 0;

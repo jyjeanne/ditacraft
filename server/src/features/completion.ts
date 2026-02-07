@@ -10,6 +10,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import {
     DITA_ELEMENTS,
+    DITAVAL_ELEMENTS,
     COMMON_ATTRIBUTES,
     ELEMENT_ATTRIBUTES,
     ATTRIBUTE_VALUES,
@@ -251,7 +252,10 @@ function getElementCompletions(ctx: CompletionContext): CompletionItem[] {
 
 function getAttributeCompletions(ctx: CompletionContext): CompletionItem[] {
     const specific = ELEMENT_ATTRIBUTES[ctx.elementName] || [];
-    const all = [...specific, ...COMMON_ATTRIBUTES];
+    // DITAVAL elements don't use DITA common attributes
+    const all = DITAVAL_ELEMENTS.has(ctx.elementName)
+        ? specific
+        : [...specific, ...COMMON_ATTRIBUTES];
     // Deduplicate
     const unique = [...new Set(all)];
 
