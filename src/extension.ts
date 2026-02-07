@@ -31,6 +31,7 @@ import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
 import { UI_TIMEOUTS } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
+import { startLanguageClient, stopLanguageClient } from './languageClient';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
@@ -96,6 +97,16 @@ export function activate(context: vscode.ExtensionContext) {
         registerLoggerCommands(context);
         outputChannel.appendLine('Logger commands registered');
 
+        // Start Language Server
+        outputChannel.appendLine('Starting DITA Language Server...');
+        startLanguageClient(context).then(() => {
+            outputChannel.appendLine('DITA Language Server started');
+        }).catch((err) => {
+            const msg = err instanceof Error ? err.message : 'Unknown error';
+            logger.error('Failed to start DITA Language Server', err);
+            outputChannel.appendLine(`Failed to start DITA Language Server: ${msg}`);
+        });
+
         // Clean up old logs (keep 7 days)
         logger.clearOldLogs(7);
 
@@ -124,8 +135,11 @@ export function activate(context: vscode.ExtensionContext) {
  * Extension deactivation function
  * Called when the extension is deactivated
  */
-export function deactivate() {
+export async function deactivate(): Promise<void> {
     logger.info('DitaCraft extension deactivation started');
+
+    // Stop Language Server
+    await stopLanguageClient();
 
     // Dispose of DITA-OT publishing diagnostics
     disposeDitaOtDiagnostics();

@@ -34,8 +34,11 @@ out/commands/
 out/providers/
 out/utils/
 
-# Node modules (all dependencies are bundled into out/extension.js)
+# Node modules (all dependencies are bundled by esbuild)
 node_modules/**
+server/node_modules/**
+server/package.json
+server/package-lock.json
 
 # Git
 .git

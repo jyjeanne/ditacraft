@@ -30,6 +30,17 @@
       ],
       "preLaunchTask": "${defaultBuildTask}",
       "sourceMaps": true
+    },
+    {
+      "name": "Attach to DITA Language Server",
+      "type": "node",
+      "request": "attach",
+      "port": 6009,
+      "restart": true,
+      "outFiles": [
+        "${workspaceFolder}/server/out/**/*.js"
+      ],
+      "sourceMaps": true
     }
   ]
 }
