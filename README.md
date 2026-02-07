@@ -21,10 +21,26 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🖨️ **Print Preview** - Print-optimized preview with dedicated print button
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **547+ Tests** - Extensively tested with comprehensive integration and security tests
+🧪 **709+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (55 files, bookmap structure)
 
 ## Features
+
+### 🖥️ **Language Server Protocol (LSP)**
+- Full-featured DITA Language Server running in a separate process for performance
+- **IntelliSense**: Context-aware element, attribute, and value completions
+- **Hover**: Element documentation tooltips from DITA schema
+- **Document Symbols**: Hierarchical outline view (Ctrl+Shift+O)
+- **Workspace Symbols**: Cross-file symbol search (Ctrl+T)
+- **Go to Definition**: Navigate to href/conref/keyref targets with key space resolution
+- **Find References**: Locate all usages of an element ID across files
+- **Rename**: Rename IDs with automatic reference updates across workspace
+- **Formatting**: XML document formatting with inline/block/preformatted handling
+- **Code Actions**: Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs
+- **Linked Editing**: Simultaneous open/close XML tag name editing
+- **Folding Ranges**: Collapse XML elements, comments, and CDATA blocks
+- **Document Links**: Clickable href/conref/keyref links with key resolution
+- **Diagnostics**: XML well-formedness, DITA structure, and ID validation
 
 ### 📝 **DITA Editing**
 - Syntax highlighting for `.dita`, `.ditamap`, and `.bookmap` files
@@ -467,78 +483,72 @@ npm run package
 
 ```
 ditacraft/
-├── src/
-│   ├── extension.ts           # Entry point
-│   ├── commands/              # Command handlers
-│   │   ├── validateCommand.ts
-│   │   ├── publishCommand.ts
-│   │   ├── previewCommand.ts
-│   │   └── fileCreationCommands.ts
-│   ├── providers/
-│   │   ├── ditaValidator.ts   # DITA validation orchestrator
-│   │   ├── ditaLinkProvider.ts # Ctrl+Click navigation
-│   │   └── validation/        # Modular validation engines
-│   │       ├── typesxmlEngine.ts
-│   │       ├── builtinEngine.ts
-│   │       └── xmllintEngine.ts
-│   ├── utils/
-│   │   ├── ditaOtWrapper.ts   # DITA-OT integration
-│   │   ├── keySpaceResolver.ts # Key space building & caching
-│   │   ├── rateLimiter.ts     # DoS protection
-│   │   ├── configurationManager.ts # Centralized settings
-│   │   └── logger.ts          # Logging utility
-│   └── test/                  # Test suites (547+ tests)
-│       ├── suite/
-│       │   ├── ditaValidator.test.ts
-│       │   ├── rateLimiter.test.ts
-│       │   ├── securityAndEdgeCases.test.ts
-│       │   └── ...
-│       └── fixtures/          # Test fixtures
-├── dtds/                      # DITA 1.3 DTD files
-├── docs/
-│   └── user-guide/            # DITA User Guide (55 files)
-│       ├── ditacraft-user-guide.bookmap
-│       └── topics/            # Commands, Features, Settings, Glossary
-├── ARCHITECTURE.md            # Technical architecture docs
-├── ROADMAP.md                 # Feature roadmap
-└── CHANGELOG.md               # Version history
+├── src/                         # Client-side extension code
+│   ├── extension.ts             # Entry point
+│   ├── commands/                # Command handlers
+│   ├── providers/               # Validation & link providers
+│   ├── utils/                   # Utilities (DITA-OT, key space, rate limiter)
+│   └── test/                    # Client test suites (547+ tests)
+├── server/                      # LSP Language Server (separate process)
+│   ├── src/
+│   │   ├── server.ts            # Server entry point & capability registration
+│   │   ├── features/            # LSP feature handlers
+│   │   │   ├── validation.ts    # Diagnostics (XML, DITA structure, IDs)
+│   │   │   ├── completion.ts    # IntelliSense completions
+│   │   │   ├── hover.ts         # Hover documentation
+│   │   │   ├── symbols.ts       # Document & workspace symbols
+│   │   │   ├── definition.ts    # Go to definition
+│   │   │   ├── references.ts    # Find references
+│   │   │   ├── rename.ts        # Rename with reference updates
+│   │   │   ├── formatting.ts    # XML formatting
+│   │   │   ├── codeActions.ts   # Quick fixes
+│   │   │   ├── linkedEditing.ts # Tag name sync editing
+│   │   │   ├── folding.ts       # Folding ranges
+│   │   │   └── documentLinks.ts # Clickable links
+│   │   ├── services/            # Key space resolution service
+│   │   ├── utils/               # Reference parser, workspace scanner
+│   │   └── data/                # DITA schema data
+│   └── test/                    # Server test suites (162 tests)
+├── dtds/                        # DITA 1.3 DTD files
+├── docs/                        # Specs & user guide (55 DITA files)
+├── ARCHITECTURE.md
+├── ROADMAP.md
+├── TEST_PLAN.md                 # LSP feature test plan
+└── CHANGELOG.md
 ```
 
 ### Quality & Testing
 
-DitaCraft includes comprehensive test coverage for all key features:
+DitaCraft includes comprehensive test coverage across client and server:
 
-**Test Suites:**
-- **DTD Validation Tests** - Tests DTD resolution and DTD-based validation
-- **Real-time Validation Tests** - Tests validation on file open, save, and change
-- **Command & Auto-Detection Tests** - Tests manual validation and file detection
-- **Link Navigation Tests** - Tests Ctrl+Click navigation including key resolution
-- **Key Space Resolution Tests** - Tests key space building and caching
+**Client Tests (547+ tests):**
+- DTD validation, real-time validation, command & auto-detection
+- Link navigation with key resolution, key space building & caching
+- Security (path traversal, XXE protection), rate limiting
+- Preview, file creation, configuration integration
 
-**Test Coverage:**
-- ✅ 547+ passing tests covering all key features
-- ✅ Real-time validation on file open, save, and change (with debouncing)
-- ✅ DTD resolution and bundled DTD files
-- ✅ Error highlighting with line/column accuracy
-- ✅ Manual validation command
-- ✅ Auto-detection by extension or DOCTYPE
-- ✅ Smart navigation with key space resolution
-- ✅ Content references (`@conref`, `@conkeyref`, `@keyref`)
-- ✅ Security testing (path traversal, XXE protection)
-- ✅ Async file operations and caching
-- ✅ Language ID configuration and integration tests
-- ✅ Link detection, range accuracy, and tooltip verification
+**LSP Server Tests (162 tests):**
+- Reference parser (40 tests) - all 6 exported parsing functions
+- XML formatting (20 tests) - indentation, inline, preformatted, edge cases
+- Folding ranges (10 tests) - elements, comments, CDATA, CRLF
+- Workspace scanner (8 tests) - offset-to-position conversion
+- Validation diagnostics (22 tests) - XML, DITA structure, IDs, maps
+- Completions (14 tests) - element, attribute, value completions
+- Hover (12 tests) - documentation, fallback, non-tag positions
+- Document symbols (13 tests) - outline, titles, maps, self-closing
+- Code actions (14 tests) - all 5 quick fixes + edge cases
+- Linked editing (15 tests) - tag pairing, nesting, boundaries
 
 **Running Tests:**
 ```bash
-# Run all tests
+# Run client tests (requires VS Code)
 npm test
 
-# Run tests in watch mode
-npm run watch
+# Run server tests (standalone, no VS Code needed)
+cd server && npm test
 
-# Compile tests
-npm run compile-tests
+# Compile everything
+npm run compile
 ```
 
 ## Known Limitations
@@ -675,7 +685,22 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.4.2 (Current)
+### Version 0.5.0 (Current)
+**DITA Language Server with IntelliSense**
+- ✅ **Full LSP Implementation** - 14 language features in a dedicated server process
+- ✅ **IntelliSense** - Context-aware completion for elements, attributes, and values
+- ✅ **Hover Documentation** - Element docs from DITA schema with children fallback
+- ✅ **Document & Workspace Symbols** - Outline view and cross-file symbol search (Ctrl+T)
+- ✅ **Go to Definition** - Navigate href/conref/keyref targets with full key space resolution
+- ✅ **Find References & Rename** - Cross-file ID references and rename with updates
+- ✅ **Formatting** - XML formatter with inline/block/preformatted element handling
+- ✅ **Code Actions** - 5 quick fixes (DOCTYPE, ID, title, empty element, duplicate ID)
+- ✅ **Linked Editing** - Simultaneous open/close tag name editing
+- ✅ **Folding & Document Links** - Collapsible ranges and clickable references
+- ✅ **Server Test Suite** - 162 standalone Mocha tests (no VS Code dependency)
+- ✅ **709+ Total Tests** - Client (547) + Server (162) with CI integration
+
+### Version 0.4.2
 **Architecture, Security & Documentation**
 - ✅ **Modular Validation Engine** - Refactored validation with pluggable engine architecture
 - ✅ **Rate Limiting** - DoS protection for validation operations (10 req/sec per file)
@@ -740,8 +765,8 @@ We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md]
 
 - **v0.3.0** - Developer Experience & Quality ✅ **COMPLETE**
 - **v0.4.0** - Enhanced Preview, Build Output & Map Visualizer ✅ **COMPLETE**
-- **v0.5.0** - IntelliSense & Content Assistance (hover, completion, code actions) **NEXT**
-- **v0.6.0** - Project Management & Views (DITA Explorer, Key Space browser)
+- **v0.5.0** - IntelliSense & Content Assistance (LSP, 14 features) ✅ **COMPLETE**
+- **v0.6.0** - Project Management & Views (DITA Explorer, Key Space browser) **NEXT**
 - **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation)
 - **v0.8.0** - Refactoring & Productivity (rename keys, templates)
 - **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)

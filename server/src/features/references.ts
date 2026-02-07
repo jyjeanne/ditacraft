@@ -5,6 +5,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 
 import {
     findIdAtOffset,
@@ -12,14 +13,17 @@ import {
     findElementByIdOffset,
 } from '../utils/referenceParser';
 
+import { findCrossFileReferences } from '../utils/workspaceScanner';
+
 /**
  * Handle Find References requests.
- * When the cursor is on an id attribute value, finds all conref/href
- * attributes in the current document that reference this ID.
+ * Searches the current document and all workspace DITA files for references
+ * to the ID at the cursor position.
  */
 export function handleReferences(
     params: ReferenceParams,
-    documents: TextDocuments<TextDocument>
+    documents: TextDocuments<TextDocument>,
+    workspaceFolders?: readonly string[]
 ): Location[] {
     const document = documents.get(params.textDocument.uri);
     if (!document) {
@@ -52,6 +56,19 @@ export function handleReferences(
         const startPos = document.positionAt(ref.valueStart);
         const endPos = document.positionAt(ref.valueEnd);
         results.push(Location.create(document.uri, { start: startPos, end: endPos }));
+    }
+
+    // Find references across all workspace files
+    if (workspaceFolders && workspaceFolders.length > 0) {
+        const targetFilePath = URI.parse(document.uri).fsPath;
+        const crossFileRefs = findCrossFileReferences(
+            idResult.id,
+            targetFilePath,
+            workspaceFolders,
+            document.uri,
+            documents
+        );
+        results.push(...crossFileRefs);
     }
 
     return results;

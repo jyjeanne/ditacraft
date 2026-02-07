@@ -10,7 +10,7 @@ import { DitaOtWrapper } from './utils/ditaOtWrapper';
 import { logger } from './utils/logger';
 import { fireAndForget } from './utils/errorUtils';
 import { configManager, ConfigurationChangeEvent } from './utils/configurationManager';
-import { registerDitaLinkProvider, getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
+import { getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
 import { registerElementNavigationCommand } from './utils/elementNavigator';
 import { registerKeyDiagnosticsProvider } from './providers/keyDiagnostics';
 import {
@@ -66,10 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         registerPreviewPanelSerializer(context);
         outputChannel.appendLine('Preview panel initialized');
 
-        // Register DITA link provider for Ctrl+Click navigation
-        outputChannel.appendLine('Registering DITA link provider...');
-        registerDitaLinkProvider(context);
-        outputChannel.appendLine('DITA link provider registered');
+        // Note: Document links now provided by the LSP server (Phase 6)
 
         // Register element navigation command for same-file references
         outputChannel.appendLine('Registering element navigation command...');

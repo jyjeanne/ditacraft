@@ -23,12 +23,15 @@ import {
 import { validateDITADocument } from './features/validation';
 import { handleCompletion } from './features/completion';
 import { handleHover } from './features/hover';
-import { handleDocumentSymbol } from './features/symbols';
+import { handleDocumentSymbol, handleWorkspaceSymbol } from './features/symbols';
 import { handleDefinition } from './features/definition';
 import { handleReferences } from './features/references';
 import { handleFormatting, handleRangeFormatting } from './features/formatting';
 import { handleCodeActions } from './features/codeActions';
 import { handlePrepareRename, handleRename } from './features/rename';
+import { handleFoldingRanges } from './features/folding';
+import { handleDocumentLinks, handleDocumentLinkResolve } from './features/documentLinks';
+import { handleLinkedEditingRange } from './features/linkedEditing';
 import { KeySpaceService } from './services/keySpaceService';
 import { URI } from 'vscode-uri';
 
@@ -83,6 +86,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
             },
             hoverProvider: true,
             documentSymbolProvider: true,
+            workspaceSymbolProvider: true,
             definitionProvider: true,
             referencesProvider: true,
             documentFormattingProvider: true,
@@ -91,6 +95,11 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
             renameProvider: {
                 prepareProvider: true,
             },
+            foldingRangeProvider: true,
+            documentLinkProvider: {
+                resolveProvider: true,
+            },
+            linkedEditingRangeProvider: true,
         },
     };
 
@@ -184,11 +193,20 @@ connection.onHover((params) => handleHover(params, documents));
 // Document symbols handler
 connection.onDocumentSymbol((params) => handleDocumentSymbol(params, documents));
 
+// Workspace symbols handler (Ctrl+T search across files)
+connection.onWorkspaceSymbol((params) => {
+    const folders = keySpaceService?.getWorkspaceFolders();
+    return handleWorkspaceSymbol(params, documents, folders);
+});
+
 // Go to Definition handler
 connection.onDefinition((params) => handleDefinition(params, documents, keySpaceService));
 
-// Find References handler
-connection.onReferences((params) => handleReferences(params, documents));
+// Find References handler (cross-file via workspace folders)
+connection.onReferences((params) => {
+    const folders = keySpaceService?.getWorkspaceFolders();
+    return handleReferences(params, documents, folders);
+});
 
 // Document formatting handler
 connection.onDocumentFormatting((params) => handleFormatting(params, documents));
@@ -202,8 +220,23 @@ connection.onCodeAction((params) => handleCodeActions(params, documents));
 // Prepare Rename handler
 connection.onPrepareRename((params) => handlePrepareRename(params, documents));
 
-// Rename handler
-connection.onRenameRequest((params) => handleRename(params, documents));
+// Rename handler (cross-file via workspace folders)
+connection.onRenameRequest((params) => {
+    const folders = keySpaceService?.getWorkspaceFolders();
+    return handleRename(params, documents, folders);
+});
+
+// Folding Ranges handler
+connection.onFoldingRanges((params) => handleFoldingRanges(params, documents));
+
+// Document Links handler
+connection.onDocumentLinks((params) => handleDocumentLinks(params, documents));
+
+// Document Link Resolve handler
+connection.onDocumentLinkResolve((link) => handleDocumentLinkResolve(link, keySpaceService));
+
+// Linked Editing Range handler (simultaneous open/close tag renaming)
+connection.languages.onLinkedEditingRange((params) => handleLinkedEditingRange(params, documents));
 
 // Document lifecycle events
 documents.onDidOpen((event) => {

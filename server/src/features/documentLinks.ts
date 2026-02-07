@@ -18,23 +18,6 @@ interface LinkData {
     contextFilePath: string;
 }
 
-// --- Regex patterns ---
-
-// href in map elements (topicref, chapter, etc.)
-const HREF_REGEX = /<(?:topicref|chapter|appendix|part|mapref|keydef|topicgroup|topichead)[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
-// conref attribute on any element
-const CONREF_REGEX = /\bconref\s*=\s*["']([^"']+)["']/gi;
-// conkeyref attribute
-const CONKEYREF_REGEX = /\bconkeyref\s*=\s*["']([^"']+)["']/gi;
-// keyref attribute
-const KEYREF_REGEX = /\bkeyref\s*=\s*["']([^"']+)["']/gi;
-// xref with href
-const XREF_HREF_REGEX = /<xref[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
-// xref with keyref
-const XREF_KEYREF_REGEX = /<xref[^>]*\bkeyref\s*=\s*["']([^"']+)["'][^>]*>/gi;
-// link with href
-const LINK_HREF_REGEX = /<link[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
-
 // --- Public handlers ---
 
 /**
@@ -43,8 +26,7 @@ const LINK_HREF_REGEX = /<link[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
  */
 export async function handleDocumentLinks(
     params: DocumentLinkParams,
-    documents: TextDocuments<TextDocument>,
-    keySpaceService?: KeySpaceService
+    documents: TextDocuments<TextDocument>
 ): Promise<DocumentLink[]> {
     const document = documents.get(params.textDocument.uri);
     if (!document) return [];
@@ -54,6 +36,14 @@ export async function handleDocumentLinks(
     const documentDir = path.dirname(URI.parse(documentUri).fsPath);
     const contextFilePath = URI.parse(documentUri).fsPath;
     const links: DocumentLink[] = [];
+
+    // Regex patterns (created per-call to avoid shared stateful /g flag)
+    const HREF_REGEX = /<(?:topicref|chapter|appendix|part|mapref|keydef|topicgroup|topichead)[^>]*\bhref\s*=\s*["']([^"']+)["']/gi;
+    const CONREF_REGEX = /\bconref\s*=\s*["']([^"']+)["']/gi;
+    const KEYREF_REGEX = /\bkeyref\s*=\s*["']([^"']+)["']/gi;
+    const CONKEYREF_REGEX = /\bconkeyref\s*=\s*["']([^"']+)["']/gi;
+    const XREF_HREF_REGEX = /<xref[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
+    const LINK_HREF_REGEX = /<link[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/gi;
 
     // Strip comments to avoid matching attributes inside them
     const commentRanges = getCommentRanges(text);
@@ -65,9 +55,9 @@ export async function handleDocumentLinks(
     processFileRefs(text, document, documentDir, links, commentRanges, LINK_HREF_REGEX);
 
     // Process key-based references (deferred resolution via resolveDocumentLink)
-    processKeyRefs(text, document, contextFilePath, links, commentRanges, KEYREF_REGEX, 'keyref', keySpaceService);
-    processKeyRefs(text, document, contextFilePath, links, commentRanges, CONKEYREF_REGEX, 'conkeyref', keySpaceService);
-    processKeyRefs(text, document, contextFilePath, links, commentRanges, XREF_KEYREF_REGEX, 'keyref', keySpaceService);
+    // KEYREF_REGEX covers all elements including xref (no separate xref keyref pattern needed)
+    processKeyRefs(text, document, contextFilePath, links, commentRanges, KEYREF_REGEX, 'keyref');
+    processKeyRefs(text, document, contextFilePath, links, commentRanges, CONKEYREF_REGEX, 'conkeyref');
 
     return links;
 }
@@ -155,9 +145,14 @@ function getValueStartOffset(matchText: string, capturedValue: string): number {
         }
     }
 
-    // Fallback: lastIndexOf
-    const idx = matchText.lastIndexOf(capturedValue);
-    return idx >= 0 ? idx : matchText.indexOf(capturedValue);
+    // Fallback: find the exact quoted value to avoid matching in wrong attribute
+    const dqIdx = matchText.indexOf('"' + capturedValue + '"');
+    if (dqIdx >= 0) return dqIdx + 1;
+    const sqIdx = matchText.indexOf("'" + capturedValue + "'");
+    if (sqIdx >= 0) return sqIdx + 1;
+
+    // Final fallback
+    return matchText.indexOf(capturedValue);
 }
 
 /**
@@ -222,8 +217,7 @@ function processKeyRefs(
     links: DocumentLink[],
     commentRanges: [number, number][],
     pattern: RegExp,
-    type: 'keyref' | 'conkeyref',
-    keySpaceService?: KeySpaceService
+    type: 'keyref' | 'conkeyref'
 ): void {
     pattern.lastIndex = 0;
     let match;

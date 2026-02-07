@@ -94,6 +94,11 @@ export class KeySpaceService {
 
     // --- Public API ---
 
+    /** Get the current workspace folder paths. */
+    public getWorkspaceFolders(): readonly string[] {
+        return this.workspaceFolders;
+    }
+
     /**
      * Resolve a key name to its definition.
      * Finds the root map, builds (or retrieves cached) key space, then looks up key.

@@ -16,6 +16,8 @@ import {
     findElementByIdOffset,
 } from '../utils/referenceParser';
 
+import { offsetToPosition } from '../utils/workspaceScanner';
+
 import { KeySpaceService } from '../services/keySpaceService';
 
 /**
@@ -159,25 +161,3 @@ function locationAtFileStart(uri: string): Location {
     });
 }
 
-/**
- * Convert a byte offset to { line, character } position.
- */
-function offsetToPosition(text: string, offset: number): { line: number; character: number } {
-    let line = 0;
-    let lastLineStart = 0;
-
-    for (let i = 0; i < offset && i < text.length; i++) {
-        if (text[i] === '\n') {
-            line++;
-            lastLineStart = i + 1;
-        } else if (text[i] === '\r') {
-            line++;
-            if (i + 1 < text.length && text[i + 1] === '\n') {
-                i++; // skip \n in \r\n
-            }
-            lastLineStart = i + 1;
-        }
-    }
-
-    return { line, character: offset - lastLineStart };
-}

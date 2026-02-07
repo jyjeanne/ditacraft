@@ -85,11 +85,17 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Install server dependencies
+      run: cd server && npm ci
+
     - name: Run linter
       run: npm run lint
 
     - name: Compile TypeScript
       run: npm run compile
+
+    - name: Run server tests
+      run: cd server && npm test
 
     - name: Compile tests
       run: npm run compile-tests

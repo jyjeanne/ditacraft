@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.4.2)
+## Current Status (v0.5.0)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -33,22 +33,45 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | CI Security Audit | Complete | 100% |
 | Error Handling Utilities | Complete | 100% |
 | Code Coverage (c8) | Complete | 100% |
-| **Architecture Documentation** | Complete | 100% |
-| **DITA User Guide** | Complete | 100% |
+| Architecture Documentation | Complete | 100% |
+| DITA User Guide | Complete | 100% |
+| **LSP: Diagnostics** | Complete | 100% |
+| **LSP: IntelliSense (Completion)** | Complete | 100% |
+| **LSP: Hover Documentation** | Complete | 100% |
+| **LSP: Document Symbols** | Complete | 100% |
+| **LSP: Workspace Symbols** | Complete | 100% |
+| **LSP: Go to Definition** | Complete | 100% |
+| **LSP: Find References** | Complete | 100% |
+| **LSP: Rename** | Complete | 100% |
+| **LSP: Formatting** | Complete | 100% |
+| **LSP: Code Actions** | Complete | 100% |
+| **LSP: Linked Editing** | Complete | 100% |
+| **LSP: Folding Ranges** | Complete | 100% |
+| **LSP: Document Links** | Complete | 100% |
+| **LSP: Key Space Resolution** | Complete | 100% |
+| **Server Test Suite (162 tests)** | Complete | 100% |
 
-### Recent Changes (v0.4.2)
+### Recent Changes (v0.5.0)
+- **DITA Language Server** - Full LSP implementation with 14 language features in a dedicated process
+- **IntelliSense** - Context-aware element, attribute, and value completions with snippets
+- **Hover Documentation** - Element docs from DITA schema with children fallback
+- **Document & Workspace Symbols** - Hierarchical outline (Ctrl+Shift+O) and cross-file search (Ctrl+T)
+- **Go to Definition** - Navigate href/conref/keyref/conkeyref with server-side key space resolution
+- **Find References & Rename** - Cross-file ID reference search and rename with updates
+- **Formatting** - Token-based XML formatter with inline/block/preformatted handling
+- **Code Actions** - 5 quick fixes: missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs
+- **Linked Editing** - Simultaneous open/close XML tag name editing with depth-aware nesting
+- **Folding Ranges & Document Links** - Collapsible elements/comments/CDATA and clickable references
+- **Server Test Suite** - 162 standalone Mocha tests across 10 files (no VS Code dependency)
+- **CI Integration** - Server tests added to GitHub Actions (ci.yml + release.yml)
+- **709+ Total Tests** - Client (547) + Server (162)
+
+### Previous Changes (v0.4.2)
 - **Modular Validation Engine** - Refactored to pluggable architecture with Strategy pattern
 - **Rate Limiting** - DoS protection for validation (10 req/sec per file)
-- **Adaptive Cache Cleanup** - Skip cleanup when caches empty (performance optimization)
 - **Architecture Documentation** - Comprehensive ARCHITECTURE.md with data flow diagrams
-- **DITA User Guide** - Complete 55-file documentation in DITA format (bookmap, glossary, keyboard shortcuts, index)
-- **Preview Scroll Sync Fix** - Fixed scroll sync for content smaller than viewport (scrollHeight guards)
-- **Preview Print Mode Fix** - Fixed toolbar injection fallback for non-standard HTML structures
+- **DITA User Guide** - Complete 55-file documentation in DITA format
 - **547+ Tests** - Expanded test suite with security and edge case coverage
-
-### Previous Changes (v0.4.1)
-- **TypesXML DTD Validation** - Pure TypeScript validation engine with 100% W3C conformance
-- **OASIS XML Catalog Support** - Full DITA public identifier resolution (no native dependencies)
 
 ---
 
@@ -138,40 +161,63 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ---
 
-## Milestone 3: IntelliSense & Content Assistance (v0.5.0) 🎯 NEXT
+## Milestone 3: IntelliSense & Content Assistance (v0.5.0) ✅ COMPLETE
 
-**Focus:** Add intelligent editing features similar to professional DITA editors like oXygen.
+**Focus:** Add intelligent editing features via a DITA Language Server (LSP).
 
-### Hover Provider
-- [ ] Show key definitions on hover over keyref/conkeyref
-- [ ] Show target file info on hover over href/conref
-- [ ] Display element documentation from DTD on hover
-- [ ] Show resolved content for conref previews
+### Language Server Foundation ✅
+- [x] LSP server skeleton with JSON-RPC over IPC
+- [x] Client wiring and capability negotiation
+- [x] Server-side key space resolution with BFS, caching (TTL + LRU), debounced invalidation
 
-### Completion Provider
-- [ ] Auto-complete key names from key space
-- [ ] Auto-complete element IDs for fragment references
-- [ ] Auto-complete file paths for href attributes
-- [ ] Context-aware element suggestions based on DTD
+### Diagnostics ✅
+- [x] XML well-formedness validation (fast-xml-parser)
+- [x] DITA structure validation (DOCTYPE, root element, ID, title, empty elements)
+- [x] ID validation (duplicates, format, comment exclusion)
+- [x] Map and bookmap validation
 
-### Code Actions (Quick Fixes)
-- [ ] "Create missing topic" for broken href references
-- [ ] "Add key definition" for undefined keys
-- [ ] "Convert to keyref" - refactor href to use keys
-- [ ] "Extract to conref" - extract selected content to reusable element
+### Hover Provider ✅
+- [x] Display element documentation from DITA schema on hover
+- [x] Show children list for elements without full docs
+- [x] Hover on opening and closing tag names
 
-### Symbol Provider
-- [ ] Navigate to elements by ID within document
-- [ ] Navigate to key definitions across workspace
-- [ ] Show document outline with element hierarchy
+### Completion Provider ✅
+- [x] Context-aware element completions (children of parent element)
+- [x] Attribute completions (element-specific + common attributes)
+- [x] Attribute value completions (enumerations from schema)
+- [x] Snippet format with tab stops and closing tags
 
-**Good First Issues:**
-- Implement basic hover provider for keyref
-- Add file path auto-completion for href
+### Code Actions (Quick Fixes) ✅
+- [x] Add missing DOCTYPE declaration (auto-detects root type)
+- [x] Add missing ID to root element (derived from filename)
+- [x] Add missing title element
+- [x] Remove empty elements
+- [x] Rename duplicate IDs to make unique
+
+### Symbol Provider ✅
+- [x] Document symbols - hierarchical outline with title extraction (Ctrl+Shift+O)
+- [x] Workspace symbols - cross-file search with query matching (Ctrl+T)
+
+### Navigation ✅
+- [x] Go to definition for href/conref (same-file and cross-file)
+- [x] Go to definition for keyref/conkeyref (via key space resolution)
+- [x] Find references for element IDs across workspace
+- [x] Cross-file rename with reference updates
+
+### Editing Features ✅
+- [x] XML formatting with inline/block/preformatted element handling
+- [x] Linked editing ranges (simultaneous open/close tag name editing)
+- [x] Folding ranges for elements, comments, and CDATA
+- [x] Document links for href/conref/keyref with key resolution
+
+### Server Test Suite ✅
+- [x] 162 standalone Mocha tests across 10 files
+- [x] No VS Code dependency (runs via `cd server && npm test`)
+- [x] Integrated into GitHub Actions CI pipeline
 
 ---
 
-## Milestone 4: Project Management & Views (v0.6.0)
+## Milestone 4: Project Management & Views (v0.6.0) 🎯 NEXT
 
 **Focus:** Add VS Code sidebar views for better project navigation.
 
@@ -396,13 +442,13 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.3.0 | Developer experience & quality | Released |
 | v0.4.0 | Preview, build output & Map Visualizer | Released |
 | v0.4.1 | TypesXML DTD Validation | Released |
-| v0.4.2 | Architecture, Rate Limiting, 547+ Tests | **Current** |
-| v0.5.0 | IntelliSense & content assistance | Next |
-| v0.6.0 | Project views & navigation | Planned |
+| v0.4.2 | Architecture, Rate Limiting, 547+ Tests | Released |
+| v0.5.0 | LSP with 14 features, 709+ Tests | **Current** |
+| v0.6.0 | Project views & navigation | Next |
 | v0.7.0 | Advanced validation & DTD | Planned |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: January 2025 (v0.4.2 with modular validation, rate limiting, DITA User Guide, and preview fixes)*
+*Last updated: February 2026 (v0.5.0 with DITA Language Server, 14 LSP features, 162 server tests, 709+ total tests)*

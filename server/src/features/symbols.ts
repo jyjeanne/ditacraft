@@ -1,12 +1,18 @@
+import * as fs from 'fs';
 import {
     DocumentSymbol,
     DocumentSymbolParams,
+    SymbolInformation,
     SymbolKind,
     Range,
     TextDocuments,
+    WorkspaceSymbolParams,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
+
+import { collectDitaFiles, offsetToPosition } from '../utils/workspaceScanner';
 
 /** Map DITA element names to LSP SymbolKind */
 const SYMBOL_KIND_MAP: Record<string, SymbolKind> = {
@@ -192,4 +198,138 @@ function extractTextContent(text: string, startOffset: number): string {
     const content = text.slice(startOffset, closeTag).trim();
     // Limit length for display
     return content.length > 80 ? content.slice(0, 77) + '...' : content;
+}
+
+/** Maximum number of workspace symbols returned per query. */
+const MAX_WORKSPACE_SYMBOLS = 200;
+
+/**
+ * Handle workspace symbol requests (Ctrl+T search across files).
+ * Returns flat SymbolInformation[] matching the query.
+ */
+export function handleWorkspaceSymbol(
+    params: WorkspaceSymbolParams,
+    documents: TextDocuments<TextDocument>,
+    workspaceFolders?: readonly string[]
+): SymbolInformation[] {
+    const query = params.query;
+    if (!query || !workspaceFolders || workspaceFolders.length === 0) {
+        return [];
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const results: SymbolInformation[] = [];
+    const ditaFiles = collectDitaFiles(workspaceFolders);
+
+    for (const filePath of ditaFiles) {
+        if (results.length >= MAX_WORKSPACE_SYMBOLS) break;
+
+        const fileUri = URI.file(filePath).toString();
+        const openDoc = documents.get(fileUri);
+
+        let content: string;
+        if (openDoc) {
+            content = openDoc.getText();
+        } else {
+            try {
+                content = fs.readFileSync(filePath, 'utf-8');
+            } catch {
+                continue;
+            }
+        }
+
+        const tags = parseTags(content);
+        const fileSymbols = extractWorkspaceSymbols(
+            tags, content, fileUri, openDoc
+        );
+
+        for (const sym of fileSymbols) {
+            if (results.length >= MAX_WORKSPACE_SYMBOLS) break;
+
+            // Match query against symbol name, element name (containerName), and id
+            const nameMatch = sym.name.toLowerCase().includes(lowerQuery);
+            const containerMatch = sym.containerName
+                ? sym.containerName.toLowerCase().includes(lowerQuery)
+                : false;
+
+            if (nameMatch || containerMatch) {
+                results.push(sym);
+            }
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Extract flat SymbolInformation[] from parsed tags for a single file.
+ * Assigns title text to the most recent outline element.
+ */
+function extractWorkspaceSymbols(
+    tags: ParsedTag[],
+    text: string,
+    fileUri: string,
+    openDoc?: TextDocument
+): SymbolInformation[] {
+    const symbols: SymbolInformation[] = [];
+
+    // Track open outline elements to assign title text
+    const openStack: { name: string; index: number }[] = [];
+
+    for (const tag of tags) {
+        if (tag.isClosing) {
+            // Pop matching element from stack
+            for (let j = openStack.length - 1; j >= 0; j--) {
+                if (openStack[j].name === tag.name) {
+                    openStack.splice(j, 1);
+                    break;
+                }
+            }
+            continue;
+        }
+
+        // Extract title text for the parent outline element
+        if (tag.name === 'title' && !tag.selfClosing && openStack.length > 0) {
+            const titleContent = extractTextContent(text, tag.endOffset);
+            if (titleContent) {
+                const parentIdx = openStack[openStack.length - 1].index;
+                if (parentIdx < symbols.length) {
+                    symbols[parentIdx].name = titleContent;
+                }
+            }
+            continue;
+        }
+
+        if (!OUTLINE_ELEMENTS.has(tag.name)) continue;
+
+        const kind = SYMBOL_KIND_MAP[tag.name] || SymbolKind.Property;
+        const symbolName = tag.id ? `${tag.name} #${tag.id}` : tag.name;
+
+        const startPos = openDoc
+            ? openDoc.positionAt(tag.startOffset)
+            : offsetToPosition(text, tag.startOffset);
+        const endPos = openDoc
+            ? openDoc.positionAt(tag.endOffset)
+            : offsetToPosition(text, tag.endOffset);
+
+        const containerName = openStack.length > 0
+            ? symbols[openStack[openStack.length - 1].index]?.name
+            : undefined;
+
+        symbols.push(
+            SymbolInformation.create(
+                symbolName,
+                kind,
+                Range.create(startPos, endPos),
+                fileUri,
+                containerName
+            )
+        );
+
+        if (!tag.selfClosing) {
+            openStack.push({ name: tag.name, index: symbols.length - 1 });
+        }
+    }
+
+    return symbols;
 }

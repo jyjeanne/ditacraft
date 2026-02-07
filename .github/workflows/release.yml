@@ -25,11 +25,18 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Install server dependencies
+      run: cd server && npm install
+
     - name: Compile
       run: npm run compile
 
     - name: Run linter
       run: npm run lint
+
+    - name: Run server tests
+      run: cd server && npm test
+      if: success()
 
     - name: Run tests
       run: xvfb-run -a npm test
