@@ -8,6 +8,26 @@ import {
     DidChangeConfigurationNotification,
     DocumentDiagnosticReportKind,
     type DocumentDiagnosticReport,
+    CompletionParams,
+    HoverParams,
+    DocumentSymbolParams,
+    WorkspaceSymbolParams,
+    DefinitionParams,
+    ReferenceParams,
+    DocumentFormattingParams,
+    DocumentRangeFormattingParams,
+    CodeActionParams,
+    PrepareRenameParams,
+    RenameParams,
+    FoldingRangeParams,
+    DocumentLinkParams,
+    DocumentLink,
+    LinkedEditingRangeParams,
+    TextDocumentChangeEvent,
+    DidChangeConfigurationParams,
+    DidChangeWatchedFilesParams,
+    WorkspaceFoldersChangeEvent,
+    WorkspaceFolder,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -59,7 +79,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
 
     // Create key space service for key resolution
     const workspaceFolders = (params.workspaceFolders ?? [])
-        .map(folder => URI.parse(folder.uri).fsPath);
+        .map((folder: WorkspaceFolder) => URI.parse(folder.uri).fsPath);
 
     keySpaceService = new KeySpaceService(
         workspaceFolders,
@@ -124,11 +144,11 @@ connection.onInitialized(() => {
     }
 
     if (hasWorkspaceFolderCapability) {
-        connection.workspace.onDidChangeWorkspaceFolders((event) => {
+        connection.workspace.onDidChangeWorkspaceFolders((event: WorkspaceFoldersChangeEvent) => {
             connection.console.log('Workspace folder change event received');
             if (keySpaceService) {
-                const added = event.added.map(f => URI.parse(f.uri).fsPath);
-                const removed = event.removed.map(f => URI.parse(f.uri).fsPath);
+                const added = event.added.map((f: WorkspaceFolder) => URI.parse(f.uri).fsPath);
+                const removed = event.removed.map((f: WorkspaceFolder) => URI.parse(f.uri).fsPath);
                 keySpaceService.updateWorkspaceFolders(added, removed);
             }
         });
@@ -138,7 +158,7 @@ connection.onInitialized(() => {
 });
 
 // File watcher — invalidate key space cache on map changes
-connection.onDidChangeWatchedFiles((params) => {
+connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
     for (const change of params.changes) {
         const filePath = URI.parse(change.uri).fsPath;
         if (filePath.endsWith('.ditamap') || filePath.endsWith('.bookmap')) {
@@ -153,7 +173,7 @@ connection.onShutdown(() => {
 });
 
 // Configuration change handler
-connection.onDidChangeConfiguration((change) => {
+connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
     if (hasConfigurationCapability) {
         clearDocumentSettings();
     } else {
@@ -185,69 +205,69 @@ connection.languages.diagnostics.on(async (params): Promise<DocumentDiagnosticRe
 });
 
 // Completion handler
-connection.onCompletion((params) => handleCompletion(params, documents));
+connection.onCompletion((params: CompletionParams) => handleCompletion(params, documents));
 
 // Hover handler
-connection.onHover((params) => handleHover(params, documents));
+connection.onHover((params: HoverParams) => handleHover(params, documents));
 
 // Document symbols handler
-connection.onDocumentSymbol((params) => handleDocumentSymbol(params, documents));
+connection.onDocumentSymbol((params: DocumentSymbolParams) => handleDocumentSymbol(params, documents));
 
 // Workspace symbols handler (Ctrl+T search across files)
-connection.onWorkspaceSymbol((params) => {
+connection.onWorkspaceSymbol((params: WorkspaceSymbolParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
     return handleWorkspaceSymbol(params, documents, folders);
 });
 
 // Go to Definition handler
-connection.onDefinition((params) => handleDefinition(params, documents, keySpaceService));
+connection.onDefinition((params: DefinitionParams) => handleDefinition(params, documents, keySpaceService));
 
 // Find References handler (cross-file via workspace folders)
-connection.onReferences((params) => {
+connection.onReferences((params: ReferenceParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
     return handleReferences(params, documents, folders);
 });
 
 // Document formatting handler
-connection.onDocumentFormatting((params) => handleFormatting(params, documents));
+connection.onDocumentFormatting((params: DocumentFormattingParams) => handleFormatting(params, documents));
 
 // Range formatting handler
-connection.onDocumentRangeFormatting((params) => handleRangeFormatting(params, documents));
+connection.onDocumentRangeFormatting((params: DocumentRangeFormattingParams) => handleRangeFormatting(params, documents));
 
 // Code Actions handler
-connection.onCodeAction((params) => handleCodeActions(params, documents));
+connection.onCodeAction((params: CodeActionParams) => handleCodeActions(params, documents));
 
 // Prepare Rename handler
-connection.onPrepareRename((params) => handlePrepareRename(params, documents));
+connection.onPrepareRename((params: PrepareRenameParams) => handlePrepareRename(params, documents));
 
 // Rename handler (cross-file via workspace folders)
-connection.onRenameRequest((params) => {
+connection.onRenameRequest((params: RenameParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
     return handleRename(params, documents, folders);
 });
 
 // Folding Ranges handler
-connection.onFoldingRanges((params) => handleFoldingRanges(params, documents));
+connection.onFoldingRanges((params: FoldingRangeParams) => handleFoldingRanges(params, documents));
 
 // Document Links handler
-connection.onDocumentLinks((params) => handleDocumentLinks(params, documents));
+connection.onDocumentLinks((params: DocumentLinkParams) => handleDocumentLinks(params, documents));
 
 // Document Link Resolve handler
-connection.onDocumentLinkResolve((link) => handleDocumentLinkResolve(link, keySpaceService));
+connection.onDocumentLinkResolve((link: DocumentLink) => handleDocumentLinkResolve(link, keySpaceService));
 
 // Linked Editing Range handler (simultaneous open/close tag renaming)
-connection.languages.onLinkedEditingRange((params) => handleLinkedEditingRange(params, documents));
+connection.languages.onLinkedEditingRange((params: LinkedEditingRangeParams) => handleLinkedEditingRange(params, documents));
 
 // Document lifecycle events
-documents.onDidOpen((event) => {
+documents.onDidOpen((event: TextDocumentChangeEvent<TextDocument>) => {
     connection.console.log(`Document opened: ${event.document.uri}`);
 });
 
-documents.onDidChangeContent((_change) => {
+documents.onDidChangeContent((_change: TextDocumentChangeEvent<TextDocument>) => {
     connection.languages.diagnostics.refresh();
 });
 
-documents.onDidClose((event) => {
+documents.onDidClose((event: TextDocumentChangeEvent<TextDocument>) => {
     clearDocumentSettings(event.document.uri);
     connection.console.log(`Document closed: ${event.document.uri}`);
 });

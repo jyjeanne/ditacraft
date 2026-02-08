@@ -53,7 +53,7 @@ export function getDocumentSettings(resource: string): Thenable<DitaCraftSetting
         result = connection.workspace.getConfiguration({
             scopeUri: resource,
             section: 'ditacraft'
-        });
+        }) ?? Promise.resolve(globalSettings);
         documentSettings.set(resource, result);
     }
     return result;
