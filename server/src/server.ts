@@ -8,6 +8,7 @@ import {
     DidChangeConfigurationNotification,
     DocumentDiagnosticReportKind,
     type DocumentDiagnosticReport,
+    DocumentDiagnosticParams,
     CompletionParams,
     HoverParams,
     DocumentSymbolParams,
@@ -186,7 +187,7 @@ connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
 });
 
 // Pull-based diagnostics handler
-connection.languages.diagnostics.on(async (params): Promise<DocumentDiagnosticReport> => {
+connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Promise<DocumentDiagnosticReport> => {
     const document = documents.get(params.textDocument.uri);
     if (!document) {
         return {

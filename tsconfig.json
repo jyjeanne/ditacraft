@@ -26,6 +26,10 @@
   ],
   "exclude": [
     "node_modules",
-    ".vscode-test"
+    ".vscode-test",
+    "server"
+  ],
+  "references": [
+    { "path": "./server" }
   ]
 }

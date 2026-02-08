@@ -187,6 +187,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Install server dependencies
+      run: cd server && npm ci
+
     - name: Compile TypeScript
       run: npm run compile
 
