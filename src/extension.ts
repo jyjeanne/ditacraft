@@ -10,7 +10,7 @@ import { DitaOtWrapper } from './utils/ditaOtWrapper';
 import { logger } from './utils/logger';
 import { fireAndForget } from './utils/errorUtils';
 import { configManager, ConfigurationChangeEvent } from './utils/configurationManager';
-import { registerDitaLinkProvider, getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
+import { getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
 import { registerElementNavigationCommand } from './utils/elementNavigator';
 import { registerKeyDiagnosticsProvider } from './providers/keyDiagnostics';
 import {
@@ -31,6 +31,7 @@ import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
 import { UI_TIMEOUTS } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
+import { startLanguageClient, stopLanguageClient } from './languageClient';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
@@ -65,10 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
         registerPreviewPanelSerializer(context);
         outputChannel.appendLine('Preview panel initialized');
 
-        // Register DITA link provider for Ctrl+Click navigation
-        outputChannel.appendLine('Registering DITA link provider...');
-        registerDitaLinkProvider(context);
-        outputChannel.appendLine('DITA link provider registered');
+        // Note: Document links now provided by the LSP server (Phase 6)
 
         // Register element navigation command for same-file references
         outputChannel.appendLine('Registering element navigation command...');
@@ -96,6 +94,16 @@ export function activate(context: vscode.ExtensionContext) {
         registerLoggerCommands(context);
         outputChannel.appendLine('Logger commands registered');
 
+        // Start Language Server
+        outputChannel.appendLine('Starting DITA Language Server...');
+        startLanguageClient(context).then(() => {
+            outputChannel.appendLine('DITA Language Server started');
+        }).catch((err) => {
+            const msg = err instanceof Error ? err.message : 'Unknown error';
+            logger.error('Failed to start DITA Language Server', err);
+            outputChannel.appendLine(`Failed to start DITA Language Server: ${msg}`);
+        });
+
         // Clean up old logs (keep 7 days)
         logger.clearOldLogs(7);
 
@@ -104,6 +112,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Show welcome message on first activation
         showWelcomeMessage(context);
+
+        // Suggest cSpell DITA dictionary setup if needed
+        suggestCSpellSetup(context);
 
         logger.info('DitaCraft extension activated successfully');
         outputChannel.appendLine('=== DitaCraft Activation Complete ===');
@@ -124,8 +135,11 @@ export function activate(context: vscode.ExtensionContext) {
  * Extension deactivation function
  * Called when the extension is deactivated
  */
-export function deactivate() {
+export async function deactivate(): Promise<void> {
     logger.info('DitaCraft extension deactivation started');
+
+    // Stop Language Server
+    await stopLanguageClient();
 
     // Dispose of DITA-OT publishing diagnostics
     disposeDitaOtDiagnostics();
@@ -210,7 +224,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ditacraft.setupCSpell', setupCSpellCommand)
+        vscode.commands.registerCommand('ditacraft.setupCSpell', () => setupCSpellCommand(context.extensionPath))
     );
 
     // Command to show DITA-OT build output
@@ -448,6 +462,57 @@ async function showWelcomeMessage(context: vscode.ExtensionContext): Promise<voi
         } catch (error) {
             logger.error('Error showing welcome message', error);
         }
+    }
+}
+
+/**
+ * Suggest cSpell DITA dictionary setup if cSpell is installed but no config exists
+ */
+async function suggestCSpellSetup(context: vscode.ExtensionContext): Promise<void> {
+    const dismissed = context.globalState.get<boolean>('ditacraft.cspellPromptDismissed', false);
+    if (dismissed) {
+        return;
+    }
+
+    // Only prompt if cSpell extension is installed
+    const cspellExt = vscode.extensions.getExtension('streetsidesoftware.code-spell-checker');
+    if (!cspellExt) {
+        return;
+    }
+
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        return;
+    }
+
+    // Check if workspace already has a cSpell config
+    const root = workspaceFolders[0].uri;
+    const configNames = ['.cspellrc.json', 'cspell.json', '.cspell.json'];
+    for (const name of configNames) {
+        try {
+            await vscode.workspace.fs.stat(vscode.Uri.joinPath(root, name));
+            return; // Config exists, no need to prompt
+        } catch {
+            // Not found, continue checking
+        }
+    }
+
+    try {
+        const action = await vscode.window.showInformationMessage(
+            'cSpell is installed but no DITA dictionary is configured. Set up DITA vocabulary to avoid false "unknown word" warnings?',
+            'Setup DITA Dictionary',
+            "Don't Show Again"
+        );
+
+        if (action === 'Setup DITA Dictionary') {
+            await vscode.commands.executeCommand('ditacraft.setupCSpell');
+        }
+
+        if (action === 'Setup DITA Dictionary' || action === "Don't Show Again") {
+            await context.globalState.update('ditacraft.cspellPromptDismissed', true);
+        }
+    } catch (error) {
+        logger.error('Error suggesting cSpell setup', error);
     }
 }
 

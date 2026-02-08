@@ -23,17 +23,28 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
-    - name: Compile
-      run: npm run compile
+    - name: Install server dependencies
+      run: cd server && npm ci
 
     - name: Run linter
       run: npm run lint
 
-    - name: Run tests
+    - name: Type-check (client + server)
+      run: npm run check-types
+
+    - name: Build with esbuild
+      run: npm run esbuild-base -- --sourcemap
+
+    - name: Run server tests
+      run: cd server && npm test
+
+    - name: Compile client tests
+      run: npm run compile-tests
+
+    - name: Run client tests
       run: xvfb-run -a npm test
-      if: success()
 
     - name: Package extension
       run: npm run package

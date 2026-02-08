@@ -18,18 +18,13 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "declaration": true,
-    "declarationMap": true
+    "composite": true,
+    "declaration": true
   },
   "include": [
     "src/**/*"
   ],
   "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "server"
-  ],
-  "references": [
-    { "path": "./server" }
+    "node_modules"
   ]
 }

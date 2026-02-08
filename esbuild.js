@@ -4,31 +4,6 @@ const watch = process.argv.includes('--watch');
 const minify = process.argv.includes('--minify');
 const sourcemap = process.argv.includes('--sourcemap');
 
-async function main() {
-    const ctx = await esbuild.context({
-        entryPoints: ['src/extension.ts'],
-        bundle: true,
-        format: 'cjs',
-        minify: minify,
-        sourcemap: sourcemap,
-        sourcesContent: false,
-        platform: 'node',
-        outfile: 'out/extension.js',
-        external: ['vscode'],
-        logLevel: 'silent',
-        plugins: [
-            esbuildProblemMatcherPlugin
-        ],
-    });
-
-    if (watch) {
-        await ctx.watch();
-    } else {
-        await ctx.rebuild();
-        await ctx.dispose();
-    }
-}
-
 /**
  * @type {import('esbuild').Plugin}
  */
@@ -47,6 +22,42 @@ const esbuildProblemMatcherPlugin = {
         });
     }
 };
+
+/** Shared esbuild options */
+const sharedOptions = {
+    bundle: true,
+    format: 'cjs',
+    minify: minify,
+    sourcemap: sourcemap,
+    sourcesContent: false,
+    platform: 'node',
+    logLevel: 'silent',
+    plugins: [esbuildProblemMatcherPlugin],
+};
+
+async function main() {
+    // Build client (VS Code extension)
+    const clientCtx = await esbuild.context({
+        ...sharedOptions,
+        entryPoints: ['src/extension.ts'],
+        outfile: 'out/extension.js',
+        external: ['vscode'],
+    });
+
+    // Build server (LSP server - no vscode external)
+    const serverCtx = await esbuild.context({
+        ...sharedOptions,
+        entryPoints: ['server/src/server.ts'],
+        outfile: 'server/out/server.js',
+    });
+
+    if (watch) {
+        await Promise.all([clientCtx.watch(), serverCtx.watch()]);
+    } else {
+        await Promise.all([clientCtx.rebuild(), serverCtx.rebuild()]);
+        await Promise.all([clientCtx.dispose(), serverCtx.dispose()]);
+    }
+}
 
 main().catch(e => {
     console.error(e);

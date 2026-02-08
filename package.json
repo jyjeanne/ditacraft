@@ -60,7 +60,8 @@
         "extensions": [
           ".dita",
           ".ditamap",
-          ".bookmap"
+          ".bookmap",
+          ".ditaval"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -397,7 +398,7 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "vsce package",
     "esbuild-base": "node esbuild.js",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit && tsc --noEmit --project server/tsconfig.json",
     "pretest": "npm run compile-tests && npm run lint",
     "compile-tests": "tsc -p ./",
     "lint": "eslint src --ext ts",
@@ -477,6 +478,7 @@
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
     "fast-xml-parser": "^5.3.4",
-    "typesxml": "^1.17.0"
+    "typesxml": "^1.17.0",
+    "vscode-languageclient": "^9.0.1"
   }
 }

@@ -10,8 +10,9 @@ import * as path from 'path';
 /**
  * Command: ditacraft.setupCSpell
  * Sets up cSpell configuration for DITA projects in the workspace
+ * @param extensionPath - The root path of the extension (context.extensionPath)
  */
-export async function setupCSpellCommand(): Promise<void> {
+export async function setupCSpellCommand(extensionPath: string): Promise<void> {
     try {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -21,7 +22,6 @@ export async function setupCSpellCommand(): Promise<void> {
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
         const cspellConfigPath = path.join(workspaceRoot, '.cspellrc.json');
-        const extensionPath = path.dirname(path.dirname(__dirname));
         const templatePath = path.join(extensionPath, '.cspellrc.json');
 
         // P1-1 Fix: Use async file operations
