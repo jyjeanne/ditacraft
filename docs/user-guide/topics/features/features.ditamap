@@ -9,6 +9,12 @@
         </topicmeta>
     </topicref>
 
+    <topicref href="intellisense.dita" keys="intellisense">
+        <topicmeta>
+            <navtitle>IntelliSense</navtitle>
+        </topicmeta>
+    </topicref>
+
     <topicref href="smart-navigation.dita" keys="smart-navigation">
         <topicmeta>
             <navtitle>Smart Navigation</navtitle>
@@ -36,6 +42,12 @@
     <topicref href="key-resolution.dita" keys="key-resolution">
         <topicmeta>
             <navtitle>Key Resolution</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="ditaval-support.dita" keys="ditaval-support">
+        <topicmeta>
+            <navtitle>DITAVAL Support</navtitle>
         </topicmeta>
     </topicref>
 </map>

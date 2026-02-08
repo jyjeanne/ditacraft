@@ -2,7 +2,7 @@
   "name": "ditacraft",
   "displayName": "DitaCraft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
@@ -299,10 +299,10 @@
         },
         "ditacraft.validationEngine": {
           "type": "string",
-          "default": "typesxml",
+          "default": "built-in",
           "enum": [
-            "typesxml",
             "built-in",
+            "typesxml",
             "xmllint"
           ],
           "enumDescriptions": [

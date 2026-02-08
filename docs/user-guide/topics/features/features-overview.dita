@@ -10,12 +10,20 @@
             <p>DitaCraft transforms VS Code into a full-featured DITA authoring environment with the following capabilities:</p>
             <dl>
                 <dlentry>
+                    <dt>LSP-Powered IntelliSense</dt>
+                    <dd>Context-aware auto-completion for 364+ DITA elements, attributes, and attribute values. Hover documentation, document outline, and workspace-wide symbol search (<uicontrol>Ctrl+T</uicontrol>). Powered by a built-in Language Server Protocol implementation.</dd>
+                </dlentry>
+                <dlentry>
                     <dt>Smart Navigation</dt>
-                    <dd>Navigate between files using Ctrl+Click on href, conref, keyref, and conkeyref attributes. Jump directly to referenced content without manual file searching.</dd>
+                    <dd>Navigate between files using Ctrl+Click on href, conref, keyref, and conkeyref attributes. Cross-file Go to Definition, Find References, and Rename for IDs and references.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Full DTD Validation</dt>
-                    <dd>Real-time validation against DITA 1.3 DTDs using TypesXML with 100% W3C conformance. Catch errors as you type with detailed diagnostic messages.</dd>
+                    <dd>Real-time validation with three engine options: built-in (default, lightweight), TypesXML (full DTD, 100% W3C conformance), and xmllint (external). LSP diagnostics provide instant feedback as you type.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>DITAVAL Support</dt>
+                    <dd>Full IntelliSense for DITAVAL conditional processing files with element completion, attribute suggestions, and action keyword values.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Live Preview</dt>
@@ -31,7 +39,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>Key Resolution</dt>
-                    <dd>Full key space support for keyref and conkeyref resolution with intelligent key definition lookup.</dd>
+                    <dd>Full key space support for keyref and conkeyref resolution with improved root map discovery and intelligent key definition lookup.</dd>
                 </dlentry>
             </dl>
         </section>
@@ -41,10 +49,15 @@
             <p>DitaCraft enhances the VS Code editing experience for DITA files:</p>
             <ul>
                 <li><b>Syntax Highlighting:</b> DITA-aware XML syntax highlighting</li>
-                <li><b>Auto-completion:</b> Element and attribute suggestions based on DTD</li>
+                <li><b>Auto-completion:</b> Context-aware element, attribute, and value suggestions via LSP</li>
+                <li><b>Hover Documentation:</b> Hover over any DITA element to see its description and allowed attributes</li>
+                <li><b>Linked Editing:</b> Edit opening and closing XML tags simultaneously</li>
                 <li><b>Bracket Matching:</b> Automatic tag matching and highlighting</li>
                 <li><b>Folding:</b> Collapse sections, steps, and other block elements</li>
                 <li><b>Outline View:</b> Navigate document structure in the Outline panel</li>
+                <li><b>Workspace Symbols:</b> Search for elements across all open files with <uicontrol>Ctrl+T</uicontrol></li>
+                <li><b>Code Actions:</b> Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, and duplicate IDs</li>
+                <li><b>XML Formatting:</b> Format DITA documents with proper indentation and inline/block handling</li>
             </ul>
         </section>
 
@@ -52,9 +65,10 @@
             <title>Validation Features</title>
             <p>DitaCraft offers multiple validation options:</p>
             <ul>
-                <li><b>Real-time Validation:</b> Errors appear as you type with debounced updates</li>
-                <li><b>Multiple Engines:</b> Choose from TypesXML (default), built-in, or xmllint</li>
+                <li><b>Real-time Validation:</b> LSP-powered diagnostics appear as you type with debounced updates</li>
+                <li><b>Multiple Engines:</b> Choose from built-in (default), TypesXML, or xmllint</li>
                 <li><b>Detailed Diagnostics:</b> Line-precise error messages with fix suggestions</li>
+                <li><b>Code Actions:</b> Quick fixes for common issues (missing DOCTYPE, IDs, titles)</li>
                 <li><b>Rate Limiting:</b> Protection against excessive validation requests</li>
             </ul>
         </section>
@@ -64,8 +78,11 @@
             <ul>
                 <li><b>Quick File Creation:</b> Create topics, maps, and bookmaps from Command Palette</li>
                 <li><b>Content Reuse:</b> Full support for conref and keyref mechanisms</li>
-                <li><b>Reference Navigation:</b> Find all references to an element or topic</li>
+                <li><b>Cross-file References:</b> Find all references to an element across your entire workspace</li>
+                <li><b>Cross-file Rename:</b> Rename an ID and update all references across files</li>
+                <li><b>Document Links:</b> Clickable links for href, conref, keyref, and conkeyref attributes</li>
                 <li><b>Workspace Support:</b> Works with single files or multi-root workspaces</li>
+                <li><b>cSpell Integration:</b> Auto-prompted spell checking setup with DITA-specific dictionary</li>
             </ul>
         </section>
     </conbody>

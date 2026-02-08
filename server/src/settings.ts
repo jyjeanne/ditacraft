@@ -17,7 +17,7 @@ export interface DitaCraftSettings {
 const defaultSettings: DitaCraftSettings = {
     autoValidate: true,
     validationDebounceMs: 300,
-    validationEngine: 'typesxml',
+    validationEngine: 'built-in',
     keySpaceCacheTtlMinutes: 5,
     maxLinkMatches: 10000,
     maxNumberOfProblems: 100,

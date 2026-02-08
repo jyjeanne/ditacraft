@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="intellisense">
+    <title>IntelliSense</title>
+    <shortdesc>DitaCraft provides LSP-powered IntelliSense for DITA authoring with auto-completion, hover documentation, and symbol navigation.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>DitaCraft includes a built-in Language Server Protocol (LSP) implementation that provides rich editing features for DITA files. The LSP server runs in the background and provides real-time feedback as you type, including auto-completion suggestions, hover documentation, and document symbols.</p>
+        </section>
+
+        <section id="auto-completion">
+            <title>Auto-Completion</title>
+            <p>DitaCraft offers context-aware auto-completion for DITA content:</p>
+            <dl>
+                <dlentry>
+                    <dt>Element Completion</dt>
+                    <dd>Type <codeph>&lt;</codeph> to see a list of valid child elements for the current context. The suggestions are filtered based on the parent element's content model, showing only elements that are allowed at the current position. Supports 364+ DITA elements.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Attribute Completion</dt>
+                    <dd>Inside an opening tag, type a space to see available attributes for the current element. Common attributes like <codeph>id</codeph>, <codeph>href</codeph>, and <codeph>class</codeph> are suggested based on the element type.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Attribute Value Completion</dt>
+                    <dd>When typing an attribute value (after <codeph>=</codeph>), DitaCraft suggests valid values from predefined enumerations. For example, the <codeph>type</codeph> attribute on <codeph>&lt;note&gt;</codeph> suggests values like <codeph>attention</codeph>, <codeph>caution</codeph>, <codeph>danger</codeph>, etc.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="hover-documentation">
+            <title>Hover Documentation</title>
+            <p>Hover over any DITA element name to see its documentation, including:</p>
+            <ul>
+                <li>A description of the element's purpose</li>
+                <li>Common attributes and their usage</li>
+                <li>The element's content model (what children are allowed)</li>
+            </ul>
+            <p>Documentation is available for 142+ DITA elements covering all commonly used topic types, structural elements, and inline elements.</p>
+        </section>
+
+        <section id="document-symbols">
+            <title>Document Symbols</title>
+            <p>DitaCraft provides document symbols for navigating your DITA content:</p>
+            <ul>
+                <li><b>Outline View:</b> The VS Code Outline panel shows the structure of your DITA document with sections, steps, tables, and other structural elements.</li>
+                <li><b>Go to Symbol:</b> Press <uicontrol>Ctrl+Shift+O</uicontrol> to quickly navigate to any element in the current document.</li>
+                <li><b>Workspace Symbols:</b> Press <uicontrol>Ctrl+T</uicontrol> to search for elements across all DITA files in your workspace.</li>
+            </ul>
+        </section>
+
+        <section id="code-actions">
+            <title>Code Actions and Quick Fixes</title>
+            <p>DitaCraft provides code actions (quick fixes) for common issues. When the lightbulb icon appears, click it or press <uicontrol>Ctrl+.</uicontrol> to see available fixes:</p>
+            <ul>
+                <li><b>Add Missing DOCTYPE:</b> Automatically adds the correct DOCTYPE declaration for your topic type</li>
+                <li><b>Add Missing ID:</b> Generates a unique ID attribute for the root element</li>
+                <li><b>Add Missing Title:</b> Inserts a <codeph>&lt;title&gt;</codeph> element where required</li>
+                <li><b>Remove Empty Element:</b> Cleans up empty elements that have no content</li>
+                <li><b>Fix Duplicate ID:</b> Offers to rename a duplicate ID to a unique value</li>
+            </ul>
+        </section>
+
+        <section id="linked-editing">
+            <title>Linked Editing</title>
+            <p>When you edit an XML tag name, DitaCraft automatically updates the matching opening or closing tag. This feature uses linked editing ranges to keep tag pairs synchronized.</p>
+            <p>For example, if you change <codeph>&lt;section&gt;</codeph> to <codeph>&lt;example&gt;</codeph>, the corresponding <codeph>&lt;/section&gt;</codeph> is automatically updated to <codeph>&lt;/example&gt;</codeph>.</p>
+        </section>
+
+        <section id="formatting">
+            <title>XML Formatting</title>
+            <p>DitaCraft formats DITA XML documents with proper indentation and element handling:</p>
+            <ul>
+                <li><b>Block Elements:</b> Structural elements like <codeph>&lt;section&gt;</codeph>, <codeph>&lt;p&gt;</codeph>, <codeph>&lt;ul&gt;</codeph> are formatted with newlines and indentation</li>
+                <li><b>Inline Elements:</b> Elements like <codeph>&lt;b&gt;</codeph>, <codeph>&lt;codeph&gt;</codeph>, <codeph>&lt;xref&gt;</codeph> are kept inline with surrounding text</li>
+                <li><b>Preformatted Content:</b> <codeph>&lt;codeblock&gt;</codeph> and <codeph>&lt;pre&gt;</codeph> content is preserved as-is</li>
+            </ul>
+            <p>Format a document with <uicontrol>Shift+Alt+F</uicontrol> or format a selection with <uicontrol>Ctrl+K Ctrl+F</uicontrol>.</p>
+        </section>
+    </conbody>
+</concept>

@@ -49,11 +49,14 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **LSP: Folding Ranges** | Complete | 100% |
 | **LSP: Document Links** | Complete | 100% |
 | **LSP: Key Space Resolution** | Complete | 100% |
-| **Server Test Suite (162 tests)** | Complete | 100% |
+| **DITAVAL Support** | Complete | 100% |
+| **cSpell Auto-Prompt** | Complete | 100% |
+| **Server Test Suite (190 tests)** | Complete | 100% |
 
 ### Recent Changes (v0.5.0)
 - **DITA Language Server** - Full LSP implementation with 14 language features in a dedicated process
-- **IntelliSense** - Context-aware element, attribute, and value completions with snippets
+- **IntelliSense** - Context-aware element, attribute, and value completions (364 DITA elements)
+- **DITAVAL Support** - Full IntelliSense, validation, and hover for `.ditaval` files (7 elements)
 - **Hover Documentation** - Element docs from DITA schema with children fallback
 - **Document & Workspace Symbols** - Hierarchical outline (Ctrl+Shift+O) and cross-file search (Ctrl+T)
 - **Go to Definition** - Navigate href/conref/keyref/conkeyref with server-side key space resolution
@@ -62,9 +65,13 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **Code Actions** - 5 quick fixes: missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs
 - **Linked Editing** - Simultaneous open/close XML tag name editing with depth-aware nesting
 - **Folding Ranges & Document Links** - Collapsible elements/comments/CDATA and clickable references
-- **Server Test Suite** - 162 standalone Mocha tests across 10 files (no VS Code dependency)
-- **CI Integration** - Server tests added to GitHub Actions (ci.yml + release.yml)
-- **709+ Total Tests** - Client (547) + Server (162)
+- **Key Space Resolution Fix** - Improved root map discovery (searches all the way to workspace root)
+- **cSpell Auto-Prompt** - Suggests cSpell configuration setup when extension detected
+- **cSpell Setup Fix** - Fixed path resolution bug in bundled extension
+- **TypeScript Project References** - Proper multi-project TypeScript setup for client + server
+- **Server Test Suite** - 190 standalone Mocha tests across 10 files (94.3% coverage)
+- **CI Integration** - Server tests + type-checking in GitHub Actions (ci.yml + release.yml)
+- **737+ Total Tests** - Client (547) + Server (190)
 
 ### Previous Changes (v0.4.2)
 - **Modular Validation Engine** - Refactored to pluggable architecture with Strategy pattern
@@ -210,8 +217,14 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] Folding ranges for elements, comments, and CDATA
 - [x] Document links for href/conref/keyref with key resolution
 
+### DITAVAL Support ✅
+- [x] `.ditaval` language registration and LSP integration
+- [x] 7 DITAVAL elements with IntelliSense, hover, and validation
+- [x] DITAVAL-specific attributes (excludes DITA common attributes)
+- [x] Root element validation (`<val>` required)
+
 ### Server Test Suite ✅
-- [x] 162 standalone Mocha tests across 10 files
+- [x] 190 standalone Mocha tests across 10 files (94.3% statement coverage)
 - [x] No VS Code dependency (runs via `cd server && npm test`)
 - [x] Integrated into GitHub Actions CI pipeline
 
@@ -336,7 +349,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [ ] Share profiles via settings
 
 ### DITAVAL Integration
-- [ ] DITAVAL file editor
+- [x] DITAVAL IntelliSense, validation, and hover (completed in v0.5.0)
 - [ ] Visual condition editor
 - [ ] Preview with conditions applied
 - [ ] Condition highlighting in editor
@@ -354,7 +367,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [ ] Output comparison (diff between versions)
 
 **Good First Issues:**
-- Add DITAVAL syntax highlighting
+- ~~Add DITAVAL syntax highlighting~~ (Done in v0.5.0)
 - Create publishing profile save/load
 
 ---
@@ -443,7 +456,7 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.4.0 | Preview, build output & Map Visualizer | Released |
 | v0.4.1 | TypesXML DTD Validation | Released |
 | v0.4.2 | Architecture, Rate Limiting, 547+ Tests | Released |
-| v0.5.0 | LSP with 14 features, 709+ Tests | **Current** |
+| v0.5.0 | LSP with 14 features, DITAVAL, 737+ Tests | **Current** |
 | v0.6.0 | Project views & navigation | Next |
 | v0.7.0 | Advanced validation & DTD | Planned |
 | v0.8.0 | Refactoring & productivity | Planned |
@@ -451,4 +464,4 @@ Have ideas for features not listed here? We'd love to hear from you!
 
 ---
 
-*Last updated: February 2026 (v0.5.0 with DITA Language Server, 14 LSP features, 162 server tests, 709+ total tests)*
+*Last updated: February 2026 (v0.5.0 with DITA Language Server, 14 LSP features, DITAVAL support, 190 server tests, 737+ total tests)*

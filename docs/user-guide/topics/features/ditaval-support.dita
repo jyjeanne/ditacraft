@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="ditaval-support">
+    <title>DITAVAL Support</title>
+    <shortdesc>DitaCraft provides full editing support for DITAVAL conditional processing files.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>DITAVAL files define conditional processing profiles that control which content is included, excluded, or flagged during DITA publishing. DitaCraft recognizes <filepath>.ditaval</filepath> files and provides IntelliSense to help you author them efficiently.</p>
+        </section>
+
+        <section id="what-is-ditaval">
+            <title>What is DITAVAL?</title>
+            <p>A DITAVAL file is an XML file that specifies filtering and flagging rules for conditional DITA content. It uses attribute-value pairs to control which content appears in the output based on conditions like audience, platform, or product.</p>
+            <p><b>Basic DITAVAL Example:</b></p>
+            <codeblock>&lt;val&gt;
+    &lt;prop action="include" att="audience" val="admin"/&gt;
+    &lt;prop action="exclude" att="audience" val="novice"/&gt;
+    &lt;prop action="flag" att="platform" val="windows"&gt;
+        &lt;startflag imageref="icons/windows.png"&gt;
+            &lt;alt-text&gt;Windows&lt;/alt-text&gt;
+        &lt;/startflag&gt;
+    &lt;/prop&gt;
+&lt;/val&gt;</codeblock>
+        </section>
+
+        <section id="intellisense">
+            <title>IntelliSense for DITAVAL</title>
+            <p>DitaCraft provides the following IntelliSense features for DITAVAL files:</p>
+            <dl>
+                <dlentry>
+                    <dt>Element Completion</dt>
+                    <dd>Auto-completion for DITAVAL elements: <codeph>&lt;val&gt;</codeph>, <codeph>&lt;prop&gt;</codeph>, <codeph>&lt;revprop&gt;</codeph>, <codeph>&lt;startflag&gt;</codeph>, <codeph>&lt;endflag&gt;</codeph>, and <codeph>&lt;alt-text&gt;</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Attribute Completion</dt>
+                    <dd>Suggestions for attributes on each element, including <codeph>action</codeph>, <codeph>att</codeph>, <codeph>val</codeph>, and <codeph>imageref</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Attribute Value Completion</dt>
+                    <dd>Predefined values for the <codeph>action</codeph> attribute (<codeph>include</codeph>, <codeph>exclude</codeph>, <codeph>passthrough</codeph>, <codeph>flag</codeph>) and standard DITA conditional attributes for the <codeph>att</codeph> attribute (<codeph>audience</codeph>, <codeph>platform</codeph>, <codeph>product</codeph>, <codeph>otherprops</codeph>, <codeph>props</codeph>, <codeph>rev</codeph>).</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="ditaval-elements">
+            <title>DITAVAL Elements Reference</title>
+            <simpletable>
+                <sthead>
+                    <stentry>Element</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>&lt;val&gt;</codeph></stentry>
+                    <stentry>Root element of a DITAVAL file</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>&lt;prop&gt;</codeph></stentry>
+                    <stentry>Defines a filtering or flagging rule based on an attribute-value pair</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>&lt;revprop&gt;</codeph></stentry>
+                    <stentry>Defines a rule for revision-based filtering or flagging</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>&lt;startflag&gt;</codeph></stentry>
+                    <stentry>Specifies a flag image or text inserted before flagged content</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>&lt;endflag&gt;</codeph></stentry>
+                    <stentry>Specifies a flag image or text inserted after flagged content</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>&lt;alt-text&gt;</codeph></stentry>
+                    <stentry>Alternative text for a flag image</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="using-ditaval">
+            <title>Using DITAVAL with DITA-OT</title>
+            <p>To apply a DITAVAL profile when publishing, pass it as a filter argument to DITA-OT. In DitaCraft, you can add it to the <codeph>ditacraft.ditaOtArgs</codeph> setting:</p>
+            <codeblock>"ditacraft.ditaOtArgs": ["--filter=myprofile.ditaval"]</codeblock>
+            <p>This applies the conditional processing rules from your DITAVAL file during publishing, filtering and flagging content as specified.</p>
+        </section>
+    </conbody>
+</concept>

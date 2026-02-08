@@ -5,6 +5,56 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-08
+
+### Added
+- **DITA Language Server (LSP)**: Full-featured language server in a dedicated process
+  - IntelliSense: context-aware element, attribute, and value completions (364 DITA elements)
+  - Hover documentation from DITA schema with children fallback
+  - Document symbols: hierarchical outline view (Ctrl+Shift+O)
+  - Workspace symbols: cross-file symbol search (Ctrl+T)
+  - Go to Definition for href/conref/keyref/conkeyref with key space resolution
+  - Find References: locate all usages of an element ID across files
+  - Rename: ID rename with automatic cross-file reference updates
+  - XML formatting with inline/block/preformatted element handling
+  - Code Actions: 5 quick fixes (missing DOCTYPE, ID, title, empty elements, duplicate IDs)
+  - Linked Editing: simultaneous open/close XML tag name editing
+  - Folding Ranges: collapse XML elements, comments, and CDATA blocks
+  - Document Links: clickable href/conref/keyref links with key resolution
+  - Diagnostics: XML well-formedness, DITA structure, and ID validation
+  - Server-side key space resolution with BFS, TTL + LRU caching, debounced invalidation
+
+- **DITAVAL Support**: Full language support for `.ditaval` files
+  - Language registration and LSP document selector
+  - 7 DITAVAL elements (val, prop, revprop, style-conflict, startflag, endflag, alt-text)
+  - IntelliSense with DITAVAL-specific attributes (excludes DITA common attributes)
+  - Hover documentation for all DITAVAL elements
+  - Validation: root element check, XML well-formedness (skips DOCTYPE/title requirements)
+
+- **cSpell Auto-Prompt**: Suggests cSpell configuration setup when cSpell extension is detected without config
+
+- **Server Test Suite**: 190 standalone Mocha tests (94.3% statement coverage)
+  - Validation (30 tests), Completions (19 tests), Hover (17 tests)
+  - Symbols (21 tests), Code Actions (14 tests), Linked Editing (15 tests)
+  - Reference Parser (40 tests), Formatting (20 tests), Folding (10 tests)
+
+- **TypeScript Project References**: Proper multi-project setup for client + server
+
+### Changed
+- DITA schema expanded to 364 elements (from DTD files) with 43 attribute sets and 142 hover docs
+- Root map discovery improved: searches all the way to workspace root, prefers highest-level maps
+- `extractMapReferences` broadened to match any element with `.ditamap`/`.bookmap` href
+- CI workflows split type-check and esbuild into separate steps for clearer error reporting
+- `release.yml` uses `npm ci` instead of `npm install` for reproducible builds
+- Server handler callbacks now have explicit LSP type annotations
+
+### Fixed
+- **Key Space Resolution**: `findRootMap()` no longer stops at first directory with maps
+- **cSpell Setup Command**: Fixed path resolution bug when extension is esbuild-bundled
+- **Client Key Space**: Added comment/CDATA stripping before regex extraction (was server-only)
+- **CI Package Job**: Added missing `cd server && npm ci` step
+- **Server Test Config**: `tsconfig.test.json` no longer inherits `composite: true` (prevents stale `.d.ts` emission)
+
 ## [0.4.2] - 2025-01-25
 
 ### Added

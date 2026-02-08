@@ -57,7 +57,19 @@
                     <stentry>Requires external installation</stentry>
                 </strow>
             </simpletable>
-            <p><b>Recommendation:</b> Use <codeph>typesxml</codeph> (the default) for the best balance of accuracy and convenience.</p>
+            <p><b>Recommendation:</b> The <codeph>built-in</codeph> engine (the default) provides a good balance of speed and accuracy for most users. Switch to <codeph>typesxml</codeph> when you need strict DTD conformance checking.</p>
+        </section>
+
+        <section id="lsp-diagnostics">
+            <title>LSP-Powered Diagnostics</title>
+            <p>DitaCraft uses a built-in Language Server Protocol (LSP) implementation to provide real-time diagnostics. The LSP server validates your documents in the background and reports issues instantly as you type, without waiting for a manual save or validation trigger.</p>
+            <p>The LSP diagnostics cover:</p>
+            <ul>
+                <li>XML well-formedness (mismatched tags, invalid syntax)</li>
+                <li>DITA structure validation (element context, required attributes)</li>
+                <li>ID uniqueness within documents</li>
+            </ul>
+            <p>LSP diagnostics appear with the source label <codeph>dita-lsp</codeph> in the Problems panel, while client-side validations appear with the <codeph>dita</codeph> source label.</p>
         </section>
 
         <section id="diagnostic-levels">

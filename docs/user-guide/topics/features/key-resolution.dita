@@ -90,11 +90,12 @@
             <title>DitaCraft Key Support</title>
             <p>DitaCraft provides full support for DITA keys:</p>
             <ul>
-                <li><b>Key Resolution:</b> Automatically builds key space from root maps</li>
-                <li><b>Navigation:</b> Ctrl+Click on keyref navigates to the key's target</li>
+                <li><b>Key Resolution:</b> Automatically builds key space from root maps with improved root map discovery</li>
+                <li><b>Navigation:</b> Ctrl+Click on keyref and conkeyref navigates to the key's target. Cross-file Go to Definition resolves key references to their source files.</li>
                 <li><b>Preview:</b> Live preview shows resolved key values</li>
                 <li><b>Validation:</b> Warns about undefined or missing keys</li>
-                <li><b>Caching:</b> Key space is cached for performance with automatic invalidation</li>
+                <li><b>Caching:</b> Key space is cached with TTL and LRU eviction for performance, with automatic invalidation when map files change</li>
+                <li><b>LSP Integration:</b> The LSP server maintains its own key space service for instant keyref and conkeyref resolution in Go to Definition and document links</li>
             </ul>
         </section>
     </conbody>

@@ -8,16 +8,16 @@
         <section id="validation-engine">
             <title>ditacraft.validationEngine</title>
             <p><b>Type:</b> String (enum)</p>
-            <p><b>Default:</b> <codeph>"typesxml"</codeph></p>
+            <p><b>Default:</b> <codeph>"built-in"</codeph></p>
             <p><b>Options:</b></p>
             <dl>
                 <dlentry>
-                    <dt><codeph>"typesxml"</codeph></dt>
-                    <dd>Full DTD validation using TypesXML parser. Provides 100% W3C conformance with complete DTD support. Recommended for most users.</dd>
+                    <dt><codeph>"built-in"</codeph></dt>
+                    <dd>Lightweight validation with content model checking. Fast and suitable for most DITA authoring workflows. The default engine.</dd>
                 </dlentry>
                 <dlentry>
-                    <dt><codeph>"built-in"</codeph></dt>
-                    <dd>Lightweight validation with basic content model checking. Faster but may miss some errors. Useful for very large files.</dd>
+                    <dt><codeph>"typesxml"</codeph></dt>
+                    <dd>Full DTD validation using TypesXML parser. Provides 100% W3C conformance with complete DTD support. Best for strict compliance checking.</dd>
                 </dlentry>
                 <dlentry>
                     <dt><codeph>"xmllint"</codeph></dt>
@@ -32,15 +32,15 @@
                 </sthead>
                 <strow>
                     <stentry>General DITA authoring</stentry>
-                    <stentry><codeph>typesxml</codeph></stentry>
-                </strow>
-                <strow>
-                    <stentry>Very large files (1000+ elements)</stentry>
-                    <stentry><codeph>built-in</codeph> or <codeph>xmllint</codeph></stentry>
+                    <stentry><codeph>built-in</codeph> (default)</stentry>
                 </strow>
                 <strow>
                     <stentry>Strict DTD conformance required</stentry>
                     <stentry><codeph>typesxml</codeph> or <codeph>xmllint</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry>Very large files (1000+ elements)</stentry>
+                    <stentry><codeph>built-in</codeph> or <codeph>xmllint</codeph></stentry>
                 </strow>
                 <strow>
                     <stentry>Quick syntax checking only</stentry>

@@ -63,6 +63,29 @@
             <p>Ctrl+Click resolves <codeph>shared-content</codeph> to <filepath>shared/common.dita</filepath>, then navigates to <codeph>#warning-note</codeph>.</p>
         </section>
 
+        <section id="cross-file-features">
+            <title>Cross-File Features</title>
+            <p>DitaCraft provides cross-file navigation and editing via the LSP server:</p>
+            <dl>
+                <dlentry>
+                    <dt>Go to Definition</dt>
+                    <dd>Press <uicontrol>F12</uicontrol> or Ctrl+Click on href, conref, keyref, or conkeyref to jump to the target element across files.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Find All References</dt>
+                    <dd>Press <uicontrol>Shift+F12</uicontrol> on an <codeph>id</codeph> attribute to find all conref and href references to that element across your workspace.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Rename Symbol</dt>
+                    <dd>Press <uicontrol>F2</uicontrol> on an <codeph>id</codeph> attribute to rename it and update all references across files.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Document Links</dt>
+                    <dd>All href, conref, keyref, and conkeyref values are clickable links. Hover to see the resolved target path.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
         <section id="navigation-tips">
             <title>Navigation Tips</title>
             <ul>
