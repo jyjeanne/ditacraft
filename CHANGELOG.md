@@ -5,6 +5,59 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-02-10
+
+### Added
+- **Activity Bar Views**: Dedicated DitaCraft sidebar with three tree views
+  - **DITA Explorer**: Tree showing all workspace maps with expandable hierarchy
+    - Type-specific icons (map, chapter, topic, keydef, appendix, part)
+    - Click-to-open navigation, context menus (validate, publish, visualize)
+    - Auto-refresh on file changes (debounced 500ms)
+  - **Key Space View**: All defined keys grouped by status
+    - Three groups: Defined Keys, Undefined Keys, Unused Keys
+    - Expandable to show usage locations with navigation
+    - Auto-refresh on file changes (debounced 1000ms)
+  - **Diagnostics View**: Aggregated DITA validation issues
+    - Group by file or by severity (errors, warnings, info, hints)
+    - Auto-refresh on diagnostics changes (debounced 300ms)
+    - Click-to-navigate to issue location
+  - Welcome content for empty states (no maps, no keys, no diagnostics)
+
+- **File Decoration Provider**: Error/warning badges on files in DITA Explorer tree
+  - Reads from `vscode.languages.getDiagnostics()` for DITA files
+  - Auto-updates on diagnostics changes
+
+- **Shared Utilities**
+  - `mapHierarchyParser.ts`: Extracted from MapVisualizerPanel for reuse by Explorer and Visualizer
+  - `keyUsageScanner.ts`: Workspace-wide keyref/conkeyref scanner (up to 500 files)
+  - `isDitaFilePath()` in constants.ts: Shared DITA file extension check
+
+- **New Commands** (5)
+  - `DITA: Refresh DITA Explorer` — Manual refresh for explorer view
+  - `DITA: Refresh Key Space` — Manual refresh for key space view
+  - `DITA: Refresh Diagnostics` — Manual refresh for diagnostics view
+  - `DITA: Diagnostics: Group by File` — Switch diagnostics grouping
+  - `DITA: Diagnostics: Group by Severity` — Switch diagnostics grouping
+
+- **New Tests**: 72 new client tests across 5 test files
+  - mapHierarchyParser.test.ts (25 tests)
+  - ditaExplorerProvider.test.ts (14 tests)
+  - keySpaceViewProvider.test.ts (10 tests)
+  - diagnosticsViewProvider.test.ts (16 tests)
+  - ditaFileDecorationProvider.test.ts (7 tests)
+  - **Total: 620+ client tests, 810+ combined with server**
+
+### Changed
+- MapVisualizerPanel refactored to use shared `mapHierarchyParser.ts`
+- Context menu commands (validate, publish, show map visualizer) now handle both URI and tree item arguments
+
+### Fixed
+- **Explorer Resilience**: `Promise.allSettled` instead of `Promise.all` — one bad map no longer hides all maps
+- **Document Ordering**: Single-pass combined regex in `parseReferences` preserves document order
+- **Windows Line Endings**: `offsetToPosition` in key scanner correctly handles `\r\n`
+- **Comment Exclusion**: Both map parser and key scanner strip XML comments before regex matching
+- **Memory Efficiency**: Key scanner uses `workspace.fs.readFile` for closed documents instead of opening all into memory
+
 ## [0.5.0] - 2026-02-08
 
 ### Added

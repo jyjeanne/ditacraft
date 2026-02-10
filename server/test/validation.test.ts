@@ -149,12 +149,28 @@ suite('validateDITADocument', () => {
             assert.strictEqual(dupDiags.length, 0);
         });
 
-        test('invalid ID format produces warning', () => {
+        test('invalid ID on root element produces warning', () => {
             const diags = validate(
-                '<topic id="t1"><title>T</title><p id="1bad"/></topic>'
+                '<topic id="1bad"><title>T</title></topic>'
             );
             const fmtDiags = diags.filter(d => d.code === 'DITA-ID-002');
-            assert.ok(fmtDiags.length > 0);
+            assert.ok(fmtDiags.length > 0, 'Root element ID must start with letter/underscore');
+        });
+
+        test('digit-starting ID on non-root element is valid NMTOKEN', () => {
+            const diags = validate(
+                '<topic id="t1"><title>T</title><p id="1234"/></topic>'
+            );
+            const fmtDiags = diags.filter(d => d.code === 'DITA-ID-002');
+            assert.strictEqual(fmtDiags.length, 0, 'NMTOKEN allows digit-starting IDs');
+        });
+
+        test('invalid characters in non-root ID produce warning', () => {
+            const diags = validate(
+                '<topic id="t1"><title>T</title><p id="bad@id"/></topic>'
+            );
+            const fmtDiags = diags.filter(d => d.code === 'DITA-ID-002');
+            assert.ok(fmtDiags.length > 0, 'Special characters are invalid in NMTOKEN');
         });
 
         test('valid ID format produces no format warning', () => {

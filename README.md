@@ -21,7 +21,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🖨️ **Print Preview** - Print-optimized preview with dedicated print button
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **737+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **810+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (55 files, bookmap structure)
 
 ## Features
@@ -116,6 +116,15 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **Log level detection** - Errors, warnings, info, and debug messages color-coded
 - **Error diagnostics** - Build errors parsed and shown in Problems panel
 - **Timestamped builds** - Build start and completion times displayed
+
+### 📂 **Activity Bar Views** (NEW in v0.6.0)
+- **DitaCraft sidebar** in the Activity Bar with three dedicated tree views
+- **DITA Explorer** — All workspace maps with expandable hierarchy, type icons, click-to-open navigation
+- **Key Space View** — Defined, undefined, and unused keys with usage locations
+- **Diagnostics View** — Aggregated DITA issues, group by file or severity, click-to-navigate
+- **File decorations** — Error/warning badges on tree items from validation diagnostics
+- **Welcome content** — Helpful actions shown when views are empty
+- Auto-refresh on file and diagnostics changes with debouncing
 
 ### 🗺️ **Map Visualizer**
 - **Interactive tree view** - Visual hierarchy of DITA maps, bookmaps, and topics
@@ -486,9 +495,9 @@ ditacraft/
 ├── src/                         # Client-side extension code
 │   ├── extension.ts             # Entry point
 │   ├── commands/                # Command handlers
-│   ├── providers/               # Validation & link providers
-│   ├── utils/                   # Utilities (DITA-OT, key space, rate limiter)
-│   └── test/                    # Client test suites (547+ tests)
+│   ├── providers/               # Tree views, validation, link & decoration providers
+│   ├── utils/                   # Utilities (DITA-OT, key space, map parser, rate limiter)
+│   └── test/                    # Client test suites (620+ tests)
 ├── server/                      # LSP Language Server (separate process)
 │   ├── src/
 │   │   ├── server.ts            # Server entry point & capability registration
@@ -521,11 +530,13 @@ ditacraft/
 
 DitaCraft includes comprehensive test coverage across client and server:
 
-**Client Tests (547+ tests):**
+**Client Tests (620+ tests):**
 - DTD validation, real-time validation, command & auto-detection
 - Link navigation with key resolution, key space building & caching
 - Security (path traversal, XXE protection), rate limiting
 - Preview, file creation, configuration integration
+- Activity bar views: DITA Explorer, Key Space, Diagnostics, file decorations
+- Map hierarchy parser (25 tests)
 
 **LSP Server Tests (190 tests, 94.3% coverage):**
 - Reference parser (40 tests) - all 6 exported parsing functions
@@ -686,7 +697,17 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.5.0 (Current)
+### Version 0.6.0 (Current)
+**Project Management & Activity Bar Views**
+- **DITA Explorer** — Tree view of all workspace maps with expandable hierarchy, type icons, context menus
+- **Key Space View** — Defined/undefined/unused keys with usage navigation
+- **Diagnostics View** — Aggregated DITA issues, group by file or severity
+- **File Decorations** — Error/warning badges on tree items
+- **Shared Utilities** — Extracted map hierarchy parser, key usage scanner, shared `isDitaFilePath()`
+- **72 New Tests** — 5 test files covering all new views and utilities
+- **810+ Total Tests** — Client (620) + Server (190)
+
+### Version 0.5.0
 **DITA Language Server with IntelliSense**
 - ✅ **Full LSP Implementation** - 14 language features in a dedicated server process
 - ✅ **IntelliSense** - Context-aware completion for elements, attributes, and values (364 DITA elements)
@@ -770,7 +791,8 @@ We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md]
 - **v0.3.0** - Developer Experience & Quality ✅ **COMPLETE**
 - **v0.4.0** - Enhanced Preview, Build Output & Map Visualizer ✅ **COMPLETE**
 - **v0.5.0** - IntelliSense & Content Assistance (LSP, DITAVAL, 737+ tests) ✅ **COMPLETE**
-- **v0.6.0** - Project Management & Views (DITA Explorer, Key Space browser) **NEXT**
+- **v0.6.0** - Project Management & Views (DITA Explorer, Key Space, Diagnostics) ✅ **COMPLETE**
+- **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation) **NEXT**
 - **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation)
 - **v0.8.0** - Refactoring & Productivity (rename keys, templates)
 - **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)
@@ -796,7 +818,7 @@ npm run compile
 |------|------------|-------------|
 | Test Coverage | Easy-Medium | Add tests for commands and providers |
 | Documentation | Easy | Improve README, add tutorials |
-| DITA Explorer View | Medium | Tree view for project navigation |
+| DITAVAL Editor | Medium | Visual condition editing |
 | DTD Support | Hard | Add DITA 1.2/2.0 support |
 | DITAVAL Editor | Medium | Visual condition editing |
 

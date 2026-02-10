@@ -89,8 +89,21 @@ export const DITA_EXTENSIONS = {
     TOPIC: '.dita',
     MAP: '.ditamap',
     BOOKMAP: '.bookmap',
-    ALL: ['.dita', '.ditamap', '.bookmap']
+    DITAVAL: '.ditaval',
+    ALL: ['.dita', '.ditamap', '.bookmap'],
+    ALL_WITH_DITAVAL: ['.dita', '.ditamap', '.bookmap', '.ditaval']
 };
+
+/**
+ * Check whether a file path (or its extension) is a DITA file (including .ditaval).
+ */
+export function isDitaFilePath(fsPath: string): boolean {
+    const lower = fsPath.toLowerCase();
+    const dot = lower.lastIndexOf('.');
+    if (dot < 0) { return false; }
+    const ext = lower.slice(dot);
+    return ext === '.dita' || ext === '.ditamap' || ext === '.bookmap' || ext === '.ditaval';
+}
 
 /**
  * Common DITA element names

@@ -50,4 +50,28 @@
             <navtitle>DITAVAL Support</navtitle>
         </topicmeta>
     </topicref>
+
+    <topicref href="activity-bar.dita" keys="activity-bar">
+        <topicmeta>
+            <navtitle>Activity Bar Views</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="dita-explorer.dita" keys="dita-explorer">
+        <topicmeta>
+            <navtitle>DITA Explorer</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="key-space-view.dita" keys="key-space-view">
+        <topicmeta>
+            <navtitle>Key Space View</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="diagnostics-view.dita" keys="diagnostics-view">
+        <topicmeta>
+            <navtitle>Diagnostics View</navtitle>
+        </topicmeta>
+    </topicref>
 </map>

@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.5.0)
+## Current Status (v0.6.0)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -52,8 +52,25 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **DITAVAL Support** | Complete | 100% |
 | **cSpell Auto-Prompt** | Complete | 100% |
 | **Server Test Suite (190 tests)** | Complete | 100% |
+| **Activity Bar: DITA Explorer** | Complete | 100% |
+| **Activity Bar: Key Space View** | Complete | 100% |
+| **Activity Bar: Diagnostics View** | Complete | 100% |
+| **File Decoration Provider** | Complete | 100% |
+| **Shared Map Parser** | Complete | 100% |
+| **Key Usage Scanner** | Complete | 100% |
 
-### Recent Changes (v0.5.0)
+### Recent Changes (v0.6.0)
+- **Activity Bar Views** — Dedicated DitaCraft sidebar with DITA Explorer, Key Space, and Diagnostics views
+- **DITA Explorer** — Tree showing all workspace maps with hierarchy, type icons, context menus, auto-refresh
+- **Key Space View** — Defined/undefined/unused keys with usage navigation, debounced refresh
+- **Diagnostics View** — Aggregated issues with group-by-file/severity, auto-refresh on diagnostics changes
+- **File Decorations** — Error/warning badges on tree items from validation diagnostics
+- **Shared Utilities** — Extracted `mapHierarchyParser.ts`, created `keyUsageScanner.ts`, shared `isDitaFilePath()`
+- **Welcome Content** — Declarative welcome messages for empty view states
+- **72 New Tests** — 5 test files across all new providers and utilities
+- **810+ Total Tests** — Client (620) + Server (190)
+
+### Previous Changes (v0.5.0)
 - **DITA Language Server** - Full LSP implementation with 14 language features in a dedicated process
 - **IntelliSense** - Context-aware element, attribute, and value completions (364 DITA elements)
 - **DITAVAL Support** - Full IntelliSense, validation, and hover for `.ditaval` files (7 elements)
@@ -230,41 +247,44 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ---
 
-## Milestone 4: Project Management & Views (v0.6.0) 🎯 NEXT
+## Milestone 4: Project Management & Views (v0.6.0) ✅ COMPLETE
 
 **Focus:** Add VS Code sidebar views for better project navigation.
 
-### DITA Explorer View
-- [ ] Tree view showing all DITA maps in workspace
-- [ ] Expandable map hierarchy showing topic references
-- [ ] Icons indicating topic types (concept, task, reference)
-- [ ] Validation status badges (errors, warnings)
-- [ ] Context menu actions (open, validate, publish)
+### DITA Explorer View ✅
+- [x] Tree view showing all DITA maps in workspace
+- [x] Expandable map hierarchy showing topic references
+- [x] Icons indicating topic types (map, chapter, topic, keydef, appendix, part)
+- [x] Validation status badges (errors, warnings) via file decorations
+- [x] Context menu actions (open, validate, publish, show map visualizer)
+- [x] Auto-refresh on file changes (debounced 500ms)
 
-### Key Space View
-- [ ] List all defined keys with their targets
-- [ ] Show key usage across documents
-- [ ] Navigate to key definitions and usages
-- [ ] Highlight undefined/unused keys
+### Key Space View ✅
+- [x] List all defined keys with their targets
+- [x] Show key usage across documents
+- [x] Navigate to key definitions and usages
+- [x] Highlight undefined/unused keys (three groups: defined, undefined, unused)
+- [x] Auto-refresh on file changes (debounced 1000ms)
 
-### Diagnostics View
-- [ ] Centralized view of all DITA validation issues
-- [ ] Filter by severity (error, warning, info)
-- [ ] Group by file or by issue type
-- [ ] Quick navigation to issue location
+### Diagnostics View ✅
+- [x] Centralized view of all DITA validation issues
+- [x] Filter by severity (error, warning, info, hint)
+- [x] Group by file or by issue type
+- [x] Quick navigation to issue location
+- [x] Auto-refresh on diagnostics changes (debounced 300ms)
 
-### Welcome View
-- [ ] Show getting started actions when no DITA files open
-- [ ] Quick links to create new topic/map/bookmap
-- [ ] Link to documentation and tutorials
+### Welcome View ✅
+- [x] Show getting started actions when no DITA files open
+- [x] Quick links to create new topic/map/bookmap
+- [x] Separate welcome content for each view
 
-**Good First Issues:**
-- Create basic tree view for DITA maps
-- Add welcome view with quick actions
+### Test Coverage ✅
+- [x] 72 new client tests across 5 test files
+- [x] Total: 620+ client tests, 810+ combined with server
 
 ---
 
-## Milestone 5: Advanced Validation & DTD Support (v0.7.0)
+## Milestone 5: Advanced Validation & DTD Support (v0.7.0) 🎯 NEXT
 
 **Focus:** Expand validation capabilities and DTD support.
 
@@ -431,7 +451,7 @@ npm run compile
 | Documentation | Easy | Markdown, DITA knowledge |
 | WebView Preview | Medium | TypeScript, HTML/CSS |
 | IntelliSense Providers | Medium-Hard | VS Code API |
-| DITA Explorer View | Medium | VS Code TreeView API |
+| DITAVAL Editor | Medium | VS Code WebView API |
 | DTD Support | Hard | XML, DTD, DITA specifications |
 
 ---
@@ -456,12 +476,12 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.4.0 | Preview, build output & Map Visualizer | Released |
 | v0.4.1 | TypesXML DTD Validation | Released |
 | v0.4.2 | Architecture, Rate Limiting, 547+ Tests | Released |
-| v0.5.0 | LSP with 14 features, DITAVAL, 737+ Tests | **Current** |
-| v0.6.0 | Project views & navigation | Next |
-| v0.7.0 | Advanced validation & DTD | Planned |
+| v0.5.0 | LSP with 14 features, DITAVAL, 737+ Tests | Released |
+| v0.6.0 | Activity bar views, 810+ Tests | **Current** |
+| v0.7.0 | Advanced validation & DTD | Next |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: February 2026 (v0.5.0 with DITA Language Server, 14 LSP features, DITAVAL support, 190 server tests, 737+ total tests)*
+*Last updated: February 2026 (v0.6.0 with Activity Bar views, DITA Explorer, Key Space, Diagnostics, 810+ total tests)*

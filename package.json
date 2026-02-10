@@ -2,7 +2,7 @@
   "name": "ditacraft",
   "displayName": "DitaCraft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
@@ -46,7 +46,10 @@
     "onCommand:ditacraft.configureDitaOT",
     "workspaceContains:**/*.dita",
     "workspaceContains:**/*.ditamap",
-    "workspaceContains:**/*.bookmap"
+    "workspaceContains:**/*.bookmap",
+    "onView:ditacraft.ditaExplorer",
+    "onView:ditacraft.keySpaceView",
+    "onView:ditacraft.diagnosticsView"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -71,6 +74,53 @@
         "language": "dita",
         "scopeName": "text.xml.dita",
         "path": "./syntaxes/dita.tmLanguage.json"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ditacraft-explorer",
+          "title": "DitaCraft",
+          "icon": "resources/ditacraft-activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "ditacraft-explorer": [
+        {
+          "id": "ditacraft.ditaExplorer",
+          "name": "DITA Explorer"
+        },
+        {
+          "id": "ditacraft.keySpaceView",
+          "name": "Key Space",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "ditacraft.diagnosticsView",
+          "name": "Diagnostics",
+          "visibility": "collapsed"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "ditacraft.ditaExplorer",
+        "contents": "No DITA maps found in the workspace.\n[Create a New Map](command:ditacraft.newMap)\n[Create a New Bookmap](command:ditacraft.newBookmap)",
+        "when": "workspaceFolderCount > 0"
+      },
+      {
+        "view": "ditacraft.ditaExplorer",
+        "contents": "Open a folder containing DITA files to get started.\n[Open Folder](command:vscode.openFolder)",
+        "when": "workspaceFolderCount == 0"
+      },
+      {
+        "view": "ditacraft.keySpaceView",
+        "contents": "No keys found.\nOpen a workspace containing DITA maps with key definitions."
+      },
+      {
+        "view": "ditacraft.diagnosticsView",
+        "contents": "No DITA diagnostics.\nAll files are clean."
       }
     ],
     "commands": [
@@ -142,6 +192,31 @@
       {
         "command": "ditacraft.testLogger",
         "title": "DITA: Test Logger (Debug)"
+      },
+      {
+        "command": "ditacraft.refreshDitaExplorer",
+        "title": "DITA: Refresh Explorer",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ditacraft.refreshKeySpace",
+        "title": "DITA: Refresh Key Space",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ditacraft.refreshDiagnosticsView",
+        "title": "DITA: Refresh Diagnostics",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ditacraft.diagnosticsGroupByFile",
+        "title": "Group by File",
+        "icon": "$(group-by-ref-type)"
+      },
+      {
+        "command": "ditacraft.diagnosticsGroupByType",
+        "title": "Group by Severity",
+        "icon": "$(symbol-enum)"
       }
     ],
     "menus": {
@@ -177,6 +252,50 @@
           "command": "ditacraft.publish",
           "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
           "group": "ditacraft@2"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ditacraft.refreshDitaExplorer",
+          "when": "view == ditacraft.ditaExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "ditacraft.refreshKeySpace",
+          "when": "view == ditacraft.keySpaceView",
+          "group": "navigation"
+        },
+        {
+          "command": "ditacraft.refreshDiagnosticsView",
+          "when": "view == ditacraft.diagnosticsView",
+          "group": "navigation"
+        },
+        {
+          "command": "ditacraft.diagnosticsGroupByFile",
+          "when": "view == ditacraft.diagnosticsView",
+          "group": "navigation"
+        },
+        {
+          "command": "ditacraft.diagnosticsGroupByType",
+          "when": "view == ditacraft.diagnosticsView",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "ditacraft.validate",
+          "when": "view == ditacraft.ditaExplorer && viewItem =~ /ditaFile/",
+          "group": "ditacraft@1"
+        },
+        {
+          "command": "ditacraft.publish",
+          "when": "view == ditacraft.ditaExplorer && viewItem =~ /ditaMap/",
+          "group": "ditacraft@2"
+        },
+        {
+          "command": "ditacraft.showMapVisualizer",
+          "when": "view == ditacraft.ditaExplorer && viewItem =~ /ditaMap/",
+          "group": "ditacraft@3"
         }
       ],
       "commandPalette": [

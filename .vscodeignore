@@ -66,6 +66,7 @@ nul
 add-missing-data.png
 *.png
 !resources/*.png
+!resources/*.svg
 
 # Development docs (not needed in production)
 docs/**

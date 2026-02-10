@@ -31,6 +31,10 @@ import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
 import { UI_TIMEOUTS } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
+import { DitaExplorerProvider, DitaExplorerItem } from './providers/ditaExplorerProvider';
+import { DitaFileDecorationProvider } from './providers/ditaFileDecorationProvider';
+import { KeySpaceViewProvider } from './providers/keySpaceViewProvider';
+import { DiagnosticsViewProvider } from './providers/diagnosticsViewProvider';
 import { startLanguageClient, stopLanguageClient } from './languageClient';
 
 // Global extension state
@@ -93,6 +97,54 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.appendLine('Registering logger commands...');
         registerLoggerCommands(context);
         outputChannel.appendLine('Logger commands registered');
+
+        // Register DITA Explorer tree view
+        outputChannel.appendLine('Registering DITA Explorer...');
+        const ditaExplorerProvider = new DitaExplorerProvider();
+        const ditaExplorerView = vscode.window.createTreeView('ditacraft.ditaExplorer', {
+            treeDataProvider: ditaExplorerProvider,
+            showCollapseAll: true
+        });
+        context.subscriptions.push(ditaExplorerView, ditaExplorerProvider);
+        context.subscriptions.push(
+            vscode.commands.registerCommand('ditacraft.refreshDitaExplorer', () => ditaExplorerProvider.refresh())
+        );
+        outputChannel.appendLine('DITA Explorer registered');
+
+        // Register Key Space tree view
+        outputChannel.appendLine('Registering Key Space view...');
+        const keySpaceViewProvider = new KeySpaceViewProvider();
+        const keySpaceView = vscode.window.createTreeView('ditacraft.keySpaceView', {
+            treeDataProvider: keySpaceViewProvider,
+            showCollapseAll: true
+        });
+        context.subscriptions.push(keySpaceView, keySpaceViewProvider);
+        context.subscriptions.push(
+            vscode.commands.registerCommand('ditacraft.refreshKeySpace', () => keySpaceViewProvider.refresh())
+        );
+        outputChannel.appendLine('Key Space view registered');
+
+        // Register Diagnostics tree view
+        outputChannel.appendLine('Registering Diagnostics view...');
+        const diagnosticsViewProvider = new DiagnosticsViewProvider();
+        const diagnosticsView = vscode.window.createTreeView('ditacraft.diagnosticsView', {
+            treeDataProvider: diagnosticsViewProvider,
+            showCollapseAll: true
+        });
+        context.subscriptions.push(diagnosticsView, diagnosticsViewProvider);
+        context.subscriptions.push(
+            vscode.commands.registerCommand('ditacraft.refreshDiagnosticsView', () => diagnosticsViewProvider.refresh()),
+            vscode.commands.registerCommand('ditacraft.diagnosticsGroupByFile', () => diagnosticsViewProvider.setGroupMode('byFile')),
+            vscode.commands.registerCommand('ditacraft.diagnosticsGroupByType', () => diagnosticsViewProvider.setGroupMode('byType'))
+        );
+        outputChannel.appendLine('Diagnostics view registered');
+
+        // Register file decoration provider for validation badges
+        const fileDecorationProvider = new DitaFileDecorationProvider();
+        context.subscriptions.push(
+            vscode.window.registerFileDecorationProvider(fileDecorationProvider),
+            fileDecorationProvider
+        );
 
         // Start Language Server
         outputChannel.appendLine('Starting DITA Language Server...');
@@ -165,12 +217,23 @@ export async function deactivate(): Promise<void> {
  */
 function registerCommands(context: vscode.ExtensionContext): void {
     // Publishing and validation commands
+    // Wrapped to handle both vscode.Uri (from editor menus) and DitaExplorerItem (from tree context menus)
     context.subscriptions.push(
-        vscode.commands.registerCommand('ditacraft.validate', validateCommand)
+        vscode.commands.registerCommand('ditacraft.validate', (arg?: DitaExplorerItem | vscode.Uri) => {
+            const uri = arg instanceof DitaExplorerItem
+                ? (arg.mapNode.filePath ? vscode.Uri.file(arg.mapNode.filePath) : undefined)
+                : arg;
+            return validateCommand(uri);
+        })
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ditacraft.publish', publishCommand)
+        vscode.commands.registerCommand('ditacraft.publish', (arg?: DitaExplorerItem | vscode.Uri) => {
+            const uri = arg instanceof DitaExplorerItem
+                ? (arg.mapNode.filePath ? vscode.Uri.file(arg.mapNode.filePath) : undefined)
+                : arg;
+            return publishCommand(uri);
+        })
     );
 
     context.subscriptions.push(
@@ -235,18 +298,30 @@ function registerCommands(context: vscode.ExtensionContext): void {
         })
     );
 
-    // Command to show Map Visualizer
+    // Command to show Map Visualizer (accepts optional tree item or URI from context menus)
     context.subscriptions.push(
-        vscode.commands.registerCommand('ditacraft.showMapVisualizer', () => {
-            const editor = vscode.window.activeTextEditor;
-            if (!editor) {
-                vscode.window.showWarningMessage('No file is currently open');
+        vscode.commands.registerCommand('ditacraft.showMapVisualizer', (arg?: DitaExplorerItem | vscode.Uri) => {
+            let filePath: string | undefined;
+
+            if (arg instanceof DitaExplorerItem) {
+                filePath = arg.mapNode.filePath;
+            } else if (arg instanceof vscode.Uri) {
+                filePath = arg.fsPath;
+            } else {
+                const editor = vscode.window.activeTextEditor;
+                if (!editor) {
+                    vscode.window.showWarningMessage('No file is currently open');
+                    return;
+                }
+                filePath = editor.document.uri.fsPath;
+            }
+
+            if (!filePath) {
+                vscode.window.showWarningMessage('No file path available');
                 return;
             }
 
-            const filePath = editor.document.uri.fsPath;
             const ext = filePath.toLowerCase();
-
             if (!ext.endsWith('.ditamap') && !ext.endsWith('.bookmap')) {
                 vscode.window.showWarningMessage('Map Visualizer requires a .ditamap or .bookmap file');
                 return;

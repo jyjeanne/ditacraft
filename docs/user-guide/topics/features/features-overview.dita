@@ -41,6 +41,10 @@
                     <dt>Key Resolution</dt>
                     <dd>Full key space support for keyref and conkeyref resolution with improved root map discovery and intelligent key definition lookup.</dd>
                 </dlentry>
+                <dlentry>
+                    <dt>Activity Bar Views</dt>
+                    <dd>Dedicated DitaCraft sidebar with three tree views: DITA Explorer (map hierarchy browser), Key Space (defined/undefined/unused keys), and Diagnostics (validation issues grouped by file or severity). Includes file decoration badges for validation status.</dd>
+                </dlentry>
             </dl>
         </section>
 
@@ -83,6 +87,7 @@
                 <li><b>Document Links:</b> Clickable links for href, conref, keyref, and conkeyref attributes</li>
                 <li><b>Workspace Support:</b> Works with single files or multi-root workspaces</li>
                 <li><b>cSpell Integration:</b> Auto-prompted spell checking setup with DITA-specific dictionary</li>
+                <li><b>Activity Bar Views:</b> Dedicated sidebar with DITA Explorer, Key Space browser, and Diagnostics view for project-level navigation and issue tracking</li>
             </ul>
         </section>
     </conbody>

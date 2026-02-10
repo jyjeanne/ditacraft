@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="dita-explorer">
+    <title>DITA Explorer</title>
+    <shortdesc>Browse all workspace DITA maps with an expandable hierarchy tree in the Activity Bar sidebar.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The DITA Explorer is the primary view in the DitaCraft Activity Bar. It discovers all <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files in your workspace and displays each one as an expandable tree showing its full topic hierarchy.</p>
+            <p><b>Command:</b> <uicontrol>DITA: Refresh DITA Explorer</uicontrol></p>
+        </section>
+
+        <section id="opening">
+            <title>Opening the DITA Explorer</title>
+            <ol>
+                <li>Click the DitaCraft icon in the Activity Bar (left sidebar)</li>
+                <li>The DITA Explorer view appears at the top of the sidebar</li>
+                <li>All workspace maps are listed as root nodes</li>
+            </ol>
+        </section>
+
+        <section id="tree-structure">
+            <title>Tree Structure</title>
+            <p>Each map is displayed as a tree with type-specific icons:</p>
+            <dl>
+                <dlentry>
+                    <dt>Map</dt>
+                    <dd>Root-level ditamap or bookmap files, shown with a hierarchy icon. These are always the top-level nodes.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Chapter</dt>
+                    <dd>Chapter elements from bookmaps, shown with a book icon.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Part</dt>
+                    <dd>Part elements from bookmaps, shown with a folder icon.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Appendix</dt>
+                    <dd>Appendix elements, shown with a file-add icon.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Topic Reference</dt>
+                    <dd>Standard <codeph>&lt;topicref&gt;</codeph> elements, shown with a file icon.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Key Definition</dt>
+                    <dd><codeph>&lt;keydef&gt;</codeph> elements, shown with a key icon.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Missing File</dt>
+                    <dd>References to files that do not exist are shown with a warning icon.</dd>
+                </dlentry>
+            </dl>
+            <p>Nested maps referenced via <codeph>&lt;mapref&gt;</codeph> are automatically expanded as subtrees. Circular references are detected and marked.</p>
+        </section>
+
+        <section id="navigation">
+            <title>Navigation and Actions</title>
+            <ul>
+                <li><b>Click:</b> Open the referenced file in the editor</li>
+                <li><b>Expand/Collapse:</b> Click the arrow to show or hide child elements</li>
+                <li><b>Context Menu:</b> Right-click a node for additional actions:
+                    <ul>
+                        <li><uicontrol>Validate</uicontrol> - Run validation on the file</li>
+                        <li><uicontrol>Publish</uicontrol> - Publish the file (maps only)</li>
+                        <li><uicontrol>Show Map Visualizer</uicontrol> - Open the Map Visualizer panel (maps only)</li>
+                    </ul>
+                </li>
+            </ul>
+            <p>Each item shows the <codeph>href</codeph> value as a description next to the label, and a tooltip with type, href, keys, and status information.</p>
+        </section>
+
+        <section id="file-decorations">
+            <title>Validation Badges</title>
+            <p>Files in the DITA Explorer show validation status badges from the File Decoration Provider:</p>
+            <ul>
+                <li><b>Error badge:</b> Red indicator with error count for files with validation errors</li>
+                <li><b>Warning badge:</b> Yellow indicator with warning count for files with warnings only</li>
+                <li><b>No badge:</b> Clean files with no validation issues</li>
+            </ul>
+            <p>Badges update automatically as diagnostics change.</p>
+        </section>
+
+        <section id="auto-refresh">
+            <title>Auto-Refresh</title>
+            <p>The DITA Explorer watches for changes to <filepath>.ditamap</filepath>, <filepath>.bookmap</filepath>, and <filepath>.dita</filepath> files. When files are created, modified, or deleted, the tree refreshes automatically after a 500ms debounce period to avoid excessive rebuilds during batch operations.</p>
+            <p>To manually refresh, click the refresh button in the view title bar or run <uicontrol>DITA: Refresh DITA Explorer</uicontrol> from the Command Palette.</p>
+        </section>
+    </conbody>
+</concept>

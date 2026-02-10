@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="diagnostics-view">
+    <title>Diagnostics View</title>
+    <shortdesc>View all DITA validation issues in a centralized tree with grouping by file or severity.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The Diagnostics view in the DitaCraft Activity Bar aggregates all DITA-related validation issues from across your workspace. Unlike the built-in Problems panel, this view filters specifically for DITA diagnostics and offers two grouping modes for easier triage.</p>
+            <p><b>Command:</b> <uicontrol>DITA: Refresh Diagnostics</uicontrol></p>
+        </section>
+
+        <section id="group-modes">
+            <title>Grouping Modes</title>
+            <p>Switch between two ways of organizing diagnostics using the view title bar buttons:</p>
+            <dl>
+                <dlentry>
+                    <dt>Group by File</dt>
+                    <dd>Issues are grouped under their parent file. Each file group shows the total issue count and a summary of errors and warnings. The file icon color reflects the highest severity (red for errors, yellow for warnings). Click the <uicontrol>Group by File</uicontrol> button in the view title bar to activate.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Group by Severity</dt>
+                    <dd>Issues are grouped into four severity categories: Errors, Warnings, Information, and Hints. Each group shows its count. Errors and warnings are expanded by default; information and hints are collapsed. Click the <uicontrol>Group by Severity</uicontrol> button in the view title bar to activate.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="diagnostic-items">
+            <title>Diagnostic Items</title>
+            <p>Each diagnostic item displays:</p>
+            <ul>
+                <li><b>Severity icon:</b> Error (red circle), Warning (yellow triangle), Information (blue info), or Hint (outline circle)</li>
+                <li><b>Message:</b> The validation issue description</li>
+                <li><b>Line number:</b> Shown as a description (e.g., "line 12")</li>
+                <li><b>Tooltip:</b> Full message, source (e.g., <codeph>dita</codeph>, <codeph>dita-lsp</codeph>, <codeph>ditacraft-keys</codeph>), and line number</li>
+            </ul>
+            <p>Click any diagnostic item to open the file and jump to the exact location of the issue.</p>
+        </section>
+
+        <section id="filtered-sources">
+            <title>Diagnostic Sources</title>
+            <p>The Diagnostics view only shows issues from DITA-related sources:</p>
+            <ul>
+                <li><codeph>dita</codeph> - Client-side DITA validation</li>
+                <li><codeph>dita-lsp</codeph> - Language Server validation (XML, structure, IDs)</li>
+                <li><codeph>ditacraft-keys</codeph> - Key reference diagnostics</li>
+            </ul>
+            <p>Diagnostics from other extensions (e.g., spell checkers, generic XML linters) are excluded to keep the view focused on DITA-specific issues.</p>
+        </section>
+
+        <section id="auto-refresh">
+            <title>Auto-Refresh</title>
+            <p>The Diagnostics view refreshes automatically whenever validation results change (e.g., after editing a file, saving, or opening a new document). Updates are debounced at 300ms to batch rapid changes.</p>
+            <p>To manually refresh, click the refresh button in the view title bar or run <uicontrol>DITA: Refresh Diagnostics</uicontrol> from the Command Palette.</p>
+        </section>
+
+        <section id="empty-state">
+            <title>Clean State</title>
+            <p>When no DITA validation issues are found, the view shows a welcome message confirming that your workspace is clean. This is the ideal state after resolving all validation issues.</p>
+        </section>
+    </conbody>
+</concept>

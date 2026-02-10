@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="key-space-view">
+    <title>Key Space View</title>
+    <shortdesc>Browse all DITA keys in your workspace organized by status: defined, undefined, and unused.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The Key Space view in the DitaCraft Activity Bar shows every DITA key across your workspace, grouped by its resolution status. This helps you identify missing key definitions, find unused keys, and navigate to key usages.</p>
+            <p><b>Command:</b> <uicontrol>DITA: Refresh Key Space</uicontrol></p>
+        </section>
+
+        <section id="key-groups">
+            <title>Key Groups</title>
+            <p>Keys are organized into three groups:</p>
+            <dl>
+                <dlentry>
+                    <dt>Defined Keys</dt>
+                    <dd>Keys that are both defined in a map (via <codeph>&lt;keydef&gt;</codeph> or <codeph>&lt;topicref keys="..."&gt;</codeph>) and referenced somewhere in your DITA content (via <codeph>keyref</codeph> or <codeph>conkeyref</codeph> attributes). These are healthy keys that resolve correctly.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Undefined Keys</dt>
+                    <dd>Keys that are referenced in your content but have no matching definition in any workspace map. These typically indicate a missing <codeph>&lt;keydef&gt;</codeph> element or a typo in a <codeph>keyref</codeph> attribute. Shown with a warning icon.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Unused Keys</dt>
+                    <dd>Keys that are defined in a map but never referenced anywhere in your DITA content. These may be candidates for cleanup or may indicate content that needs to use the key.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="navigation">
+            <title>Navigating Keys and Usages</title>
+            <ul>
+                <li><b>Click a key:</b> Navigate to the map file where the key is defined</li>
+                <li><b>Expand a key:</b> See all files that reference this key via <codeph>keyref</codeph> or <codeph>conkeyref</codeph></li>
+                <li><b>Click a usage:</b> Navigate directly to the usage location in the editor, with the reference highlighted</li>
+            </ul>
+            <p>Each key item shows additional details:</p>
+            <ul>
+                <li><b>Description:</b> The target filename for keys with an <codeph>href</codeph>, or "(inline)" for keys with inline content</li>
+                <li><b>Tooltip:</b> Key name, target file, source map, and scope</li>
+                <li><b>Usage description:</b> Reference type (<codeph>keyref</codeph> or <codeph>conkeyref</codeph>) and line number</li>
+            </ul>
+        </section>
+
+        <section id="key-scanning">
+            <title>How Keys Are Collected</title>
+            <p>DitaCraft builds the key space by:</p>
+            <ol>
+                <li>Finding all <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files in the workspace</li>
+                <li>Parsing each map to extract <codeph>&lt;keydef&gt;</codeph> and key-bearing <codeph>&lt;topicref&gt;</codeph> elements</li>
+                <li>Scanning all <filepath>.dita</filepath>, <filepath>.ditamap</filepath>, and <filepath>.bookmap</filepath> files (up to 500) for <codeph>keyref</codeph> and <codeph>conkeyref</codeph> attributes</li>
+                <li>Comparing definitions against usages to classify each key</li>
+            </ol>
+            <p>For <codeph>conkeyref</codeph> values like <codeph>conkeyref="my-key/element-id"</codeph>, only the key name before the slash is extracted.</p>
+        </section>
+
+        <section id="auto-refresh">
+            <title>Auto-Refresh</title>
+            <p>The Key Space view watches for changes to <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files. When map files are created, modified, or deleted, the view refreshes after a 1000ms debounce period. Key space resolution can be expensive for large workspaces, so the debounce is longer than other views.</p>
+            <p>To manually refresh, click the refresh button in the view title bar or run <uicontrol>DITA: Refresh Key Space</uicontrol> from the Command Palette.</p>
+        </section>
+
+        <section id="use-cases">
+            <title>Use Cases</title>
+            <ul>
+                <li><b>Key Audit:</b> Review which keys are defined, used, and missing</li>
+                <li><b>Cleanup:</b> Identify unused keys that can be removed from maps</li>
+                <li><b>Debugging:</b> Find undefined keys causing unresolved references</li>
+                <li><b>Navigation:</b> Quickly jump to key definitions or usages across files</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

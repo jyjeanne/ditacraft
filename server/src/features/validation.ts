@@ -296,6 +296,30 @@ function stripCommentsAndCDATA(text: string): string {
         .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
 }
 
+// DITA topic/map root elements use XML ID type (must start with letter/underscore).
+// All other elements use NMTOKEN type (can start with digits).
+const DITA_ROOT_ELEMENTS = new Set([
+    'topic', 'concept', 'task', 'reference', 'glossentry', 'glossgroup',
+    'troubleshooting', 'map', 'bookmap', 'subjectscheme',
+    'learningassessment', 'learningcontent', 'learningoverview',
+    'learningplan', 'learningsummary',
+]);
+
+/**
+ * Find the enclosing element name for an attribute match position.
+ * Scans backward from the match to find the opening `<tagName`.
+ */
+function getEnclosingElement(text: string, matchIndex: number): string {
+    for (let i = matchIndex - 1; i >= 0; i--) {
+        if (text[i] === '<') {
+            const after = text.substring(i + 1, matchIndex);
+            const tagMatch = after.match(/^([\w][\w.-]*)/);
+            return tagMatch ? tagMatch[1].toLowerCase() : '';
+        }
+    }
+    return '';
+}
+
 /**
  * ID validation: duplicates and format
  */
@@ -309,7 +333,7 @@ function validateIDs(
     const idPattern = /\bid="([^"]*)"/g;
     const idLocations = new Map<
         string,
-        { line: number; col: number; index: number }[]
+        { line: number; col: number; index: number; element: string }[]
     >();
 
     let match;
@@ -317,22 +341,41 @@ function validateIDs(
         const idValue = match[1];
         // Use original text for line/col since we preserved line structure
         const pos = findLineAndColumn(text, match.index);
+        const element = getEnclosingElement(cleanText, match.index);
         const locations = idLocations.get(idValue) || [];
-        locations.push({ ...pos, index: match.index });
+        locations.push({ ...pos, index: match.index, element });
         idLocations.set(idValue, locations);
     }
 
     for (const [idValue, locations] of idLocations) {
         // Invalid ID format
-        if (idValue && !/^[a-zA-Z_][\w.-]*$/.test(idValue)) {
-            const pos = locations[0];
-            diagnostics.push({
-                severity: DiagnosticSeverity.Warning,
-                range: createRange(pos.line, pos.col),
-                message: `ID "${idValue}" should start with a letter or underscore and contain only letters, digits, hyphens, underscores, and periods`,
-                source: SOURCE,
-                code: CODES.INVALID_ID_FORMAT,
-            });
+        if (idValue) {
+            const isRootElement = DITA_ROOT_ELEMENTS.has(locations[0].element);
+            if (isRootElement) {
+                // XML ID type: must start with letter or underscore
+                if (!/^[a-zA-Z_][\w.-]*$/.test(idValue)) {
+                    const pos = locations[0];
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: createRange(pos.line, pos.col),
+                        message: `ID "${idValue}" should start with a letter or underscore and contain only letters, digits, hyphens, underscores, and periods`,
+                        source: SOURCE,
+                        code: CODES.INVALID_ID_FORMAT,
+                    });
+                }
+            } else {
+                // NMTOKEN type: can start with digit but must contain only valid characters
+                if (!/^[\w.\-]+$/.test(idValue)) {
+                    const pos = locations[0];
+                    diagnostics.push({
+                        severity: DiagnosticSeverity.Warning,
+                        range: createRange(pos.line, pos.col),
+                        message: `ID "${idValue}" should contain only letters, digits, hyphens, underscores, and periods`,
+                        source: SOURCE,
+                        code: CODES.INVALID_ID_FORMAT,
+                    });
+                }
+            }
         }
 
         // Duplicate IDs

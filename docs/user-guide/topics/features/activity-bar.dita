@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="activity-bar">
+    <title>Activity Bar Views</title>
+    <shortdesc>DitaCraft provides a dedicated sidebar in the VS Code Activity Bar with three tree views for project navigation, key management, and diagnostics.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The DitaCraft Activity Bar adds a dedicated icon to the VS Code sidebar. Clicking it reveals three specialized views that give you an at-a-glance overview of your DITA project:</p>
+            <ul>
+                <li><b>DITA Explorer:</b> Browse all workspace maps with expandable hierarchy and type-specific icons</li>
+                <li><b>Key Space:</b> View all defined, undefined, and unused keys with usage locations</li>
+                <li><b>Diagnostics:</b> Centralized DITA validation issues grouped by file or severity</li>
+            </ul>
+            <p>To open the DitaCraft sidebar, click the DitaCraft icon in the Activity Bar on the left side of VS Code.</p>
+        </section>
+
+        <section id="views-summary">
+            <title>Views at a Glance</title>
+            <dl>
+                <dlentry>
+                    <dt>DITA Explorer</dt>
+                    <dd>Shows all <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files in your workspace as expandable trees. Each map displays its topic hierarchy with icons for chapters, topics, keydefs, and other element types. Click any item to open the referenced file. Right-click for context menu actions such as validate, publish, or show the map visualizer.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Key Space</dt>
+                    <dd>Lists all DITA keys organized into three groups: <b>Defined Keys</b> (used and defined), <b>Undefined Keys</b> (used but not defined in any map), and <b>Unused Keys</b> (defined but never referenced). Expand any key to see where it is used across your workspace.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Diagnostics</dt>
+                    <dd>Aggregates all DITA-related validation issues from the Problems panel. Switch between grouping by file or by severity. Click any issue to navigate directly to its location in the editor.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="welcome-content">
+            <title>Welcome Content</title>
+            <p>When a view has no data to display, DitaCraft shows helpful welcome messages:</p>
+            <ul>
+                <li><b>DITA Explorer (no maps):</b> Suggests creating a new map or bookmap</li>
+                <li><b>DITA Explorer (no folder):</b> Suggests opening a folder containing DITA files</li>
+                <li><b>Key Space (empty):</b> Explains that keys will appear once maps with key definitions are found</li>
+                <li><b>Diagnostics (clean):</b> Confirms that no DITA validation issues were found</li>
+            </ul>
+        </section>
+
+        <section id="refresh">
+            <title>Refreshing Views</title>
+            <p>All three views auto-refresh when relevant files change. You can also manually refresh each view using the refresh button in the view title bar or the corresponding commands:</p>
+            <ul>
+                <li><uicontrol>DITA: Refresh DITA Explorer</uicontrol></li>
+                <li><uicontrol>DITA: Refresh Key Space</uicontrol></li>
+                <li><uicontrol>DITA: Refresh Diagnostics</uicontrol></li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

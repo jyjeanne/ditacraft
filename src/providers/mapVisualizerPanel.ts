@@ -5,24 +5,11 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fsPromises from 'fs/promises';
 import { logger } from '../utils/logger';
+import { parseMapHierarchy, type MapNode } from '../utils/mapHierarchyParser';
 
-/**
- * Represents a node in the map visualization tree
- */
-export interface MapNode {
-    id: string;
-    label: string;
-    type: 'map' | 'topic' | 'chapter' | 'appendix' | 'part' | 'topicref' | 'keydef' | 'unknown';
-    href?: string;
-    filePath?: string;
-    exists: boolean;
-    hasErrors?: boolean;
-    children: MapNode[];
-    navtitle?: string;
-    keys?: string;
-}
+// Re-export MapNode for backward compatibility
+export type { MapNode } from '../utils/mapHierarchyParser';
 
 /**
  * MapVisualizerPanel - WebView panel showing DITA map hierarchy
@@ -172,142 +159,8 @@ export class MapVisualizerPanel {
      * Update the webview content asynchronously
      */
     private async _updateAsync(): Promise<void> {
-        const mapTree = await this._parseMapFileAsync(this._mapFilePath);
+        const mapTree = await parseMapHierarchy(this._mapFilePath);
         this._panel.webview.html = this._getHtmlContent(mapTree);
-    }
-
-    /**
-     * Parse a DITA map file and return its tree structure
-     * P1-1 Fix: Use async file operations
-     */
-    private async _parseMapFileAsync(mapFilePath: string): Promise<MapNode> {
-        const mapDir = path.dirname(mapFilePath);
-        const mapName = path.basename(mapFilePath);
-
-        // Read and parse the map file asynchronously
-        const content = await fsPromises.readFile(mapFilePath, 'utf-8');
-
-        const rootNode: MapNode = {
-            id: 'root',
-            label: mapName,
-            type: this._detectMapType(content),
-            filePath: mapFilePath,
-            href: mapName,
-            exists: true,
-            children: []
-        };
-
-        // Track visited files to prevent circular references
-        const visitedFiles = new Set<string>([mapFilePath]);
-
-        // Parse topicrefs and other references asynchronously
-        rootNode.children = await this._parseReferencesAsync(content, mapDir, visitedFiles);
-
-        return rootNode;
-    }
-
-    /**
-     * Detect the type of DITA map (bookmap vs regular map)
-     */
-    private _detectMapType(content: string): MapNode['type'] {
-        // Check for bookmap DOCTYPE or root element
-        if (content.includes('<!DOCTYPE bookmap') || /<bookmap[\s>]/i.test(content)) {
-            return 'map'; // Bookmaps use same icon as maps
-        }
-        return 'map';
-    }
-
-    /**
-     * Parse topic references from map content
-     * P1-1 Fix: Use async file operations
-     * @param content - The XML content to parse
-     * @param mapDir - The directory containing the map file
-     * @param visitedFiles - Set of already visited file paths (for circular reference detection)
-     */
-    private async _parseReferencesAsync(content: string, mapDir: string, visitedFiles: Set<string>): Promise<MapNode[]> {
-        const nodes: MapNode[] = [];
-
-        // Element types to parse with their tag names
-        const elementTypes: Array<{ tag: string; type: MapNode['type'] }> = [
-            { tag: 'chapter', type: 'chapter' },
-            { tag: 'appendix', type: 'appendix' },
-            { tag: 'part', type: 'part' },
-            { tag: 'topicref', type: 'topicref' },
-            { tag: 'keydef', type: 'keydef' },
-            { tag: 'mapref', type: 'map' }
-        ];
-
-        let nodeId = 0;
-
-        for (const element of elementTypes) {
-            // Match opening tags for this element type
-            const tagRegex = new RegExp(`<${element.tag}\\b([^>]*)>`, 'gi');
-            let match;
-
-            while ((match = tagRegex.exec(content)) !== null) {
-                const attributes = match[1];
-
-                // Extract attributes separately to handle any order
-                const href = this._extractAttribute(attributes, 'href');
-                const navtitle = this._extractAttribute(attributes, 'navtitle');
-                const keys = this._extractAttribute(attributes, 'keys');
-
-                const node: MapNode = {
-                    id: `node-${nodeId++}`,
-                    label: navtitle || keys || (href ? path.basename(href) : 'Unknown'),
-                    type: element.type,
-                    href: href || undefined,
-                    navtitle: navtitle || undefined,
-                    keys: keys || undefined,
-                    exists: true,
-                    children: []
-                };
-
-                // Resolve full file path
-                if (href) {
-                    const fullPath = path.resolve(mapDir, href);
-                    node.filePath = fullPath;
-
-                    // Check if file exists asynchronously
-                    try {
-                        await fsPromises.access(fullPath);
-                        node.exists = true;
-                    } catch {
-                        node.exists = false;
-                    }
-
-                    // If it's a map/ditamap, parse its children (but check for circular references)
-                    if (node.exists && (href.endsWith('.ditamap') || href.endsWith('.bookmap') || element.type === 'map')) {
-                        if (!visitedFiles.has(fullPath)) {
-                            visitedFiles.add(fullPath);
-                            try {
-                                const subContent = await fsPromises.readFile(fullPath, 'utf-8');
-                                node.children = await this._parseReferencesAsync(subContent, path.dirname(fullPath), visitedFiles);
-                            } catch {
-                                // Ignore errors parsing sub-maps
-                            }
-                        } else {
-                            // Mark as circular reference
-                            node.label = `${node.label} (circular ref)`;
-                            node.hasErrors = true;
-                        }
-                    }
-                }
-
-                nodes.push(node);
-            }
-        }
-
-        return nodes;
-    }
-
-    /**
-     * Extract an attribute value from an attribute string
-     */
-    private _extractAttribute(attributes: string, name: string): string | null {
-        const regex = new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, 'i');
-        const match = attributes.match(regex);
-        return match ? match[1] : null;
     }
 
     /**
