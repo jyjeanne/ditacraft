@@ -192,7 +192,7 @@ async function executePublish(
 
             if (action === 'Open Output Folder') {
                 fireAndForget(
-                    vscode.env.openExternal(vscode.Uri.file(result.outputPath)),
+                    Promise.resolve(vscode.env.openExternal(vscode.Uri.file(result.outputPath))),
                     'open-output-folder'
                 );
             } else if (action === 'Show Preview') {

@@ -203,7 +203,7 @@ suite('Preview Command Test Suite', () => {
                 extension: {} as vscode.Extension<unknown>,
                 environmentVariableCollection: {} as vscode.GlobalEnvironmentVariableCollection,
                 asAbsolutePath: (p: string) => path.join(fixturesPath, p),
-                languageModelAccessInformation: {} as vscode.LanguageModelAccessInformation
+                languageModelAccessInformation: {} as any
             } as vscode.ExtensionContext;
 
             assert.doesNotThrow(() => initializePreview(mockContext));
