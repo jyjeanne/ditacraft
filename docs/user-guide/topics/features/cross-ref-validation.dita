@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="cross-ref-validation">
+    <title>Cross-Reference Validation</title>
+    <shortdesc>DitaCraft validates cross-file references including href, conref, keyref, and conkeyref attributes to catch broken links before publishing.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>Cross-reference validation checks that all references in your DITA content point to valid targets. This includes file paths, topic IDs, element IDs, and key definitions. Broken references are reported as diagnostics so you can fix them before publishing.</p>
+            <p>Cross-reference validation runs automatically as part of the LSP diagnostics pipeline alongside XML well-formedness and DTD validation.</p>
+        </section>
+
+        <section id="what-is-validated">
+            <title>What Gets Validated</title>
+            <dl>
+                <dlentry>
+                    <dt>href Attributes</dt>
+                    <dd>Validates that the target file exists. If the href includes a fragment identifier (e.g., <codeph>file.dita#topic_id/element_id</codeph>), the topic ID and element ID are also checked. External URLs (<codeph>http://</codeph>, <codeph>https://</codeph>) and references with <codeph>scope="external"</codeph> are skipped.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>conref Attributes</dt>
+                    <dd>Validates that the referenced file exists and that the target topic and element IDs are present in the target file. Same-file conrefs (starting with <codeph>#</codeph>) are validated against IDs within the current document.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>keyref Attributes</dt>
+                    <dd>Validates that the referenced key is defined in the key space. If the key has an href target, that target file is also checked.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>conkeyref Attributes</dt>
+                    <dd>Validates the key portion against the key space and, if present, the element ID portion against the target file.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="diagnostic-codes">
+            <title>Diagnostic Codes</title>
+            <p>Cross-reference validation produces the following diagnostic codes:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Code</stentry>
+                    <stentry>Severity</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>DITA-XREF-001</codeph></stentry>
+                    <stentry>Warning</stentry>
+                    <stentry>Target file not found</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-XREF-002</codeph></stentry>
+                    <stentry>Warning</stentry>
+                    <stentry>Topic ID not found in target file</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-XREF-003</codeph></stentry>
+                    <stentry>Warning</stentry>
+                    <stentry>Element ID not found in target file</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-KEY-001</codeph></stentry>
+                    <stentry>Warning</stentry>
+                    <stentry>Undefined key (not in key space)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-KEY-002</codeph></stentry>
+                    <stentry>Information</stentry>
+                    <stentry>Key is defined but has no href target</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-KEY-003</codeph></stentry>
+                    <stentry>Warning</stentry>
+                    <stentry>Key target file is missing the referenced element ID</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="configuration">
+            <title>Configuration</title>
+            <p>Cross-reference validation is enabled by default. To disable it:</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.crossRefValidationEnabled": false
+}</codeblock>
+            <p>When disabled, only XML well-formedness, DTD, and DITA structure validation are performed.</p>
+        </section>
+    </conbody>
+</concept>

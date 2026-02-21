@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="dita-rules">
+    <title>DITA Rules Engine</title>
+    <shortdesc>DitaCraft includes 18 Schematron-equivalent validation rules organized in four categories to enforce DITA best practices and specification requirements.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The DITA Rules Engine validates your content against a set of rules derived from the DITA specification and authoring best practices. These rules go beyond DTD validation to catch semantic issues such as missing accessibility attributes, deprecated elements, and incorrect attribute usage.</p>
+            <p>Rules are version-aware: DitaCraft automatically detects your DITA version (from <codeph>@DITAArchVersion</codeph> or DOCTYPE) and only applies rules relevant to that version.</p>
+        </section>
+
+        <section id="categories">
+            <title>Rule Categories</title>
+            <dl>
+                <dlentry>
+                    <dt>Mandatory</dt>
+                    <dd>Rules required by the DITA specification. These catch constraint violations that would cause processing errors. Examples: <codeph>role="other"</codeph> requires <codeph>@otherrole</codeph>, deprecated <codeph>&lt;indextermref&gt;</codeph> element usage.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Recommendation</dt>
+                    <dd>Best practice rules recommended by the DITA specification. Examples: adding short descriptions, using proper list structures, following naming conventions.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Authoring</dt>
+                    <dd>Content quality rules for consistent and well-structured documentation. Examples: title length limits, nesting depth, content organization.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Accessibility</dt>
+                    <dd>Rules ensuring your content is accessible to all users. Examples: <codeph>&lt;image&gt;</codeph> elements should have <codeph>&lt;alt&gt;</codeph> text, deprecated <codeph>alt</codeph> attribute should be converted to an <codeph>&lt;alt&gt;</codeph> element.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="key-rules">
+            <title>Key Rules</title>
+            <p>Some commonly encountered rules include:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Code</stentry>
+                    <stentry>Category</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>DITA-SCH-001</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>role="other"</codeph> requires <codeph>@otherrole</codeph> attribute</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-002</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>&lt;note type="other"&gt;</codeph> requires <codeph>@othertype</codeph> attribute</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-003</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>&lt;indextermref&gt;</codeph> is deprecated</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-004</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>collection-type</codeph> not allowed on <codeph>&lt;reltable&gt;</codeph> or <codeph>&lt;relcolspec&gt;</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-011</codeph></stentry>
+                    <stentry>Accessibility</stentry>
+                    <stentry>Deprecated <codeph>alt</codeph> attribute on <codeph>&lt;image&gt;</codeph> — use <codeph>&lt;alt&gt;</codeph> element instead</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-030</codeph></stentry>
+                    <stentry>Accessibility</stentry>
+                    <stentry>Missing <codeph>&lt;alt&gt;</codeph> element for <codeph>&lt;image&gt;</codeph></stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="quick-fixes">
+            <title>Quick Fixes</title>
+            <p>Several DITA rules offer automatic quick fixes via the lightbulb menu (<uicontrol>Ctrl+.</uicontrol>):</p>
+            <ul>
+                <li><b>Add <codeph>@otherrole</codeph>:</b> Inserts the missing attribute when <codeph>role="other"</codeph> is detected</li>
+                <li><b>Remove deprecated <codeph>&lt;indextermref&gt;</codeph>:</b> Removes the deprecated element</li>
+                <li><b>Convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element:</b> Migrates the deprecated attribute syntax to the modern element form</li>
+                <li><b>Add missing <codeph>&lt;alt&gt;</codeph> to <codeph>&lt;image&gt;</codeph>:</b> Inserts an empty <codeph>&lt;alt&gt;</codeph> child element for accessibility</li>
+            </ul>
+        </section>
+
+        <section id="configuration">
+            <title>Configuration</title>
+            <p>Enable or disable the entire rules engine:</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.ditaRulesEnabled": true
+}</codeblock>
+            <p>Select which rule categories to apply:</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.ditaRulesCategories": [
+        "mandatory",
+        "recommendation",
+        "authoring",
+        "accessibility"
+    ]
+}</codeblock>
+            <p>For example, to run only mandatory and accessibility rules:</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.ditaRulesCategories": ["mandatory", "accessibility"]
+}</codeblock>
+        </section>
+    </conbody>
+</concept>

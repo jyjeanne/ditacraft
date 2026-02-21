@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-cross-ref-validation">
+    <glossterm>Cross-Reference Validation</glossterm>
+    <glossdef>
+        <p>A validation feature that checks href, conref, keyref, and conkeyref attributes to ensure they point to valid targets. Cross-reference validation catches broken links, missing files, undefined keys, and invalid element IDs before publishing.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/cross-ref-validation.dita"/>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

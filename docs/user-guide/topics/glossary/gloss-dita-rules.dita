@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-dita-rules">
+    <glossterm>DITA Rules Engine</glossterm>
+    <glossdef>
+        <p>A validation engine that applies 18 Schematron-equivalent rules to enforce DITA specification requirements and best practices. Rules are organized in four categories: mandatory, recommendation, authoring, and accessibility. The engine is version-aware and only applies rules relevant to the detected DITA version.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/dita-rules.dita"/>
+        <link href="../settings/validation-settings.dita"/>
+    </related-links>
+</glossentry>

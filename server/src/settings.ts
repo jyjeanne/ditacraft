@@ -1,4 +1,5 @@
 import { Connection } from 'vscode-languageserver/node';
+import { RuleCategory } from './features/ditaRulesValidator';
 
 /**
  * DitaCraft LSP server settings
@@ -12,6 +13,15 @@ export interface DitaCraftSettings {
     maxLinkMatches: number;
     maxNumberOfProblems: number;
     logLevel: string;
+
+    /** Enable DITA rules validation (Schematron-equivalent). */
+    ditaRulesEnabled: boolean;
+    /** Which rule categories to enable. */
+    ditaRulesCategories: RuleCategory[];
+    /** Enable cross-reference validation. */
+    crossRefValidationEnabled: boolean;
+    /** Enable subject scheme controlled value validation. */
+    subjectSchemeValidationEnabled: boolean;
 }
 
 const defaultSettings: DitaCraftSettings = {
@@ -22,6 +32,10 @@ const defaultSettings: DitaCraftSettings = {
     maxLinkMatches: 10000,
     maxNumberOfProblems: 100,
     logLevel: 'info',
+    ditaRulesEnabled: true,
+    ditaRulesCategories: ['mandatory', 'recommendation', 'authoring', 'accessibility'],
+    crossRefValidationEnabled: true,
+    subjectSchemeValidationEnabled: true,
 };
 
 // Cache of settings per document URI

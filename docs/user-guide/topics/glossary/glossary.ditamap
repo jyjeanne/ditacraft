@@ -11,13 +11,16 @@
     <topicref href="gloss-built-in-engine.dita" keys="gloss-built-in"/>
 
     <!-- C -->
+    <topicref href="gloss-code-action.dita" keys="gloss-code-action"/>
     <topicref href="gloss-conkeyref.dita" keys="gloss-conkeyref"/>
     <topicref href="gloss-conref.dita" keys="gloss-conref"/>
     <topicref href="gloss-concept.dita" keys="gloss-concept"/>
+    <topicref href="gloss-cross-ref-validation.dita" keys="gloss-cross-ref-validation"/>
 
     <!-- D -->
     <topicref href="gloss-dita.dita" keys="gloss-dita"/>
     <topicref href="gloss-dita-ot.dita" keys="gloss-dita-ot"/>
+    <topicref href="gloss-dita-rules.dita" keys="gloss-dita-rules"/>
     <topicref href="gloss-ditamap.dita" keys="gloss-ditamap"/>
     <topicref href="gloss-dtd.dita" keys="gloss-dtd"/>
 
@@ -33,6 +36,9 @@
     <!-- L -->
     <topicref href="gloss-live-preview.dita" keys="gloss-live-preview"/>
 
+    <!-- P -->
+    <topicref href="gloss-profiling.dita" keys="gloss-profiling"/>
+
     <!-- M -->
     <topicref href="gloss-map-visualizer.dita" keys="gloss-map-visualizer"/>
 
@@ -42,6 +48,7 @@
 
     <!-- S -->
     <topicref href="gloss-scroll-sync.dita" keys="gloss-scroll-sync"/>
+    <topicref href="gloss-subject-scheme.dita" keys="gloss-subject-scheme"/>
     <topicref href="gloss-smart-navigation.dita" keys="gloss-smart-navigation"/>
 
     <!-- T -->

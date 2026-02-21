@@ -118,14 +118,14 @@ DitaCraft uses a custom XML parser based on `fast-xml-parser` or similar librari
 
 **Capabilities:**
 ```
-✅ Well-formedness checking
-✅ Element structure validation
-✅ Attribute parsing
-✅ No external dependencies
-✅ Cross-platform
-❌ No DTD validation
-❌ No schema validation
-❌ Limited error details
+? Well-formedness checking
+? Element structure validation
+? Attribute parsing
+? No external dependencies
+? Cross-platform
+? No DTD validation
+? No schema validation
+? Limited error details
 ```
 
 **Pros:**
@@ -167,15 +167,15 @@ xmllint --valid --noout --catalogs file.dita
 
 **Capabilities:**
 ```
-✅ Well-formedness checking
-✅ DTD validation
-✅ XSD Schema validation
-✅ XML Catalog support
-✅ Detailed error messages
-✅ Line/column information
-❌ Requires installation
-❌ Catalog configuration needed
-❌ Platform-specific binaries
+? Well-formedness checking
+? DTD validation
+? XSD Schema validation
+? XML Catalog support
+? Detailed error messages
+? Line/column information
+? Requires installation
+? Catalog configuration needed
+? Platform-specific binaries
 ```
 
 **Pros:**
@@ -242,17 +242,17 @@ dita -v --input=file.dita --format=html5 2>&1 | grep -E "(ERROR|WARN)"
 
 **Capabilities:**
 ```
-✅ Full DITA validation
-✅ DTD validation with bundled DTDs
-✅ Conref resolution validation
-✅ Keyref validation
-✅ Cross-file reference checking
-✅ Specialization support
-✅ DITA-OT error codes (DOTXxxxE)
-❌ Requires DITA-OT installation
-❌ Slower than other methods
-❌ Output parsing complexity
-❌ Not suitable for real-time validation
+? Full DITA validation
+? DTD validation with bundled DTDs
+? Conref resolution validation
+? Keyref validation
+? Cross-file reference checking
+? Specialization support
+? DITA-OT error codes (DOTXxxxE)
+? Requires DITA-OT installation
+? Slower than other methods
+? Output parsing complexity
+? Not suitable for real-time validation
 ```
 
 **Pros:**
@@ -321,13 +321,13 @@ Bundle DITA DTDs directly with the extension:
 
 ```
 ditacraft/
-├── resources/
-│   └── dtd/
-│       ├── base/
-│       │   ├── dtd/
-│       │   └── rng/
-│       ├── technicalContent/
-│       └── catalog-dita.xml
++-- resources/
+�   +-- dtd/
+�       +-- base/
+�       �   +-- dtd/
+�       �   +-- rng/
+�       +-- technicalContent/
+�       +-- catalog-dita.xml
 ```
 
 **Pros:**
@@ -427,14 +427,14 @@ Use Schematron rules for DITA-specific semantic validation beyond what DTDs can 
 
 **Capabilities:**
 ```
-✅ Custom validation rules
-✅ Semantic validation
-✅ Cross-reference checking
-✅ Business rule enforcement
-✅ Accessibility checks
-❌ Requires Schematron processor
-❌ Additional dependency
-❌ Rule authoring complexity
+? Custom validation rules
+? Semantic validation
+? Cross-reference checking
+? Business rule enforcement
+? Accessibility checks
+? Requires Schematron processor
+? Additional dependency
+? Rule authoring complexity
 ```
 
 **Tools:**
@@ -475,14 +475,14 @@ Implement or integrate a DITA-aware Language Server that provides validation as 
 
 **Capabilities:**
 ```
-✅ Real-time validation
-✅ Rich editor integration
-✅ Completion/hover/go-to
-✅ Standardized protocol
-✅ Reusable across editors
-❌ Complex to implement
-❌ No existing DITA LSP
-❌ Performance overhead
+? Real-time validation
+? Rich editor integration
+? Completion/hover/go-to
+? Standardized protocol
+? Reusable across editors
+? Complex to implement
+? No existing DITA LSP
+? Performance overhead
 ```
 
 **Implementation Effort:**
@@ -494,17 +494,17 @@ Creating a full DITA LSP would be a significant project (estimated 3-6 months fo
 
 | Approach | Well-formed | DTD Valid | DITA Semantic | Cross-file | Real-time | Dependencies | Effort |
 |----------|-------------|-----------|---------------|------------|-----------|--------------|--------|
-| Built-in Parser | ✅ | ❌ | ❌ | ❌ | ✅ | None | Low |
-| xmllint | ✅ | ✅ | ❌ | ❌ | ✅ | External | Low |
-| DITA-OT | ✅ | ✅ | ✅ | ✅ | ❌ | External | Medium |
-| Bundled DTDs | ✅ | ✅ | ❌ | ❌ | ✅ | Bundled | Medium |
-| Schematron | Partial | ❌ | ✅ | ✅ | ⚠️ | External | High |
-| Custom LSP | ✅ | ✅ | ✅ | ✅ | ✅ | Bundled | Very High |
+| Built-in Parser | ? | ? | ? | ? | ? | None | Low |
+| xmllint | ? | ? | ? | ? | ? | External | Low |
+| DITA-OT | ? | ? | ? | ? | ? | External | Medium |
+| Bundled DTDs | ? | ? | ? | ? | ? | Bundled | Medium |
+| Schematron | Partial | ? | ? | ? | ?? | External | High |
+| Custom LSP | ? | ? | ? | ? | ? | Bundled | Very High |
 
 ### Legend:
-- ✅ Full support
-- ⚠️ Partial/conditional support
-- ❌ Not supported
+- ? Full support
+- ?? Partial/conditional support
+- ? Not supported
 
 ---
 
@@ -513,43 +513,43 @@ Creating a full DITA LSP would be a significant project (estimated 3-6 months fo
 Based on the analysis, we recommend a **layered validation architecture** that combines multiple approaches:
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     DitaCraft Validation System                     │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                    Layer 1: Real-time                        │   │
-│  │              (As-you-type, < 100ms latency)                  │   │
-│  │                                                               │   │
-│  │  ┌─────────────────┐    ┌─────────────────┐                  │   │
-│  │  │ Built-in Parser │    │  Basic DITA     │                  │   │
-│  │  │ (Well-formed)   │    │  Rules Engine   │                  │   │
-│  │  └─────────────────┘    └─────────────────┘                  │   │
-│  └─────────────────────────────────────────────────────────────┘   │
-│                              │                                      │
-│                              ▼                                      │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                    Layer 2: On-Save                          │   │
-│  │              (Triggered on file save, < 2s)                  │   │
-│  │                                                               │   │
-│  │  ┌─────────────────┐    ┌─────────────────┐                  │   │
-│  │  │ xmllint + DTD   │ OR │ Bundled DTD     │                  │   │
-│  │  │ (if available)  │    │ Validator       │                  │   │
-│  │  └─────────────────┘    └─────────────────┘                  │   │
-│  └─────────────────────────────────────────────────────────────┘   │
-│                              │                                      │
-│                              ▼                                      │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                   Layer 3: Deep Validation                   │   │
-│  │           (On-demand or pre-publish, < 30s)                  │   │
-│  │                                                               │   │
-│  │  ┌─────────────────┐    ┌─────────────────┐                  │   │
-│  │  │   DITA-OT       │    │  Schematron     │                  │   │
-│  │  │   Validation    │    │  Rules          │                  │   │
-│  │  └─────────────────┘    └─────────────────┘                  │   │
-│  └─────────────────────────────────────────────────────────────┘   │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
++---------------------------------------------------------------------+
+�                     DitaCraft Validation System                     �
++---------------------------------------------------------------------�
+�                                                                     �
+�  +-------------------------------------------------------------+   �
+�  �                    Layer 1: Real-time                        �   �
+�  �              (As-you-type, < 100ms latency)                  �   �
+�  �                                                               �   �
+�  �  +-----------------+    +-----------------+                  �   �
+�  �  � Built-in Parser �    �  Basic DITA     �                  �   �
+�  �  � (Well-formed)   �    �  Rules Engine   �                  �   �
+�  �  +-----------------+    +-----------------+                  �   �
+�  +-------------------------------------------------------------+   �
+�                              �                                      �
+�                              ?                                      �
+�  +-------------------------------------------------------------+   �
+�  �                    Layer 2: On-Save                          �   �
+�  �              (Triggered on file save, < 2s)                  �   �
+�  �                                                               �   �
+�  �  +-----------------+    +-----------------+                  �   �
+�  �  � xmllint + DTD   � OR � Bundled DTD     �                  �   �
+�  �  � (if available)  �    � Validator       �                  �   �
+�  �  +-----------------+    +-----------------+                  �   �
+�  +-------------------------------------------------------------+   �
+�                              �                                      �
+�                              ?                                      �
+�  +-------------------------------------------------------------+   �
+�  �                   Layer 3: Deep Validation                   �   �
+�  �           (On-demand or pre-publish, < 30s)                  �   �
+�  �                                                               �   �
+�  �  +-----------------+    +-----------------+                  �   �
+�  �  �   DITA-OT       �    �  Schematron     �                  �   �
+�  �  �   Validation    �    �  Rules          �                  �   �
+�  �  +-----------------+    +-----------------+                  �   �
+�  +-------------------------------------------------------------+   �
+�                                                                     �
++---------------------------------------------------------------------+
 ```
 
 ### 5.1 Layer 1: Real-time Validation
@@ -720,7 +720,7 @@ async function validateDeep(filePath: string): Promise<Diagnostic[]> {
 
 ### 7.1 Technical Questions
 
-1. **DTD Licensing:** ✅ RESOLVED - See `docs/VALIDATION-LICENSE-ANALYSIS.md`. OASIS IPR Policy permits bundling DTDs for implementation purposes. Precedent set by DITA-OT (Apache 2.0).
+1. **DTD Licensing:** ? RESOLVED - See `docs/VALIDATION-LICENSE-ANALYSIS.md`. OASIS IPR Policy permits bundling DTDs for implementation purposes. Precedent set by DITA-OT (Apache 2.0).
 2. **Specialization Support:** How to handle custom specializations users may have?
 3. **Performance:** Can DITA-OT validation be fast enough for on-save triggers?
 4. **Catalog Resolution:** How to handle DTD resolution across different OS platforms?

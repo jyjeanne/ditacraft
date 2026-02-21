@@ -21,7 +21,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🖨️ **Print Preview** - Print-optimized preview with dedicated print button
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **810+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **1010+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (55 files, bookmap structure)
 
 ## Features
@@ -36,11 +36,11 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **Find References**: Locate all usages of an element ID across files
 - **Rename**: Rename IDs with automatic reference updates across workspace
 - **Formatting**: XML document formatting with inline/block/preformatted handling
-- **Code Actions**: Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs
+- **Code Actions**: Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs, missing otherrole, deprecated indextermref, alt attribute conversion, missing alt text
 - **Linked Editing**: Simultaneous open/close XML tag name editing
 - **Folding Ranges**: Collapse XML elements, comments, and CDATA blocks
 - **Document Links**: Clickable href/conref/keyref links with key resolution
-- **Diagnostics**: XML well-formedness, DITA structure, ID, and DITAVAL validation
+- **Diagnostics**: XML well-formedness, DITA structure, ID, cross-reference, DITA rules (18 Schematron-equivalent rules), profiling/subject scheme, and DITAVAL validation
 
 ### 📝 **DITA Editing**
 - Syntax highlighting for `.dita`, `.ditamap`, `.bookmap`, and `.ditaval` files
@@ -404,6 +404,11 @@ The default cSpell configuration includes:
 | `ditacraft.validationEngine` | string | `"built-in"` | Validation engine (built-in/typesxml/xmllint) |
 | `ditacraft.ditaOtArgs` | array | `[]` | Custom DITA-OT arguments |
 | `ditacraft.enableSnippets` | boolean | `true` | Enable code snippets |
+| `ditacraft.maxNumberOfProblems` | number | `100` | Maximum diagnostics per file |
+| `ditacraft.ditaRulesEnabled` | boolean | `true` | Enable Schematron-equivalent DITA rules |
+| `ditacraft.ditaRulesCategories` | string[] | all | Rule categories to activate (mandatory, recommendation, authoring, accessibility) |
+| `ditacraft.crossRefValidationEnabled` | boolean | `true` | Validate cross-file references (href, conref, keyref) |
+| `ditacraft.subjectSchemeValidationEnabled` | boolean | `true` | Validate attribute values against subject schemes |
 
 📖 **[Full Configuration Guide](CONFIGURATION.md)**
 
@@ -510,17 +515,23 @@ ditacraft/
 │   │   │   ├── references.ts    # Find references
 │   │   │   ├── rename.ts        # Rename with reference updates
 │   │   │   ├── formatting.ts    # XML formatting
-│   │   │   ├── codeActions.ts   # Quick fixes
+│   │   │   ├── codeActions.ts   # Quick fixes (9 actions)
 │   │   │   ├── linkedEditing.ts # Tag name sync editing
 │   │   │   ├── folding.ts       # Folding ranges
-│   │   │   └── documentLinks.ts # Clickable links
-│   │   ├── services/            # Key space resolution service
-│   │   ├── utils/               # Reference parser, workspace scanner
-│   │   └── data/                # DITA schema data
-│   └── test/                    # Server test suites (190 tests)
+│   │   │   ├── documentLinks.ts # Clickable links
+│   │   │   ├── crossRefValidation.ts    # Cross-file reference validation
+│   │   │   ├── ditaRulesValidator.ts    # 18 Schematron-equivalent DITA rules
+│   │   │   └── profilingValidation.ts   # Subject scheme controlled values
+│   │   ├── services/            # Key space & subject scheme services
+│   │   ├── utils/               # XML tokenizer, reference parser, workspace scanner, version detector
+│   │   └── data/                # DITA schema & specialization data
+│   └── test/                    # Server test suites (398 tests)
 ├── dtds/                        # DITA 1.3 DTD files
-├── docs/                        # Specs & user guide (55 DITA files)
+├── docs/                        # Documentation
+│   ├── architecture.puml        # Architecture diagram (PlantUML)
+│   └── user-guide/              # DITA user guide (55 files, bookmap structure)
 ├── ARCHITECTURE.md
+├── DITA_LSP_ARCHITECTURE.md     # LSP server architecture documentation
 ├── ROADMAP.md
 ├── TEST_PLAN.md                 # LSP feature test plan
 └── CHANGELOG.md
@@ -538,8 +549,9 @@ DitaCraft includes comprehensive test coverage across client and server:
 - Activity bar views: DITA Explorer, Key Space, Diagnostics, file decorations
 - Map hierarchy parser (25 tests)
 
-**LSP Server Tests (190 tests, 94.3% coverage):**
+**LSP Server Tests (398 tests):**
 - Reference parser (40 tests) - all 6 exported parsing functions
+- XML tokenizer (18 tests) - state machine, error recovery, context detection
 - XML formatting (20 tests) - indentation, inline, preformatted, edge cases
 - Folding ranges (10 tests) - elements, comments, CDATA, CRLF
 - Workspace scanner (8 tests) - offset-to-position conversion
@@ -548,8 +560,14 @@ DitaCraft includes comprehensive test coverage across client and server:
 - Hover (17 tests) - documentation, fallback, non-tag, DITAVAL elements
 - Document symbols (13 tests) - outline, titles, maps, self-closing
 - Workspace symbols (8 tests) - cross-file search, in-memory preference
-- Code actions (14 tests) - all 5 quick fixes + edge cases
+- Code actions (14 tests) - all 9 quick fixes + edge cases
 - Linked editing (15 tests) - tag pairing, nesting, boundaries
+- Cross-reference validation - href, conref, keyref target validation
+- DITA rules validator - 18 Schematron-equivalent rules (4 categories)
+- Profiling validation - subject scheme controlled value checks
+- Subject scheme service - parsing, caching, value constraints
+- DITA specialization - class matching, utility functions
+- DITA version detector - version detection from content
 
 **Running Tests:**
 ```bash
@@ -698,14 +716,19 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 ## Recent Updates
 
 ### Version 0.6.0 (Current)
-**Project Management & Activity Bar Views**
-- **DITA Explorer** — Tree view of all workspace maps with expandable hierarchy, type icons, context menus
-- **Key Space View** — Defined/undefined/unused keys with usage navigation
-- **Diagnostics View** — Aggregated DITA issues, group by file or severity
-- **File Decorations** — Error/warning badges on tree items
-- **Shared Utilities** — Extracted map hierarchy parser, key usage scanner, shared `isDitaFilePath()`
-- **72 New Tests** — 5 test files covering all new views and utilities
-- **810+ Total Tests** — Client (620) + Server (190)
+**Project Management, Activity Bar Views & Advanced LSP**
+- **Activity Bar Views** — DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
+- **File Decorations** — Error/warning badges on tree items from validation diagnostics
+- **Cross-Reference Validation** — Validates href, conref, keyref, and conkeyref targets across files (6 diagnostic codes)
+- **DITA Rules Engine** — 18 Schematron-equivalent rules in 4 categories (mandatory, recommendation, authoring, accessibility)
+- **Profiling Validation** — Subject scheme controlled value validation with automatic scheme discovery
+- **Subject Scheme Service** — Parses subject scheme maps for controlled vocabularies with caching
+- **Error-Tolerant XML Tokenizer** — State-machine tokenizer with error recovery for malformed XML
+- **DITA Version Detection** — Auto-detects DITA version from `@DITAArchVersion` or DOCTYPE
+- **4 New Code Actions** — Add missing `otherrole`, remove deprecated `<indextermref>`, convert `alt` attribute to element, add missing `<alt>` to `<image>`
+- **5 New Settings** — `maxNumberOfProblems`, `ditaRulesEnabled`, `ditaRulesCategories`, `crossRefValidationEnabled`, `subjectSchemeValidationEnabled`
+- **LSP Architecture Documentation** — Comprehensive `DITA_LSP_ARCHITECTURE.md` describing server internals
+- **1010+ Total Tests** — Client (620) + Server (398)
 
 ### Version 0.5.0
 **DITA Language Server with IntelliSense**
@@ -722,7 +745,7 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 - ✅ **Folding & Document Links** - Collapsible ranges and clickable references
 - ✅ **Key Space Resolution Fix** - Improved root map discovery across nested directories
 - ✅ **cSpell Auto-Prompt** - Suggests cSpell setup when extension detected without config
-- ✅ **Server Test Suite** - 190 standalone Mocha tests (94.3% coverage, no VS Code dependency)
+- ✅ **Server Test Suite** - 190 standalone Mocha tests (no VS Code dependency)
 - ✅ **737+ Total Tests** - Client (547) + Server (190) with CI integration
 
 ### Version 0.4.2
@@ -791,9 +814,8 @@ We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md]
 - **v0.3.0** - Developer Experience & Quality ✅ **COMPLETE**
 - **v0.4.0** - Enhanced Preview, Build Output & Map Visualizer ✅ **COMPLETE**
 - **v0.5.0** - IntelliSense & Content Assistance (LSP, DITAVAL, 737+ tests) ✅ **COMPLETE**
-- **v0.6.0** - Project Management & Views (DITA Explorer, Key Space, Diagnostics) ✅ **COMPLETE**
-- **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation) **NEXT**
-- **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, cross-file validation)
+- **v0.6.0** - Project Management, Views & Advanced LSP (1010+ tests) ✅ **COMPLETE**
+- **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, workspace-level analysis) **NEXT**
 - **v0.8.0** - Refactoring & Productivity (rename keys, templates)
 - **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)
 

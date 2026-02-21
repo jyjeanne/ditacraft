@@ -18,6 +18,17 @@ const CODES = {
     DUPLICATE_ID: 'DITA-ID-001',
 };
 
+// Diagnostic codes from ditaRulesValidator.ts (Phase 6)
+const RULE_CODES = {
+    ROLE_OTHER_MISSING_OTHERROLE: 'DITA-SCH-001',
+    DEPRECATED_INDEXTERMREF: 'DITA-SCH-003',
+    DEPRECATED_ALT_ATTR: 'DITA-SCH-011',
+    IMAGE_MISSING_ALT: 'DITA-SCH-030',
+};
+
+/** Sources that we handle code actions for. */
+const HANDLED_SOURCES = new Set(['dita-lsp', 'dita-rules']);
+
 /**
  * Handle Code Action requests.
  * Provides quick fixes for diagnostics produced by the validation engine.
@@ -34,7 +45,7 @@ export function handleCodeActions(
 
     for (const diagnostic of params.context.diagnostics) {
         // Only process diagnostics from our server
-        if (diagnostic.source !== 'dita-lsp') continue;
+        if (!diagnostic.source || !HANDLED_SOURCES.has(diagnostic.source)) continue;
 
         const fixes = getFixesForDiagnostic(diagnostic, text, document);
         for (const fix of fixes) {
@@ -65,6 +76,14 @@ function getFixesForDiagnostic(
             return fixEmptyElement(diagnostic, text, document);
         case CODES.DUPLICATE_ID:
             return fixDuplicateId(diagnostic, text, document);
+        case RULE_CODES.ROLE_OTHER_MISSING_OTHERROLE:
+            return fixMissingOtherrole(diagnostic, text, document);
+        case RULE_CODES.DEPRECATED_INDEXTERMREF:
+            return fixDeprecatedIndextermref(diagnostic, text, document);
+        case RULE_CODES.DEPRECATED_ALT_ATTR:
+            return fixDeprecatedAltAttr(diagnostic, text, document);
+        case RULE_CODES.IMAGE_MISSING_ALT:
+            return fixMissingAlt(diagnostic, text, document);
         default:
             return [];
     }
@@ -253,6 +272,216 @@ function fixDuplicateId(
                         document.positionAt(idValueEnd)
                     ),
                     newText: newId,
+                }],
+            },
+        },
+    }];
+}
+
+// =============================================
+//  Quick fixes for DITA rules (Phase 10)
+// =============================================
+
+/**
+ * Fix DITA-SCH-001: Insert otherrole="" when role="other" is present.
+ */
+function fixMissingOtherrole(
+    diagnostic: Diagnostic,
+    text: string,
+    document: TextDocument
+): CodeAction[] {
+    const startOffset = document.offsetAt(diagnostic.range.start);
+    const textAtPos = text.slice(startOffset);
+
+    // Find role="other" and insert otherrole="" after it
+    const roleMatch = textAtPos.match(/\brole\s*=\s*["']other["']/);
+    if (!roleMatch) return [];
+
+    const insertOffset = startOffset + roleMatch.index! + roleMatch[0].length;
+    const insertPos = document.positionAt(insertOffset);
+
+    return [{
+        title: 'Add otherrole attribute',
+        kind: CodeActionKind.QuickFix,
+        edit: {
+            changes: {
+                [document.uri]: [{
+                    range: Range.create(insertPos, insertPos),
+                    newText: ' otherrole=""',
+                }],
+            },
+        },
+    }];
+}
+
+/**
+ * Fix DITA-SCH-003: Delete the deprecated <indextermref> element.
+ */
+function fixDeprecatedIndextermref(
+    diagnostic: Diagnostic,
+    text: string,
+    document: TextDocument
+): CodeAction[] {
+    const startOffset = document.offsetAt(diagnostic.range.start);
+    const textAtPos = text.slice(startOffset);
+
+    // Find the full element (self-closing or with content)
+    const elemMatch = textAtPos.match(/<indextermref\b[^>]*\/>/);
+    if (!elemMatch) return [];
+
+    let deleteStart = startOffset;
+    let deleteEnd = startOffset + elemMatch[0].length;
+
+    // Clean up surrounding whitespace
+    while (deleteStart > 0 && (text[deleteStart - 1] === ' ' || text[deleteStart - 1] === '\t')) {
+        deleteStart--;
+    }
+    if (deleteEnd < text.length && text[deleteEnd] === '\r') deleteEnd++;
+    if (deleteEnd < text.length && text[deleteEnd] === '\n') deleteEnd++;
+
+    return [{
+        title: 'Remove deprecated <indextermref>',
+        kind: CodeActionKind.QuickFix,
+        edit: {
+            changes: {
+                [document.uri]: [{
+                    range: Range.create(
+                        document.positionAt(deleteStart),
+                        document.positionAt(deleteEnd)
+                    ),
+                    newText: '',
+                }],
+            },
+        },
+    }];
+}
+
+/**
+ * Fix DITA-SCH-011: Convert alt="text" attribute to <alt>text</alt> child element.
+ */
+function fixDeprecatedAltAttr(
+    diagnostic: Diagnostic,
+    text: string,
+    document: TextDocument
+): CodeAction[] {
+    const startOffset = document.offsetAt(diagnostic.range.start);
+    const textAtPos = text.slice(startOffset);
+
+    // Find the <image> tag and extract alt attribute value
+    const imageMatch = textAtPos.match(/<image\b([^>]*)/);
+    if (!imageMatch) return [];
+
+    const attrs = imageMatch[1];
+    const altMatch = attrs.match(/\balt\s*=\s*["']([^"']*)["']/);
+    if (!altMatch) return [];
+
+    const altValue = altMatch[1];
+
+    // Remove the alt attribute from the tag
+    const altAttrStart = startOffset + imageMatch[0].indexOf(altMatch[0]);
+    const altAttrEnd = altAttrStart + altMatch[0].length;
+
+    // Also remove leading space before the attribute
+    let cleanStart = altAttrStart;
+    while (cleanStart > 0 && text[cleanStart - 1] === ' ') {
+        cleanStart--;
+    }
+
+    // Find where to insert the <alt> element — after the image opening tag
+    const tagEnd = text.indexOf('>', startOffset);
+    if (tagEnd === -1) return [];
+
+    const isSelfClosing = text[tagEnd - 1] === '/';
+    const edits = [];
+
+    // Remove alt attribute (with leading space)
+    edits.push({
+        range: Range.create(
+            document.positionAt(cleanStart),
+            document.positionAt(altAttrEnd)
+        ),
+        newText: '',
+    });
+
+    if (isSelfClosing) {
+        // Convert self-closing to open/close with <alt> child
+        // Replace /> with ><alt>text</alt></image>
+        edits.push({
+            range: Range.create(
+                document.positionAt(tagEnd - 1),
+                document.positionAt(tagEnd + 1)
+            ),
+            newText: `><alt>${altValue}</alt></image>`,
+        });
+    } else {
+        // Insert <alt> element after the opening tag >
+        const insertPos = document.positionAt(tagEnd + 1);
+        edits.push({
+            range: Range.create(insertPos, insertPos),
+            newText: `<alt>${altValue}</alt>`,
+        });
+    }
+
+    return [{
+        title: 'Convert alt attribute to <alt> element',
+        kind: CodeActionKind.QuickFix,
+        edit: {
+            changes: {
+                [document.uri]: edits,
+            },
+        },
+    }];
+}
+
+/**
+ * Fix DITA-SCH-030: Insert empty <alt></alt> child element in <image>.
+ */
+function fixMissingAlt(
+    diagnostic: Diagnostic,
+    text: string,
+    document: TextDocument
+): CodeAction[] {
+    const startOffset = document.offsetAt(diagnostic.range.start);
+    const textAtPos = text.slice(startOffset);
+
+    // Find the <image> tag
+    const imageMatch = textAtPos.match(/<image\b[^>]*?(\/?)>/);
+    if (!imageMatch) return [];
+
+    const isSelfClosing = imageMatch[1] === '/';
+    const tagEnd = startOffset + imageMatch[0].length;
+
+    if (isSelfClosing) {
+        // Convert self-closing to open/close with <alt> child
+        // Replace /> with ><alt></alt></image>
+        const slashPos = tagEnd - 2; // position of '/'
+        return [{
+            title: 'Add <alt> element',
+            kind: CodeActionKind.QuickFix,
+            edit: {
+                changes: {
+                    [document.uri]: [{
+                        range: Range.create(
+                            document.positionAt(slashPos),
+                            document.positionAt(tagEnd)
+                        ),
+                        newText: '><alt></alt></image>',
+                    }],
+                },
+            },
+        }];
+    }
+
+    // Non-self-closing — insert <alt> after the opening tag
+    const insertPos = document.positionAt(tagEnd);
+    return [{
+        title: 'Add <alt> element',
+        kind: CodeActionKind.QuickFix,
+        edit: {
+            changes: {
+                [document.uri]: [{
+                    range: Range.create(insertPos, insertPos),
+                    newText: '<alt></alt>',
                 }],
             },
         },

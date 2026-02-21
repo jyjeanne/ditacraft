@@ -2,12 +2,12 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="validation">
     <title>Validation</title>
-    <shortdesc>DitaCraft validates DITA files against XML syntax and DTD specifications in real-time.</shortdesc>
+    <shortdesc>DitaCraft validates DITA files against XML syntax, DTD specifications, cross-references, DITA rules, and profiling constraints in real-time.</shortdesc>
 
     <conbody>
         <section id="validation-overview">
             <title>Validation Overview</title>
-            <p>DitaCraft provides comprehensive validation to ensure your DITA content is well-formed and conforms to DITA specifications. Validation runs automatically as you edit and can also be triggered manually.</p>
+            <p>DitaCraft provides comprehensive validation to ensure your DITA content is well-formed, conforms to DITA specifications, uses valid cross-references, follows DITA best practices, and respects profiling constraints. Validation runs automatically as you edit and can also be triggered manually.</p>
         </section>
 
         <section id="what-is-validated">
@@ -28,6 +28,18 @@
                 <dlentry>
                     <dt>ID Uniqueness</dt>
                     <dd>Checks that ID attributes are unique within a topic.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Cross-Reference Validation</dt>
+                    <dd>Validates href, conref, keyref, and conkeyref attributes to ensure target files exist, topic and element IDs are present, and keys are defined in the key space. See <xref keyref="cross-ref-validation"/> for details.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>DITA Rules Engine</dt>
+                    <dd>18 Schematron-equivalent rules in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA specification requirements and best practices. Rules are version-aware and include quick fixes. See <xref keyref="dita-rules"/> for details.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Profiling Validation</dt>
+                    <dd>When a subject scheme map is present, validates that profiling attribute values (audience, platform, product, etc.) use only the allowed values defined by the scheme. See <xref keyref="profiling-validation"/> for details.</dd>
                 </dlentry>
             </dl>
         </section>
@@ -68,6 +80,9 @@
                 <li>XML well-formedness (mismatched tags, invalid syntax)</li>
                 <li>DITA structure validation (element context, required attributes)</li>
                 <li>ID uniqueness within documents</li>
+                <li>Cross-reference validation (href, conref, keyref, conkeyref)</li>
+                <li>DITA rules (specification compliance, best practices, accessibility)</li>
+                <li>Profiling validation (subject scheme constraints)</li>
             </ul>
             <p>LSP diagnostics appear with the source label <codeph>dita-lsp</codeph> in the Problems panel, while client-side validations appear with the <codeph>dita</codeph> source label.</p>
         </section>

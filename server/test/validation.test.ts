@@ -12,6 +12,10 @@ function defaultSettings(): DitaCraftSettings {
         maxLinkMatches: 50,
         maxNumberOfProblems: 100,
         logLevel: 'info',
+        ditaRulesEnabled: true,
+        ditaRulesCategories: ['mandatory', 'recommendation', 'authoring', 'accessibility'],
+        crossRefValidationEnabled: true,
+        subjectSchemeValidationEnabled: true,
     };
 }
 

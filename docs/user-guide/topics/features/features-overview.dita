@@ -42,6 +42,18 @@
                     <dd>Full key space support for keyref and conkeyref resolution with improved root map discovery and intelligent key definition lookup.</dd>
                 </dlentry>
                 <dlentry>
+                    <dt>Cross-Reference Validation</dt>
+                    <dd>Validates href, conref, keyref, and conkeyref references across your workspace. Catches broken links, missing target files, and undefined keys before publishing.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>DITA Rules Engine</dt>
+                    <dd>18 Schematron-equivalent rules organized in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA best practices and specification requirements with version-aware detection.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Profiling and Subject Scheme Validation</dt>
+                    <dd>Validates profiling attribute values (audience, platform, product, etc.) against subject scheme constraints, ensuring controlled vocabularies are respected.</dd>
+                </dlentry>
+                <dlentry>
                     <dt>Activity Bar Views</dt>
                     <dd>Dedicated DitaCraft sidebar with three tree views: DITA Explorer (map hierarchy browser), Key Space (defined/undefined/unused keys), and Diagnostics (validation issues grouped by file or severity). Includes file decoration badges for validation status.</dd>
                 </dlentry>
@@ -60,7 +72,7 @@
                 <li><b>Folding:</b> Collapse sections, steps, and other block elements</li>
                 <li><b>Outline View:</b> Navigate document structure in the Outline panel</li>
                 <li><b>Workspace Symbols:</b> Search for elements across all open files with <uicontrol>Ctrl+T</uicontrol></li>
-                <li><b>Code Actions:</b> Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, and duplicate IDs</li>
+                <li><b>Code Actions:</b> Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs, DITA rules violations (add <codeph>@otherrole</codeph>, remove deprecated <codeph>&lt;indextermref&gt;</codeph>, convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element, add missing <codeph>&lt;alt&gt;</codeph>)</li>
                 <li><b>XML Formatting:</b> Format DITA documents with proper indentation and inline/block handling</li>
             </ul>
         </section>
@@ -72,7 +84,10 @@
                 <li><b>Real-time Validation:</b> LSP-powered diagnostics appear as you type with debounced updates</li>
                 <li><b>Multiple Engines:</b> Choose from built-in (default), TypesXML, or xmllint</li>
                 <li><b>Detailed Diagnostics:</b> Line-precise error messages with fix suggestions</li>
-                <li><b>Code Actions:</b> Quick fixes for common issues (missing DOCTYPE, IDs, titles)</li>
+                <li><b>Code Actions:</b> Quick fixes for common issues (missing DOCTYPE, IDs, titles) and DITA rules violations</li>
+                <li><b>Cross-Reference Validation:</b> Validates href, conref, keyref, and conkeyref targets across files</li>
+                <li><b>DITA Rules Engine:</b> 18 Schematron-equivalent rules for specification compliance and best practices</li>
+                <li><b>Profiling Validation:</b> Subject scheme-based validation of profiling attribute values</li>
                 <li><b>Rate Limiting:</b> Protection against excessive validation requests</li>
             </ul>
         </section>

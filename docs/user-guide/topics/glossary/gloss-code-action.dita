@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-code-action">
+    <glossterm>Code Action</glossterm>
+    <glossdef>
+        <p>A quick fix or automated refactoring offered by the Language Server Protocol when a diagnostic issue is detected. In DitaCraft, code actions appear via the lightbulb icon or Ctrl+. shortcut and include fixes such as adding missing DOCTYPE, fixing duplicate IDs, adding accessibility attributes, and removing deprecated elements.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/intellisense.dita"/>
+        <link href="../features/dita-rules.dita"/>
+    </related-links>
+</glossentry>

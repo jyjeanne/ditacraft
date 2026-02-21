@@ -59,6 +59,10 @@
                 <li><b>Add Missing Title:</b> Inserts a <codeph>&lt;title&gt;</codeph> element where required</li>
                 <li><b>Remove Empty Element:</b> Cleans up empty elements that have no content</li>
                 <li><b>Fix Duplicate ID:</b> Offers to rename a duplicate ID to a unique value</li>
+                <li><b>Add <codeph>@otherrole</codeph>:</b> Inserts the missing <codeph>otherrole</codeph> attribute when <codeph>role="other"</codeph> is detected</li>
+                <li><b>Remove Deprecated <codeph>&lt;indextermref&gt;</codeph>:</b> Removes the deprecated element flagged by the DITA Rules Engine</li>
+                <li><b>Convert <codeph>alt</codeph> Attribute to <codeph>&lt;alt&gt;</codeph> Element:</b> Migrates the deprecated <codeph>alt</codeph> attribute syntax on <codeph>&lt;image&gt;</codeph> to the modern <codeph>&lt;alt&gt;</codeph> child element</li>
+                <li><b>Add Missing <codeph>&lt;alt&gt;</codeph>:</b> Inserts an empty <codeph>&lt;alt&gt;</codeph> child element inside <codeph>&lt;image&gt;</codeph> for accessibility compliance</li>
             </ul>
         </section>
 

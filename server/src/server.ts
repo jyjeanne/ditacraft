@@ -53,7 +53,12 @@ import { handlePrepareRename, handleRename } from './features/rename';
 import { handleFoldingRanges } from './features/folding';
 import { handleDocumentLinks, handleDocumentLinkResolve } from './features/documentLinks';
 import { handleLinkedEditingRange } from './features/linkedEditing';
+import { validateCrossReferences } from './features/crossRefValidation';
+import { validateDitaRules } from './features/ditaRulesValidator';
 import { KeySpaceService } from './services/keySpaceService';
+import { SubjectSchemeService } from './services/subjectSchemeService';
+import { validateProfilingAttributes } from './features/profilingValidation';
+import { detectDitaVersion } from './utils/ditaVersionDetector';
 import { URI } from 'vscode-uri';
 
 // Create LSP connection using IPC transport
@@ -65,6 +70,7 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let keySpaceService: KeySpaceService | undefined;
+const subjectSchemeService = new SubjectSchemeService();
 
 connection.onInitialize((params: InitializeParams): InitializeResult => {
     const capabilities = params.capabilities;
@@ -103,7 +109,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
             },
             completionProvider: {
                 resolveProvider: false,
-                triggerCharacters: ['<', ' ', '"', '='],
+                triggerCharacters: ['<', ' ', '"', '=', '/', '#'],
             },
             hoverProvider: true,
             documentSymbolProvider: true,
@@ -164,6 +170,7 @@ connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
         const filePath = URI.parse(change.uri).fsPath;
         if (filePath.endsWith('.ditamap') || filePath.endsWith('.bookmap')) {
             keySpaceService?.invalidateForFile(filePath);
+            subjectSchemeService.invalidate(filePath);
         }
     }
 });
@@ -171,6 +178,7 @@ connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
 // Shutdown cleanup
 connection.onShutdown(() => {
     keySpaceService?.shutdown();
+    subjectSchemeService.shutdown();
 });
 
 // Configuration change handler
@@ -199,17 +207,58 @@ connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Pr
     const settings = await getDocumentSettings(document.uri);
     const diagnostics = validateDITADocument(document, settings);
 
+    const text = document.getText();
+
+    // Cross-reference validation (async — needs file system + key space)
+    if (settings.crossRefValidationEnabled !== false) {
+        const xrefDiags = await validateCrossReferences(
+            text, document.uri,
+            keySpaceService, settings.maxNumberOfProblems
+        );
+        diagnostics.push(...xrefDiags);
+    }
+
+    // Register subject scheme maps discovered during key space build
+    if (keySpaceService) {
+        const filePath = URI.parse(document.uri).fsPath;
+        const schemePaths = await keySpaceService.getSubjectSchemePaths(filePath);
+        subjectSchemeService.registerSchemes(schemePaths);
+    }
+
+    // Profiling attribute validation (subject scheme constraints)
+    if (settings.subjectSchemeValidationEnabled !== false) {
+        const profilingDiags = validateProfilingAttributes(
+            text, subjectSchemeService, settings.maxNumberOfProblems
+        );
+        diagnostics.push(...profilingDiags);
+    }
+
+    // Schematron-equivalent DITA rules (auto-detect DITA version)
+    const ditaVersion = detectDitaVersion(text);
+    const ruleDiags = validateDitaRules(text, {
+        enabled: settings.ditaRulesEnabled !== false,
+        categories: settings.ditaRulesCategories ?? ['mandatory', 'recommendation', 'authoring', 'accessibility'],
+        ditaVersion,
+    });
+    diagnostics.push(...ruleDiags);
+
+    // Cap total diagnostics
+    const maxProblems = settings.maxNumberOfProblems ?? 100;
+    const items = diagnostics.length > maxProblems
+        ? diagnostics.slice(0, maxProblems)
+        : diagnostics;
+
     return {
         kind: DocumentDiagnosticReportKind.Full,
-        items: diagnostics,
+        items,
     };
 });
 
-// Completion handler
-connection.onCompletion((params: CompletionParams) => handleCompletion(params, documents));
+// Completion handler (async — supports key space resolution for keyref/conkeyref)
+connection.onCompletion((params: CompletionParams) => handleCompletion(params, documents, keySpaceService, subjectSchemeService));
 
-// Hover handler
-connection.onHover((params: HoverParams) => handleHover(params, documents));
+// Hover handler (async — supports key space resolution for keyref/conkeyref)
+connection.onHover((params: HoverParams) => handleHover(params, documents, keySpaceService));
 
 // Document symbols handler
 connection.onDocumentSymbol((params: DocumentSymbolParams) => handleDocumentSymbol(params, documents));

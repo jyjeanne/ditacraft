@@ -51,6 +51,24 @@
         </topicmeta>
     </topicref>
 
+    <topicref href="cross-ref-validation.dita" keys="cross-ref-validation">
+        <topicmeta>
+            <navtitle>Cross-Reference Validation</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="dita-rules.dita" keys="dita-rules">
+        <topicmeta>
+            <navtitle>DITA Rules Engine</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="profiling-validation.dita" keys="profiling-validation">
+        <topicmeta>
+            <navtitle>Profiling Validation</navtitle>
+        </topicmeta>
+    </topicref>
+
     <topicref href="activity-bar.dita" keys="activity-bar">
         <topicmeta>
             <navtitle>Activity Bar Views</navtitle>

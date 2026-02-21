@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="profiling-validation">
+    <title>Profiling and Subject Scheme Validation</title>
+    <shortdesc>DitaCraft validates profiling attribute values against subject scheme constraints, ensuring controlled vocabularies are respected.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>Subject scheme maps define controlled vocabularies for profiling attributes such as <codeph>audience</codeph>, <codeph>platform</codeph>, <codeph>product</codeph>, and <codeph>otherprops</codeph>. When a subject scheme is present in your workspace, DitaCraft validates that profiling attribute values use only the allowed values defined by the scheme.</p>
+        </section>
+
+        <section id="how-it-works">
+            <title>How It Works</title>
+            <ol>
+                <li>DitaCraft automatically discovers subject scheme maps in your workspace</li>
+                <li>The Subject Scheme Service parses the scheme and extracts the controlled values for each attribute</li>
+                <li>When you use profiling attributes in your DITA content, their values are checked against the allowed values</li>
+                <li>Invalid values are reported with a diagnostic that lists the valid options</li>
+            </ol>
+        </section>
+
+        <section id="validated-attributes">
+            <title>Validated Attributes</title>
+            <p>The following profiling attributes are validated when controlled by a subject scheme:</p>
+            <ul>
+                <li><codeph>audience</codeph></li>
+                <li><codeph>platform</codeph></li>
+                <li><codeph>product</codeph></li>
+                <li><codeph>otherprops</codeph></li>
+                <li><codeph>props</codeph></li>
+                <li><codeph>deliveryTarget</codeph></li>
+            </ul>
+            <p>Attributes that are not constrained by a subject scheme are not validated — you can use any value freely.</p>
+        </section>
+
+        <section id="subject-scheme-example">
+            <title>Subject Scheme Example</title>
+            <p>A subject scheme map that constrains the <codeph>platform</codeph> attribute:</p>
+            <codeblock outputclass="language-xml">&lt;subjectScheme&gt;
+    &lt;subjectdef keys="platform-values"&gt;
+        &lt;subjectdef keys="windows"/&gt;
+        &lt;subjectdef keys="linux"/&gt;
+        &lt;subjectdef keys="macos"/&gt;
+    &lt;/subjectdef&gt;
+    &lt;enumerationdef&gt;
+        &lt;attributedef name="platform"/&gt;
+        &lt;subjectdef keyref="platform-values"/&gt;
+    &lt;/enumerationdef&gt;
+&lt;/subjectScheme&gt;</codeblock>
+            <p>With this scheme active, using <codeph>platform="android"</codeph> would produce a warning because <codeph>android</codeph> is not in the allowed values list.</p>
+        </section>
+
+        <section id="diagnostic-codes">
+            <title>Diagnostic Codes</title>
+            <simpletable>
+                <sthead>
+                    <stentry>Code</stentry>
+                    <stentry>Severity</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>DITA-PROF-001</codeph></stentry>
+                    <stentry>Warning</stentry>
+                    <stentry>Attribute value not in controlled vocabulary. The diagnostic message lists the valid values.</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="configuration">
+            <title>Configuration</title>
+            <p>Subject scheme validation is enabled by default. To disable it:</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.subjectSchemeValidationEnabled": false
+}</codeblock>
+        </section>
+    </conbody>
+</concept>

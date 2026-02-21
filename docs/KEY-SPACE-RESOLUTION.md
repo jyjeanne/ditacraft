@@ -22,7 +22,7 @@ This is because these reference types require resolving keys through a **key spa
 A key space is a table mapping key names to their definitions. In DITA:
 
 1. **Keys are defined in maps** using `<keydef>` or `<topicref>` with `@keys` attribute
-2. **Keys inherit through map hierarchy** (root map → submaps)
+2. **Keys inherit through map hierarchy** (root map ? submaps)
 3. **First definition wins** (key precedence)
 4. **Keys can have scope** and conditional processing
 
@@ -59,22 +59,22 @@ A key space is a table mapping key names to their definitions. In DITA:
 ### 1. Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     DitaCraft Extension                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────┐    ┌──────────────┐    ┌───────────────┐  │
-│  │   Existing  │    │  NEW: Key    │    │   Existing    │  │
-│  │ DitaLink    │───▶│   Space      │◀───│  Workspace    │  │
-│  │  Provider   │    │   Resolver   │    │   Watcher     │  │
-│  └─────────────┘    └──────────────┘    └───────────────┘  │
-│                            │                                 │
-│                            ▼                                 │
-│                    ┌──────────────┐                         │
-│                    │   Key Space  │                         │
-│                    │    Cache     │                         │
-│                    └──────────────┘                         │
-└─────────────────────────────────────────────────────────────┘
++-------------------------------------------------------------+
+�                     DitaCraft Extension                      �
++-------------------------------------------------------------�
+�                                                              �
+�  +-------------+    +--------------+    +---------------+  �
+�  �   Existing  �    �  NEW: Key    �    �   Existing    �  �
+�  � DitaLink    �---?�   Space      �?---�  Workspace    �  �
+�  �  Provider   �    �   Resolver   �    �   Watcher     �  �
+�  +-------------+    +--------------+    +---------------+  �
+�                            �                                 �
+�                            ?                                 �
+�                    +--------------+                         �
+�                    �   Key Space  �                         �
+�                    �    Cache     �                         �
+�                    +--------------+                         �
++-------------------------------------------------------------+
 ```
 
 ### 2. Core Components
@@ -101,7 +101,7 @@ interface KeyMetadata {
 
 interface KeySpace {
   rootMap: string;                    // Root map path
-  keys: Map<string, KeyDefinition>;   // Key name → definition
+  keys: Map<string, KeyDefinition>;   // Key name ? definition
   buildTime: number;                  // When the key space was built
   mapHierarchy: string[];             // All maps in hierarchy
 }
@@ -272,17 +272,17 @@ Instead of rebuilding entire key space:
 
 | Operation | Complexity | Notes |
 |-----------|-----------|-------|
-| Build Key Space (cold) | O(M × K) | M = maps, K = keys per map |
+| Build Key Space (cold) | O(M � K) | M = maps, K = keys per map |
 | Resolve Single Key | O(1) | Hash map lookup |
 | Find Root Map | O(D) | D = directory depth |
 | Cache Invalidation | O(M) | Worst case: rebuild entire space |
-| Link Provider (per file) | O(R × log K) | R = refs in file, K = keys |
+| Link Provider (per file) | O(R � log K) | R = refs in file, K = keys |
 
 ### Space Complexity
 
 | Component | Memory Usage | Notes |
 |-----------|-------------|-------|
-| Key Space Cache | O(K × M) | K keys × M maps |
+| Key Space Cache | O(K � M) | K keys � M maps |
 | Map Hierarchy | O(M) | List of map paths |
 | File Watchers | O(W) | W watched directories |
 | Parse Buffers | O(F) | F = file size being parsed |
@@ -290,8 +290,8 @@ Instead of rebuilding entire key space:
 ### Estimated Memory for Large Projects
 
 For a DITA-OT docs-sized project (~500 keys, 50 maps):
-- Key definitions: ~500 × 200 bytes = 100 KB
-- Map hierarchy: 50 × 100 bytes = 5 KB
+- Key definitions: ~500 � 200 bytes = 100 KB
+- Map hierarchy: 50 � 100 bytes = 5 KB
 - Cache overhead: ~20 KB
 - **Total: ~125-150 KB per workspace**
 

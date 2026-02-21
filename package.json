@@ -499,6 +499,52 @@
           "maximum": 100000,
           "description": "Maximum number of link matches to process per file. Increase for very large DITA files.",
           "order": 18
+        },
+        "ditacraft.maxNumberOfProblems": {
+          "type": "number",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 1000,
+          "description": "Maximum total number of diagnostics reported per file.",
+          "order": 19
+        },
+        "ditacraft.ditaRulesEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable DITA authoring rules validation (deprecated elements, accessibility, style recommendations).",
+          "order": 20
+        },
+        "ditacraft.ditaRulesCategories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "mandatory",
+              "recommendation",
+              "authoring",
+              "accessibility"
+            ]
+          },
+          "default": [
+            "mandatory",
+            "recommendation",
+            "authoring",
+            "accessibility"
+          ],
+          "description": "Which DITA rule categories to enable. Mandatory: required by spec. Recommendation: best practices. Authoring: content quality. Accessibility: alt text, descriptions.",
+          "order": 21
+        },
+        "ditacraft.crossRefValidationEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate href, conref, keyref, and conkeyref targets (checks that referenced files and IDs exist).",
+          "order": 22
+        },
+        "ditacraft.subjectSchemeValidationEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable subject scheme controlled value validation. When a subject scheme map constrains profiling attributes, validates that only allowed values are used.",
+          "order": 23
         }
       }
     },

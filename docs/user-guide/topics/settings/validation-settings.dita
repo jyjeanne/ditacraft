@@ -2,7 +2,7 @@
 <!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
 <reference id="validation-settings">
     <title>Validation Settings</title>
-    <shortdesc>Configure validation engine and automatic validation behavior.</shortdesc>
+    <shortdesc>Configure validation engine, automatic validation, cross-reference checking, DITA rules, and profiling validation.</shortdesc>
 
     <refbody>
         <section id="validation-engine">
@@ -66,6 +66,51 @@
                 <li>Editing files that are intentionally incomplete</li>
                 <li>When you prefer manual validation control</li>
             </ul>
+        </section>
+
+        <section id="max-problems">
+            <title>ditacraft.maxNumberOfProblems</title>
+            <p><b>Type:</b> Number</p>
+            <p><b>Default:</b> <codeph>100</codeph></p>
+            <p>The maximum number of diagnostic problems reported per file. Increase this value if you work with very large files and need to see all issues. Decrease it if the Problems panel becomes overwhelming.</p>
+        </section>
+
+        <section id="dita-rules-enabled">
+            <title>ditacraft.ditaRulesEnabled</title>
+            <p><b>Type:</b> Boolean</p>
+            <p><b>Default:</b> <codeph>true</codeph></p>
+            <p>Enable or disable the DITA Rules Engine. When enabled, DitaCraft validates your content against 18 Schematron-equivalent rules covering specification compliance, best practices, and accessibility. Set to <codeph>false</codeph> to disable all DITA rules validation.</p>
+        </section>
+
+        <section id="dita-rules-categories">
+            <title>ditacraft.ditaRulesCategories</title>
+            <p><b>Type:</b> Array of strings</p>
+            <p><b>Default:</b> <codeph>["mandatory", "recommendation", "authoring", "accessibility"]</codeph></p>
+            <p>Select which DITA rule categories to apply. Available categories:</p>
+            <ul>
+                <li><codeph>"mandatory"</codeph> — Rules required by the DITA specification</li>
+                <li><codeph>"recommendation"</codeph> — Best practices recommended by the DITA specification</li>
+                <li><codeph>"authoring"</codeph> — Content quality and consistency rules</li>
+                <li><codeph>"accessibility"</codeph> — Accessibility compliance rules</li>
+            </ul>
+            <p>For example, to run only mandatory and accessibility rules:</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.ditaRulesCategories": ["mandatory", "accessibility"]
+}</codeblock>
+        </section>
+
+        <section id="cross-ref-validation-enabled">
+            <title>ditacraft.crossRefValidationEnabled</title>
+            <p><b>Type:</b> Boolean</p>
+            <p><b>Default:</b> <codeph>true</codeph></p>
+            <p>Enable or disable cross-reference validation. When enabled, DitaCraft checks that href, conref, keyref, and conkeyref attributes point to valid targets. Set to <codeph>false</codeph> if you are working with incomplete content where references are expected to be unresolved.</p>
+        </section>
+
+        <section id="subject-scheme-validation-enabled">
+            <title>ditacraft.subjectSchemeValidationEnabled</title>
+            <p><b>Type:</b> Boolean</p>
+            <p><b>Default:</b> <codeph>true</codeph></p>
+            <p>Enable or disable subject scheme validation. When enabled and a subject scheme map is present in the workspace, DitaCraft validates that profiling attribute values (audience, platform, product, etc.) match the controlled vocabulary defined by the scheme. Set to <codeph>false</codeph> to allow any profiling attribute values.</p>
         </section>
 
         <section id="rate-limiting">

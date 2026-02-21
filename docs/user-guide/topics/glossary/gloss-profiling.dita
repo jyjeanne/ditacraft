@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-profiling">
+    <glossterm>Profiling</glossterm>
+    <glossdef>
+        <p>A DITA mechanism for filtering and flagging content based on attribute values. Profiling attributes such as audience, platform, product, and otherprops allow conditional processing where content is included or excluded based on the target output. DitaCraft validates profiling values against subject scheme constraints when available.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/profiling-validation.dita"/>
+        <link href="../features/ditaval-support.dita"/>
+    </related-links>
+</glossentry>

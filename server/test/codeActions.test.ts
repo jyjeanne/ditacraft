@@ -8,13 +8,14 @@ function makeDiag(
     startLine: number,
     startChar: number,
     endLine: number,
-    endChar: number
+    endChar: number,
+    source = 'dita-lsp'
 ): Diagnostic {
     return {
         range: Range.create(startLine, startChar, endLine, endChar),
         message: `Test diagnostic ${code}`,
         severity: DiagnosticSeverity.Warning,
-        source: 'dita-lsp',
+        source,
         code,
     };
 }
@@ -173,6 +174,93 @@ suite('handleCodeActions', () => {
             );
             assert.ok(result.length > 0);
             assert.ok(result[0].title.includes('Rename'));
+        });
+    });
+
+    suite('DITA-SCH-001: Add otherrole fix', () => {
+        test('offers fix to add otherrole attribute', () => {
+            const content = '<othermeta role="other" name="test"/>';
+            const diag = makeDiag('DITA-SCH-001', 0, 0, 0, content.length, 'dita-rules');
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            assert.ok(result[0].title.includes('otherrole'));
+            const edit = result[0].edit!.changes![TEST_URI][0];
+            assert.ok(edit.newText.includes('otherrole=""'));
+        });
+    });
+
+    suite('DITA-SCH-003: Remove indextermref fix', () => {
+        test('offers fix to remove deprecated indextermref', () => {
+            const content = '<body><indextermref keyref="k1"/></body>';
+            const doc = createDoc(content);
+            const idx = content.indexOf('<indextermref');
+            const startPos = doc.positionAt(idx);
+            const endPos = doc.positionAt(idx + '<indextermref'.length);
+            const diag: Diagnostic = {
+                range: Range.create(startPos, endPos),
+                message: 'deprecated',
+                severity: DiagnosticSeverity.Error,
+                source: 'dita-rules',
+                code: 'DITA-SCH-003',
+            };
+            const docs = createDocs(doc);
+            const result = handleCodeActions(
+                {
+                    textDocument: { uri: TEST_URI },
+                    range: Range.create(0, 0, 0, 0),
+                    context: { diagnostics: [diag] },
+                },
+                docs
+            );
+            assert.ok(result.length > 0);
+            assert.ok(result[0].title.includes('Remove'));
+            assert.ok(result[0].title.includes('indextermref'));
+        });
+    });
+
+    suite('DITA-SCH-011: Convert alt attribute to element', () => {
+        test('offers fix for self-closing image with alt attribute', () => {
+            const content = '<image href="pic.png" alt="A photo"/>';
+            const diag = makeDiag('DITA-SCH-011', 0, 0, 0, content.length, 'dita-rules');
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            assert.ok(result[0].title.includes('Convert'));
+            const edits = result[0].edit!.changes![TEST_URI];
+            // Should produce edits that remove alt attr and add <alt> element
+            assert.ok(edits.length >= 1);
+            const allNewText = edits.map(e => e.newText).join('');
+            assert.ok(allNewText.includes('<alt>A photo</alt>'));
+        });
+
+        test('offers fix for open/close image with alt attribute', () => {
+            const content = '<image href="pic.png" alt="A photo"></image>';
+            const diag = makeDiag('DITA-SCH-011', 0, 0, 0, content.length, 'dita-rules');
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            const edits = result[0].edit!.changes![TEST_URI];
+            const allNewText = edits.map(e => e.newText).join('');
+            assert.ok(allNewText.includes('<alt>A photo</alt>'));
+        });
+    });
+
+    suite('DITA-SCH-030: Add alt element fix', () => {
+        test('offers fix for self-closing image without alt', () => {
+            const content = '<image href="photo.png"/>';
+            const diag = makeDiag('DITA-SCH-030', 0, 0, 0, content.length, 'dita-rules');
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            assert.ok(result[0].title.includes('<alt>'));
+            const edit = result[0].edit!.changes![TEST_URI][0];
+            assert.ok(edit.newText.includes('<alt></alt></image>'));
+        });
+
+        test('offers fix for open/close image without alt', () => {
+            const content = '<image href="photo.png"></image>';
+            const diag = makeDiag('DITA-SCH-030', 0, 0, 0, content.length, 'dita-rules');
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            const edit = result[0].edit!.changes![TEST_URI][0];
+            assert.ok(edit.newText.includes('<alt></alt>'));
         });
     });
 

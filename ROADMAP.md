@@ -51,7 +51,16 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **LSP: Key Space Resolution** | Complete | 100% |
 | **DITAVAL Support** | Complete | 100% |
 | **cSpell Auto-Prompt** | Complete | 100% |
-| **Server Test Suite (190 tests)** | Complete | 100% |
+| **LSP: Cross-Reference Validation** | Complete | 100% |
+| **LSP: DITA Rules Engine (18 rules)** | Complete | 100% |
+| **LSP: Profiling/Subject Scheme Validation** | Complete | 100% |
+| **LSP: Subject Scheme Service** | Complete | 100% |
+| **LSP: Error-Tolerant XML Tokenizer** | Complete | 100% |
+| **LSP: DITA Version Detection** | Complete | 100% |
+| **LSP: 9 Code Actions** | Complete | 100% |
+| **5 New LSP Settings** | Complete | 100% |
+| **Server Test Suite (398 tests)** | Complete | 100% |
+| **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
 | **Activity Bar: Diagnostics View** | Complete | 100% |
@@ -66,9 +75,16 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **Diagnostics View** — Aggregated issues with group-by-file/severity, auto-refresh on diagnostics changes
 - **File Decorations** — Error/warning badges on tree items from validation diagnostics
 - **Shared Utilities** — Extracted `mapHierarchyParser.ts`, created `keyUsageScanner.ts`, shared `isDitaFilePath()`
-- **Welcome Content** — Declarative welcome messages for empty view states
-- **72 New Tests** — 5 test files across all new providers and utilities
-- **810+ Total Tests** — Client (620) + Server (190)
+- **Cross-Reference Validation** — Validates href, conref, keyref, conkeyref targets across files (6 diagnostic codes: DITA-XREF-001..003, DITA-KEY-001..003)
+- **DITA Rules Engine** — 18 Schematron-equivalent rules in 4 categories (mandatory, recommendation, authoring, accessibility), filtered by DITA version
+- **Profiling Validation** — Subject scheme controlled value validation (DITA-PROF-001)
+- **Subject Scheme Service** — Parses subject scheme maps for controlled vocabularies with per-file caching and TTL
+- **Error-Tolerant XML Tokenizer** — State-machine tokenizer (8 states, 22 token types) with error recovery for malformed XML
+- **DITA Version Detection** — Auto-detects DITA version from `@DITAArchVersion` attribute or DOCTYPE declaration
+- **4 New Code Actions** — Add `otherrole`, remove deprecated `<indextermref>`, convert `alt` attribute to `<alt>` element, add missing `<alt>` to `<image>`
+- **5 New Settings** — `maxNumberOfProblems`, `ditaRulesEnabled`, `ditaRulesCategories`, `crossRefValidationEnabled`, `subjectSchemeValidationEnabled`
+- **LSP Architecture Documentation** — Comprehensive `DITA_LSP_ARCHITECTURE.md` describing server internals, patterns, and dependency graph
+- **1010+ Total Tests** — Client (620) + Server (398)
 
 ### Previous Changes (v0.5.0)
 - **DITA Language Server** - Full LSP implementation with 14 language features in a dedicated process
@@ -86,7 +102,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **cSpell Auto-Prompt** - Suggests cSpell configuration setup when extension detected
 - **cSpell Setup Fix** - Fixed path resolution bug in bundled extension
 - **TypeScript Project References** - Proper multi-project TypeScript setup for client + server
-- **Server Test Suite** - 190 standalone Mocha tests across 10 files (94.3% coverage)
+- **Server Test Suite** - 190 standalone Mocha tests across 10 files
 - **CI Integration** - Server tests + type-checking in GitHub Actions (ci.yml + release.yml)
 - **737+ Total Tests** - Client (547) + Server (190)
 
@@ -286,7 +302,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ## Milestone 5: Advanced Validation & DTD Support (v0.7.0) 🎯 NEXT
 
-**Focus:** Expand validation capabilities and DTD support.
+**Focus:** Expand validation capabilities and DTD support. Cross-reference validation, DITA rules engine, profiling validation, and version detection are now complete.
 
 ### Validation Architecture (Completed in v0.4.0)
 - [x] TypesXML integration for pure TypeScript DTD validation
@@ -305,15 +321,16 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [ ] Add DITA 2.0 DTD support (when stable)
 - [ ] Support custom specializations
 - [ ] Load DTD catalog from external file (configurable)
-- [ ] Auto-detect DITA version from DOCTYPE
+- [x] Auto-detect DITA version from content (`@DITAArchVersion` and DOCTYPE)
 
 ### Enhanced Validation
-- [ ] Cross-file reference validation (broken links)
+- [x] Cross-file reference validation (href, conref, keyref, conkeyref targets — 6 diagnostic codes)
 - [ ] Key scope validation (local/peer/external)
 - [ ] Duplicate ID detection across topics
 - [ ] DITAVAL filter validation
-- [ ] Schematron rule support for custom validation
-- [ ] Conref/keyref target validation
+- [x] Schematron-equivalent rule engine (18 rules in 4 categories, version-filtered)
+- [x] Conref/keyref target validation
+- [x] Subject scheme / profiling attribute validation
 
 ### Workspace-Level Analysis
 - [ ] Validate entire workspace command
@@ -477,11 +494,11 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.4.1 | TypesXML DTD Validation | Released |
 | v0.4.2 | Architecture, Rate Limiting, 547+ Tests | Released |
 | v0.5.0 | LSP with 14 features, DITAVAL, 737+ Tests | Released |
-| v0.6.0 | Activity bar views, 810+ Tests | **Current** |
+| v0.6.0 | Activity bar views, advanced LSP, 1010+ Tests | **Current** |
 | v0.7.0 | Advanced validation & DTD | Next |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: February 2026 (v0.6.0 with Activity Bar views, DITA Explorer, Key Space, Diagnostics, 810+ total tests)*
+*Last updated: February 2026 (v0.6.0 with Activity Bar views, cross-reference validation, DITA rules engine, profiling validation, error-tolerant XML tokenizer, 1010+ total tests)*

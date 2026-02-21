@@ -7,6 +7,9 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
+import * as path from 'path';
+import * as fs from 'fs';
 
 import {
     DITA_ELEMENTS,
@@ -16,6 +19,8 @@ import {
     ATTRIBUTE_VALUES,
     ELEMENT_DOCS,
 } from '../data/ditaSchema';
+import { KeySpaceService } from '../services/keySpaceService';
+import { SubjectSchemeService } from '../services/subjectSchemeService';
 
 const enum Context {
     ElementName,
@@ -25,22 +30,28 @@ const enum Context {
 }
 
 interface CompletionContext {
-    kind: Context;
     /** Parent element name (for element completions) or current element (for attributes) */
     elementName: string;
     /** Attribute name (for value completions) */
     attributeName: string;
-    /** Text already typed after '<' (for filtering) */
+    /** Text already typed after '<' or inside attribute value (for filtering) */
     prefix: string;
+}
+
+interface DetectedContext extends CompletionContext {
+    kind: Context;
 }
 
 /**
  * Handle completion requests.
+ * Now async to support key space resolution for keyref/conkeyref completion.
  */
-export function handleCompletion(
+export async function handleCompletion(
     params: CompletionParams,
-    documents: TextDocuments<TextDocument>
-): CompletionItem[] {
+    documents: TextDocuments<TextDocument>,
+    keySpaceService?: KeySpaceService,
+    subjectSchemeService?: SubjectSchemeService
+): Promise<CompletionItem[]> {
     const document = documents.get(params.textDocument.uri);
     if (!document) {
         return [];
@@ -56,7 +67,9 @@ export function handleCompletion(
         case Context.AttributeName:
             return getAttributeCompletions(ctx);
         case Context.AttributeValue:
-            return getAttributeValueCompletions(ctx);
+            return getAttributeValueCompletions(
+                ctx, params.textDocument.uri, keySpaceService, subjectSchemeService
+            );
         default:
             return [];
     }
@@ -65,7 +78,7 @@ export function handleCompletion(
 /**
  * Detect what kind of completion is needed at the cursor position.
  */
-function detectContext(text: string, offset: number): CompletionContext {
+function detectContext(text: string, offset: number): DetectedContext {
     // Scan backwards from cursor
     let i = offset - 1;
 
@@ -82,7 +95,7 @@ function detectContext(text: string, offset: number): CompletionContext {
         return { kind: Context.ElementName, elementName: parent, attributeName: '', prefix };
     }
 
-    if (i >= 0 && text[i] === '/') {
+    if (i >= 1 && text[i] === '/' && text[i - 1] === '<') {
         // Closing tag: </| — no completions
         return { kind: Context.None, elementName: '', attributeName: '', prefix: '' };
     }
@@ -139,13 +152,13 @@ function findParentElement(text: string, beforePos: number): string {
 /**
  * Check if cursor is inside an attribute value (between quotes after =).
  */
-function findAttributeValueContext(text: string, offset: number): CompletionContext | null {
+function findAttributeValueContext(text: string, offset: number): DetectedContext | null {
     // Scan backwards for opening quote
     let i = offset - 1;
     while (i >= 0 && text[i] !== '"' && text[i] !== '\'' && text[i] !== '<' && text[i] !== '>') {
         i--;
     }
-    if (i < 0 || text[i] !== '"' && text[i] !== '\'') {
+    if (i < 0 || (text[i] !== '"' && text[i] !== '\'')) {
         return null;
     }
 
@@ -160,7 +173,7 @@ function findAttributeValueContext(text: string, offset: number): CompletionCont
     // Get attribute name before =
     j--;
     while (j >= 0 && text[j] === ' ') j--;
-    let attrEnd = j + 1;
+    const attrEnd = j + 1;
     while (j >= 0 && /[\w-]/.test(text[j])) j--;
     const attributeName = text.slice(j + 1, attrEnd);
 
@@ -184,7 +197,7 @@ function findAttributeValueContext(text: string, offset: number): CompletionCont
 /**
  * Check if cursor is after a space inside an opening tag (attribute name context).
  */
-function findAttributeContext(text: string, beforeWord: number, _offset: number): CompletionContext | null {
+function findAttributeContext(text: string, beforeWord: number, _offset: number): DetectedContext | null {
     // We need to be inside an opening tag: find < before cursor without > between
     let i = beforeWord;
     while (i >= 0 && text[i] !== '<' && text[i] !== '>') {
@@ -270,8 +283,55 @@ function getAttributeCompletions(ctx: CompletionContext): CompletionItem[] {
     }));
 }
 
-function getAttributeValueCompletions(ctx: CompletionContext): CompletionItem[] {
-    const values = ATTRIBUTE_VALUES[ctx.attributeName];
+/**
+ * Get attribute value completions.
+ * Handles static enum values, keyref completion, and href fragment completion.
+ */
+async function getAttributeValueCompletions(
+    ctx: CompletionContext,
+    documentUri: string,
+    keySpaceService?: KeySpaceService,
+    subjectSchemeService?: SubjectSchemeService
+): Promise<CompletionItem[]> {
+    const attrName = ctx.attributeName;
+
+    // --- Keyref / Conkeyref completion ---
+    if ((attrName === 'keyref' || attrName === 'conkeyref') && keySpaceService) {
+        return getKeyrefCompletions(ctx, documentUri, keySpaceService);
+    }
+
+    // --- Href / Conref completion ---
+    if (attrName === 'href' || attrName === 'conref') {
+        if (ctx.prefix.includes('#')) {
+            // Fragment completion: topic/element IDs in target file
+            return getHrefFragmentCompletions(ctx, documentUri);
+        }
+        // File path completion: list .dita/.ditamap files relative to current doc
+        return getHrefFileCompletions(ctx, documentUri);
+    }
+
+    // --- Subject scheme controlled values ---
+    // When a subject scheme constrains this attribute, offer only valid values
+    if (subjectSchemeService && subjectSchemeService.hasSchemeData()) {
+        const schemeValues = subjectSchemeService.getValidValues(attrName, ctx.elementName);
+        if (schemeValues && schemeValues.size > 0) {
+            const items: CompletionItem[] = [];
+            let index = 0;
+            for (const val of schemeValues) {
+                items.push({
+                    label: val,
+                    kind: CompletionItemKind.EnumMember,
+                    detail: 'Subject scheme',
+                    sortText: String(index).padStart(3, '0'),
+                });
+                index++;
+            }
+            return items;
+        }
+    }
+
+    // --- Static enum values (fallback) ---
+    const values = ATTRIBUTE_VALUES[attrName];
     if (!values) return [];
 
     return values.map((val, index) => ({
@@ -279,4 +339,312 @@ function getAttributeValueCompletions(ctx: CompletionContext): CompletionItem[] 
         kind: CompletionItemKind.EnumMember,
         sortText: String(index).padStart(3, '0'),
     }));
+}
+
+/**
+ * Complete key names for keyref/conkeyref attributes.
+ * When the value contains '/', completes element IDs in the key's target.
+ */
+async function getKeyrefCompletions(
+    ctx: CompletionContext,
+    documentUri: string,
+    keySpaceService: KeySpaceService
+): Promise<CompletionItem[]> {
+    const filePath = URI.parse(documentUri).fsPath;
+    const currentValue = ctx.prefix;
+
+    if (currentValue.includes('/')) {
+        // "keyname/elementId" — complete element IDs in the key's target
+        const keyName = currentValue.substring(0, currentValue.indexOf('/'));
+        const keyDef = await keySpaceService.resolveKey(keyName, filePath);
+        if (keyDef?.targetFile && fs.existsSync(keyDef.targetFile)) {
+            const targetContent = fs.readFileSync(keyDef.targetFile, 'utf-8');
+            const elementIds = extractAllIds(targetContent);
+            return elementIds.map((id, index) => ({
+                label: id,
+                kind: CompletionItemKind.Reference,
+                detail: `Element ID in ${path.basename(keyDef.targetFile!)}`,
+                sortText: String(index).padStart(4, '0'),
+            }));
+        }
+        return [];
+    }
+
+    // No slash — complete all known key names
+    const allKeys = await keySpaceService.getAllKeys(filePath);
+    const items: CompletionItem[] = [];
+    let index = 0;
+
+    for (const [keyName, keyDef] of allKeys) {
+        const detail = keyDef.targetFile
+            ? `\u2192 ${path.basename(keyDef.targetFile)}`
+            : (keyDef.inlineContent || 'Key definition');
+
+        const docParts: string[] = [];
+        if (keyDef.metadata?.navtitle) {
+            docParts.push(keyDef.metadata.navtitle);
+        }
+        if (keyDef.metadata?.shortdesc) {
+            docParts.push(keyDef.metadata.shortdesc);
+        }
+        if (keyDef.targetFile) {
+            docParts.push(keyDef.targetFile);
+        }
+
+        const item: CompletionItem = {
+            label: keyName,
+            kind: CompletionItemKind.Reference,
+            detail,
+            sortText: String(index).padStart(4, '0'),
+        };
+        if (docParts.length > 0) {
+            item.documentation = docParts.join('\n');
+        }
+
+        items.push(item);
+        index++;
+    }
+
+    return items;
+}
+
+/**
+ * Complete topic IDs and element IDs in href/conref fragment values.
+ * Triggered when the value contains '#'.
+ *
+ * Formats handled:
+ * - "file.dita#" → complete topic IDs in file.dita
+ * - "file.dita#topicid/" → complete element IDs in that topic
+ * - "#" → complete topic IDs in current file
+ * - "#topicid/" → complete element IDs in current file
+ *
+ */
+function getHrefFragmentCompletions(
+    ctx: CompletionContext,
+    documentUri: string
+): CompletionItem[] {
+    const currentValue = ctx.prefix;
+    const hashPos = currentValue.indexOf('#');
+    const filePart = currentValue.substring(0, hashPos);
+    const fragment = currentValue.substring(hashPos + 1);
+
+    // Resolve the target file path
+    const currentFilePath = URI.parse(documentUri).fsPath;
+    const currentDir = path.dirname(currentFilePath);
+    const targetPath = filePart
+        ? path.resolve(currentDir, filePart)
+        : currentFilePath; // same-file reference
+
+    if (!fs.existsSync(targetPath)) {
+        return [];
+    }
+
+    let targetContent: string;
+    try {
+        targetContent = fs.readFileSync(targetPath, 'utf-8');
+    } catch {
+        return [];
+    }
+
+    const slashPos = fragment.indexOf('/');
+
+    if (slashPos !== -1) {
+        // "topicid/elementid" — complete element IDs within the topic
+        const topicId = fragment.substring(0, slashPos);
+        const elementIds = extractElementIdsInTopic(targetContent, topicId);
+        return elementIds.map((id, index) => ({
+            label: id,
+            kind: CompletionItemKind.Reference,
+            detail: `Element in topic "${topicId}"`,
+            sortText: String(index).padStart(4, '0'),
+        }));
+    }
+
+    // No slash — complete topic IDs in the target file
+    const topicIds = extractTopicIds(targetContent);
+    return topicIds.map((id, index) => ({
+        label: id,
+        kind: CompletionItemKind.Reference,
+        detail: `Topic ID in ${path.basename(targetPath)}`,
+        sortText: String(index).padStart(4, '0'),
+    }));
+}
+
+/**
+ * Complete file paths for href/conref attributes.
+ * Lists .dita, .ditamap, .xml files (and subdirectories) relative to the current document.
+ * Supports partial path input (e.g., "topics/" lists files in the topics/ subdirectory).
+ *
+ */
+function getHrefFileCompletions(
+    ctx: CompletionContext,
+    documentUri: string
+): CompletionItem[] {
+    const currentFilePath = URI.parse(documentUri).fsPath;
+    const currentDir = path.dirname(currentFilePath);
+    const currentValue = ctx.prefix;
+
+    // Determine the directory to list based on partial input
+    // e.g., "topics/getting-started" → list "topics/" dir
+    // VS Code client handles prefix filtering
+    const lastSlash = currentValue.lastIndexOf('/');
+    let searchDir: string;
+
+    if (lastSlash >= 0) {
+        const relDir = currentValue.substring(0, lastSlash);
+        searchDir = path.resolve(currentDir, relDir);
+    } else {
+        searchDir = currentDir;
+    }
+
+    let entries: fs.Dirent[];
+    try {
+        entries = fs.readdirSync(searchDir, { withFileTypes: true });
+    } catch {
+        return [];
+    }
+
+    const items: CompletionItem[] = [];
+    let index = 0;
+
+    for (const entry of entries) {
+        const name = entry.name;
+
+        // Skip hidden files/dirs
+        if (name.startsWith('.')) continue;
+
+        // Skip current file (don't suggest self-reference)
+        if (entry.isFile() && path.resolve(searchDir, name) === currentFilePath) continue;
+
+        if (entry.isDirectory()) {
+            // Offer directory with trailing slash
+            items.push({
+                label: name + '/',
+                kind: CompletionItemKind.Folder,
+                sortText: `0${String(index).padStart(4, '0')}`,
+                // No trailing quote — user continues typing
+                command: { title: 'Trigger completions', command: 'editor.action.triggerSuggest' },
+            });
+            index++;
+        } else if (entry.isFile() && HREF_FILE_EXTENSIONS.test(name)) {
+            items.push({
+                label: name,
+                kind: CompletionItemKind.File,
+                sortText: `1${String(index).padStart(4, '0')}`,
+            });
+            index++;
+        }
+    }
+
+    return items;
+}
+
+/** File extensions relevant for href/conref completion. */
+const HREF_FILE_EXTENSIONS = /\.(dita|ditamap|xml|ditaval|bookmap)$/i;
+
+// --- ID extraction helpers ---
+
+/** DITA topic-type element names for topic ID extraction. */
+const TOPIC_ELEMENTS = /^(?:topic|concept|task|reference|glossentry|glossgroup|troubleshooting)$/;
+
+/** Same list as a string for use in dynamic RegExp construction. */
+const TOPIC_ELEMENTS_ALT = 'topic|concept|task|reference|glossentry|glossgroup|troubleshooting';
+
+/**
+ * Extract all topic-level IDs (root elements of topic types).
+ */
+function extractTopicIds(content: string): string[] {
+    const topicIds: string[] = [];
+    const regex = /<(\w+)\b[^>]*\bid\s*=\s*["']([^"']+)["']/g;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(content)) !== null) {
+        if (TOPIC_ELEMENTS.test(match[1])) {
+            topicIds.push(match[2]);
+        }
+    }
+    return topicIds;
+}
+
+/**
+ * Extract all element @id values from the content.
+ */
+function extractAllIds(content: string): string[] {
+    const ids: string[] = [];
+    const regex = /\bid\s*=\s*["']([^"']+)["']/g;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(content)) !== null) {
+        ids.push(match[1]);
+    }
+    return [...new Set(ids)]; // deduplicate
+}
+
+/**
+ * Extract element IDs within a specific topic, excluding nested topic IDs.
+ * Finds the topic element with the given ID, then collects @id values
+ * until the next sibling topic-level element.
+ */
+function extractElementIdsInTopic(content: string, topicId: string): string[] {
+    const escapedId = topicId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const topicStartRegex = new RegExp(
+        `<(${TOPIC_ELEMENTS_ALT})\\b[^>]*\\bid\\s*=\\s*["']${escapedId}["']`
+    );
+    const startMatch = topicStartRegex.exec(content);
+    if (!startMatch) return [];
+
+    // Find the end of the opening tag
+    const tagEnd = content.indexOf('>', startMatch.index);
+    if (tagEnd === -1) return [];
+    const searchStart = tagEnd + 1;
+
+    // Collect IDs until we hit a closing topic tag or another topic-level element
+    const ids: string[] = [];
+
+    // Find the depth-aware end of this topic
+    let depth = 1;
+    let topicEnd = content.length;
+
+    // Simple depth tracking for same-name nesting
+    const openRegex = new RegExp(`<${startMatch[1]}\\b`, 'g');
+    const closeRegex = new RegExp(`</${startMatch[1]}\\b`, 'g');
+
+    // Find all open/close of same element type after our start
+    const events: { pos: number; isOpen: boolean }[] = [];
+    openRegex.lastIndex = searchStart;
+    closeRegex.lastIndex = searchStart;
+
+    let m: RegExpExecArray | null;
+    while ((m = openRegex.exec(content)) !== null) {
+        events.push({ pos: m.index, isOpen: true });
+    }
+    while ((m = closeRegex.exec(content)) !== null) {
+        events.push({ pos: m.index, isOpen: false });
+    }
+    events.sort((a, b) => a.pos - b.pos);
+
+    for (const ev of events) {
+        if (ev.isOpen) {
+            depth++;
+        } else {
+            depth--;
+            if (depth === 0) {
+                topicEnd = ev.pos;
+                break;
+            }
+        }
+    }
+
+    // Collect all IDs within the topic boundary, skip nested topic IDs
+    const scopedContent = content.substring(searchStart, topicEnd);
+    const nestedTopicIds = new Set(extractTopicIds(scopedContent));
+
+    const scopedIdRegex = /\bid\s*=\s*["']([^"']+)["']/g;
+    let idMatch: RegExpExecArray | null;
+    while ((idMatch = scopedIdRegex.exec(scopedContent)) !== null) {
+        const id = idMatch[1];
+        if (!nestedTopicIds.has(id)) {
+            ids.push(id);
+        }
+    }
+
+    return [...new Set(ids)]; // deduplicate
 }

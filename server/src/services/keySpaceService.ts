@@ -33,6 +33,8 @@ export interface KeySpace {
     keys: Map<string, KeyDefinition>;
     buildTime: number;
     mapHierarchy: string[];
+    /** Paths to subject scheme maps discovered during BFS traversal. */
+    subjectSchemePaths: string[];
 }
 
 interface CacheConfig {
@@ -114,6 +116,38 @@ export class KeySpaceService {
 
         const keySpace = await this.buildKeySpace(rootMap);
         return keySpace.keys.get(keyName) ?? null;
+    }
+
+    /**
+     * Returns all keys from the key space for the given context file.
+     * Finds the root map, builds (or retrieves cached) key space, then returns all keys.
+     * Used by completion to offer all available key names.
+     */
+    public async getAllKeys(
+        contextFilePath: string
+    ): Promise<Map<string, KeyDefinition>> {
+        const rootMap = await this.findRootMap(contextFilePath);
+        if (!rootMap) {
+            return new Map();
+        }
+
+        const keySpace = await this.buildKeySpace(rootMap);
+        return keySpace.keys;
+    }
+
+    /**
+     * Get subject scheme map paths discovered during key space build.
+     */
+    public async getSubjectSchemePaths(
+        contextFilePath: string
+    ): Promise<string[]> {
+        const rootMap = await this.findRootMap(contextFilePath);
+        if (!rootMap) {
+            return [];
+        }
+
+        const keySpace = await this.buildKeySpace(rootMap);
+        return keySpace.subjectSchemePaths;
     }
 
     /**
@@ -278,6 +312,7 @@ export class KeySpaceService {
             keys: new Map(),
             buildTime: Date.now(),
             mapHierarchy: [],
+            subjectSchemePaths: [],
         };
 
         const visited = new Set<string>();
@@ -314,6 +349,11 @@ export class KeySpaceService {
                     if (!keySpace.keys.has(keyDef.keyName)) {
                         keySpace.keys.set(keyDef.keyName, keyDef);
                     }
+                }
+
+                // Detect subject scheme maps (root element is <subjectScheme>)
+                if (this.isSubjectSchemeMap(rawContent)) {
+                    keySpace.subjectSchemePaths.push(currentMap);
                 }
 
                 // Queue submaps
@@ -387,10 +427,21 @@ export class KeySpaceService {
                 const roleMatch = fullElement.match(/\bprocessing-role\s*=\s*["']([^"']+)["']/i);
                 if (roleMatch) keyDef.processingRole = roleMatch[1];
 
+                // Extract metadata from <topicmeta> child (navtitle, keywords, shortdesc)
+                // Skip metadata extraction for self-closing elements (no child content)
+                const isSelfClosing = fullElement.endsWith('/>');
+                const metadataResult = isSelfClosing
+                    ? { metadata: null, inlineContent: null }
+                    : this.extractKeyMetadata(mapContent, match.index);
+                if (metadataResult.metadata) {
+                    keyDef.metadata = metadataResult.metadata;
+                }
+
                 // Inline content (keydef without href)
                 if (!keyDef.targetFile) {
-                    const inline = this.extractInlineContent(mapContent, match.index);
-                    if (inline) keyDef.inlineContent = inline;
+                    if (metadataResult.inlineContent) {
+                        keyDef.inlineContent = metadataResult.inlineContent;
+                    }
                 }
 
                 keys.push(keyDef);
@@ -400,12 +451,75 @@ export class KeySpaceService {
         return keys;
     }
 
-    private extractInlineContent(mapContent: string, startIndex: number): string | null {
-        const afterElement = mapContent.substring(startIndex);
-        const keywordMatch = afterElement.match(
-            /<topicmeta[^>]*>[\s\S]*?<keyword[^>]*>([^<]+)<\/keyword>/i
+    /**
+     * Extract metadata from the <topicmeta> child of a key-defining element.
+     * Extracts navtitle, keywords, and shortdesc.
+     */
+    private extractKeyMetadata(
+        mapContent: string,
+        startIndex: number
+    ): { metadata: KeyMetadata | null; inlineContent: string | null } {
+        // Look ahead from the element start for a <topicmeta> block
+        // Limit search to avoid crossing into sibling elements
+        const afterElement = mapContent.substring(startIndex, startIndex + 2000);
+        const topicmetaMatch = afterElement.match(
+            /<topicmeta\b[^>]*>([\s\S]*?)<\/topicmeta>/i
         );
-        return keywordMatch ? keywordMatch[1].trim() : null;
+        if (!topicmetaMatch) {
+            return { metadata: null, inlineContent: null };
+        }
+
+        const metaContent = topicmetaMatch[1];
+        const metadata: KeyMetadata = {};
+        let inlineContent: string | null = null;
+
+        // Extract navtitle (from <navtitle> element inside topicmeta)
+        const navtitleMatch = metaContent.match(/<navtitle\b[^>]*>([^<]+)<\/navtitle>/i);
+        if (navtitleMatch) {
+            metadata.navtitle = navtitleMatch[1].trim();
+        }
+
+        // Extract keywords (all <keyword> elements inside <keywords>)
+        const keywordsBlockMatch = metaContent.match(
+            /<keywords\b[^>]*>([\s\S]*?)<\/keywords>/i
+        );
+        if (keywordsBlockMatch) {
+            const kwContent = keywordsBlockMatch[1];
+            const kwRegex = /<keyword\b[^>]*>([^<]+)<\/keyword>/gi;
+            const keywords: string[] = [];
+            let kwMatch: RegExpExecArray | null;
+            while ((kwMatch = kwRegex.exec(kwContent)) !== null) {
+                keywords.push(kwMatch[1].trim());
+            }
+            if (keywords.length > 0) {
+                metadata.keywords = keywords;
+                // First keyword is the inline content
+                inlineContent = keywords[0];
+            }
+        }
+
+        // Fallback: keyword directly in topicmeta (without <keywords> wrapper)
+        if (!inlineContent) {
+            const directKwMatch = metaContent.match(/<keyword\b[^>]*>([^<]+)<\/keyword>/i);
+            if (directKwMatch) {
+                inlineContent = directKwMatch[1].trim();
+                if (!metadata.keywords) {
+                    metadata.keywords = [inlineContent];
+                }
+            }
+        }
+
+        // Extract shortdesc
+        const shortdescMatch = metaContent.match(/<shortdesc\b[^>]*>([^<]+)<\/shortdesc>/i);
+        if (shortdescMatch) {
+            metadata.shortdesc = shortdescMatch[1].trim();
+        }
+
+        const hasMetadata = metadata.navtitle || metadata.keywords || metadata.shortdesc;
+        return {
+            metadata: hasMetadata ? metadata : null,
+            inlineContent,
+        };
     }
 
     private extractMapReferences(
@@ -531,6 +645,17 @@ export class KeySpaceService {
             const normalizedWorkspace = path.normalize(folder);
             return normalizedPath.startsWith(normalizedWorkspace + path.sep);
         });
+    }
+
+    /** Check if a map file is a subject scheme map (root element is <subjectScheme>). */
+    private isSubjectSchemeMap(rawContent: string): boolean {
+        // Strip XML declaration and DOCTYPE, then check root element
+        const stripped = rawContent
+            .replace(/<\?xml[^?]*\?>/g, '')
+            .replace(/<!DOCTYPE[^>]*>/g, '')
+            .replace(/<!--[\s\S]*?-->/g, '')
+            .trimStart();
+        return /^<subjectScheme\b/i.test(stripped);
     }
 
     private async fileExistsAsync(filePath: string): Promise<boolean> {
