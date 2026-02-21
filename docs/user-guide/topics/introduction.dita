@@ -86,15 +86,17 @@
 
         <section id="version-info">
             <title>Version Information</title>
-            <p>This guide covers DitaCraft version 0.5.0, which includes:</p>
+            <p>This guide covers DitaCraft version 0.6.0, which includes:</p>
             <ul>
                 <li>LSP server with IntelliSense, diagnostics, and navigation</li>
+                <li>Cross-reference validation for href, conref, keyref, and conkeyref</li>
+                <li>DITA Rules Engine with 18 Schematron-equivalent rules</li>
+                <li>Profiling validation with subject scheme support</li>
+                <li>Activity Bar views: DITA Explorer, Key Space, and Diagnostics</li>
+                <li>9 code actions including accessibility quick fixes</li>
                 <li>DITAVAL conditional processing support</li>
-                <li>Cross-file Go to Definition, Find References, and Rename</li>
-                <li>XML formatting with code actions and quick fixes</li>
-                <li>Improved key space resolution with better root map discovery</li>
-                <li>cSpell auto-prompt for spell checking setup</li>
-                <li>737+ comprehensive tests (547 client + 190 server)</li>
+                <li>DITA version detection and error-tolerant XML tokenizer</li>
+                <li>1010+ comprehensive tests (620 client + 398 server)</li>
             </ul>
         </section>
     </conbody>

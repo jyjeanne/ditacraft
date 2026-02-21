@@ -1,6 +1,6 @@
 # DitaCraft LSP Server — Test Plan
 
-**Version:** 0.5.0
+**Version:** 0.6.0
 **Date:** February 2026
 **Scope:** Manual verification of all 14 LSP server features
 
