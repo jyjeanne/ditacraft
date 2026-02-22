@@ -98,6 +98,19 @@ export function activate(context: vscode.ExtensionContext) {
         registerLoggerCommands(context);
         outputChannel.appendLine('Logger commands registered');
 
+        // Register open file command for tree views
+        context.subscriptions.push(
+            vscode.commands.registerCommand('ditacraft.openFile', async (uri: vscode.Uri) => {
+                if (uri) {
+                    try {
+                        await vscode.window.showTextDocument(uri, { preview: false });
+                    } catch {
+                        vscode.window.showWarningMessage(`Could not open file: ${uri.fsPath}`);
+                    }
+                }
+            })
+        );
+
         // Register DITA Explorer tree view
         outputChannel.appendLine('Registering DITA Explorer...');
         const ditaExplorerProvider = new DitaExplorerProvider();

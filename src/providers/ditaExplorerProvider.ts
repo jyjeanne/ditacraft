@@ -54,12 +54,13 @@ export class DitaExplorerItem extends vscode.TreeItem {
 
         // Click to open the file
         if (mapNode.filePath && mapNode.exists) {
+            const fileUri = vscode.Uri.file(mapNode.filePath);
             this.command = {
-                command: 'vscode.open',
+                command: 'ditacraft.openFile',
                 title: 'Open File',
-                arguments: [vscode.Uri.file(mapNode.filePath)]
+                arguments: [fileUri]
             };
-            this.resourceUri = vscode.Uri.file(mapNode.filePath);
+            this.resourceUri = fileUri;
         }
     }
 

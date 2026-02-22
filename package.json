@@ -194,6 +194,10 @@
         "title": "DITA: Test Logger (Debug)"
       },
       {
+        "command": "ditacraft.openFile",
+        "title": "DITA: Open File"
+      },
+      {
         "command": "ditacraft.refreshDitaExplorer",
         "title": "DITA: Refresh Explorer",
         "icon": "$(refresh)"

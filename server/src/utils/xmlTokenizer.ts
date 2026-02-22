@@ -77,7 +77,12 @@ export function* tokenize(input: string): Generator<Token> {
             line++;
             column = 0;
         } else if (ch === '\r') {
-            if (pos < input.length && input[pos] === '\n') pos++;
+            if (pos < input.length && input[pos] === '\n') {
+                pos++;
+                line++;
+                column = 0;
+                return '\r\n';
+            }
             line++;
             column = 0;
         } else {

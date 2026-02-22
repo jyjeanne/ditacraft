@@ -123,7 +123,7 @@ suite('DITA Explorer Provider Test Suite', () => {
             };
             const item = new DitaExplorerItem(node);
             assert.ok(item.command);
-            assert.strictEqual(item.command!.command, 'vscode.open');
+            assert.strictEqual(item.command!.command, 'ditacraft.openFile');
         });
 
         test('Should not set command for missing files', () => {

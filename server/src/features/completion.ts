@@ -72,7 +72,7 @@ export async function handleCompletion(
                 : params.position;
             const startPos: Position = {
                 line: params.position.line,
-                character: params.position.character - ctx.prefix.length,
+                character: Math.max(0, params.position.character - ctx.prefix.length),
             };
             return getElementCompletions(ctx, startPos, endPos);
         }

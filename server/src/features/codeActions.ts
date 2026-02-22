@@ -250,15 +250,16 @@ function fixDuplicateId(
 
     // Extract the id value from the text at the diagnostic location
     const textAtPos = text.slice(startOffset);
-    const idMatch = textAtPos.match(/\bid="([^"]*)"/);
+    const idMatch = textAtPos.match(/\bid=(["'])([^"']*)\1/);
     if (!idMatch) return [];
 
-    const oldId = idMatch[1];
+    const quoteChar = idMatch[1];
+    const oldId = idMatch[2];
     const suffix = Math.random().toString(36).slice(2, 6);
     const newId = `${oldId}_${suffix}`;
 
     // Replace the id value
-    const idValueStart = startOffset + idMatch.index! + idMatch[0].indexOf('"') + 1;
+    const idValueStart = startOffset + idMatch.index! + idMatch[0].indexOf(quoteChar) + 1;
     const idValueEnd = idValueStart + oldId.length;
 
     return [{
