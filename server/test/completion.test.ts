@@ -124,10 +124,11 @@ suite('handleCompletion', () => {
             const content = '<topic id="t1"><';
             const items = await complete(content, 0, 16);
             assert.ok(items.length > 0);
-            // Verify snippet format: insertText should contain ${1} and closing tag
+            // Verify snippet format: textEdit.newText should contain closing tag
             const titleItem = items.find(i => i.label === 'title');
             assert.ok(titleItem);
-            assert.ok(titleItem.insertText?.includes('</title>'));
+            const newText = (titleItem.textEdit as { newText: string })?.newText ?? titleItem.insertText;
+            assert.ok(newText?.includes('</title>'));
         });
 
         test('attribute completion uses snippet format', async () => {

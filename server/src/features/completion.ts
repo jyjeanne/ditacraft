@@ -3,7 +3,9 @@ import {
     CompletionItemKind,
     CompletionParams,
     InsertTextFormat,
+    Position,
     TextDocuments,
+    TextEdit,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -62,8 +64,18 @@ export async function handleCompletion(
     const ctx = detectContext(text, offset);
 
     switch (ctx.kind) {
-        case Context.ElementName:
-            return getElementCompletions(ctx);
+        case Context.ElementName: {
+            // Check if auto-closing brackets inserted a '>' after the cursor
+            const trailingAngle = offset < text.length && text[offset] === '>';
+            const endPos: Position = trailingAngle
+                ? { line: params.position.line, character: params.position.character + 1 }
+                : params.position;
+            const startPos: Position = {
+                line: params.position.line,
+                character: params.position.character - ctx.prefix.length,
+            };
+            return getElementCompletions(ctx, startPos, endPos);
+        }
         case Context.AttributeName:
             return getAttributeCompletions(ctx);
         case Context.AttributeValue:
@@ -240,7 +252,11 @@ function findCurrentElement(text: string, beforePos: number): string {
 
 // --- Completion item builders ---
 
-function getElementCompletions(ctx: CompletionContext): CompletionItem[] {
+function getElementCompletions(
+    ctx: CompletionContext,
+    startPos: Position,
+    endPos: Position
+): CompletionItem[] {
     const children = DITA_ELEMENTS[ctx.elementName];
     if (!children) {
         // Unknown parent — offer common top-level elements
@@ -253,7 +269,10 @@ function getElementCompletions(ctx: CompletionContext): CompletionItem[] {
             label: child,
             kind: CompletionItemKind.Property,
             sortText: String(index).padStart(3, '0'),
-            insertText: `${child}>$1</${child}>`,
+            textEdit: TextEdit.replace(
+                { start: startPos, end: endPos },
+                `${child}>$1</${child}>`
+            ),
             insertTextFormat: InsertTextFormat.Snippet,
         };
         if (doc) {
