@@ -715,7 +715,15 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.6.0 (Current)
+### Version 0.6.1 (Current)
+**Bug Fixes**
+- **Fixed**: `fixDuplicateId` code action now handles single-quoted `id` attributes (`id='value'`), not just double-quoted
+- **Fixed**: `openFile` command (DITA Explorer click-to-open) now has proper error handling with user feedback on failure
+- **Fixed**: Element completion no longer produces invalid LSP positions when `<` is on a previous line from cursor
+- **Fixed**: XML tokenizer correctly preserves `\r\n` line endings in token text (Windows CRLF files)
+- **Fixed**: `ditacraft.openFile` command now declared in `package.json` for Command Palette visibility
+
+### Version 0.6.0
 **Project Management, Activity Bar Views & Advanced LSP**
 - **Activity Bar Views** — DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 - **File Decorations** — Error/warning badges on tree items from validation diagnostics

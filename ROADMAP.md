@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.6.0)
+## Current Status (v0.6.1)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -494,11 +494,12 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.4.1 | TypesXML DTD Validation | Released |
 | v0.4.2 | Architecture, Rate Limiting, 547+ Tests | Released |
 | v0.5.0 | LSP with 14 features, DITAVAL, 737+ Tests | Released |
-| v0.6.0 | Activity bar views, advanced LSP, 1010+ Tests | **Current** |
+| v0.6.0 | Activity bar views, advanced LSP, 1010+ Tests | Released |
+| v0.6.1 | Bug fixes (code actions, completion, tokenizer) | **Current** |
 | v0.7.0 | Advanced validation & DTD | Next |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: February 2026 (v0.6.0 with Activity Bar views, cross-reference validation, DITA rules engine, profiling validation, error-tolerant XML tokenizer, 1010+ total tests)*
+*Last updated: February 2026 (v0.6.1 bug fixes — code action quote handling, DITA Explorer error handling, completion position safety, XML tokenizer CRLF)*

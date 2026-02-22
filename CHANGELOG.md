@@ -5,6 +5,15 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-02-22
+
+### Fixed
+- **Code Action: Duplicate ID** — `fixDuplicateId` quick fix now handles single-quoted `id` attributes (`id='value'`), not just double-quoted
+- **DITA Explorer: Open File** — `ditacraft.openFile` command now has async error handling with user-facing warning on failure
+- **Completion: Invalid Position** — Element completion `startPos.character` clamped to 0 to prevent invalid negative LSP positions
+- **XML Tokenizer: CRLF** — `advance()` now returns full `\r\n` for Windows line endings, fixing token text length mismatches
+- **Package.json** — Added missing `ditacraft.openFile` command declaration for Command Palette visibility
+
 ## [0.6.0] - 2026-02-10
 
 ### Added
