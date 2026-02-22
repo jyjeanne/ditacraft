@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import { URI } from 'vscode-uri';
 import { handleHover } from '../src/features/hover';
 import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService';
 import { createDoc, createDocs, TEST_URI } from './helper';
@@ -326,7 +327,7 @@ suite('handleHover', () => {
             fs.writeFileSync(targetFile, '<topic id="t1"><body><p>text</p></body></topic>');
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = '<xref href="target.dita">link</xref>';
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);

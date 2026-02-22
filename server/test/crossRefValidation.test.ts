@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import { URI } from 'vscode-uri';
 import { validateCrossReferences, XREF_CODES } from '../src/features/crossRefValidation';
 import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService';
 
@@ -31,7 +32,7 @@ suite('validateCrossReferences', () => {
         test('missing target file produces warning', async () => {
             const text = '<xref href="nonexistent.dita">link</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
@@ -50,7 +51,7 @@ suite('validateCrossReferences', () => {
 
             try {
                 const text = '<xref href="target.dita">link</xref>';
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
                 assert.strictEqual(missing.length, 0);
@@ -62,7 +63,7 @@ suite('validateCrossReferences', () => {
         test('external URL is skipped', async () => {
             const text = '<xref href="https://example.com">link</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
@@ -75,7 +76,7 @@ suite('validateCrossReferences', () => {
         test('scope="external" is skipped', async () => {
             const text = '<xref href="some-path" scope="external">link</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
@@ -92,7 +93,7 @@ suite('validateCrossReferences', () => {
 
             try {
                 const text = '<xref href="target.dita#nonexistent">link</xref>';
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 const missing = diags.filter(d => d.code === XREF_CODES.MISSING_TOPIC_ID);
                 assert.strictEqual(missing.length, 1);
@@ -109,7 +110,7 @@ suite('validateCrossReferences', () => {
 
             try {
                 const text = '<xref href="target.dita#t1">link</xref>';
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 assert.strictEqual(diags.length, 0);
             } finally {
@@ -124,7 +125,7 @@ suite('validateCrossReferences', () => {
 
             try {
                 const text = '<xref href="target.dita#t1/nonexistent">link</xref>';
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 const missing = diags.filter(d => d.code === XREF_CODES.MISSING_ELEMENT_ID);
                 assert.strictEqual(missing.length, 1);
@@ -141,7 +142,7 @@ suite('validateCrossReferences', () => {
 
             try {
                 const text = '<xref href="target.dita#t1/p1">link</xref>';
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 assert.strictEqual(diags.length, 0);
             } finally {
@@ -154,7 +155,7 @@ suite('validateCrossReferences', () => {
         test('missing conref target file produces warning', async () => {
             const text = '<p conref="missing.dita#t1/p1">fallback</p>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
@@ -168,7 +169,7 @@ suite('validateCrossReferences', () => {
         test('same-file conref with missing topic ID produces warning', async () => {
             const text = '<topic id="t1"><body><p conref="#nonexist/p1">fallback</p></body></topic>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
@@ -187,7 +188,7 @@ suite('validateCrossReferences', () => {
 
             const text = '<keyword keyref="undefined-key">fallback</keyword>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
@@ -211,7 +212,7 @@ suite('validateCrossReferences', () => {
 
             const text = '<keyword keyref="product">fallback</keyword>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
@@ -234,7 +235,7 @@ suite('validateCrossReferences', () => {
 
             const text = '<xref keyref="empty-key">link</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
@@ -248,7 +249,7 @@ suite('validateCrossReferences', () => {
         test('without keySpaceService, keyref is not validated', async () => {
             const text = '<keyword keyref="any-key">fallback</keyword>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
@@ -281,7 +282,7 @@ suite('validateCrossReferences', () => {
 
             try {
                 const text = '<p conkeyref="snippet/nonexistent">fallback</p>';
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
                 const missing = diags.filter(d => d.code === XREF_CODES.KEY_MISSING_ELEMENT);
                 assert.strictEqual(missing.length, 1);
@@ -307,7 +308,7 @@ suite('validateCrossReferences', () => {
 
             try {
                 const text = '<p conkeyref="snippet/intro">fallback</p>';
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
                 const missing = diags.filter(d => d.code === XREF_CODES.KEY_MISSING_ELEMENT);
                 assert.strictEqual(missing.length, 0);
@@ -321,7 +322,7 @@ suite('validateCrossReferences', () => {
         test('references inside comments are ignored', async () => {
             const text = '<!-- <xref href="nonexistent.dita">link</xref> -->';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
@@ -336,7 +337,7 @@ suite('validateCrossReferences', () => {
                 `<xref href="missing${i}.dita">link</xref>`
             ).join('\n');
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(lines, testUri, undefined, 3);
@@ -351,7 +352,7 @@ suite('validateCrossReferences', () => {
                 '<xref href="missing1.dita">one</xref>\n' +
                 '<xref href="missing2.dita">two</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
-            const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);

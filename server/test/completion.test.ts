@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import { URI } from 'vscode-uri';
 import { handleCompletion } from '../src/features/completion';
 import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService';
 import { createDoc, createDocs, TEST_URI } from './helper';
@@ -362,7 +363,7 @@ suite('handleCompletion', () => {
             );
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = `<xref href="target.dita#">`;
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);
@@ -391,7 +392,7 @@ suite('handleCompletion', () => {
             );
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = `<xref href="target.dita#main-topic/">`;
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);
@@ -423,7 +424,7 @@ suite('handleCompletion', () => {
             fs.writeFileSync(path.join(tmpDir, 'readme.txt'), 'not a dita file');
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = '<xref href="">';
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);
@@ -449,7 +450,7 @@ suite('handleCompletion', () => {
             fs.writeFileSync(path.join(tmpDir, 'topics', 'guide.dita'), '<topic id="t1"/>');
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = '<xref href="">';
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);
@@ -473,7 +474,7 @@ suite('handleCompletion', () => {
             fs.writeFileSync(path.join(tmpDir, 'topics', 'faq.dita'), '<topic id="t2"/>');
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = '<xref href="topics/">';
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);
@@ -496,7 +497,7 @@ suite('handleCompletion', () => {
             fs.writeFileSync(path.join(tmpDir, 'shared.dita'), '<topic id="t1"/>');
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = '<p conref="">';
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);
@@ -525,7 +526,7 @@ suite('handleCompletion', () => {
             fs.writeFileSync(path.join(tmpDir, 'visible.dita'), '<topic id="t2"/>');
 
             try {
-                const testUri = `file:///${tmpDir.replace(/\\/g, '/')}/source.dita`;
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const content = '<xref href="">';
                 const doc = createDoc(content, testUri);
                 const docs = createDocs(doc);
