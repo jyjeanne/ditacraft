@@ -110,13 +110,20 @@ export class DiagnosticsViewProvider implements vscode.TreeDataProvider<Diagnost
 
     private _collectDitaDiagnostics(): Array<{ uri: vscode.Uri; diagnostic: vscode.Diagnostic }> {
         const result: Array<{ uri: vscode.Uri; diagnostic: vscode.Diagnostic }> = [];
+        const seen = new Set<string>();
 
         for (const [uri, diagnostics] of vscode.languages.getDiagnostics()) {
             if (!isDitaUri(uri)) { continue; }
 
             for (const d of diagnostics) {
                 if (!d.source || DITA_SOURCES.has(d.source)) {
-                    result.push({ uri, diagnostic: d });
+                    // Deduplicate diagnostics from different sources (e.g. 'dita' vs 'dita-lsp')
+                    // that report the same issue at the same location
+                    const key = `${uri.fsPath}:${d.range.start.line}:${d.range.start.character}:${d.severity}:${d.message}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        result.push({ uri, diagnostic: d });
+                    }
                 }
             }
         }

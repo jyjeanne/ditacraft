@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="urn:oasis:names:tc:dita:rng:vocabularyModuleDesc.rng"
+                         schematypens="http://relaxng.org/ns/structure/1.0"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" 
+  xmlns:dita="http://dita.oasis-open.org/architecture/2005/" xmlns="http://relaxng.org/ns/structure/1.0"
+  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+
+  <div>
+    <a:documentation>ELEMENT TYPE NAME PATTERNS</a:documentation>
+    <define name="schemeref">
+      <ref name="schemeref.element"/>
+    </define>
+    <define name="subjectdef">
+      <ref name="subjectdef.element"/>
+    </define>
+    <define name="subjectHead">
+      <ref name="subjectHead.element"/>
+    </define>
+    <define name="subjectHeadMeta">
+      <ref name="subjectHeadMeta.element"/>
+    </define>
+    <define name="enumerationdef">
+      <ref name="enumerationdef.element"/>
+    </define>
+    <define name="elementdef">
+      <ref name="elementdef.element"/>
+    </define>
+    <define name="attributedef">
+      <ref name="attributedef.element"/>
+    </define>
+    <define name="defaultSubject">
+      <ref name="defaultSubject.element"/>
+    </define>
+  </div>
+  <div>
+    <a:documentation>COMMON ATTRIBUTE SETS</a:documentation>
+    <define name="topicref-atts-for-subjectScheme">
+      <a:documentation> This differs from topicref-atts-no-toc only by providing a default for @processing-role </a:documentation>
+      <optional>
+        <attribute name="collection-type">
+          <choice>
+            <value>choice</value>
+            <value>family</value>
+            <value>sequence</value>
+            <value>unordered</value>
+            <value>-dita-use-conref-target</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="type"/>
+      </optional>
+      <optional>
+        <attribute name="cascade"/>
+      </optional>
+      <optional>
+        <attribute name="processing-role" a:defaultValue="resource-only">
+          <choice>
+            <value>normal</value>
+            <value>resource-only</value>
+            <value>-dita-use-conref-target</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="scope">
+          <choice>
+            <value>external</value>
+            <value>local</value>
+            <value>peer</value>
+            <value>-dita-use-conref-target</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="format"/>
+      </optional>
+      <optional>
+        <attribute name="linking">
+          <choice>
+            <value>none</value>
+            <value>normal</value>
+            <value>sourceonly</value>
+            <value>targetonly</value>
+            <value>-dita-use-conref-target</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="toc" a:defaultValue="no">
+          <choice>
+            <value>no</value>
+            <value>yes</value>
+            <value>-dita-use-conref-target</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="search">
+          <choice>
+            <value>no</value>
+            <value>yes</value>
+            <value>-dita-use-conref-target</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="chunk"/>
+      </optional>
+    </define>
+  </div>
+  <div>
+    <a:documentation> ELEMENT DECLARATIONS </a:documentation>
+    <div>
+      <a:documentation>LONG NAME: Subject Scheme Map</a:documentation>
+      <define name="subjectScheme.content">
+        <optional>
+          <ref name="title"/>
+        </optional>
+        <optional>
+          <ref name="topicmeta"/>
+        </optional>
+        <zeroOrMore>
+          <choice>
+            <ref name="data.elements.incl"/>
+            <ref name="enumerationdef"/>
+            <ref name="navref"/>
+            <ref name="reltable"/>
+            <ref name="schemeref"/>
+            <ref name="subjectdef"/>
+            <ref name="subjectHead"/>
+            <ref name="topicref"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="subjectScheme.attributes">
+        <optional>
+          <attribute name="id">
+            <data type="ID"/>
+          </attribute>
+        </optional>
+        <ref name="conref-atts"/>
+        <optional>
+          <attribute name="outputclass"/>
+        </optional>
+        <ref name="localization-atts"/>
+        <ref name="topicref-atts-for-subjectScheme"/>
+        <ref name="select-atts"/>
+      </define>
+      <define name="subjectScheme.element">
+        <element name="subjectScheme" dita:longName="Subject Scheme Map">
+          <a:documentation></a:documentation>
+          <ref name="subjectScheme.attlist"/>
+          <ref name="subjectScheme.content"/>
+        </element>
+      </define>
+      <define name="subjectScheme.attlist" combine="interleave">
+        <ref name="subjectScheme.attributes"/>
+        <ref name="arch-atts"/>
+        <ref name="specializations-att"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Scheme reference</a:documentation>
+      <define name="schemeref.content">
+        <optional>
+          <ref name="topicmeta"/>
+        </optional>
+        <zeroOrMore>
+          <ref name="data.elements.incl"/>
+        </zeroOrMore>
+      </define>
+      <define name="schemeref.attributes">
+        <optional>
+          <attribute name="href"/>
+        </optional>
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <optional>
+          <attribute name="keys"/>
+        </optional>
+        <optional>
+          <attribute name="processing-role">
+            <choice>
+              <value>normal</value>
+              <value>resource-only</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="type" a:defaultValue="scheme"/>
+        </optional>
+        <optional>
+          <attribute name="cascade"/>
+        </optional>
+        <optional>
+          <attribute name="format" a:defaultValue="ditamap"/>
+        </optional>
+        <optional>
+          <attribute name="scope">
+            <choice>
+              <value>external</value>
+              <value>local</value>
+              <value>peer</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <ref name="impose-role-attribute-fixed-keeptarget"/>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="schemeref.element">
+        <element name="schemeref" dita:longName="Scheme reference">
+          <a:documentation></a:documentation>
+          <ref name="schemeref.attlist"/>
+          <ref name="schemeref.content"/>
+        </element>
+      </define>
+      <define name="schemeref.attlist" combine="interleave">
+        <ref name="schemeref.attributes"/>
+      </define>
+
+    </div>
+
+    <div>
+      <a:documentation>LONG NAME: Subject definition</a:documentation>
+      <define name="subjectdef.content">
+        <optional>
+          <ref name="topicmeta"/>
+        </optional>
+        <zeroOrMore>
+          <choice>
+            <ref name="data.elements.incl"/>
+            <ref name="subjectdef"/>
+            <ref name="subjectHead"/>
+            <ref name="topicref"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="subjectdef.attributes">
+        <optional>
+          <attribute name="href"/>
+        </optional>
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <optional>
+          <attribute name="keys"/>
+        </optional>
+        <optional>
+          <attribute name="collection-type">
+            <choice>
+              <value>choice</value>
+              <value>family</value>
+              <value>sequence</value>
+              <value>unordered</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="processing-role">
+            <choice>
+              <value>normal</value>
+              <value>resource-only</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+        <optional>
+          <attribute name="cascade"/>
+        </optional>
+        <optional>
+          <attribute name="scope">
+            <choice>
+              <value>external</value>
+              <value>local</value>
+              <value>peer</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="format"/>
+        </optional>
+        <optional>
+          <attribute name="linking">
+            <choice>
+              <value>none</value>
+              <value>normal</value>
+              <value>sourceonly</value>
+              <value>targetonly</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="toc">
+            <choice>
+              <value>no</value>
+              <value>yes</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <ref name="impose-role-attribute-fixed-keeptarget"/>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="subjectdef.element">
+        <element name="subjectdef" dita:longName="Subject definition">
+          <a:documentation></a:documentation>
+          <ref name="subjectdef.attlist"/>
+          <ref name="subjectdef.content"/>
+        </element>
+      </define>
+      <define name="subjectdef.attlist" combine="interleave">
+        <ref name="subjectdef.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Subject Heading</a:documentation>
+      <a:documentation> SKOS equivalent: concept collection </a:documentation>
+      <define name="subjectHead.content">
+        <optional>
+          <ref name="subjectHeadMeta"/>
+        </optional>
+        <zeroOrMore>
+          <choice>
+            <ref name="data.elements.incl"/>
+            <ref name="subjectdef"/>
+            <ref name="subjectHead"/>
+            <ref name="topicref"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="subjectHead.attributes">
+        <optional>
+          <attribute name="collection-type">
+            <choice>
+              <value>sequence</value>
+              <value>unordered</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="processing-role">
+            <choice>
+              <value>normal</value>
+              <value>resource-only</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="linking" a:defaultValue="normal">
+            <choice>
+              <value>normal</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="toc">
+            <choice>
+              <value>no</value>
+              <value>yes</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="subjectHead.element">
+        <element name="subjectHead" dita:longName="Subject Heading">
+          <a:documentation/>
+          <ref name="subjectHead.attlist"/>
+          <ref name="subjectHead.content"/>
+        </element>
+      </define>
+      <define name="subjectHead.attlist" combine="interleave">
+        <ref name="subjectHead.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Subject Heading Metadata</a:documentation>
+      <define name="subjectHeadMeta.content">
+        <zeroOrMore>
+          <ref name="titlealt"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="shortdesc"/>
+        </optional>
+      </define>
+      <define name="subjectHeadMeta.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="subjectHeadMeta.element">
+        <element name="subjectHeadMeta" dita:longName="Subject Heading Metadata">
+          <a:documentation></a:documentation>
+          <ref name="subjectHeadMeta.attlist"/>
+          <ref name="subjectHeadMeta.content"/>
+        </element>
+      </define>
+      <define name="subjectHeadMeta.attlist" combine="interleave">
+        <ref name="subjectHeadMeta.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Enumeration definition</a:documentation>
+      <define name="enumerationdef.content">
+        <optional>
+          <ref name="elementdef"/>
+        </optional>
+        <ref name="attributedef"/>
+        <oneOrMore>
+          <ref name="subjectdef"/>
+        </oneOrMore>
+        <optional>
+          <ref name="defaultSubject"/>
+        </optional>
+        <zeroOrMore>
+          <ref name="data.elements.incl"/>
+        </zeroOrMore>
+      </define>
+      <define name="enumerationdef.attributes">
+        <ref name="id-atts"/>
+        <optional>
+          <attribute name="outputclass"/>
+        </optional>
+        <optional>
+          <attribute name="status">
+            <choice>
+              <value>changed</value>
+              <value>deleted</value>
+              <value>new</value>
+              <value>unchanged</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="base"/>
+        </optional>
+        <ref name="base-attribute-extensions"/>
+      </define>
+      <define name="enumerationdef.element">
+        <element name="enumerationdef" dita:longName="Enumeration definition">
+          <a:documentation></a:documentation>
+          <ref name="enumerationdef.attlist"/>
+          <ref name="enumerationdef.content"/>
+        </element>
+      </define>
+      <define name="enumerationdef.attlist" combine="interleave">
+        <ref name="enumerationdef.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Element definition</a:documentation>
+      <define name="elementdef.content">
+        <zeroOrMore>
+          <ref name="data.elements.incl"/>
+        </zeroOrMore>
+      </define>
+      <define name="elementdef.attributes">
+        <ref name="id-atts"/>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="outputclass"/>
+        </optional>
+        <optional>
+          <attribute name="status">
+            <choice>
+              <value>changed</value>
+              <value>deleted</value>
+              <value>new</value>
+              <value>unchanged</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="translate" a:defaultValue="no">
+            <choice>
+              <value>no</value>
+              <value>yes</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="base"/>
+        </optional>
+        <ref name="base-attribute-extensions"/>
+      </define>
+      <define name="elementdef.element">
+        <element name="elementdef" dita:longName="Element definition">
+          <a:documentation/>
+          <ref name="elementdef.attlist"/>
+          <ref name="elementdef.content"/>
+        </element>
+      </define>
+      <define name="elementdef.attlist" combine="interleave">
+        <ref name="elementdef.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Attribute definition</a:documentation>
+      <define name="attributedef.content">
+        <zeroOrMore>
+          <ref name="data.elements.incl"/>
+        </zeroOrMore>
+      </define>
+      <define name="attributedef.attributes">
+        <ref name="id-atts"/>
+        <attribute name="name"/>
+        <optional>
+          <attribute name="outputclass"/>
+        </optional>
+        <optional>
+          <attribute name="status">
+            <choice>
+              <value>changed</value>
+              <value>deleted</value>
+              <value>new</value>
+              <value>unchanged</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="translate" a:defaultValue="no">
+            <choice>
+              <value>no</value>
+              <value>yes</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="base"/>
+        </optional>
+        <ref name="base-attribute-extensions"/>
+      </define>
+      <define name="attributedef.element">
+        <element name="attributedef" dita:longName="Attribute definition">
+          <a:documentation></a:documentation>
+          <ref name="attributedef.attlist"/>
+          <ref name="attributedef.content"/>
+        </element>
+      </define>
+      <define name="attributedef.attlist" combine="interleave">
+        <ref name="attributedef.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Default Subject</a:documentation>
+      <define name="defaultSubject.content">
+        <zeroOrMore>
+          <ref name="data.elements.incl"/>
+        </zeroOrMore>
+      </define>
+      <define name="defaultSubject.attributes">
+        <optional>
+          <attribute name="href"/>
+        </optional>
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <optional>
+          <attribute name="keys"/>
+        </optional>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+        <optional>
+          <attribute name="cascade"/>
+        </optional>
+        <optional>
+          <attribute name="scope">
+            <choice>
+              <value>external</value>
+              <value>local</value>
+              <value>peer</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="processing-role">
+            <choice>
+              <value>normal</value>
+              <value>resource-only</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="format"/>
+        </optional>
+        <optional>
+          <attribute name="linking">
+            <choice>
+              <value>none</value>
+              <value>normal</value>
+              <value>sourceonly</value>
+              <value>targetonly</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="toc">
+            <choice>
+              <value>no</value>
+              <value>yes</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <ref name="impose-role-attribute-fixed-keeptarget"/>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="defaultSubject.element">
+        <element name="defaultSubject" dita:longName="Default Subject">
+          <a:documentation></a:documentation>
+          <ref name="defaultSubject.attlist"/>
+          <ref name="defaultSubject.content"/>
+        </element>
+      </define>
+      <define name="defaultSubject.attlist" combine="interleave">
+        <ref name="defaultSubject.attributes"/>
+      </define>
+
+    </div>
+  </div>
+  <div>
+    <a:documentation>SPECIALIZATION ATTRIBUTE DECLARATIONS</a:documentation>
+
+    <define name="subjectScheme.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- map/map subjectScheme/subjectScheme "/>
+      </optional>
+    </define>
+    <define name="schemeref.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- map/topicref subjectScheme/schemeref "/>
+      </optional>
+    </define>
+    <define name="enumerationdef.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- map/topicref subjectScheme/enumerationdef "/>
+      </optional>
+    </define>
+    <define name="elementdef.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/data subjectScheme/elementdef "/>
+      </optional>
+    </define>
+    <define name="attributedef.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/data subjectScheme/attributedef "/>
+      </optional>
+    </define>
+    <define name="defaultSubject.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- map/topicref subjectScheme/defaultSubject "/>
+      </optional>
+    </define>
+    <define name="subjectHead.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- map/topicref subjectScheme/subjectHead "/>
+      </optional>
+    </define>
+    <define name="subjectHeadMeta.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- map/topicmeta subjectScheme/subjectHeadMeta "/>
+      </optional>
+    </define>
+    <define name="subjectdef.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- map/topicref subjectScheme/subjectdef "/>
+      </optional>
+    </define>
+  </div>
+</grammar>

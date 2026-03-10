@@ -19,6 +19,7 @@ function defaultSettings(): DitaCraftSettings {
         ditaVersion: 'auto',
         schemaFormat: 'dtd',
         rngSchemaPath: '',
+        xmlCatalogPath: '',
     };
 }
 
@@ -123,6 +124,51 @@ suite('validateDITADocument', () => {
             const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
             assert.ok(rootDiags.length > 0);
         });
+
+        test('topicref without href produces info', () => {
+            const diags = validate(
+                '<map><title>T</title><topicref navtitle="Group"></topicref></map>',
+                'file:///test.ditamap'
+            );
+            const trDiags = diags.filter(d => d.code === 'DITA-STRUCT-008');
+            assert.strictEqual(trDiags.length, 1);
+        });
+
+        test('topicref with href produces no info', () => {
+            const diags = validate(
+                '<map><title>T</title><topicref href="topic.dita"/></map>',
+                'file:///test.ditamap'
+            );
+            const trDiags = diags.filter(d => d.code === 'DITA-STRUCT-008');
+            assert.strictEqual(trDiags.length, 0);
+        });
+
+        test('topicref with keyref produces no info', () => {
+            const diags = validate(
+                '<map><title>T</title><topicref keyref="mykey"></topicref></map>',
+                'file:///test.ditamap'
+            );
+            const trDiags = diags.filter(d => d.code === 'DITA-STRUCT-008');
+            assert.strictEqual(trDiags.length, 0);
+        });
+
+        test('topicref with conref produces no info', () => {
+            const diags = validate(
+                '<map><title>T</title><topicref conref="other.ditamap#r1"></topicref></map>',
+                'file:///test.ditamap'
+            );
+            const trDiags = diags.filter(d => d.code === 'DITA-STRUCT-008');
+            assert.strictEqual(trDiags.length, 0);
+        });
+
+        test('self-closing topicref without href produces no info', () => {
+            const diags = validate(
+                '<map><title>T</title><topicref/></map>',
+                'file:///test.ditamap'
+            );
+            const trDiags = diags.filter(d => d.code === 'DITA-STRUCT-008');
+            assert.strictEqual(trDiags.length, 0);
+        });
     });
 
     suite('Bookmap validation', () => {
@@ -136,6 +182,57 @@ suite('validateDITADocument', () => {
             const diags = validate('<map></map>', 'file:///test.bookmap');
             const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
             assert.ok(rootDiags.length > 0);
+        });
+
+        test('missing booktitle produces warning', () => {
+            const diags = validate('<bookmap><chapter href="c.dita"/></bookmap>', 'file:///test.bookmap');
+            const btDiags = diags.filter(d => d.code === 'DITA-STRUCT-006');
+            assert.strictEqual(btDiags.length, 1);
+        });
+
+        test('booktitle present produces no booktitle warning', () => {
+            const diags = validate(
+                '<bookmap><booktitle><mainbooktitle>My Book</mainbooktitle></booktitle></bookmap>',
+                'file:///test.bookmap'
+            );
+            const btDiags = diags.filter(d => d.code === 'DITA-STRUCT-006');
+            assert.strictEqual(btDiags.length, 0);
+        });
+
+        test('booktitle without mainbooktitle produces warning', () => {
+            const diags = validate(
+                '<bookmap><booktitle></booktitle></bookmap>',
+                'file:///test.bookmap'
+            );
+            const mbtDiags = diags.filter(d => d.code === 'DITA-STRUCT-007');
+            assert.strictEqual(mbtDiags.length, 1);
+        });
+
+        test('booktitle with mainbooktitle produces no warning', () => {
+            const diags = validate(
+                '<bookmap><booktitle><mainbooktitle>Title</mainbooktitle></booktitle></bookmap>',
+                'file:///test.bookmap'
+            );
+            const mbtDiags = diags.filter(d => d.code === 'DITA-STRUCT-007');
+            assert.strictEqual(mbtDiags.length, 0);
+        });
+
+        test('topicref without href in bookmap produces info', () => {
+            const diags = validate(
+                '<bookmap><topicref navtitle="Group"></topicref></bookmap>',
+                'file:///test.bookmap'
+            );
+            const trDiags = diags.filter(d => d.code === 'DITA-STRUCT-008');
+            assert.strictEqual(trDiags.length, 1);
+        });
+
+        test('self-closing topicref without href produces no warning', () => {
+            const diags = validate(
+                '<bookmap><topicref/></bookmap>',
+                'file:///test.bookmap'
+            );
+            const trDiags = diags.filter(d => d.code === 'DITA-STRUCT-008');
+            assert.strictEqual(trDiags.length, 0);
         });
     });
 

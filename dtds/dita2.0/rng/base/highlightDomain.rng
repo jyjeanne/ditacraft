@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="urn:oasis:names:tc:dita:rng:vocabularyModuleDesc.rng"
+                         schematypens="http://relaxng.org/ns/structure/1.0"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+  xmlns:dita="http://dita.oasis-open.org/architecture/2005/" 
+  xmlns="http://relaxng.org/ns/structure/1.0">
+  <moduleDesc xmlns="http://dita.oasis-open.org/architecture/2005/">
+    <moduleTitle>DITA Highlight Domain</moduleTitle>
+    <headerComment>
+=============================================================
+ HEADER                                    
+=============================================================
+ MODULE:    DITA Highlight Domain                            
+ VERSION:   2.0                                              
+ DATE:      [[[Release date]]]                                    
+ PURPOSE:   Declaring the elements and specialization        
+            attributes for the DITA Highlight Domain         
+
+=============================================================
+
+=============================================================
+                   PUBLIC DOCUMENT TYPE DEFINITION           
+                   TYPICAL INVOCATION                        
+      
+ Refer to this file by the following public identifier or an
+      appropriate system identifier 
+ PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Highlight Domain//EN"
+      Delivered as file "highlightDomain.mod"                     
+      
+=============================================================
+      
+            (C) Copyright OASIS Open 2005, 2019.             
+            (C) Copyright IBM Corporation 2001, 2004.        
+            All Rights Reserved.                             
+      
+ UPDATES:                                                    
+=============================================================
+    </headerComment>
+    <moduleMetadata>
+      <moduleType>elementdomain</moduleType>
+      <moduleShortName>hi-d</moduleShortName>
+      <modulePublicIds>
+        <dtdMod>-//OASIS//ELEMENTS DITA<var presep=" " name="ditaver"/> Highlight Domain//EN</dtdMod>
+        <dtdEnt>-//OASIS//ENTITIES DITA<var presep=" " name="ditaver"/> Highlight Domain//EN</dtdEnt>
+        <rngMod>urn:pubid:oasis:names:tc:dita:rng:highlightDomain.rng<var presep=":" name="ditaver"/></rngMod>
+      </modulePublicIds>
+    </moduleMetadata>
+  </moduleDesc>
+
+  <div>
+    <a:documentation>DOMAIN EXTENSION PATTERNS</a:documentation>
+
+    <define name="hi-d-ph">
+      <choice>
+        <ref name="b.element"/>
+        <ref name="i.element"/>
+        <ref name="line-through.element"/>
+        <ref name="overline.element"/>
+        <ref name="sup.element"/>
+        <ref name="sub.element"/>
+        <ref name="tt.element"/>
+        <ref name="u.element"/>
+      </choice>
+    </define>
+
+    <define name="ph" combine="choice">
+      <ref name="hi-d-ph"/>
+    </define>
+  </div>
+  <div>
+    <a:documentation>ELEMENT TYPE NAME PATTERNS</a:documentation>
+    <define name="b">
+      <ref name="b.element"/>
+    </define>
+    <define name="i">
+      <ref name="i.element"/>
+    </define>
+    <define name="line-through">
+      <ref name="line-through.element"/>
+    </define>
+    <define name="overline">
+      <ref name="overline.element"/>
+    </define>
+    <define name="sup">
+      <ref name="sup.element"/>
+    </define>
+    <define name="sub">
+      <ref name="sub.element"/>
+    </define>
+    <define name="tt">
+      <ref name="tt.element"/>
+    </define>
+    <define name="u">
+      <ref name="u.element"/>
+    </define>
+  </div>
+  <div>
+    <a:documentation>ELEMENT TYPE DECLARATIONS</a:documentation>
+    <div>
+      <a:documentation>LONG NAME: Bold</a:documentation>
+      <define name="b.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="b.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="b.element">
+        <element name="b" dita:longName="Bold">
+          <a:documentation></a:documentation>
+          <ref name="b.attlist"/>
+          <ref name="b.content"/>
+        </element>
+      </define>
+      <define name="b.attlist" combine="interleave">
+        <ref name="b.attributes"/>
+      </define>
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Underline</a:documentation>
+      <define name="u.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="u.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="u.element">
+        <element name="u" dita:longName="Underlined">
+          <a:documentation></a:documentation>
+          <ref name="u.attlist"/>
+          <ref name="u.content"/>
+        </element>
+      </define>
+      <define name="u.attlist" combine="interleave">
+        <ref name="u.attributes"/>
+      </define>
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Italic</a:documentation>
+      <define name="i.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="i.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="i.element">
+        <element name="i" dita:longName="Italic">
+          <a:documentation></a:documentation>
+          <ref name="i.attlist"/>
+          <ref name="i.content"/>
+        </element>
+      </define>
+      <define name="i.attlist" combine="interleave">
+        <ref name="i.attributes"/>
+      </define>
+    </div>    <div>
+      <a:documentation>LONG NAME: Line through</a:documentation>
+      <define name="line-through.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="line-through.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="line-through.element">
+        <element name="line-through" dita:longName="Line through">
+          <a:documentation></a:documentation>
+          <ref name="line-through.attlist"/>
+          <ref name="line-through.content"/>
+        </element>
+      </define>
+      <define name="line-through.attlist" combine="interleave">
+        <ref name="line-through.attributes"/>
+      </define>
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Overline</a:documentation>
+      <define name="overline.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="overline.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="overline.element">
+        <element name="overline" dita:longName="Overline">
+          <a:documentation></a:documentation>
+          <ref name="overline.attlist"/>
+          <ref name="overline.content"/>
+        </element>
+      </define>
+      <define name="overline.attlist" combine="interleave">
+        <ref name="overline.attributes"/>
+      </define>
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Teletype</a:documentation>
+      <define name="tt.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="tt.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="tt.element">
+        <element name="tt" dita:longName="Teletype (monospaced)">
+          <a:documentation></a:documentation>
+          <ref name="tt.attlist"/>
+          <ref name="tt.content"/>
+        </element>
+      </define>
+      <define name="tt.attlist" combine="interleave">
+        <ref name="tt.attributes"/>
+      </define>
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Superscript</a:documentation>
+      <define name="sup.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="sup.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="sup.element">
+        <element name="sup" dita:longName="Superscript">
+          <a:documentation></a:documentation>
+          <ref name="sup.attlist"/>
+          <ref name="sup.content"/>
+        </element>
+      </define>
+      <define name="sup.attlist" combine="interleave">
+        <ref name="sup.attributes"/>
+      </define>
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Subscript</a:documentation>
+      <define name="sub.content">
+        <zeroOrMore>
+          <choice>
+            <text/>
+            <ref name="basic.ph"/>
+            <ref name="data.elements.incl"/>
+            <ref name="draft-comment"/>
+            <ref name="foreign.unknown.incl"/>
+            <ref name="required-cleanup"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="sub.attributes">
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="sub.element">
+        <element name="sub" dita:longName="Subscript">
+          <a:documentation></a:documentation>
+          <ref name="sub.attlist"/>
+          <ref name="sub.content"/>
+        </element>
+      </define>
+      <define name="sub.attlist" combine="interleave">
+        <ref name="sub.attributes"/>
+      </define>
+    </div>
+  </div>
+  <div>
+    <a:documentation>SPECIALIZATION ATTRIBUTE DECLARATIONS</a:documentation>
+    <define name="b.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/b "/>
+      </optional>
+    </define>
+    <define name="i.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/i "/>
+      </optional>
+    </define>
+    <define name="line-through.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/line-through "/>
+      </optional>
+    </define>
+    <define name="overline.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/overline "/>
+      </optional>
+    </define>
+    <define name="sub.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/sub "/>
+      </optional>
+    </define>
+    <define name="sup.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/sup "/>
+      </optional>
+    </define>
+    <define name="tt.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/tt "/>
+      </optional>
+    </define>
+    <define name="u.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="+ topic/ph hi-d/u "/>
+      </optional>
+    </define>
+  </div>
+</grammar>

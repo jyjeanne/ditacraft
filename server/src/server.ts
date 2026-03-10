@@ -59,6 +59,8 @@ import { validateDitaRules } from './features/ditaRulesValidator';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { validateProfilingAttributes } from './features/profilingValidation';
+import { detectCircularReferences } from './features/circularRefDetection';
+import { buildRootIdIndex, detectCrossFileDuplicateIds, detectUnusedTopics, createUnusedTopicDiagnostic } from './features/workspaceValidation';
 import { detectDitaVersion } from './utils/ditaVersionDetector';
 import { CatalogValidationService } from './services/catalogValidationService';
 import { RngValidationService } from './services/rngValidationService';
@@ -77,6 +79,11 @@ let keySpaceService: KeySpaceService | undefined;
 const subjectSchemeService = new SubjectSchemeService();
 const catalogValidationService = new CatalogValidationService();
 const rngValidationService = new RngValidationService();
+
+/** Workspace-level root ID index for cross-file duplicate detection. */
+let rootIdIndex: Map<string, string[]> = new Map();
+/** Set of unused topic file paths (lowercase normalized). */
+let unusedTopicPaths: Set<string> = new Set();
 
 connection.onInitialize((params: InitializeParams): InitializeResult => {
     const capabilities = params.capabilities;
@@ -114,9 +121,12 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
     // so extensionPath is two directories up from __dirname.
     const serverDir = __dirname; // server/out
     const extensionPath = path.resolve(serverDir, '..', '..');
-    catalogValidationService.initialize(extensionPath);
+
+    // Pass external catalog path from initialization options if available
+    const initOptions = params.initializationOptions as { xmlCatalogPath?: string } | undefined;
+    catalogValidationService.initialize(extensionPath, initOptions?.xmlCatalogPath || undefined);
     if (catalogValidationService.isAvailable) {
-        connection.console.log('TypesXML catalog validation initialized');
+        connection.console.log('TypesXML catalog validation initialized (DITA 1.2/1.3/2.0)');
     } else if (catalogValidationService.error) {
         connection.console.log(`TypesXML not available: ${catalogValidationService.error}`);
     }
@@ -157,7 +167,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
             },
             linkedEditingRangeProvider: true,
             executeCommandProvider: {
-                commands: ['ditacraft.setRootMap', 'ditacraft.clearRootMap'],
+                commands: ['ditacraft.setRootMap', 'ditacraft.clearRootMap', 'ditacraft.validateWorkspace'],
             },
         },
     };
@@ -216,12 +226,38 @@ connection.onExecuteCommand(async (params) => {
         return null;
     }
 
+    if (params.command === 'ditacraft.validateWorkspace') {
+        const folders = keySpaceService?.getWorkspaceFolders() ?? [];
+        if (folders.length === 0) {
+            connection.console.log('No workspace folders to validate');
+            return null;
+        }
+
+        connection.console.log('Starting workspace validation...');
+
+        // Build workspace-level indices
+        rootIdIndex = buildRootIdIndex(folders);
+        connection.console.log(`Root ID index: ${rootIdIndex.size} unique IDs`);
+
+        // Detect unused topics
+        if (keySpaceService) {
+            unusedTopicPaths = await detectUnusedTopics(folders, keySpaceService);
+            connection.console.log(`Unused topics: ${unusedTopicPaths.size} orphaned files`);
+        }
+
+        // Trigger re-validation of all open documents (will now include workspace checks)
+        connection.languages.diagnostics.refresh();
+        connection.console.log('Workspace validation complete');
+        return null;
+    }
+
     return null;
 });
 
 // File watcher — invalidate key space cache on map changes
 connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
     let mapChanged = false;
+    let ditaFileChanged = false;
     for (const change of params.changes) {
         const filePath = URI.parse(change.uri).fsPath;
         if (filePath.endsWith('.ditamap') || filePath.endsWith('.bookmap')) {
@@ -229,6 +265,14 @@ connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
             subjectSchemeService.invalidate(filePath);
             mapChanged = true;
         }
+        if (filePath.endsWith('.dita') || filePath.endsWith('.ditamap') || filePath.endsWith('.bookmap')) {
+            ditaFileChanged = true;
+        }
+    }
+    // Clear stale workspace validation indices when DITA files change
+    if (ditaFileChanged && (rootIdIndex.size > 0 || unusedTopicPaths.size > 0)) {
+        rootIdIndex = new Map();
+        unusedTopicPaths = new Set();
     }
     // When external map files change, revalidate all open documents
     // (key space and cross-references may have changed)
@@ -244,7 +288,7 @@ connection.onShutdown(() => {
 });
 
 // Configuration change handler
-connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
+connection.onDidChangeConfiguration(async (change: DidChangeConfigurationParams) => {
     if (hasConfigurationCapability) {
         clearDocumentSettings();
     } else {
@@ -253,6 +297,13 @@ connection.onDidChangeConfiguration((change: DidChangeConfigurationParams) => {
         );
     }
     keySpaceService?.reloadCacheConfig();
+
+    // Re-initialize catalog service if xmlCatalogPath changed
+    const settings = await getDocumentSettings('');
+    if (settings.xmlCatalogPath !== undefined) {
+        catalogValidationService.reinitialize(settings.xmlCatalogPath || undefined);
+    }
+
     connection.languages.diagnostics.refresh();
 });
 
@@ -334,6 +385,29 @@ connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Pr
         ditaVersion,
     });
     diagnostics.push(...ruleDiags);
+
+    // Circular reference detection (async — follows file references)
+    if (settings.crossRefValidationEnabled !== false) {
+        const cycleDiags = await detectCircularReferences(text, document.uri);
+        diagnostics.push(...cycleDiags);
+    }
+
+    // Workspace-level checks (only if workspace validation has been run)
+    const filePath = URI.parse(document.uri).fsPath;
+
+    // Cross-file duplicate root ID detection
+    if (rootIdIndex.size > 0) {
+        const dupIdDiags = detectCrossFileDuplicateIds(text, filePath, rootIdIndex);
+        diagnostics.push(...dupIdDiags);
+    }
+
+    // Unused topic detection
+    if (unusedTopicPaths.size > 0) {
+        const normalizedPath = path.resolve(filePath).toLowerCase();
+        if (unusedTopicPaths.has(normalizedPath)) {
+            diagnostics.push(createUnusedTopicDiagnostic());
+        }
+    }
 
     // Cap total diagnostics
     const maxProblems = settings.maxNumberOfProblems ?? 100;

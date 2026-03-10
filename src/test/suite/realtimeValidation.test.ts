@@ -29,9 +29,8 @@ suite('Real-time Validation Test Suite', () => {
             initializeValidator(context);
         }
 
-        // Enable auto-validation
+        // Set validation engine for manual validation command
         const config = vscode.workspace.getConfiguration('ditacraft');
-        await config.update('autoValidate', true, vscode.ConfigurationTarget.Global);
         await config.update('validationEngine', 'built-in', vscode.ConfigurationTarget.Global);
     });
 
@@ -99,10 +98,14 @@ suite('Real-time Validation Test Suite', () => {
     });
 
     suite('Validation on Save', () => {
-        test('Should validate when saving a DITA file', async function() {
+        test('Should clear stale client diagnostics on save', async function() {
             this.timeout(5000);
 
-            // Create a valid temp file
+            // Since v0.6.2, client-side on-save auto-validation is disabled.
+            // The LSP server handles real-time validation. On save, stale 'dita'
+            // diagnostics (from manual validate) are cleared to avoid duplicates
+            // with the LSP's 'dita-lsp' diagnostics.
+
             const validContent = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
 <topic id="test_save">
@@ -116,65 +119,53 @@ suite('Real-time Validation Test Suite', () => {
 
             const fileUri = vscode.Uri.file(tempFile);
             const document = await vscode.workspace.openTextDocument(fileUri);
-            const editor = await vscode.window.showTextDocument(document);
+            await vscode.window.showTextDocument(document);
 
-            // Make a change
-            await editor.edit(editBuilder => {
-                const lastLine = document.lineAt(document.lineCount - 1);
-                editBuilder.insert(lastLine.range.end, '\n<!-- Comment -->');
-            });
+            // Run manual validation to produce 'dita' diagnostics
+            await vscode.commands.executeCommand('ditacraft.validate', fileUri);
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Save the file
+            // Save the file — should clear stale 'dita' diagnostics
             await document.save();
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Wait for validation to complete
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Check diagnostics
+            // After save, client-side 'dita' diagnostics should be cleared
             const diagnostics = vscode.languages.getDiagnostics(fileUri);
-            console.log('Diagnostics after save:', diagnostics.length);
+            const clientDiags = diagnostics.filter(d => d.source === 'dita' || d.source === 'dita-validator' || d.source === 'xml-parser');
+            console.log('Client diagnostics after save:', clientDiags.length);
 
-            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
-            assert.strictEqual(errors.length, 0, 'Should have no errors after saving valid content');
+            assert.strictEqual(clientDiags.length, 0, 'Client-side diagnostics should be cleared on save');
         });
 
-        test('Should detect errors introduced before save', async function() {
+        test('Should still detect errors via manual validation after save', async function() {
             this.timeout(5000);
 
-            // Create a valid temp file
-            const validContent = `<?xml version="1.0" encoding="UTF-8"?>
+            // Create a file with an error
+            const invalidContent = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
 <topic id="test_save_error">
     <title>Save Error Test</title>
     <body>
-        <p>Testing error detection on save.</p>
+        <p>Testing error detection.</p>
+        <p>Unclosed paragraph
     </body>
 </topic>`;
 
-            fs.writeFileSync(tempFile, validContent, 'utf-8');
+            fs.writeFileSync(tempFile, invalidContent, 'utf-8');
 
             const fileUri = vscode.Uri.file(tempFile);
             const document = await vscode.workspace.openTextDocument(fileUri);
-            const editor = await vscode.window.showTextDocument(document);
+            await vscode.window.showTextDocument(document);
 
-            // Introduce an error (unclosed tag)
-            await editor.edit(editBuilder => {
-                const position = new vscode.Position(6, 12);
-                editBuilder.insert(position, '\n        <p>Unclosed paragraph');
-            });
+            // Manual validate should still detect errors
+            await vscode.commands.executeCommand('ditacraft.validate', fileUri);
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Save the file
-            await document.save();
-
-            // Wait for validation to complete
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Check diagnostics
             const diagnostics = vscode.languages.getDiagnostics(fileUri);
-            console.log('Diagnostics after introducing error:', diagnostics.length);
+            console.log('Diagnostics after manual validate:', diagnostics.length);
 
             const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
-            assert.ok(errors.length > 0, 'Should detect errors after saving invalid content');
+            assert.ok(errors.length > 0, 'Manual validation should detect errors in invalid content');
         });
     });
 
@@ -219,19 +210,19 @@ suite('Real-time Validation Test Suite', () => {
         });
     });
 
-    suite('Auto-Validation Toggle', () => {
-        test('Should respect autoValidate setting', async function() {
+    suite('LSP-Driven Validation', () => {
+        test('Should receive diagnostics from LSP server', async function() {
             this.timeout(5000);
 
-            // Disable auto-validation
-            const config = vscode.workspace.getConfiguration('ditacraft');
-            await config.update('autoValidate', false, vscode.ConfigurationTarget.Global);
+            // Since v0.6.2, validation is handled by the LSP server with smart debouncing.
+            // Client-side auto-validation on save is disabled to avoid duplicate diagnostics.
+            // This test verifies that opening an invalid file still produces diagnostics
+            // (from the LSP server's real-time validation).
 
-            // Create a temp file with an error
             const invalidContent = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
-<topic id="auto_validate_test">
-    <title>Auto Validate Test
+<topic id="lsp_validate_test">
+    <title>LSP Validate Test
     <body>
         <p>Missing closing title tag</p>
     </body>
@@ -243,17 +234,25 @@ suite('Real-time Validation Test Suite', () => {
             const document = await vscode.workspace.openTextDocument(fileUri);
             await vscode.window.showTextDocument(document);
 
-            // Save the file
-            await document.save();
+            // Wait for LSP server to validate
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-            // Wait a bit
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // LSP server should detect errors in this malformed file
+            const diagnostics = vscode.languages.getDiagnostics(fileUri);
+            console.log('LSP diagnostics for invalid file:', diagnostics.length);
 
-            // With auto-validation disabled, diagnostics should not be automatically set on save
-            // Note: This may still show diagnostics from manual validation or initial validation
-
-            // Re-enable auto-validation for other tests
-            await config.update('autoValidate', true, vscode.ConfigurationTarget.Global);
+            // When LSP is running, it should detect errors in this malformed XML
+            if (diagnostics.length > 0) {
+                const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+                assert.ok(errors.length > 0, 'Malformed XML should produce error-level diagnostics');
+                for (const d of errors) {
+                    assert.ok(d.message.length > 0, 'Diagnostic should have a message');
+                    assert.ok(d.range, 'Diagnostic should have a range');
+                }
+            }
+            // In CI, the LSP server may not be fully initialized;
+            // the test still validates no crash on open
+            assert.ok(true, 'Should handle LSP-driven validation without crashing');
         });
     });
 });

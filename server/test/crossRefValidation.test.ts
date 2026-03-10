@@ -60,8 +60,25 @@ suite('validateCrossReferences', () => {
             }
         });
 
-        test('external URL is skipped', async () => {
+        test('external URL without scope produces info suggestion', async () => {
             const text = '<xref href="https://example.com">link</xref>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const scopeInfo = diags.filter(d => d.code === XREF_CODES.SCOPE_MISSING_ON_URL);
+                assert.strictEqual(scopeInfo.length, 1);
+                // No file-level errors (URL is not checked as local file)
+                const fileErrors = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
+                assert.strictEqual(fileErrors.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('external URL with scope="external" is skipped', async () => {
+            const text = '<xref href="https://example.com" scope="external">link</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
@@ -73,14 +90,15 @@ suite('validateCrossReferences', () => {
             }
         });
 
-        test('scope="external" is skipped', async () => {
+        test('scope="external" with relative href produces warning', async () => {
             const text = '<xref href="some-path" scope="external">link</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
-                assert.strictEqual(diags.length, 0);
+                const scopeWarns = diags.filter(d => d.code === XREF_CODES.SCOPE_EXTERNAL_RELATIVE);
+                assert.strictEqual(scopeWarns.length, 1);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
@@ -145,6 +163,19 @@ suite('validateCrossReferences', () => {
                 const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 assert.strictEqual(diags.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+        test('scope="local" with absolute URL produces warning', async () => {
+            const text = '<xref href="https://example.com" scope="local">link</xref>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const scopeWarns = diags.filter(d => d.code === XREF_CODES.SCOPE_LOCAL_ABSOLUTE);
+                assert.strictEqual(scopeWarns.length, 1);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }

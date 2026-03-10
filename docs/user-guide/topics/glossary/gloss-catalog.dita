@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-catalog">
+    <glossterm>OASIS XML Catalog</glossterm>
+    <glossdef>A standard mechanism for mapping PUBLIC identifiers (such as DOCTYPE declarations) to local file paths. DitaCraft uses an OASIS XML Catalog to resolve DITA DTD references to bundled DTD files, enabling offline validation without network access.</glossdef>
+</glossentry>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="urn:oasis:names:tc:dita:rng:vocabularyModuleDesc.rng"
+                         schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="urn:oasis:names:tc:dita:rng:checkShell.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" xmlns:dita="http://dita.oasis-open.org/architecture/2005/" xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0">
+  <div>
+    <a:documentation>ROOT ELEMENT DECLARATION</a:documentation>
+    <start combine="choice">
+      <ref name="topic.element"/>
+    </start>
+  </div>
+  <div>
+    <a:documentation>SPECIALIZATIONS ATTRIBUTE</a:documentation>
+      <define name="specializations-att">
+         <optional>
+            <attribute name="specializations"
+                       a:defaultValue="
+                         @props/audience
+                         @props/deliveryTarget
+                         @props/otherprops
+                         @props/platform
+                         @props/product"/>
+         </optional>
+      </define>
+  </div>
+  <div>
+      <a:documentation>ELEMENT-TYPE CONFIGURATION INTEGRATION</a:documentation>
+  </div>
+  <div>
+    <a:documentation>MODULE INCLUSIONS</a:documentation>
+    <include href="topicMod.rng">
+      <define name="topic-info-types">
+        <ref name="topic.element"/>
+      </define>
+    </include>
+    <include href="audienceAttDomain.rng" dita:since="2.0"/>
+    <include href="deliveryTargetAttDomain.rng"/>
+    <include href="otherpropsAttDomain.rng" dita:since="2.0"/>
+    <include href="platformAttDomain.rng" dita:since="2.0"/>
+    <include href="productAttDomain.rng" dita:since="2.0"/>
+    <include href="alternativeTitlesDomain.rng" dita:since="2.0"/>
+    <include href="emphasisDomain.rng" dita:since="2.0"/>
+    <include href="hazardstatementDomain.rng"/>
+    <include href="highlightDomain.rng"/>
+    <include href="utilitiesDomain.rng"/>
+  </div>
+  <div>
+    <a:documentation>ID-DEFINING ELEMENT OVERRIDES</a:documentation>
+    <define name="any">
+      <zeroOrMore>
+        <choice>
+          <ref name="idElements"/>
+          <element>
+            <anyName>
+              <except>
+                <name>topic</name>
+              </except>
+            </anyName>
+            <zeroOrMore>
+              <attribute>
+                <anyName/>
+              </attribute>
+            </zeroOrMore>
+            <ref name="any"/>
+          </element>
+          <text/>
+        </choice>
+      </zeroOrMore>
+    </define>
+  </div>
+</grammar>

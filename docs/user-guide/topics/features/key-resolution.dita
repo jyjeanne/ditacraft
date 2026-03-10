@@ -95,6 +95,8 @@
                 <li><b>Preview:</b> Live preview shows resolved key values</li>
                 <li><b>Validation:</b> Warns about undefined or missing keys</li>
                 <li><b>Caching:</b> Key space is cached with TTL and LRU eviction for performance, with automatic invalidation when map files change</li>
+                <li><b>Key Scope Support:</b> Full <codeph>@keyscope</codeph> attribute handling with scope-qualified keys (e.g., <codeph>admin.audience</codeph>)</li>
+                <li><b>Root Map Selection:</b> Explicitly set the root map for precise key space control via <uicontrol>DITA: Set Root Map</uicontrol></li>
                 <li><b>LSP Integration:</b> The LSP server maintains its own key space service for instant keyref and conkeyref resolution in Go to Definition and document links</li>
             </ul>
         </section>

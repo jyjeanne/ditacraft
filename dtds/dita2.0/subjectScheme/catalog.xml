@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+<!--DITA Subject Scheme maps-->
+
+   <public publicId="-//OASIS//DTD DITA 2.0 Subject Scheme Map//EN"
+           uri="subjectScheme.dtd"/>
+   <public publicId="-//OASIS//DTD DITA 2.x Subject Scheme Map//EN"
+           uri="subjectScheme.dtd"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Subject Scheme Map//EN"
+           uri="subjectScheme.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Subject Scheme Map//EN"
+           uri="subjectScheme.mod"/>
+</catalog>

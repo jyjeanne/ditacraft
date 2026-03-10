@@ -26,6 +26,9 @@ const CODES = {
     EMPTY_ELEMENT: 'DITA-STRUCT-005',
     DUPLICATE_ID: 'DITA-ID-001',
     INVALID_ID_FORMAT: 'DITA-ID-002',
+    MISSING_BOOKTITLE: 'DITA-STRUCT-006',
+    MISSING_MAINBOOKTITLE: 'DITA-STRUCT-007',
+    TOPICREF_NO_HREF: 'DITA-STRUCT-008',
 };
 
 /**
@@ -181,21 +184,27 @@ function validateTopicStructure(
     );
     if (!idMatch) {
         const rootMatch = text.match(new RegExp(`<(?:${topicPattern})[\\s>]`));
-        const pos = rootMatch
-            ? findLineAndColumn(text, rootMatch.index!)
-            : { line: 0, col: 0 };
-        diagnostics.push({
-            severity: DiagnosticSeverity.Error,
-            range: createRange(pos.line, pos.col),
-            message: t('struct.missingId'),
-            source: SOURCE,
-            code: CODES.MISSING_ID,
-        });
+        if (rootMatch) {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Error,
+                range: offsetToRange(text, rootMatch.index!, rootMatch.index! + rootMatch[0].length),
+                message: t('struct.missingId'),
+                source: SOURCE,
+                code: CODES.MISSING_ID,
+            });
+        } else {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Error,
+                range: createRange(0, 0),
+                message: t('struct.missingId'),
+                source: SOURCE,
+                code: CODES.MISSING_ID,
+            });
+        }
     } else if ((idMatch[1] ?? idMatch[2]) === '') {
-        const pos = findLineAndColumn(text, idMatch.index!);
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
-            range: createRange(pos.line, pos.col),
+            range: offsetToRange(text, idMatch.index!, idMatch.index! + idMatch[0].length),
             message: t('struct.emptyId'),
             source: SOURCE,
             code: CODES.MISSING_ID,
@@ -223,6 +232,7 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
+        return;
     }
 
     if (!text.includes('<title>') && !text.includes('<title ')) {
@@ -234,6 +244,9 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
             code: CODES.MISSING_TITLE,
         });
     }
+
+    // Check for topicref without href/keyref/keys
+    checkTopicrefsWithoutHref(text, diagnostics);
 }
 
 function validateBookmapStructure(
@@ -248,7 +261,31 @@ function validateBookmapStructure(
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
+        return;
     }
+
+    // Check for <booktitle> element
+    if (!/<booktitle[\s>]/.test(text)) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range: createRange(0, 0),
+            message: t('struct.missingBooktitle'),
+            source: SOURCE,
+            code: CODES.MISSING_BOOKTITLE,
+        });
+    } else if (!/<mainbooktitle[\s>]/.test(text)) {
+        // Only check <mainbooktitle> if <booktitle> exists
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range: createRange(0, 0),
+            message: t('struct.missingMainbooktitle'),
+            source: SOURCE,
+            code: CODES.MISSING_MAINBOOKTITLE,
+        });
+    }
+
+    // Check for topicref without href/keyref/keys
+    checkTopicrefsWithoutHref(text, diagnostics);
 }
 
 function validateDitavalStructure(
@@ -262,6 +299,35 @@ function validateDitavalStructure(
             message: t('struct.invalidDitavalRoot'),
             source: SOURCE,
             code: CODES.INVALID_ROOT,
+        });
+    }
+}
+
+/**
+ * Warn about <topicref> elements that have no target attribute.
+ * Self-closing topicrefs are skipped — they are intentional grouping/nesting containers.
+ */
+function checkTopicrefsWithoutHref(text: string, diagnostics: Diagnostic[]): void {
+    // Only match non-self-closing <topicref ...> (exclude <topicref .../>)
+    const topicrefPattern = /<topicref\s([^>]*?)>/g;
+    let match;
+    while ((match = topicrefPattern.exec(text)) !== null) {
+        // Skip self-closing tags (matched content ends with /)
+        if (match[1].endsWith('/')) {
+            continue;
+        }
+        const attrs = match[1];
+        // Skip if it has any target reference attribute
+        if (/\b(?:href|keyref|keys|conref|conkeyref)\s*=/.test(attrs)) {
+            continue;
+        }
+        const pos = findLineAndColumn(text, match.index);
+        diagnostics.push({
+            severity: DiagnosticSeverity.Information,
+            range: createRange(pos.line, pos.col, match[0].length),
+            message: t('struct.topicrefMissingHref'),
+            source: SOURCE,
+            code: CODES.TOPICREF_NO_HREF,
         });
     }
 }
@@ -337,7 +403,7 @@ function validateIDs(
 ): void {
     // Use cleaned text to avoid matching IDs inside comments/CDATA
     const cleanText = stripCommentsAndCDATA(text);
-    const idPattern = /\bid="([^"]*)"/g;
+    const idPattern = /\bid=(["'])([^"']*)\1/g;
     const idLocations = new Map<
         string,
         { line: number; col: number; index: number; element: string }[]
@@ -345,7 +411,7 @@ function validateIDs(
 
     let match;
     while ((match = idPattern.exec(cleanText)) !== null) {
-        const idValue = match[1];
+        const idValue = match[2];
         // Use original text for line/col since we preserved line structure
         const pos = findLineAndColumn(text, match.index);
         const element = getEnclosingElement(cleanText, match.index);
@@ -355,7 +421,7 @@ function validateIDs(
     }
 
     for (const [idValue, locations] of idLocations) {
-        // id="value" is 4 + value.length chars (id=" + value + ")
+        // id="value" or id='value' is 4 + value.length chars (id=" + value + ")
         const idAttrLen = 4 + idValue.length + 1;
 
         // Invalid ID format
@@ -451,6 +517,51 @@ function findLineAndColumn(
     return { line, col: index - lastNewline - 1 };
 }
 
-function createRange(line: number, col: number): Range {
-    return Range.create(line, col, line, col + 1);
+/**
+ * Create a range spanning from (line, col) to the end of the line.
+ * An optional `length` parameter can be used for precise highlighting.
+ */
+function createRange(line: number, col: number, length?: number): Range {
+    if (length !== undefined && length > 0) {
+        return Range.create(line, col, line, col + length);
+    }
+    // Default: highlight to a reasonable end-of-token position.
+    // Use a generous width so the squiggly underline is clearly visible.
+    return Range.create(line, col, line, col + 1000);
+}
+
+/**
+ * Create a range from text offsets, handling CRLF correctly.
+ */
+function offsetToRange(text: string, start: number, end: number): Range {
+    let line = 0;
+    let char = 0;
+    let startLine = 0;
+    let startChar = 0;
+    let endLine = 0;
+    let endChar = 0;
+
+    const safeStart = Math.min(start, text.length);
+    const safeEnd = Math.min(end, text.length);
+
+    for (let i = 0; i <= safeEnd; i++) {
+        if (i === safeStart) { startLine = line; startChar = char; }
+        if (i === safeEnd) { endLine = line; endChar = char; break; }
+        if (text[i] === '\r') {
+            line++;
+            char = 0;
+            if (i + 1 <= safeEnd && text[i + 1] === '\n') {
+                i++;
+                if (i === safeStart) { startLine = line; startChar = char; }
+                if (i === safeEnd) { endLine = line; endChar = char; break; }
+            }
+        } else if (text[i] === '\n') {
+            line++;
+            char = 0;
+        } else {
+            char++;
+        }
+    }
+
+    return Range.create(startLine, startChar, endLine, endChar);
 }

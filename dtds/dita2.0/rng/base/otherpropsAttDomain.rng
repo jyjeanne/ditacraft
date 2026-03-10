@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="urn:oasis:names:tc:dita:rng:vocabularyModuleDesc.rng"
+                         schematypens="http://relaxng.org/ns/structure/1.0"?>
+<grammar 
+  xmlns="http://relaxng.org/ns/structure/1.0"
+  xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+  xmlns:dita="http://dita.oasis-open.org/architecture/2005/"
+  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+<moduleDesc xmlns="http://dita.oasis-open.org/architecture/2005/">
+   <moduleTitle>DITA Otherprops Attribute Domain </moduleTitle>
+   <headerComment><![CDATA[
+=============================================================
+                   HEADER                                    
+=============================================================
+ MODULE:    DITA Otherprops Attribute Domain            
+ VERSION:   2.0                                              
+ DATE:      [[[Release date]]]                                        
+ PURPOSE:   Declaring the substitution context and domain    
+            entity declarations for the Otherprops      
+            Attribute Domain                                 
+                                                             
+=============================================================
+
+=============================================================
+                   PUBLIC DOCUMENT TYPE DEFINITION           
+                   TYPICAL INVOCATION                        
+                                                             
+ Refer to this file by the following public identifier or an 
+      appropriate system identifier 
+      
+PUBLIC "-//OASIS//ENTITIES DITA 2.0 Otherprops Attribute Domain//EN"
+      
+=============================================================
+                                                             
+            (C) Copyright OASIS Open 2018.                   
+            All Rights Reserved.                             
+                                                             
+ UPDATES:                                                    
+=============================================================
+]]></headerComment>
+   <moduleMetadata>
+     <moduleType>attributedomain</moduleType>
+     <moduleShortName>otherpropsAtt-d</moduleShortName>
+     <modulePublicIds>
+       <dtdEnt>-//OASIS//ENTITIES DITA<var presep=" " name="ditaver"/> Otherprops Attribute Domain//EN</dtdEnt>
+       <rngMod>urn:pubid:oasis:names:tc:dita:rng:otherpropsAttDomain.rng<var presep=":" name="ditaver"/></rngMod>
+     </modulePublicIds>
+     <domainsContribution>@props/otherprops</domainsContribution>
+   </moduleMetadata>
+ </moduleDesc>
+  <define name="otherpropsAtt-d-attribute">
+    <optional>
+      <attribute name="otherprops" dita:since="2.0">
+        <a:documentation>Specifies other properties to which an element applies.</a:documentation>
+      </attribute>
+    </optional>    
+  </define>
+  
+  <define name="props-attribute-extensions" combine="interleave">
+    <ref name="otherpropsAtt-d-attribute"/>
+  </define>
+  
+</grammar>

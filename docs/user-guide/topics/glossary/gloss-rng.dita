@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-rng">
+    <glossterm>RNG (RelaxNG)</glossterm>
+    <glossdef>A schema language for XML that provides an alternative to DTD for defining document structure. DitaCraft supports optional RNG validation via the <codeph>salve-annos</codeph> library. Enable it by setting <codeph>ditacraft.schemaFormat</codeph> to <codeph>"rng"</codeph> and providing a path to RNG schema files.</glossdef>
+</glossentry>

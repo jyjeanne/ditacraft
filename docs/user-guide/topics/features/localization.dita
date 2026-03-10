@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="localization">
+    <title>Localization (i18n)</title>
+    <shortdesc>DitaCraft supports localized diagnostic messages, currently available in English and French.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>Starting with version 0.6.2, DitaCraft localizes diagnostic messages produced by the DITA Rules Engine, cross-reference validation, profiling validation, and structural validation. The language is detected automatically from your VS Code display language setting.</p>
+        </section>
+
+        <section id="supported-languages">
+            <title>Supported Languages</title>
+            <simpletable>
+                <sthead>
+                    <stentry>Language</stentry>
+                    <stentry>Locale Code</stentry>
+                    <stentry>Status</stentry>
+                </sthead>
+                <strow>
+                    <stentry>English</stentry>
+                    <stentry><codeph>en</codeph></stentry>
+                    <stentry>Default / Fallback</stentry>
+                </strow>
+                <strow>
+                    <stentry>French</stentry>
+                    <stentry><codeph>fr</codeph></stentry>
+                    <stentry>Full translation (67 messages)</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="how-it-works">
+            <title>How It Works</title>
+            <ol>
+                <li>When the LSP server starts, it reads the locale from VS Code's <codeph>InitializeParams.locale</codeph> setting</li>
+                <li>The corresponding message bundle (<filepath>en.json</filepath> or <filepath>fr.json</filepath>) is loaded</li>
+                <li>All diagnostic messages use the localized strings with placeholder interpolation</li>
+                <li>If a translation is missing for a key, the English fallback is used automatically</li>
+            </ol>
+        </section>
+
+        <section id="what-is-localized">
+            <title>What Is Localized</title>
+            <p>The following diagnostic messages are localized:</p>
+            <ul>
+                <li><b>XML validation:</b> Syntax errors, well-formedness issues</li>
+                <li><b>DITA structure validation:</b> Missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs</li>
+                <li><b>Cross-reference validation:</b> Broken links, missing files, undefined keys</li>
+                <li><b>DITA Rules Engine:</b> All 35 rules (mandatory, recommendation, authoring, accessibility)</li>
+                <li><b>Profiling validation:</b> Invalid attribute values</li>
+                <li><b>DTD validation:</b> Catalog-based DTD conformance messages</li>
+            </ul>
+        </section>
+
+        <section id="changing-language">
+            <title>Changing the Language</title>
+            <p>DitaCraft follows your VS Code display language. To change it:</p>
+            <ol>
+                <li>Open the Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>)</li>
+                <li>Type <userinput>Configure Display Language</userinput></li>
+                <li>Select your preferred language (e.g., <codeph>fr</codeph> for French)</li>
+                <li>Restart VS Code</li>
+            </ol>
+            <p>DitaCraft diagnostics will automatically appear in the selected language on the next server start.</p>
+        </section>
+    </conbody>
+</concept>

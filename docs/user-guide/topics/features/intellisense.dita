@@ -26,6 +26,10 @@
                     <dt>Attribute Value Completion</dt>
                     <dd>When typing an attribute value (after <codeph>=</codeph>), DitaCraft suggests valid values from predefined enumerations. For example, the <codeph>type</codeph> attribute on <codeph>&lt;note&gt;</codeph> suggests values like <codeph>attention</codeph>, <codeph>caution</codeph>, <codeph>danger</codeph>, etc.</dd>
                 </dlentry>
+                <dlentry>
+                    <dt>Subject Scheme Completions</dt>
+                    <dd>When a subject scheme map constrains profiling attributes, auto-completion shows only allowed values with hierarchy grouping (e.g., <codeph>Platform &gt; Linux &gt; Ubuntu</codeph>). Default values from the scheme are preselected in the completion list.</dd>
+                </dlentry>
             </dl>
         </section>
 
@@ -38,6 +42,12 @@
                 <li>The element's content model (what children are allowed)</li>
             </ul>
             <p>Documentation is available for 142+ DITA elements covering all commonly used topic types, structural elements, and inline elements.</p>
+            <p><b>Reference Preview on Hover:</b> Hover over key references and content references to see resolved content inline:</p>
+            <ul>
+                <li><b>keyref hover:</b> Shows the key's target file, navtitle, short description, and inline content</li>
+                <li><b>conkeyref hover:</b> Resolves the key, then extracts and displays a preview of the referenced element content as XML</li>
+                <li><b>href/conref hover:</b> Shows target file information and navigation path</li>
+            </ul>
         </section>
 
         <section id="document-symbols">

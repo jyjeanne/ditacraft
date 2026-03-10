@@ -91,6 +91,21 @@
                     <stentry>-</stentry>
                     <stentry>Set DITA-OT installation path</stentry>
                 </strow>
+                <strow>
+                    <stentry>DITA: Set Root Map</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Set an explicit root map for key resolution</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Clear Root Map (Auto-Discover)</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Return to automatic root map discovery</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Open File</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Open a file from the DITA Explorer tree</stentry>
+                </strow>
             </simpletable>
         </section>
     </conbody>

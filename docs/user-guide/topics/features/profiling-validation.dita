@@ -13,11 +13,31 @@
         <section id="how-it-works">
             <title>How It Works</title>
             <ol>
-                <li>DitaCraft automatically discovers subject scheme maps in your workspace</li>
-                <li>The Subject Scheme Service parses the scheme and extracts the controlled values for each attribute</li>
+                <li>DitaCraft automatically discovers subject scheme maps in your workspace (or from the explicit root map)</li>
+                <li>The Subject Scheme Service parses the scheme and extracts the controlled values for each attribute, building hierarchy paths for grouped values</li>
                 <li>When you use profiling attributes in your DITA content, their values are checked against the allowed values</li>
                 <li>Invalid values are reported with a diagnostic that lists the valid options</li>
+                <li>Auto-completion for profiling attributes shows only allowed values with hierarchy grouping (e.g., <codeph>Platform &gt; Linux &gt; Ubuntu</codeph>) and default value preselection</li>
             </ol>
+        </section>
+
+        <section id="hierarchy-grouping">
+            <title>Subject Hierarchy Grouping</title>
+            <p>When subject scheme definitions use nested <codeph>&lt;subjectdef&gt;</codeph> elements to define a hierarchy, DitaCraft displays this hierarchy in auto-completion suggestions. For example:</p>
+            <codeblock outputclass="language-xml">&lt;subjectdef keys="os"&gt;
+    &lt;subjectdef keys="linux"&gt;
+        &lt;subjectdef keys="ubuntu"/&gt;
+        &lt;subjectdef keys="fedora"/&gt;
+    &lt;/subjectdef&gt;
+    &lt;subjectdef keys="windows"/&gt;
+&lt;/subjectdef&gt;</codeblock>
+            <p>When completing <codeph>platform</codeph> attribute values, you will see suggestions like:</p>
+            <ul>
+                <li><codeph>ubuntu</codeph> — shown as <codeph>os &gt; linux &gt; ubuntu</codeph></li>
+                <li><codeph>fedora</codeph> — shown as <codeph>os &gt; linux &gt; fedora</codeph></li>
+                <li><codeph>windows</codeph> — shown as <codeph>os &gt; windows</codeph></li>
+            </ul>
+            <p>If the scheme defines a default value, that value is preselected in the completion list.</p>
         </section>
 
         <section id="validated-attributes">

@@ -23,6 +23,9 @@ export const XREF_CODES = {
     UNDEFINED_KEY: 'DITA-KEY-001',
     KEY_NO_TARGET: 'DITA-KEY-002',
     KEY_MISSING_ELEMENT: 'DITA-KEY-003',
+    SCOPE_EXTERNAL_RELATIVE: 'DITA-SCOPE-001',
+    SCOPE_LOCAL_ABSOLUTE: 'DITA-SCOPE-002',
+    SCOPE_MISSING_ON_URL: 'DITA-SCOPE-003',
 } as const;
 
 /** DITA topic-type element names for topic ID validation (regex alternation). */
@@ -53,13 +56,50 @@ export async function validateCrossReferences(
     while ((match = hrefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
         const value = match[2];
         // Use original text offsets (comment stripping preserves them)
-        const valueStart = match.index + match[0].lastIndexOf(value);
-
-        // Skip external references
-        if (/^https?:\/\/|^mailto:|^ftp:\/\//.test(value)) continue;
-        if (isExternalScope(cleanText, match.index)) continue;
-
+        // Find the opening quote after '=' to reliably locate the value
+        const openQuote = match[0].match(/=\s*["']/);
+        const valueStart = match.index + (openQuote ? openQuote.index! + openQuote[0].length : match[0].length - value.length - 1);
         const range = offsetToRange(text, valueStart, valueStart + value.length);
+
+        const isAbsoluteUrl = /^https?:\/\/|^mailto:|^ftp:\/\//.test(value);
+        const scopeValue = getScopeValue(cleanText, match.index);
+
+        // Scope validation (DITA-SCOPE-001/002/003)
+        if (scopeValue === 'external' && !isAbsoluteUrl) {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range,
+                message: t('scope.externalRelativeHref'),
+                code: XREF_CODES.SCOPE_EXTERNAL_RELATIVE,
+                source: SOURCE,
+            });
+            continue;
+        }
+        if (scopeValue === 'local' && isAbsoluteUrl) {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range,
+                message: t('scope.localAbsoluteHref'),
+                code: XREF_CODES.SCOPE_LOCAL_ABSOLUTE,
+                source: SOURCE,
+            });
+            continue;
+        }
+        if (isAbsoluteUrl && !scopeValue) {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Information,
+                range,
+                message: t('scope.missingOnUrl'),
+                code: XREF_CODES.SCOPE_MISSING_ON_URL,
+                source: SOURCE,
+            });
+            continue;
+        }
+
+        // Skip external references from further file-based checks
+        if (isAbsoluteUrl) continue;
+        if (scopeValue === 'external') continue;
+
         const parsed = parseReference(value);
 
         // Check file existence
@@ -106,7 +146,8 @@ export async function validateCrossReferences(
 
         while ((match = keyrefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
             const value = match[2];
-            const valueStart = match.index + match[0].lastIndexOf(value);
+            const openQuote = match[0].match(/=\s*["']/);
+            const valueStart = match.index + (openQuote ? openQuote.index! + openQuote[0].length : match[0].length - value.length - 1);
             const range = offsetToRange(text, valueStart, valueStart + value.length);
 
             // Parse key name and optional element ID
@@ -168,14 +209,20 @@ export async function validateCrossReferences(
 
 // --- Helpers ---
 
-/** Check if the reference is inside a scope="external" element. */
-function isExternalScope(text: string, refOffset: number): boolean {
+/** Extract the scope attribute value from the containing tag, or null if not present. */
+function getScopeValue(text: string, refOffset: number): string | null {
     const tagStart = text.lastIndexOf('<', refOffset);
-    if (tagStart === -1) return false;
+    if (tagStart === -1) return null;
     const closeAngle = text.indexOf('>', refOffset);
     const endPos = closeAngle !== -1 ? closeAngle : refOffset + 200;
     const tag = text.substring(tagStart, endPos);
-    return /\bscope\s*=\s*["']external["']/.test(tag);
+    const scopeMatch = tag.match(/\bscope\s*=\s*["'](local|peer|external)["']/);
+    return scopeMatch ? scopeMatch[1] : null;
+}
+
+/** Check if the reference is inside a scope="external" element. Used by external callers. */
+export function isExternalScope(text: string, refOffset: number): boolean {
+    return getScopeValue(text, refOffset) === 'external';
 }
 
 /** Validate a URI fragment (topicid or topicid/elementid) against file content. */

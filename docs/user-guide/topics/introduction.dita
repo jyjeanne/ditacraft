@@ -13,7 +13,10 @@
                 <li>Full DTD validation with three engine options</li>
                 <li>Smart navigation with Ctrl+Click on href, conref, keyref, and conkeyref</li>
                 <li>Cross-file Go to Definition, Find References, and Rename</li>
-                <li>Key space resolution for keyref and conkeyref</li>
+                <li>Key space resolution for keyref and conkeyref with key scope support</li>
+                <li>35 DITA validation rules with DITA 2.0 awareness</li>
+                <li>Localized diagnostics (English, French)</li>
+                <li>Explicit root map selection with status bar indicator</li>
                 <li>DITAVAL conditional processing support</li>
                 <li>Live HTML5 preview with bidirectional scroll sync</li>
                 <li>One-click publishing via DITA-OT</li>
@@ -86,17 +89,23 @@
 
         <section id="version-info">
             <title>Version Information</title>
-            <p>This guide covers DitaCraft version 0.6.0, which includes:</p>
+            <p>This guide covers DitaCraft version 0.6.2, which includes:</p>
             <ul>
                 <li>LSP server with IntelliSense, diagnostics, and navigation</li>
                 <li>Cross-reference validation for href, conref, keyref, and conkeyref</li>
-                <li>DITA Rules Engine with 18 Schematron-equivalent rules</li>
-                <li>Profiling validation with subject scheme support</li>
+                <li>DITA Rules Engine with 35 Schematron-equivalent rules (including 10 DITA 2.0-specific rules)</li>
+                <li>Profiling validation with subject scheme support and hierarchy grouping</li>
                 <li>Activity Bar views: DITA Explorer, Key Space, and Diagnostics</li>
+                <li>Explicit root map selection with status bar indicator</li>
+                <li>Localized diagnostics (English and French)</li>
+                <li>RNG (RelaxNG) and OASIS Catalog validation services</li>
+                <li>Conref/conkeyref content preview on hover</li>
                 <li>9 code actions including accessibility quick fixes</li>
                 <li>DITAVAL conditional processing support</li>
                 <li>DITA version detection and error-tolerant XML tokenizer</li>
-                <li>1010+ comprehensive tests (620 client + 398 server)</li>
+                <li>Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation</li>
+                <li>Key scope support with <codeph>@keyscope</codeph> attribute handling</li>
+                <li>1040+ comprehensive tests (620 client + 419 server)</li>
             </ul>
         </section>
     </conbody>

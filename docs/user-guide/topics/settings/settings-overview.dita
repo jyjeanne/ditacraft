@@ -95,6 +95,26 @@
                     <stentry><codeph>true</codeph></stentry>
                     <stentry>Enable preview scroll sync</stentry>
                 </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.ditaRulesEnabled</codeph></stentry>
+                    <stentry><codeph>true</codeph></stentry>
+                    <stentry>Enable DITA Rules Engine (35 rules)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.crossRefValidationEnabled</codeph></stentry>
+                    <stentry><codeph>true</codeph></stentry>
+                    <stentry>Enable cross-reference validation</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.ditaVersion</codeph></stentry>
+                    <stentry><codeph>"auto"</codeph></stentry>
+                    <stentry>Override DITA version detection</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.rootMap</codeph></stentry>
+                    <stentry><codeph>""</codeph></stentry>
+                    <stentry>Explicit root map path</stentry>
+                </strow>
             </simpletable>
         </section>
 
@@ -105,7 +125,12 @@
     "ditacraft.validationEngine": "typesxml",
     "ditacraft.autoValidate": true,
     "ditacraft.outputDirectory": "out",
-    "ditacraft.previewScrollSync": true
+    "ditacraft.previewScrollSync": true,
+    "ditacraft.ditaRulesEnabled": true,
+    "ditacraft.ditaRulesCategories": ["mandatory", "recommendation", "authoring", "accessibility"],
+    "ditacraft.crossRefValidationEnabled": true,
+    "ditacraft.ditaVersion": "auto",
+    "ditacraft.rootMap": ""
 }</codeblock>
         </section>
     </conbody>

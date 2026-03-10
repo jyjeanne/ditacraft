@@ -298,6 +298,32 @@ function registerRootMapFeature(context: vscode.ExtensionContext): void {
             logger.info('Root map cleared — auto-discovery mode');
         })
     );
+
+    // Validate Workspace command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.validateWorkspace', async () => {
+            const client = getLanguageClient();
+            if (!client) {
+                vscode.window.showWarningMessage('DITA Language Server is not running');
+                return;
+            }
+
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: 'DITA: Validating Workspace',
+                    cancellable: false,
+                },
+                async () => {
+                    await client.sendRequest('workspace/executeCommand', {
+                        command: 'ditacraft.validateWorkspace',
+                        arguments: [],
+                    });
+                    vscode.window.showInformationMessage('DITA workspace validation complete');
+                }
+            );
+        })
+    );
 }
 
 /**
@@ -700,6 +726,12 @@ async function showWelcomeMessage(context: vscode.ExtensionContext): Promise<voi
  * Suggest cSpell DITA dictionary setup if cSpell is installed but no config exists
  */
 async function suggestCSpellSetup(context: vscode.ExtensionContext): Promise<void> {
+    // Check if auto-prompt is enabled (disabled by default since v0.6.2)
+    const config = vscode.workspace.getConfiguration('ditacraft');
+    if (!config.get<boolean>('cspellAutoPrompt', false)) {
+        return;
+    }
+
     const dismissed = context.globalState.get<boolean>('ditacraft.cspellPromptDismissed', false);
     if (dismissed) {
         return;

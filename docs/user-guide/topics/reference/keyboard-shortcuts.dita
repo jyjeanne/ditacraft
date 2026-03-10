@@ -290,6 +290,11 @@
                     <stentry><uicontrol>Cmd+Shift+V</uicontrol></stentry>
                 </strow>
                 <strow>
+                    <stentry>Quick Fix (Code Actions)</stentry>
+                    <stentry><uicontrol>Ctrl+.</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+.</uicontrol></stentry>
+                </strow>
+                <strow>
                     <stentry>Publish</stentry>
                     <stentry><uicontrol>Ctrl+Shift+B</uicontrol></stentry>
                     <stentry><uicontrol>Cmd+Shift+B</uicontrol></stentry>
@@ -305,6 +310,16 @@
                     <stentry><uicontrol>Cmd+Click</uicontrol></stentry>
                 </strow>
                 <strow>
+                    <stentry>Auto-Complete</stentry>
+                    <stentry><uicontrol>Ctrl+Space</uicontrol></stentry>
+                    <stentry><uicontrol>Ctrl+Space</uicontrol></stentry>
+                </strow>
+                <strow>
+                    <stentry>Hover Info</stentry>
+                    <stentry>Mouse hover / <uicontrol>Ctrl+K Ctrl+I</uicontrol></stentry>
+                    <stentry>Mouse hover / <uicontrol>Cmd+K Cmd+I</uicontrol></stentry>
+                </strow>
+                <strow>
                     <stentry>Command Palette</stentry>
                     <stentry><uicontrol>Ctrl+Shift+P</uicontrol></stentry>
                     <stentry><uicontrol>Cmd+Shift+P</uicontrol></stentry>
@@ -313,6 +328,11 @@
                     <stentry>Problems Panel</stentry>
                     <stentry><uicontrol>Ctrl+Shift+M</uicontrol></stentry>
                     <stentry><uicontrol>Cmd+Shift+M</uicontrol></stentry>
+                </strow>
+                <strow>
+                    <stentry>Format Document</stentry>
+                    <stentry><uicontrol>Shift+Alt+F</uicontrol></stentry>
+                    <stentry><uicontrol>Shift+Option+F</uicontrol></stentry>
                 </strow>
             </simpletable>
         </section>

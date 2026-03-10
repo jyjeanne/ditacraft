@@ -2,14 +2,14 @@
   "name": "ditacraft",
   "displayName": "DitaCraft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
     "email": "jyjeanne@gmail.com"
   },
   "license": "MIT",
-  "icon": "resources/icon.png",
+  "icon": "resources/ditacraft-logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/jyjeanne/ditacraft"
@@ -229,6 +229,10 @@
       {
         "command": "ditacraft.clearRootMap",
         "title": "DITA: Clear Root Map (Auto-Discover)"
+      },
+      {
+        "command": "ditacraft.validateWorkspace",
+        "title": "DITA: Validate Workspace"
       }
     ],
     "menus": {
@@ -563,6 +567,38 @@
           "default": "",
           "description": "Explicit root map path (relative to workspace root). Leave empty for automatic discovery. Set via 'DITA: Set Root Map' command.",
           "order": 24
+        },
+        "ditacraft.xmlCatalogPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to an external OASIS XML catalog file for custom DTD resolution. Enables validation of custom DITA specializations. Leave empty to use the bundled DITA 1.2/1.3/2.0 catalogs.",
+          "order": 25
+        },
+        "ditacraft.ditaVersion": {
+          "type": "string",
+          "enum": ["auto", "1.0", "1.1", "1.2", "1.3", "2.0"],
+          "default": "auto",
+          "description": "Override auto-detected DITA version. Set to 'auto' to detect from @DITAArchVersion attribute or DOCTYPE declaration.",
+          "order": 26
+        },
+        "ditacraft.schemaFormat": {
+          "type": "string",
+          "enum": ["dtd", "rng"],
+          "default": "dtd",
+          "description": "Schema format for validation. 'dtd' uses TypesXML with OASIS catalog (recommended). 'rng' uses RelaxNG validation via salve-annos (requires rngSchemaPath).",
+          "order": 27
+        },
+        "ditacraft.rngSchemaPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to directory containing RelaxNG (.rng) schema files. Required when schemaFormat is set to 'rng'. Example: path to DITA-OT's schema directory.",
+          "order": 28
+        },
+        "ditacraft.cspellAutoPrompt": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically suggest cSpell DITA dictionary setup when cSpell is installed but not configured. The 'DITA: Setup cSpell Configuration' command is always available regardless of this setting.",
+          "order": 29
         }
       }
     },

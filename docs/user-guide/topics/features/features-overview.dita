@@ -47,7 +47,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>DITA Rules Engine</dt>
-                    <dd>18 Schematron-equivalent rules organized in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA best practices and specification requirements with version-aware detection.</dd>
+                    <dd>35 Schematron-equivalent rules organized in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA best practices and specification requirements. Includes 10 DITA 2.0-specific rules for removed elements and attributes, with automatic version detection.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Profiling and Subject Scheme Validation</dt>
@@ -55,7 +55,15 @@
                 </dlentry>
                 <dlentry>
                     <dt>Activity Bar Views</dt>
-                    <dd>Dedicated DitaCraft sidebar with three tree views: DITA Explorer (map hierarchy browser), Key Space (defined/undefined/unused keys), and Diagnostics (validation issues grouped by file or severity). Includes file decoration badges for validation status.</dd>
+                    <dd>Dedicated DitaCraft sidebar with three tree views: DITA Explorer (map hierarchy browser), Key Space (defined/undefined/unused keys), and Diagnostics (validation issues grouped by file or severity). Includes file decoration badges for validation status and root map selector in the status bar.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Root Map Management</dt>
+                    <dd>Explicitly set a root map for your project to control key resolution, cross-reference validation, and subject scheme discovery. Status bar indicator shows the current root map. See <xref keyref="root-map"/> for details.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Localized Diagnostics</dt>
+                    <dd>All diagnostic messages are localized with support for English and French. The language follows your VS Code display language setting automatically. See <xref keyref="localization"/> for details.</dd>
                 </dlentry>
             </dl>
         </section>
@@ -66,7 +74,7 @@
             <ul>
                 <li><b>Syntax Highlighting:</b> DITA-aware XML syntax highlighting</li>
                 <li><b>Auto-completion:</b> Context-aware element, attribute, and value suggestions via LSP</li>
-                <li><b>Hover Documentation:</b> Hover over any DITA element to see its description and allowed attributes</li>
+                <li><b>Hover Documentation:</b> Hover over any DITA element to see its description and allowed attributes. Hover over keyref/conkeyref to preview resolved content inline</li>
                 <li><b>Linked Editing:</b> Edit opening and closing XML tags simultaneously</li>
                 <li><b>Bracket Matching:</b> Automatic tag matching and highlighting</li>
                 <li><b>Folding:</b> Collapse sections, steps, and other block elements</li>
@@ -81,13 +89,14 @@
             <title>Validation Features</title>
             <p>DitaCraft offers multiple validation options:</p>
             <ul>
-                <li><b>Real-time Validation:</b> LSP-powered diagnostics appear as you type with debounced updates</li>
-                <li><b>Multiple Engines:</b> Choose from built-in (default), TypesXML, or xmllint</li>
-                <li><b>Detailed Diagnostics:</b> Line-precise error messages with fix suggestions</li>
+                <li><b>Real-time Validation:</b> LSP-powered diagnostics appear as you type with smart debouncing (300ms for topics, 1000ms for maps)</li>
+                <li><b>Multiple Engines:</b> Choose from built-in (default), TypesXML, or xmllint, with optional RNG (RelaxNG) validation</li>
+                <li><b>OASIS Catalog Support:</b> DTD validation via TypesXML with OASIS XML Catalog resolution and parser pool optimization</li>
+                <li><b>Detailed Diagnostics:</b> Line-precise error messages with fix suggestions, localized in English and French</li>
                 <li><b>Code Actions:</b> Quick fixes for common issues (missing DOCTYPE, IDs, titles) and DITA rules violations</li>
                 <li><b>Cross-Reference Validation:</b> Validates href, conref, keyref, and conkeyref targets across files</li>
-                <li><b>DITA Rules Engine:</b> 18 Schematron-equivalent rules for specification compliance and best practices</li>
-                <li><b>Profiling Validation:</b> Subject scheme-based validation of profiling attribute values</li>
+                <li><b>DITA Rules Engine:</b> 35 Schematron-equivalent rules including 10 DITA 2.0-specific rules</li>
+                <li><b>Profiling Validation:</b> Subject scheme-based validation with hierarchy grouping and default value preselection</li>
                 <li><b>Rate Limiting:</b> Protection against excessive validation requests</li>
             </ul>
         </section>

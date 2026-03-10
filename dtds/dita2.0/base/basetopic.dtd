@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================= -->
+<!--                    HEADER                                     -->
+<!-- ============================================================= -->
+<!-- Darwin Information Typing Architecture (DITA) Version 2.0     -->
+<!-- [[[Draft level]]]                                           -->
+<!-- [[[Release date]]]                                           -->
+<!-- Copyright (c) OASIS Open 2019. All rights reserved.           -->
+<!-- Source: [[[Source link]]]                                -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!--  MODULE:    DITA Topic Base (only base domains)               -->
+<!--  VERSION:   2.0                                               -->
+<!--  DATE:      [[[Release date]]]                                       -->
+<!--  PURPOSE:   DTD to describe Base DITA Topics                  -->
+<!-- ============================================================= -->
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                    TYPICAL INVOCATION                         -->
+<!--                                                               -->
+<!-- Refer to this file by the following public identifier or an   -->
+<!--       appropriate system identifier                           -->
+<!--                                                               -->
+<!-- PUBLIC "-//OASIS//DTD DITA 2.x Base Topic//EN"                -->
+<!-- The public ID above refers to the latest 2.x version of this DTD. -->
+<!--      To refer to this specific version, use this value:       -->
+<!--                                                               -->
+<!-- PUBLIC "-//OASIS//DTD DITA 2.0 Base Topic//EN"                -->
+<!-- ============================================================= -->
+<!--                                                               -->
+<!--             (C) Copyright OASIS Open 2010, 2021               -->
+<!--             All Rights Reserved.                              -->
+<!--                                                               -->
+<!-- UPDATES:                                                      -->
+<!--                                                               -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--              TOPIC ENTITY DECLARATIONS                        -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--             DOMAIN CONSTRAINT INTEGRATION                     -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--             DOMAIN ENTITY DECLARATIONS                        -->
+<!-- ============================================================= -->
+
+<!ENTITY % alternativetitles-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Alternative Titles Domain//EN"
+         "alternativeTitlesDomain.ent"
+>%alternativetitles-d-dec;
+
+<!ENTITY % emphasis-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Emphasis Domain//EN"
+         "emphasisDomain.ent"
+>%emphasis-d-dec;
+
+<!ENTITY % hazard-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Hazard Statement Domain//EN"
+         "hazardstatementDomain.ent"
+>%hazard-d-dec;
+
+<!ENTITY % hi-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Highlight Domain//EN"
+         "highlightDomain.ent"
+>%hi-d-dec;
+
+<!ENTITY % ut-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Utilities Domain//EN"
+         "utilitiesDomain.ent"
+>%ut-d-dec;
+
+<!-- ============================================================= -->
+<!--             DOMAIN ATTRIBUTES DECLARATIONS                    -->
+<!-- ============================================================= -->
+
+<!ENTITY % audienceAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Audience Attribute Domain//EN"
+         "audienceAttDomain.ent"
+>%audienceAtt-d-dec;
+
+<!ENTITY % deliveryTargetAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Delivery Target Attribute Domain//EN"
+         "deliveryTargetAttDomain.ent"
+>%deliveryTargetAtt-d-dec;
+
+<!ENTITY % otherpropsAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Otherprops Attribute Domain//EN"
+         "otherpropsAttDomain.ent"
+>%otherpropsAtt-d-dec;
+
+<!ENTITY % platformAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Platform Attribute Domain//EN"
+         "platformAttDomain.ent"
+>%platformAtt-d-dec;
+
+<!ENTITY % productAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Product Attribute Domain//EN"
+         "productAttDomain.ent"
+>%productAtt-d-dec;
+
+<!-- ============================================================= -->
+<!--                    DOMAIN EXTENSIONS                          -->
+<!-- ============================================================= -->
+<!--                    One for each extended base element, with
+                        the name of the domain(s) in which the
+                        extension was declared                     -->
+
+<!ENTITY % data         "data |
+                         %ut-d-data;
+                        ">
+                        
+<!ENTITY % div          "div |
+                         %ut-d-div;
+                        ">
+                        
+<!ENTITY % note         "note |
+                         %hazard-d-note;
+                        ">
+                        
+<!ENTITY % ph           "ph |
+                         %emphasis-d-ph; |
+                         %hi-d-ph;
+                        ">
+                        
+<!ENTITY % titlealt     "titlealt |
+                         %alternativeTitles-d-titlealt;
+                        ">
+                        
+<!-- ============================================================= -->
+<!--                    DOMAIN ATTRIBUTE EXTENSIONS                -->
+<!-- ============================================================= -->
+
+<!ENTITY % base-attribute-extensions
+  ""
+>
+
+<!ENTITY % props-attribute-extensions
+  "%audienceAtt-d-attribute;
+   %deliveryTargetAtt-d-attribute;
+   %otherpropsAtt-d-attribute;
+   %platformAtt-d-attribute;
+   %productAtt-d-attribute;"
+>
+
+<!-- ============================================================= -->
+<!--                    TOPIC NESTING OVERRIDE                     -->
+<!-- ============================================================= -->
+
+<!ENTITY % topic-info-types
+              "topic"
+>
+
+<!-- ============================================================= -->
+<!--                 SPECIALIZATIONS ATTRIBUTE OVERRIDE            -->
+<!-- ============================================================= -->
+
+<!ENTITY included-domains
+                          "&audienceAtt-d-att;
+                           &deliveryTargetAtt-d-att;
+                           &otherpropsAtt-d-att;
+                           &platformAtt-d-att;
+                           &productAtt-d-att;"
+>
+
+<!-- ============================================================= -->
+<!--           ELEMENT-TYPE CONFIGURATION INTEGRATION              -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--                    TOPIC ELEMENT INTEGRATION                  -->
+<!-- ============================================================= -->
+
+<!ENTITY % topic-type
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Topic//EN"
+         "topic.mod"
+>%topic-type;
+
+<!-- ============================================================= -->
+<!--                    DOMAIN ELEMENT INTEGRATION                 -->
+<!-- ============================================================= -->
+
+<!ENTITY % alternativetitles-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Alternative Titles Domain//EN"
+         "alternativeTitlesDomain.mod"
+>%alternativetitles-d-def;
+
+<!ENTITY % emphasis-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Emphasis Domain//EN"
+         "emphasisDomain.mod"
+>%emphasis-d-def;
+
+<!ENTITY % hazard-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Hazard Statement Domain//EN"
+         "hazardstatementDomain.mod"
+>%hazard-d-def;
+
+<!ENTITY % hi-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Highlight Domain//EN"
+         "highlightDomain.mod"
+>%hi-d-def;
+
+<!ENTITY % ut-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Utilities Domain//EN"
+         "utilitiesDomain.mod"
+>%ut-d-def;
+
+<!-- ================= End of DITA Base Topic Base Shell  ================= -->

@@ -35,7 +35,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>DITA Rules Engine</dt>
-                    <dd>18 Schematron-equivalent rules in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA specification requirements and best practices. Rules are version-aware and include quick fixes. See <xref keyref="dita-rules"/> for details.</dd>
+                    <dd>35 Schematron-equivalent rules in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA specification requirements and best practices. Includes 10 DITA 2.0-specific rules for removed elements and attributes. Rules are version-aware and include quick fixes. See <xref keyref="dita-rules"/> for details.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Profiling Validation</dt>
@@ -70,6 +70,11 @@
                 </strow>
             </simpletable>
             <p><b>Recommendation:</b> The <codeph>built-in</codeph> engine (the default) provides a good balance of speed and accuracy for most users. Switch to <codeph>typesxml</codeph> when you need strict DTD conformance checking.</p>
+            <p><b>Additional Validation:</b></p>
+            <ul>
+                <li><b>OASIS Catalog Support:</b> The <codeph>typesxml</codeph> engine uses an OASIS XML Catalog to resolve PUBLIC identifiers to bundled DTDs, with a parser pool (3 instances) for efficient reuse.</li>
+                <li><b>RNG (RelaxNG) Validation:</b> Optional RelaxNG schema validation via <codeph>salve-annos</codeph> and <codeph>saxes</codeph>. Enable by setting <codeph>ditacraft.schemaFormat</codeph> to <codeph>"rng"</codeph> and providing a schema path via <codeph>ditacraft.rngSchemaPath</codeph>. RNG schemas are compiled to JSON and cached (up to 20 grammars).</li>
+            </ul>
         </section>
 
         <section id="lsp-diagnostics">
@@ -84,7 +89,8 @@
                 <li>DITA rules (specification compliance, best practices, accessibility)</li>
                 <li>Profiling validation (subject scheme constraints)</li>
             </ul>
-            <p>LSP diagnostics appear with the source label <codeph>dita-lsp</codeph> in the Problems panel, while client-side validations appear with the <codeph>dita</codeph> source label.</p>
+            <p>LSP diagnostics appear with the source label <codeph>dita-lsp</codeph> in the Problems panel, while client-side validations appear with the <codeph>dita</codeph> source label. DITA rules diagnostics appear with the source label <codeph>dita-rules</codeph>.</p>
+            <p>All diagnostic messages are localized — see <xref keyref="localization"/> for supported languages.</p>
         </section>
 
         <section id="diagnostic-levels">
@@ -114,7 +120,13 @@
             <ul>
                 <li><b>On Open:</b> When you open a DITA file</li>
                 <li><b>On Save:</b> When you save a file (configurable)</li>
-                <li><b>On Change:</b> After you stop typing (500ms debounce)</li>
+                <li><b>On Change:</b> After you stop typing, with smart debouncing:
+                    <ul>
+                        <li><b>Topics:</b> 300ms debounce for fast feedback</li>
+                        <li><b>Maps:</b> 1000ms debounce (maps are more expensive to validate)</li>
+                    </ul>
+                    Per-document cancellation ensures only the latest edit triggers validation.
+                </li>
             </ul>
             <p>To disable automatic validation, set <codeph>ditacraft.autoValidate</codeph> to <codeph>false</codeph> in settings.</p>
         </section>

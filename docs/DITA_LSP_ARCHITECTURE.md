@@ -4,7 +4,9 @@
 
 DitaCraft is a VS Code extension providing a full-featured Language Server Protocol (LSP) implementation for DITA XML authoring. The server is written in TypeScript and runs as a Node.js process communicating with the VS Code client via IPC.
 
-**Stack:** TypeScript · vscode-languageserver 9.x · Node.js IPC transport · Mocha (TDD)
+**Version:** 0.6.2 | **Last Updated:** March 2026
+
+**Stack:** TypeScript · vscode-languageserver 9.x · Node.js IPC transport · Mocha (TDD) · 430 tests
 
 ---
 
@@ -35,19 +37,26 @@ server/
 │   │
 │   ├── services/                        # Domain services with caching
 │   │   ├── keySpaceService.ts           #   DITA key space resolution (BFS map traversal)
-│   │   └── subjectSchemeService.ts      #   Subject scheme parsing and value constraints
+│   │   ├── subjectSchemeService.ts      #   Subject scheme parsing and value constraints
+│   │   ├── catalogValidationService.ts  #   TypesXML DTD + OASIS catalog (Layer 2)
+│   │   └── rngValidationService.ts      #   salve-annos RelaxNG validation (Layer 3)
 │   │
 │   ├── utils/                           # Shared utilities
 │   │   ├── xmlTokenizer.ts              #   Error-tolerant state-machine XML tokenizer
 │   │   ├── referenceParser.ts           #   Parse and locate href/conref/keyref values
 │   │   ├── workspaceScanner.ts          #   Collect DITA files, cross-file search
-│   │   └── ditaVersionDetector.ts       #   Detect DITA version from content
+│   │   ├── ditaVersionDetector.ts       #   Detect DITA version from content
+│   │   └── i18n.ts                      #   Localization (70 messages, EN+FR)
+│   │
+│   ├── messages/                        # Localized diagnostic messages
+│   │   ├── en.json                      #   70 messages (English)
+│   │   └── fr.json                      #   70 messages (French)
 │   │
 │   └── data/                            # Static schema data
 │       ├── ditaSchema.ts                #   Element hierarchy, attributes, documentation
 │       └── ditaSpecialization.ts        #   DITA @class attribute matching
 │
-└── test/                                # Mocha TDD tests (398 tests)
+└── test/                                # Mocha TDD tests (430 tests)
     ├── helper.ts                        #   Test utilities (mock documents)
     ├── validation.test.ts
     ├── completion.test.ts
@@ -88,24 +97,57 @@ On initialization, the server:
 1. Detects client capabilities (`workspace.configuration`, `workspaceFolders`)
 2. Creates the `KeySpaceService` with workspace folder paths
 3. Creates the `SubjectSchemeService` singleton
-4. Registers all LSP handlers
+4. Initializes the `CatalogValidationService` (TypesXML + OASIS catalog, parser pool of 3)
+5. Initializes the `RngValidationService` (salve-annos, optional)
+6. Sets up the `i18n` locale from client's display language
+7. Registers all LSP handlers
 
 ### Document Validation Pipeline
 
-Diagnostics are pull-based (the client requests them). The pipeline runs in order:
+Diagnostics are pull-based (LSP 3.17 — the client requests them). The pipeline runs 6 layers in order, triggered by a smart debounce mechanism (300ms for topics, 1000ms for maps) with per-document cancellation:
 
 ```
-Document change
-  └─> validateDITADocument()          Phase 1: XML well-formedness (fast-xml-parser)
-        │                             Phase 2: DITA structure (root, id, title)
-        │                             Phase 3: ID validation (duplicates, format)
-        └─> cap at maxNumberOfProblems
-  └─> validateDitaRules()             Phase 4: Schematron-equivalent rules (18 rules)
-  └─> validateCrossReferences()       Phase 5: href/conref/keyref target validation
-  └─> validateProfilingAttributes()   Phase 6: Subject scheme controlled values
+Document change (typing)
+  └─> onDidChangeContent → smart debounce → diagnostics.refresh()
+        │
+        └─> Pull diagnostics handler runs all 6 layers:
+              │
+              ├─> Layer 1+4: validateDITADocument()
+              │     ├── XML well-formedness (fast-xml-parser)
+              │     ├── DITA structure (root, DOCTYPE, title)
+              │     ├── Bookmap validation (booktitle, mainbooktitle)
+              │     ├── Topicref check (missing href/keyref/keys/conref/conkeyref)
+              │     └── ID validation (duplicates, format, single+double quotes)
+              │
+              ├─> Layer 2: catalogValidationService.validate()
+              │     └── DTD validation (TypesXML + OASIS catalog, parser pool)
+              │
+              ├─> Layer 3: rngValidationService.validate()  [optional]
+              │     └── RelaxNG validation (salve-annos + saxes)
+              │
+              ├─> Layer 5: validateDitaRules()
+              │     └── 35 rules (5 categories, version-filtered)
+              │
+              ├─> Layer 6a: validateCrossReferences()
+              │     └── href/conref/keyref/conkeyref target validation
+              │
+              └─> Layer 6b: validateProfilingAttributes()
+                    └── Subject scheme controlled values
+              │
+              └─> cap at maxNumberOfProblems → return Diagnostic[]
 ```
 
-Each phase uses **comment/CDATA stripping** to avoid matching inside non-content regions. The stripping replaces non-newline characters with spaces to preserve offsets for accurate diagnostic positioning.
+Each layer uses **comment/CDATA stripping** to avoid matching inside non-content regions. The stripping replaces non-newline characters with spaces to preserve offsets for accurate diagnostic positioning.
+
+### Error Range Precision
+
+Diagnostics use two range strategies:
+- **`createRange(line, col, length?)`** — Default: spans to `col + 1000` (VS Code clamps to EOL). With explicit `length`: precise highlighting.
+- **`offsetToRange(text, start, end)`** — Converts byte offsets to LSP positions with CRLF-aware line/column computation for exact match highlighting (used for ID diagnostics).
+
+### Deduplication (v0.6.2)
+
+The LSP server is the **sole real-time diagnostics provider** (source `dita-lsp`). Client-side on-save auto-validation was disabled. The `DiagnosticsViewProvider` deduplicates by composite key `file:line:col:severity:message`. Stale client-side `dita` diagnostics from manual validation are cleared on save.
 
 ### Key Space Resolution
 
@@ -235,22 +277,43 @@ Both `KeySpaceService` and `SubjectSchemeService` follow the same pattern:
 | DITA-XML-001 | Error | XML well-formedness violation |
 | DITA-STRUCT-001 | Warning | Missing DOCTYPE declaration |
 | DITA-STRUCT-002 | Error | Invalid root element for file type |
-| DITA-STRUCT-003 | Error | Missing `id` on root element |
+| DITA-STRUCT-003 | Error | Missing/empty `id` on root element |
 | DITA-STRUCT-004 | Error/Warning | Missing `<title>` element |
 | DITA-STRUCT-005 | Warning | Empty element (`<p></p>`, `<title></title>`) |
+| DITA-STRUCT-006 | Warning | Missing `<booktitle>` in bookmap |
+| DITA-STRUCT-007 | Warning | Missing `<mainbooktitle>` in booktitle |
+| DITA-STRUCT-008 | Info | `<topicref>` without target attribute (href/keyref/keys/conref/conkeyref) |
 | DITA-ID-001 | Error | Duplicate `id` attribute value |
 | DITA-ID-002 | Warning | Invalid ID format (XML ID or NMTOKEN) |
 
+**Notes:**
+- ID validation handles both `id="value"` and `id='value'` (single-quote support added in v0.6.2)
+- Root element IDs use XML ID rules (must start with letter/underscore); non-root use NMTOKEN (can start with digits)
+- Topicref check skips self-closing `<topicref/>` elements (intentional grouping containers)
+
+### DTD Validation (catalogValidationService.ts)
+
+| Code | Severity | Description |
+|------|----------|-------------|
+| DITA-DTD-001 | Error | DTD validation error (from TypesXML) |
+
+Uses bundled DITA 1.3 DTDs with OASIS XML Catalog resolution. Parser pool of 3 pre-configured instances. Shared catalog for grammar caching.
+
+### RNG Validation (rngValidationService.ts)
+
+Optional RelaxNG schema validation via salve-annos + saxes. Grammar cache (max 20). Activated when `ditacraft.schemaFormat` is `rng`.
+
 ### Schematron-Equivalent Rules (ditaRulesValidator.ts)
 
-18 rules organized into 4 categories, filtered by DITA version:
+35 rules organized into 5 categories, filtered by DITA version (auto-detected from `@DITAArchVersion` or DOCTYPE):
 
-| Category | Rules | Severity |
-|----------|-------|----------|
-| **mandatory** | `role="other"` requires `otherrole`, `note type="other"` requires `othertype`, deprecated `<indextermref>`, `collection-type` not on `reltable` | Error |
-| **recommendation** | Deprecated elements (`<boolean>`), deprecated attributes (`alt`, `longdescref`, `query`, `navtitle`, `title` on `<map>`), long `<shortdesc>`, `<topichead>` missing navtitle | Warning |
-| **authoring** | `<xref>` inside `<title>`, `<required-cleanup>` present, trademark characters as plain text, multiple `<title>` in `<section>` | Warning |
-| **accessibility** | `<image>` missing alt text, `<object>` missing `<desc>` | Warning |
+| Category | Count | Examples | Severity |
+|----------|-------|---------|----------|
+| **mandatory** | 4 | `role="other"` requires `otherrole`, `note type="other"` requires `othertype`, deprecated `<indextermref>`, `collection-type` misuse | Error |
+| **recommendation** | 8 | Deprecated elements/attributes, long `<shortdesc>`, `<topichead>` missing navtitle | Warning |
+| **authoring** | 7 | `<xref>` in `<title>`, `<required-cleanup>`, trademark chars, multiple section titles, single-paragraph body, id-less titled elements | Warning |
+| **accessibility** | 3 | Missing alt text on images, missing `<desc>` on objects, abstract without shortdesc | Warning |
+| **DITA 2.0 removal** | 13 | Removed elements (`<boolean>`, `<object>`, learning), removed attributes (`@print`, `@copy-to`, `@navtitle`, `@query`), `<audio>`/`<video>` fallback | Warning/Error |
 
 ### Cross-Reference Rules (crossRefValidation.ts)
 
@@ -317,9 +380,12 @@ User-facing settings under `ditacraft.*`:
 |---------|------|---------|---------|
 | `maxNumberOfProblems` | number | 100 | Maximum diagnostics per file |
 | `ditaRulesEnabled` | boolean | true | Enable Schematron-equivalent rules |
-| `ditaRulesCategories` | string[] | all | Rule categories to activate |
+| `ditaRulesCategories` | string[] | all 5 | Rule categories to activate |
 | `crossRefValidationEnabled` | boolean | true | Validate cross-references |
 | `subjectSchemeValidationEnabled` | boolean | true | Validate against subject schemes |
+| `ditaVersion` | string | `auto` | DITA version for rule filtering |
+| `schemaFormat` | string | `dtd` | Schema format: `dtd` or `rng` |
+| `rngSchemaPath` | string | `""` | Custom RNG schema file path |
 
 Settings are cached per document URI and cleared on configuration change events.
 
@@ -333,7 +399,7 @@ server.ts
 ├── settings.ts
 │
 ├── features/
-│   ├── validation.ts ─────────── fast-xml-parser
+│   ├── validation.ts ─────────── fast-xml-parser, i18n, ditaSpecialization
 │   ├── completion.ts ─────────── ditaSchema, keySpaceService, subjectSchemeService
 │   ├── hover.ts ──────────────── ditaSchema, referenceParser, keySpaceService
 │   ├── definition.ts ─────────── referenceParser, keySpaceService
@@ -341,23 +407,30 @@ server.ts
 │   ├── rename.ts ─────────────── referenceParser, workspaceScanner
 │   ├── symbols.ts ────────────── workspaceScanner
 │   ├── documentLinks.ts ──────── keySpaceService
-│   ├── crossRefValidation.ts ─── referenceParser, keySpaceService
-│   ├── ditaRulesValidator.ts ─── ditaVersionDetector
-│   ├── profilingValidation.ts ── subjectSchemeService
+│   ├── crossRefValidation.ts ─── referenceParser, keySpaceService, i18n
+│   ├── ditaRulesValidator.ts ─── ditaVersionDetector, i18n
+│   ├── profilingValidation.ts ── subjectSchemeService, i18n
 │   ├── formatting.ts ─────────── (no dependencies)
 │   ├── folding.ts ────────────── (no dependencies)
 │   ├── linkedEditing.ts ──────── (no dependencies)
 │   └── codeActions.ts ────────── (no dependencies)
 │
 ├── services/
-│   ├── keySpaceService.ts ────── (no service dependencies)
-│   └── subjectSchemeService.ts ── (no service dependencies)
+│   ├── keySpaceService.ts ──────── (no service dependencies)
+│   ├── subjectSchemeService.ts ─── (no service dependencies)
+│   ├── catalogValidationService.ts ── TypesXML (external)
+│   └── rngValidationService.ts ──── salve-annos, saxes (external)
 │
 ├── utils/
 │   ├── xmlTokenizer.ts ───────── (no dependencies)
 │   ├── referenceParser.ts ────── (no dependencies)
 │   ├── workspaceScanner.ts ───── referenceParser
-│   └── ditaVersionDetector.ts ── (no dependencies)
+│   ├── ditaVersionDetector.ts ── (no dependencies)
+│   └── i18n.ts ───────────────── messages/en.json, messages/fr.json
+│
+├── messages/
+│   ├── en.json ───────────────── 70 diagnostic messages (English)
+│   └── fr.json ───────────────── 70 diagnostic messages (French)
 │
 └── data/
     ├── ditaSchema.ts ─────────── (no dependencies)

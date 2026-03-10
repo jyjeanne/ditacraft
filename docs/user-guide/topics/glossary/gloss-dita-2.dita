@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-dita-2">
+    <glossterm>DITA 2.0</glossterm>
+    <glossdef>The latest major version of the DITA specification, which removes several deprecated elements (<codeph>&lt;boolean&gt;</codeph>, <codeph>&lt;indextermref&gt;</codeph>, <codeph>&lt;object&gt;</codeph>, learning specializations) and attributes (<codeph>@print</codeph>, <codeph>@copy-to</codeph>, <codeph>@navtitle</codeph>, <codeph>@query</codeph>), while adding new multimedia elements (<codeph>&lt;audio&gt;</codeph>, <codeph>&lt;video&gt;</codeph>, <codeph>&lt;fallback&gt;</codeph>). DitaCraft includes 10 DITA 2.0-specific validation rules.</glossdef>
+</glossentry>

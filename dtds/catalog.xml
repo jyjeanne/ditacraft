@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Master OASIS XML Catalog for DitaCraft.
+  Chains to version-specific DTD catalogs for DITA 1.2, 1.3, and 2.0.
+  PUBLIC identifier matching is version-specific, so there are no conflicts.
+-->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+   <!-- DITA 1.3 (default) -->
    <nextCatalog catalog="base/catalog.xml"/>
    <nextCatalog catalog="bookmap/catalog.xml"/>
    <nextCatalog catalog="ditaval/catalog.xml"/>
@@ -8,4 +14,10 @@
    <nextCatalog catalog="subjectScheme/catalog.xml"/>
    <nextCatalog catalog="technicalContent/catalog.xml"/>
    <nextCatalog catalog="xnal/catalog.xml"/>
+
+   <!-- DITA 1.2 -->
+   <nextCatalog catalog="dita1.2/catalog.xml"/>
+
+   <!-- DITA 2.0 -->
+   <nextCatalog catalog="dita2.0/catalog.xml"/>
 </catalog>

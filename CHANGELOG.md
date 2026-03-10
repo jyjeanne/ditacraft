@@ -5,14 +5,43 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.1] - 2026-02-22
+## [0.6.2] - 2026-03-10
+
+### Added
+- **Bookmap Validation** — LSP warns on missing `<booktitle>` (DITA-STRUCT-006) and `<mainbooktitle>` (DITA-STRUCT-007) elements in bookmaps
+- **Topicref Validation** — LSP flags `<topicref>` without target attributes (`href`, `keyref`, `keys`, `conref`, `conkeyref`) as information-level hints; self-closing containers are skipped (DITA-STRUCT-008)
+- **Localization (i18n)** — All 70 diagnostic messages translatable; English + French bundles; auto-detects LSP locale
+- **DITA 2.0 Rules** — 10 new version-specific rules (SCH-050 to SCH-059): removed elements (`<boolean>`, `<indextermref>`, `<object>`, learning specializations), removed attributes (`@print`, `@copy-to`, `@navtitle`, `@query`), `<audio>`/`<video>` fallback accessibility
+- **35 Total DITA Rules** — Expanded from 18 to 35 Schematron-equivalent rules across 5 categories (mandatory, recommendation, authoring, accessibility, DITA 2.0 removal); version-gated per DITA version
+- **Root Map Management** — Set/clear explicit root map via command palette or clickable status bar item; workspace-level `rootMap` setting; auto-discover mode by default
+- **DITA Specialization** — `@class` attribute matching for specialization-aware element handling; pre-built matchers for 20+ element types
+- **Catalog Validation Service** — DTD validation with OASIS XML Catalog resolution and parser pool (3 concurrent instances)
+- **RNG Validation Service** — Optional RelaxNG schema validation via salve-annos + saxes; grammar compilation with caching (max 20 schemas)
+- **Subject Scheme Enhancements** — Hierarchy path display in completions, grouping by parent subject, default value preselection
+- **Conref Content Preview** — Hover on `conref`/`conkeyref` shows inline preview of referenced content
+- **Smart Debouncing** — Tiered validation delays (300ms topics, 1000ms maps) with per-document cancellation
+- **Key Scope Support** — `@keyscope` attribute handling with scope-qualified key resolution
+- **New Settings** — `ditacraft.ditaVersion`, `ditacraft.schemaFormat`, `ditacraft.rngSchemaPath`, `ditacraft.cspellAutoPrompt`
+- **New Commands** — `DITA: Set Root Map`, `DITA: Clear Root Map`, `DITA: Open File`
+- **New Extension Logo** — Updated branding
+- **User Guide Update** — 17 files updated + 8 new DITA topics (localization, root map, 6 glossary entries)
+
+### Changed
+- **Validation Deduplication** — Disabled client-side on-save auto-validation; LSP server now sole provider of real-time diagnostics, eliminating duplicate `dita` vs `dita-lsp` diagnostic entries
+- **Diagnostics View** — Added deduplication logic to filter identical diagnostics from multiple sources
+- **cSpell Auto-Prompt** — Disabled by default (new `cspellAutoPrompt` setting); manual command always available
+- **Stale Diagnostics Cleanup** — Client-side `dita` diagnostics from manual validation are cleared on save to avoid conflicts with LSP diagnostics
 
 ### Fixed
-- **Code Action: Duplicate ID** — `fixDuplicateId` quick fix now handles single-quoted `id` attributes (`id='value'`), not just double-quoted
-- **DITA Explorer: Open File** — `ditacraft.openFile` command now has async error handling with user-facing warning on failure
+- **ID Validation: Single Quotes** — `validateIDs` now handles `id='value'` via backreference regex, not just `id="value"`
+- **Error Ranges** — Diagnostic underlines now span full line or exact match bounds instead of barely-visible 1-char-wide squiggles (validation.ts `createRange` + `offsetToRange`, catalogValidationService.ts)
+- **Topicref Check: False Positives** — Self-closing `<topicref/>` elements and topicrefs with `conref`/`conkeyref` are correctly excluded from the missing-href warning
+- **Code Action: Duplicate ID** — `fixDuplicateId` quick fix now handles single-quoted `id` attributes (`id='value'`)
+- **DITA Explorer: Open File** — `ditacraft.openFile` command now has async error handling with user-facing warning
 - **Completion: Invalid Position** — Element completion `startPos.character` clamped to 0 to prevent invalid negative LSP positions
 - **XML Tokenizer: CRLF** — `advance()` now returns full `\r\n` for Windows line endings, fixing token text length mismatches
 - **Package.json** — Added missing `ditacraft.openFile` command declaration for Command Palette visibility
+- **Test Suite** — 11 new server tests for bookmap/topicref validation; real-time validation tests updated for LSP-driven architecture
 
 ## [0.6.0] - 2026-02-10
 

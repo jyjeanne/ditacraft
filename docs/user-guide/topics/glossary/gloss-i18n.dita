@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-i18n">
+    <glossterm>Internationalization (i18n)</glossterm>
+    <glossdef>The process of designing software so that it can be adapted to various languages without engineering changes. DitaCraft supports localized diagnostic messages in English and French, with the language automatically detected from your VS Code display language setting.</glossdef>
+</glossentry>

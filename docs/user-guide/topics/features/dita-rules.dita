@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="dita-rules">
     <title>DITA Rules Engine</title>
-    <shortdesc>DitaCraft includes 18 Schematron-equivalent validation rules organized in four categories to enforce DITA best practices and specification requirements.</shortdesc>
+    <shortdesc>DitaCraft includes 35 Schematron-equivalent validation rules organized in four categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules.</shortdesc>
 
     <conbody>
         <section id="overview">
@@ -72,6 +72,21 @@
                     <stentry>Accessibility</stentry>
                     <stentry>Missing <codeph>&lt;alt&gt;</codeph> element for <codeph>&lt;image&gt;</codeph></stentry>
                 </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-040</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry>Nested <codeph>&lt;xref&gt;</codeph> not allowed</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-044</codeph></stentry>
+                    <stentry>Recommendation</stentry>
+                    <stentry>Deprecated role values (<codeph>sample</codeph>, <codeph>external</codeph>)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-046</codeph></stentry>
+                    <stentry>Recommendation</stentry>
+                    <stentry>Elements with <codeph>&lt;title&gt;</codeph> should have <codeph>@id</codeph></stentry>
+                </strow>
             </simpletable>
         </section>
 
@@ -84,6 +99,80 @@
                 <li><b>Convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element:</b> Migrates the deprecated attribute syntax to the modern element form</li>
                 <li><b>Add missing <codeph>&lt;alt&gt;</codeph> to <codeph>&lt;image&gt;</codeph>:</b> Inserts an empty <codeph>&lt;alt&gt;</codeph> child element for accessibility</li>
             </ul>
+        </section>
+
+        <section id="dita-2-rules">
+            <title>DITA 2.0 Rules</title>
+            <p>DitaCraft includes 10 rules specific to DITA 2.0 that detect removed elements and attributes. These rules only apply when the DITA version is detected as 2.0 (via <codeph>@DITAArchVersion</codeph> or DOCTYPE).</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Code</stentry>
+                    <stentry>Category</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>DITA-SCH-050</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>&lt;boolean&gt;</codeph> element removed in DITA 2.0</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-051</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>&lt;indextermref&gt;</codeph> element removed in DITA 2.0</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-052</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>&lt;object&gt;</codeph> removed — use <codeph>&lt;audio&gt;</codeph>, <codeph>&lt;video&gt;</codeph>, or <codeph>&lt;include&gt;</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-053</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry>Learning specializations removed in DITA 2.0</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-054</codeph></stentry>
+                    <stentry>Accessibility</stentry>
+                    <stentry><codeph>&lt;audio&gt;</codeph> should have <codeph>&lt;fallback&gt;</codeph> element</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-055</codeph></stentry>
+                    <stentry>Accessibility</stentry>
+                    <stentry><codeph>&lt;video&gt;</codeph> should have <codeph>&lt;fallback&gt;</codeph> element</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-056</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>@print</codeph> attribute removed in DITA 2.0</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-057</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>@copy-to</codeph> attribute removed in DITA 2.0</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-058</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>@navtitle</codeph> attribute removed in DITA 2.0</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-SCH-059</codeph></stentry>
+                    <stentry>Mandatory</stentry>
+                    <stentry><codeph>@query</codeph> attribute removed in DITA 2.0</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="version-detection">
+            <title>Version Detection</title>
+            <p>DitaCraft automatically detects the DITA version of each document using these sources (in priority order):</p>
+            <ol>
+                <li>The <codeph>ditacraft.ditaVersion</codeph> setting (if not set to <codeph>"auto"</codeph>)</li>
+                <li>The <codeph>@DITAArchVersion</codeph> attribute on the root element</li>
+                <li>The DOCTYPE public identifier (e.g., <codeph>-//OASIS//DTD DITA 2.0 Topic//EN</codeph>)</li>
+                <li>Defaults to DITA 1.3 if no version indicator is found</li>
+            </ol>
+            <p>Version-specific rules are only applied when the detected version matches their applicability range.</p>
         </section>
 
         <section id="configuration">

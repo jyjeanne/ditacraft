@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="root-map">
+    <title>Root Map Management</title>
+    <shortdesc>Explicitly set a root map for your project to control key resolution, cross-reference validation, and subject scheme discovery.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>DitaCraft uses a root map to build the key space, resolve cross-references, and discover subject scheme constraints. By default, DitaCraft auto-discovers root maps in your workspace. Starting with v0.6.2, you can explicitly set a root map for precise control over key resolution and validation behavior.</p>
+        </section>
+
+        <section id="auto-discovery">
+            <title>Automatic Discovery</title>
+            <p>When no explicit root map is set, DitaCraft automatically discovers maps in your workspace using the following strategy:</p>
+            <ol>
+                <li>Scans for <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files</li>
+                <li>Selects the most likely root map based on structure and references</li>
+                <li>Builds the key space from the discovered map</li>
+            </ol>
+            <p>Auto-discovery works well for projects with a single root map. For complex projects with multiple maps, setting an explicit root map is recommended.</p>
+        </section>
+
+        <section id="setting-root-map">
+            <title>Setting a Root Map</title>
+            <p>To explicitly set the root map:</p>
+            <ol>
+                <li>Open the Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>)</li>
+                <li>Run <uicontrol>DITA: Set Root Map</uicontrol></li>
+                <li>Select the desired map file from the list of available maps</li>
+            </ol>
+            <p>The selected root map is stored in your workspace settings (<codeph>ditacraft.rootMap</codeph>) and persists across sessions.</p>
+        </section>
+
+        <section id="clearing-root-map">
+            <title>Clearing the Root Map</title>
+            <p>To return to automatic discovery:</p>
+            <ol>
+                <li>Open the Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>)</li>
+                <li>Run <uicontrol>DITA: Clear Root Map (Auto-Discover)</uicontrol></li>
+            </ol>
+            <p>This removes the explicit root map setting and DitaCraft reverts to auto-discovery mode.</p>
+        </section>
+
+        <section id="status-bar">
+            <title>Status Bar Indicator</title>
+            <p>The current root map status is displayed in the VS Code status bar at the bottom of the window. It shows:</p>
+            <ul>
+                <li><b>Map name:</b> When an explicit root map is set, the filename is displayed</li>
+                <li><b>Auto:</b> When DitaCraft is using automatic map discovery</li>
+            </ul>
+            <p>Click the status bar item to quickly change the root map.</p>
+        </section>
+
+        <section id="configuration">
+            <title>Configuration</title>
+            <p>The root map setting can also be configured directly in <filepath>settings.json</filepath>:</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.rootMap": "maps/master.ditamap"
+}</codeblock>
+            <p>The path is relative to the workspace root. Leave empty or omit for automatic discovery.</p>
+        </section>
+
+        <section id="what-root-map-affects">
+            <title>What the Root Map Affects</title>
+            <p>The root map determines the scope for:</p>
+            <ul>
+                <li><b>Key Space:</b> All <codeph>keyref</codeph> and <codeph>conkeyref</codeph> resolution uses keys defined in the root map hierarchy</li>
+                <li><b>Cross-Reference Validation:</b> Key-based references are validated against the root map's key space</li>
+                <li><b>Subject Scheme Discovery:</b> Subject scheme maps referenced from the root map define profiling constraints</li>
+                <li><b>DITA Explorer:</b> The root map hierarchy is used for the tree view</li>
+                <li><b>Key Space View:</b> Shows defined, undefined, and unused keys from the root map</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

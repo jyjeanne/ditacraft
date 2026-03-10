@@ -14,6 +14,7 @@
                 <li><b>Diagnostics:</b> Centralized DITA validation issues grouped by file or severity</li>
             </ul>
             <p>To open the DitaCraft sidebar, click the DitaCraft icon in the Activity Bar on the left side of VS Code.</p>
+            <p>Additionally, the VS Code status bar shows the current <b>root map</b> status. Click it to set or change the root map for key resolution and cross-reference validation. See <xref keyref="root-map"/> for details.</p>
         </section>
 
         <section id="views-summary">
@@ -52,6 +53,8 @@
                 <li><uicontrol>DITA: Refresh DITA Explorer</uicontrol></li>
                 <li><uicontrol>DITA: Refresh Key Space</uicontrol></li>
                 <li><uicontrol>DITA: Refresh Diagnostics</uicontrol></li>
+                <li><uicontrol>DITA: Set Root Map</uicontrol> — Set an explicit root map for the project</li>
+                <li><uicontrol>DITA: Clear Root Map (Auto-Discover)</uicontrol> — Return to automatic root map discovery</li>
             </ul>
         </section>
     </conbody>

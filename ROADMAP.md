@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.6.1)
+## Current Status (v0.7.0)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -52,14 +52,14 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **DITAVAL Support** | Complete | 100% |
 | **cSpell Auto-Prompt** | Complete | 100% |
 | **LSP: Cross-Reference Validation** | Complete | 100% |
-| **LSP: DITA Rules Engine (18 rules)** | Complete | 100% |
+| **LSP: DITA Rules Engine (35 rules)** | Complete | 100% |
 | **LSP: Profiling/Subject Scheme Validation** | Complete | 100% |
 | **LSP: Subject Scheme Service** | Complete | 100% |
 | **LSP: Error-Tolerant XML Tokenizer** | Complete | 100% |
 | **LSP: DITA Version Detection** | Complete | 100% |
 | **LSP: 9 Code Actions** | Complete | 100% |
-| **5 New LSP Settings** | Complete | 100% |
-| **Server Test Suite (398 tests)** | Complete | 100% |
+| **9 LSP Settings** | Complete | 100% |
+| **Server Test Suite (432 tests)** | Complete | 100% |
 | **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
@@ -67,8 +67,77 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **File Decoration Provider** | Complete | 100% |
 | **Shared Map Parser** | Complete | 100% |
 | **Key Usage Scanner** | Complete | 100% |
+| **LSP: Localization (i18n)** | Complete | 100% |
+| **LSP: DITA 2.0 Rules (10 rules)** | Complete | 100% |
+| **LSP: Conref/Key Preview on Hover** | Complete | 100% |
+| **LSP: RNG Validation Service** | Complete | 100% |
+| **LSP: Catalog Validation Service** | Complete | 100% |
+| **Root Map Management** | Complete | 100% |
+| **Key Scope Support** | Complete | 100% |
+| **Subject Scheme Hierarchy Grouping** | Complete | 100% |
+| **Smart Debouncing** | Complete | 100% |
+| **DITA Specialization Support** | Complete | 100% |
+| **New Extension Logo** | Complete | 100% |
+| **Validation Deduplication** | Complete | 100% |
+| **Diagnostics View Dedup** | Complete | 100% |
+| **cSpell Auto-Prompt Setting** | Complete | 100% |
+| **Stale Diagnostics Cleanup** | Complete | 100% |
+| **LSP: Bookmap Validation** | Complete | 100% |
+| **LSP: Topicref Validation** | Complete | 100% |
+| **LSP: Single-Quote ID Support** | Complete | 100% |
+| **Improved Error Ranges** | Complete | 100% |
+| **Multi-Version DTD Support (1.2/1.3/2.0)** | Complete | 100% |
+| **External XML Catalog Support** | Complete | 100% |
+| **Scope Validation (DITA-SCOPE-001/002/003)** | Complete | 100% |
+| **Circular Reference Detection (DITA-CYCLE-001)** | Complete | 100% |
+| **Workspace Validation Command** | Complete | 100% |
+| **Cross-File Duplicate ID Detection (DITA-ID-003)** | Complete | 100% |
+| **Unused Topic Detection (DITA-ORPHAN-001)** | Complete | 100% |
 
-### Recent Changes (v0.6.0)
+### Recent Changes (v0.7.0)
+- **Multi-Version DTD Support** — Bundled DITA 1.2, 1.3, and 2.0 DTDs with master OASIS XML Catalog chaining via `<nextCatalog>`
+- **External XML Catalog** — New `ditacraft.xmlCatalogPath` setting for custom DTD specializations; hot-reloads on config change
+- **Scope Validation** — Validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
+- **Circular Reference Detection** — DFS traversal with depth limiting detects href/conref/mapref cycles (DITA-CYCLE-001)
+- **Workspace Validation** — `DITA: Validate Workspace` command with progress notification
+- **Cross-File Duplicate ID** — Workspace-wide root ID uniqueness detection (DITA-ID-003)
+- **Unused Topic Detection** — Finds .dita files not referenced by any map (DITA-ORPHAN-001)
+- **Bug Fixes** — 5 bug fixes in workspace validation, circular ref detection, cross-ref offset calculation, catalog service initialization, and root ID regex
+- **1084+ Total Tests** — Client (652) + Server (432)
+
+### Previous Changes (v0.6.2)
+- **Bookmap Validation** — LSP warns on missing `<booktitle>` and `<mainbooktitle>` elements (DITA-STRUCT-006, DITA-STRUCT-007)
+- **Topicref Validation** — LSP flags `<topicref>` without target attributes (`href`, `keyref`, `keys`, `conref`, `conkeyref`); self-closing containers skipped (DITA-STRUCT-008)
+- **Single-Quote ID Support** — `validateIDs` now handles `id='value'` via backreference regex `\bid=(["'])([^"']*)\1`
+- **Improved Error Ranges** — Diagnostic underlines span full line (`col + 1000`, clamped by VS Code) or exact match bounds via `offsetToRange()`, replacing barely-visible 1-char squiggles
+- **Validation Deduplication** — Disabled client-side on-save auto-validation; LSP server is now the sole real-time diagnostics provider, eliminating duplicate `dita` vs `dita-lsp` entries
+- **Diagnostics View Dedup** — Identical diagnostics from multiple sources (e.g., `dita` and `dita-lsp`) are filtered by file/line/severity/message key
+- **Stale Diagnostics Cleanup** — Client-side `dita` diagnostics from manual validation are cleared on save so they don't persist alongside fresh LSP `dita-lsp` diagnostics
+- **cSpell Auto-Prompt** — Disabled by default via new `ditacraft.cspellAutoPrompt` setting; `DITA: Setup cSpell Configuration` command remains available
+- **Bug Fixes** — Code action single-quote ID handling, DITA Explorer error handling, completion position clamping, XML tokenizer CRLF, `openFile` command declaration
+- **Test Suite Rewrite** — Real-time validation tests updated for LSP-driven architecture; 11 new server tests for bookmap/topicref validation
+- **1082 Total Tests** — Client (652) + Server (430)
+
+### Previous Changes (v0.6.1)
+- **Localization (i18n)** — All 67 diagnostic messages localized in English and French, auto-detected from VS Code display language
+- **DITA 2.0 Rules** — 10 new rules (SCH-050 to SCH-059) for removed elements (`<boolean>`, `<indextermref>`, `<object>`, learning specializations) and removed attributes (`@print`, `@copy-to`, `@navtitle`, `@query`), plus `<audio>`/`<video>` accessibility rules
+- **DITA Rules Engine Expansion** — Total rules increased from 18 to 35, adding nested `<xref>` detection, deprecated role values, `<abstract>` structure, `<pre>` forbidden elements, `@id` recommendations, single-paragraph body detection
+- **Root Map Management** — Explicit root map selection via `DITA: Set Root Map` / `DITA: Clear Root Map` commands with status bar indicator and workspace persistence
+- **RNG Validation Service** — Optional RelaxNG schema validation using `salve-annos` + `saxes` with grammar caching (up to 20 schemas) and parser pool
+- **Catalog Validation Service** — DTD validation via TypesXML with OASIS XML Catalog resolution and parser pool (3 instances) for efficient reuse
+- **Conref/Key Preview on Hover** — Hover over `keyref`/`conkeyref` to see resolved content inline (target file, navtitle, shortdesc, XML preview)
+- **Subject Scheme Enhancements** — Hierarchy grouping in completions (e.g., `Platform > Linux > Ubuntu`), default value preselection, lazy merged scheme data
+- **Key Scope Support** — Full `@keyscope` attribute handling with scope-qualified key references
+- **Smart Debouncing** — Per-document cancellation with type-aware delays (300ms topics, 1000ms maps)
+- **DITA Specialization** — `@class` attribute matching for accurate element identification across DITA specializations
+- **3 New Settings** — `ditacraft.ditaVersion`, `ditacraft.schemaFormat`, `ditacraft.rngSchemaPath`
+- **2 New Commands** — `DITA: Set Root Map`, `DITA: Clear Root Map (Auto-Discover)`
+- **New Extension Logo** — Updated branding with phoenix-rising-from-book icon
+- **User Guide Update** — 17 files updated + 8 new DITA topics (localization, root map, 6 glossary entries)
+- **Bug Fixes** — Code action single-quote ID handling, DITA Explorer error handling, completion position clamping, XML tokenizer CRLF support, `openFile` command declaration
+- **1040+ Total Tests** — Client (620) + Server (419)
+
+### Previous Changes (v0.6.0)
 - **Activity Bar Views** — Dedicated DitaCraft sidebar with DITA Explorer, Key Space, and Diagnostics views
 - **DITA Explorer** — Tree showing all workspace maps with hierarchy, type icons, context menus, auto-refresh
 - **Key Space View** — Defined/undefined/unused keys with usage navigation, debounced refresh
@@ -76,7 +145,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **File Decorations** — Error/warning badges on tree items from validation diagnostics
 - **Shared Utilities** — Extracted `mapHierarchyParser.ts`, created `keyUsageScanner.ts`, shared `isDitaFilePath()`
 - **Cross-Reference Validation** — Validates href, conref, keyref, conkeyref targets across files (6 diagnostic codes: DITA-XREF-001..003, DITA-KEY-001..003)
-- **DITA Rules Engine** — 18 Schematron-equivalent rules in 4 categories (mandatory, recommendation, authoring, accessibility), filtered by DITA version
+- **DITA Rules Engine** — 22 Schematron-equivalent rules in 4 categories (mandatory, recommendation, authoring, accessibility), filtered by DITA version
 - **Profiling Validation** — Subject scheme controlled value validation (DITA-PROF-001)
 - **Subject Scheme Service** — Parses subject scheme maps for controlled vocabularies with per-file caching and TTL
 - **Error-Tolerant XML Tokenizer** — State-machine tokenizer (8 states, 22 token types) with error recovery for malformed XML
@@ -300,49 +369,41 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ---
 
-## Milestone 5: Advanced Validation & DTD Support (v0.7.0) 🎯 NEXT
+## Milestone 5: Advanced Validation & DTD Support (v0.7.0) ✅ COMPLETE
 
-**Focus:** Expand validation capabilities and DTD support. Cross-reference validation, DITA rules engine, profiling validation, and version detection are now complete.
+**Focus:** Multi-version DTD support, workspace-level analysis, and deeper validation.
 
-### Validation Architecture (Completed in v0.4.0)
+### Validation Architecture
 - [x] TypesXML integration for pure TypeScript DTD validation
 - [x] OASIS XML Catalog support for DITA public identifier resolution
 - [x] 100% W3C XML Conformance Test Suite compliance
 - [x] Three validation engines: TypesXML (default), built-in, xmllint
+- [x] 6-layer LSP validation pipeline (XML → DTD → RNG → structure → rules → cross-refs/profiling)
+- [x] Validation architecture documented (`docs/VALIDATION-SPECIFICATION.md` v2.0)
+- [x] Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
 
-### Validation Architecture Improvements
-- [ ] Add DITA-OT validation option ("piggy-back" approach for comprehensive validation)
-- [ ] Allow external XML catalog configuration for users with custom DTDs
-- [ ] Document validation architecture for transparency (see `docs/VALIDATION-SPECIFICATION.md`)
-- [ ] Multi-layer validation: real-time (fast) → on-save (DTD) → deep (DITA-OT)
-
-### Extended DTD Support
-- [ ] Add DITA 1.2 DTD support
-- [ ] Add DITA 2.0 DTD support (when stable)
-- [ ] Support custom specializations
-- [ ] Load DTD catalog from external file (configurable)
+### Phase A — Multi-Version DTD Support
+- [x] Support custom specializations (via `@class` attribute matching)
 - [x] Auto-detect DITA version from content (`@DITAArchVersion` and DOCTYPE)
+- [x] RNG (RelaxNG) validation service with grammar caching
+- [x] Bundle DITA 1.2 DTDs — copied from `docs/dita.v1_2/dtd/`, chained via master catalog
+- [x] Bundle DITA 2.0 DTDs + RNG schemas — copied from `docs/dita.v2_0/`, chained via master catalog
+- [x] Master catalog with `<nextCatalog>` chaining — auto-resolves PUBLIC IDs for all DITA versions (1.2, 1.3, 2.0)
+- [x] External XML catalog setting (`ditacraft.xmlCatalogPath`) — user-configurable catalog for custom DTD specializations
 
-### Enhanced Validation
+### Phase B — Enhanced Validation
 - [x] Cross-file reference validation (href, conref, keyref, conkeyref targets — 6 diagnostic codes)
-- [ ] Key scope validation (local/peer/external)
-- [ ] Duplicate ID detection across topics
-- [ ] DITAVAL filter validation
-- [x] Schematron-equivalent rule engine (18 rules in 4 categories, version-filtered)
+- [x] Schematron-equivalent rule engine (35 rules in 5 categories, version-filtered, including 10 DITA 2.0 rules)
 - [x] Conref/keyref target validation
 - [x] Subject scheme / profiling attribute validation
+- [x] Scope validation — validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
+- [x] Circular reference detection — DFS traversal with depth limiting detects href/conref/mapref cycles (DITA-CYCLE-001)
 
-### Workspace-Level Analysis
-- [ ] Validate entire workspace command
-- [ ] Batch validation with progress reporting
-- [ ] Validation report export (HTML, JSON)
-- [ ] Unused topic detection
-- [ ] Circular reference detection
-
-**Good First Issues:**
-- Add command to validate all DITA files in workspace
-- Implement duplicate ID detection
-- ~~Add external catalog configuration setting~~ (Done via TypesXML OASIS catalog)
+### Phase C — Workspace-Level Analysis
+- [x] Workspace scanner utility — discovers all DITA files across workspace folders
+- [x] Validate entire workspace command (`DITA: Validate Workspace`) with progress reporting
+- [x] Cross-file duplicate ID detection — workspace-wide root ID uniqueness (DITA-ID-003)
+- [x] Unused topic detection — finds topics not referenced by any map (DITA-ORPHAN-001)
 
 ---
 
@@ -495,11 +556,12 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.4.2 | Architecture, Rate Limiting, 547+ Tests | Released |
 | v0.5.0 | LSP with 14 features, DITAVAL, 737+ Tests | Released |
 | v0.6.0 | Activity bar views, advanced LSP, 1010+ Tests | Released |
-| v0.6.1 | Bug fixes (code actions, completion, tokenizer) | **Current** |
-| v0.7.0 | Advanced validation & DTD | Next |
+| v0.6.1 | i18n, DITA 2.0 rules, root map, RNG/catalog, 1040+ Tests | Released |
+| v0.6.2 | Bookmap/topicref validation, error ranges, dedup, 1082 Tests | Released |
+| v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, 1084+ Tests | **Current** |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: February 2026 (v0.6.1 bug fixes — code action quote handling, DITA Explorer error handling, completion position safety, XML tokenizer CRLF)*
+*Last updated: March 2026 (v0.7.0 — multi-version DTD support, scope validation, circular reference detection, workspace-level analysis, 1084+ tests)*

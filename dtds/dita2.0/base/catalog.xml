@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+<!--DITA Base Map Shell-->
+
+   <public publicId="-//OASIS//DTD DITA 2.0 Base Map//EN" uri="basemap.dtd"/>
+   <public publicId="-//OASIS//DTD DITA 2.x Base Map//EN" uri="basemap.dtd"/>
+   <public publicId="-//OASIS//DTD DITA 2.0 Base Topic//EN"
+           uri="basetopic.dtd"/>
+   <public publicId="-//OASIS//DTD DITA 2.x Base Topic//EN"
+           uri="basetopic.dtd"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Common Elements//EN"
+           uri="commonElements.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Common Elements//EN"
+           uri="commonElements.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Common Elements//EN"
+           uri="commonElements.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Common Elements//EN"
+           uri="commonElements.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Audience Attribute Domain//EN"
+           uri="audienceAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Audience Attribute Domain//EN"
+           uri="audienceAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Delivery Target Attribute Domain//EN"
+           uri="deliveryTargetAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Delivery Target Attribute Domain//EN"
+           uri="deliveryTargetAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Platform Attribute Domain//EN"
+           uri="platformAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Platform Attribute Domain//EN"
+           uri="platformAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Product Attribute Domain//EN"
+           uri="productAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Product Attribute Domain//EN"
+           uri="productAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Otherprops Attribute Domain//EN"
+           uri="otherpropsAttDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Otherprops Attribute Domain//EN"
+           uri="otherpropsAttDomain.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Alternative Titles Domain//EN"
+           uri="alternativeTitlesDomain.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Alternative Titles Domain//EN"
+           uri="alternativeTitlesDomain.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Alternative Titles Domain//EN"
+           uri="alternativeTitlesDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Alternative Titles Domain//EN"
+           uri="alternativeTitlesDomain.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 DITAVAL Ref Domain//EN"
+           uri="ditavalrefDomain.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x DITAVAL Ref Domain//EN"
+           uri="ditavalrefDomain.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 DITAVAL Ref Domain//EN"
+           uri="ditavalrefDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x DITAVAL Ref Domain//EN"
+           uri="ditavalrefDomain.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Emphasis Domain//EN"
+           uri="emphasisDomain.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Emphasis Domain//EN"
+           uri="emphasisDomain.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Emphasis Domain//EN"
+           uri="emphasisDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Emphasis Domain//EN"
+           uri="emphasisDomain.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Hazard Statement Domain//EN"
+           uri="hazardstatementDomain.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Hazard Statement Domain//EN"
+           uri="hazardstatementDomain.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Hazard Statement Domain//EN"
+           uri="hazardstatementDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Hazard Statement Domain//EN"
+           uri="hazardstatementDomain.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Highlight Domain//EN"
+           uri="highlightDomain.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Highlight Domain//EN"
+           uri="highlightDomain.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Highlight Domain//EN"
+           uri="highlightDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Highlight Domain//EN"
+           uri="highlightDomain.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Map Group Domain//EN"
+           uri="mapGroup.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Map Group Domain//EN"
+           uri="mapGroup.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Map Group Domain//EN"
+           uri="mapGroup.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Map Group Domain//EN"
+           uri="mapGroup.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Map//EN" uri="map.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Map//EN" uri="map.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Metadata//EN"
+           uri="metaDecl.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Metadata//EN"
+           uri="metaDecl.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Exchange Table Model//EN"
+           uri="tblDecl.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Exchange Table Model//EN"
+           uri="tblDecl.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Topic//EN" uri="topic.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Topic//EN" uri="topic.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Topic Definitions//EN" uri="topicDefn.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Topic Definitions//EN" uri="topicDefn.ent"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.0 Utilities Domain//EN"
+           uri="utilitiesDomain.mod"/>
+   <public publicId="-//OASIS//ELEMENTS DITA 2.x Utilities Domain//EN"
+           uri="utilitiesDomain.mod"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.0 Utilities Domain//EN"
+           uri="utilitiesDomain.ent"/>
+   <public publicId="-//OASIS//ENTITIES DITA 2.x Utilities Domain//EN"
+           uri="utilitiesDomain.ent"/>
+</catalog>

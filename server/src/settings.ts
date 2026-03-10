@@ -29,6 +29,8 @@ export interface DitaCraftSettings {
     schemaFormat: 'dtd' | 'rng';
     /** Path to directory containing RNG schema files (e.g., DITA-OT's schema directory). */
     rngSchemaPath: string;
+    /** Path to an external OASIS XML catalog file for custom DTD resolution. */
+    xmlCatalogPath: string;
 }
 
 const defaultSettings: DitaCraftSettings = {
@@ -46,6 +48,7 @@ const defaultSettings: DitaCraftSettings = {
     ditaVersion: 'auto',
     schemaFormat: 'dtd',
     rngSchemaPath: '',
+    xmlCatalogPath: '',
 };
 
 // Cache of settings per document URI

@@ -11,6 +11,9 @@
     "struct.missingTopicTitle": "DITA topic must contain a <title> element (required by DTD)",
     "struct.missingMapTitle": "DITA map should contain a <title> element",
     "struct.emptyElement": "Empty <{0}> element should be removed or filled with content",
+    "struct.missingBooktitle": "Bookmap should contain a <booktitle> element",
+    "struct.missingMainbooktitle": "The <booktitle> element should contain a <mainbooktitle> element",
+    "struct.topicrefMissingHref": "<topicref> has no href, keyref, or keys attribute — it may be an empty container",
 
     "id.duplicate": "Duplicate id \"{0}\"",
     "id.duplicateRelated": "\"{0}\" also defined here",
@@ -62,6 +65,16 @@
     "sch059.removedQuery": "The query attribute on <{0}> was removed in DITA 2.0.",
 
     "prof.invalidValue": "Value \"{0}\" is not allowed for @{1}. Valid values: {2}",
+
+    "scope.externalRelativeHref": "scope=\"external\" but href is a relative path. External references should use absolute URIs.",
+    "scope.localAbsoluteHref": "scope=\"local\" but href is an absolute URI. Local references should use relative paths.",
+    "scope.missingOnUrl": "href is an absolute URL but scope is not set. Consider adding scope=\"external\".",
+
+    "cycle.detected": "Circular reference detected: {0}",
+
+    "id.crossFileDuplicate": "Root topic ID \"{0}\" is also used in {1}",
+
+    "orphan.unusedTopic": "Topic is not referenced by any map in the workspace",
 
     "dtd.validationError": "DTD validation error"
 }

@@ -92,4 +92,16 @@
             <navtitle>Diagnostics View</navtitle>
         </topicmeta>
     </topicref>
+
+    <topicref href="root-map.dita" keys="root-map">
+        <topicmeta>
+            <navtitle>Root Map Management</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="localization.dita" keys="localization">
+        <topicmeta>
+            <navtitle>Localization (i18n)</navtitle>
+        </topicmeta>
+    </topicref>
 </map>

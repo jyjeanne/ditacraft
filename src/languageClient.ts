@@ -29,6 +29,10 @@ export async function startLanguageClient(
         },
     };
 
+    // Pass initial configuration to the server
+    const config = vscode.workspace.getConfiguration('ditacraft');
+    const xmlCatalogPath = config.get<string>('xmlCatalogPath', '');
+
     const clientOptions: LanguageClientOptions = {
         documentSelector: [
             { scheme: 'file', language: 'dita' },
@@ -40,6 +44,9 @@ export async function startLanguageClient(
                 vscode.workspace.createFileSystemWatcher('**/*.bookmap'),
                 vscode.workspace.createFileSystemWatcher('**/*.ditaval'),
             ],
+        },
+        initializationOptions: {
+            xmlCatalogPath: xmlCatalogPath || undefined,
         },
         outputChannelName: 'DITA Language Server',
     };

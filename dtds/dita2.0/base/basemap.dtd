@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================= -->
+<!--                               HEADER                          -->
+<!-- ============================================================= -->
+<!-- Darwin Information Typing Architecture (DITA) Version 2.0     -->
+<!-- [[[Draft level]]]                                           -->
+<!-- [[[Release date]]]                                           -->
+<!-- Copyright (c) OASIS Open 2019. All rights reserved.           -->
+<!-- Source: [[[Source link]]]                                -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!--  MODULE:    DITA Base MAP (only base domains)                 -->
+<!--  VERSION:   2.0                                               -->
+<!--  DATE:      [[[Release date]]]                                        -->
+<!--  PURPOSE:   DTD to describe DITA maps                         -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                        TYPICAL INVOCATION                     -->
+<!--                                                               -->
+<!-- Refer to this file by the following public identifier or an   -->
+<!--      appropriate system identifier:                           -->
+<!--                                                               -->
+<!-- PUBLIC "-//OASIS//DTD DITA 2.x Base Map//EN"                  -->
+<!-- The public ID above refers to the latest 2.x version of this DTD. -->
+<!--      To refer to this specific version, use this value:       -->
+<!--                                                               -->
+<!-- PUBLIC "-//OASIS//DTD DITA 2.0 Base Map//EN"                  -->
+<!-- ============================================================= -->
+<!--                                                               -->
+<!--             (C) Copyright OASIS Open 2010, 2021               -->
+<!--             All Rights Reserved.                              -->
+<!--                                                               -->
+<!--  UPDATES:                                                     -->
+<!--                                                               -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--                MAP ENTITY DECLARATIONS                        -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--             DOMAIN CONSTRAINT INTEGRATION                     -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--             DOMAIN ENTITY DECLARATIONS                        -->
+<!-- ============================================================= -->
+
+<!ENTITY % alternativetitles-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Alternative Titles Domain//EN"
+         "alternativeTitlesDomain.ent"
+>%alternativetitles-d-dec;
+
+<!ENTITY % ditavalref-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 DITAVAL Ref Domain//EN"
+         "ditavalrefDomain.ent"
+>%ditavalref-d-dec;
+
+<!ENTITY % emphasis-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Emphasis Domain//EN"
+         "emphasisDomain.ent"
+>%emphasis-d-dec;
+
+<!ENTITY % hi-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Highlight Domain//EN"
+         "highlightDomain.ent"
+>%hi-d-dec;
+
+<!ENTITY % mapgroup-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Map Group Domain//EN"
+         "mapGroup.ent"
+>%mapgroup-d-dec;
+
+<!-- ============================================================= -->
+<!--             DOMAIN ATTRIBUTES DECLARATIONS                    -->
+<!-- ============================================================= -->
+
+<!ENTITY % audienceAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Audience Attribute Domain//EN"
+         "audienceAttDomain.ent"
+>%audienceAtt-d-dec;
+
+<!ENTITY % deliveryTargetAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Delivery Target Attribute Domain//EN"
+         "deliveryTargetAttDomain.ent"
+>%deliveryTargetAtt-d-dec;
+
+<!ENTITY % otherpropsAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Otherprops Attribute Domain//EN"
+         "otherpropsAttDomain.ent"
+>%otherpropsAtt-d-dec;
+
+<!ENTITY % platformAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Platform Attribute Domain//EN"
+         "platformAttDomain.ent"
+>%platformAtt-d-dec;
+
+<!ENTITY % productAtt-d-dec
+  PUBLIC "-//OASIS//ENTITIES DITA 2.0 Product Attribute Domain//EN"
+         "productAttDomain.ent"
+>%productAtt-d-dec;
+
+<!-- ============================================================= -->
+<!--                    DOMAIN EXTENSIONS                          -->
+<!-- ============================================================= -->
+<!--                    One for each extended base element, with
+                        the name of the domain(s) in which the
+                        extension was declared                     -->
+
+<!ENTITY % ph           "ph |
+                         %emphasis-d-ph; |
+                         %hi-d-ph;
+                        ">
+                        
+<!ENTITY % titlealt     "titlealt |
+                         %alternativeTitles-d-titlealt;
+                        ">                        
+
+<!ENTITY % topicref     "topicref |
+                         %ditavalref-d-topicref;|
+                         %mapgroup-d-topicref; 
+                        ">
+                        
+<!-- ============================================================= -->
+<!--                    DOMAIN ATTRIBUTE EXTENSIONS                -->
+<!-- ============================================================= -->
+
+<!ENTITY % base-attribute-extensions
+  ""
+>
+
+<!ENTITY % props-attribute-extensions
+  "%audienceAtt-d-attribute;
+   %deliveryTargetAtt-d-attribute;
+   %otherpropsAtt-d-attribute;
+   %platformAtt-d-attribute;
+   %productAtt-d-attribute;"
+>
+
+<!-- ============================================================= -->
+<!--                    TOPIC NESTING OVERRIDE                     -->
+<!-- ============================================================= -->
+
+<!ENTITY % topic-info-types
+              "topic"
+>
+
+<!-- ============================================================= -->
+<!--                 SPECIALIZATIONS ATTRIBUTE OVERRIDE            -->
+<!-- ============================================================= -->
+
+<!ENTITY included-domains
+                          "&audienceAtt-d-att;
+                           &deliveryTargetAtt-d-att;
+                           &otherpropsAtt-d-att;
+                           &platformAtt-d-att;
+                           &productAtt-d-att;"
+>
+
+<!-- ============================================================= -->
+<!--           ELEMENT-TYPE CONFIGURATION INTEGRATION              -->
+<!-- ============================================================= -->
+
+<!-- ============================================================= -->
+<!--                      MAP ELEMENT INTEGRATION                  -->
+<!-- ============================================================= -->
+
+<!ENTITY % map-type
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Map//EN"
+         "map.mod"
+>%map-type;
+
+<!-- ============================================================= -->
+<!--                    DOMAIN ELEMENT INTEGRATION                 -->
+<!-- ============================================================= -->
+
+<!ENTITY % alternativetitles-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Alternative Titles Domain//EN"
+         "alternativeTitlesDomain.mod"
+>%alternativetitles-d-def;
+
+<!ENTITY % ditavalref-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 DITAVAL Ref Domain//EN"
+         "ditavalrefDomain.mod"
+>%ditavalref-d-def;
+
+<!ENTITY % emphasis-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Emphasis Domain//EN"
+         "emphasisDomain.mod"
+>%emphasis-d-def;
+
+<!ENTITY % hi-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Highlight Domain//EN"
+         "highlightDomain.mod"
+>%hi-d-def;
+
+<!ENTITY % mapgroup-d-def
+  PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Map Group Domain//EN"
+         "mapGroup.mod"
+>%mapgroup-d-def;
+
+<!-- ================= End of DITA Base Map Shell ================= -->

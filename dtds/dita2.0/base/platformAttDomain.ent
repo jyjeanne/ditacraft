@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================= -->
+<!--                    HEADER                                     -->
+<!-- ============================================================= -->
+<!--  MODULE:    DITA Platform Attribute Domain                    -->
+<!--  VERSION:   2.0                                               -->
+<!--  DATE:      [[[Release date]]]                                    -->
+<!--  PURPOSE:   Declaring the substitution context and domain     -->
+<!--             entity declarations for the Platform              -->
+<!--             Attribute Domain                                  -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                    TYPICAL INVOCATION                         -->
+<!--                                                               -->
+<!--  Refer to this file by the following public identifier or an  -->
+<!--       appropriate system identifier                           -->
+<!--                                                               -->
+<!-- PUBLIC "-//OASIS//ENTITIES DITA 2.0 Platform Attribute Domain//EN" -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!--                                                               -->
+<!--             (C) Copyright OASIS Open 2018.                    -->
+<!--             All Rights Reserved.                              -->
+<!--                                                               -->
+<!--  UPDATES:                                                     -->
+<!-- ============================================================= -->
+<!ENTITY % platformAtt-d-attribute
+  "platform
+                          CDATA
+                                    #IMPLIED"
+>
+
+<!-- ============================================================= -->
+<!--                    DOMAIN ENTITY DECLARATION                  -->
+<!-- ============================================================= -->
+
+<!ENTITY platformAtt-d-att
+  "@props/platform"
+>
+
+<!-- ================ End DITA Platform Attribute Domain  ================== -->
+ 

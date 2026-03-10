@@ -1,9 +1,10 @@
 /**
- * Catalog Validation Service (Phase 1 - Item #3)
+ * Catalog Validation Service
  * Full DTD validation in the LSP server using TypesXML + OASIS XML Catalog.
  *
  * TypesXML provides full DTD validation with OASIS XML Catalog support.
- * The catalog resolves DITA PUBLIC identifiers to bundled DTD files.
+ * The master catalog chains to DITA 1.2, 1.3, and 2.0 DTD catalogs.
+ * Users can also specify an external catalog for custom DTD specializations.
  */
 
 import * as path from 'path';
@@ -35,6 +36,7 @@ const PARSER_POOL_SIZE = 3;
 
 /**
  * Provides DTD validation using TypesXML with OASIS XML Catalog resolution.
+ * Supports bundled DITA 1.2/1.3/2.0 catalogs and optional external catalog.
  * Reuses the catalog instance across validations for grammar caching.
  * Maintains a small pool of parser instances to reduce allocation overhead.
  */
@@ -45,13 +47,22 @@ export class CatalogValidationService {
     private loadError: string | null = null;
     /** Pool of pre-configured parser+handler pairs for reuse. */
     private parserPool: { parser: TypesXMLSAXParser; handler: TypesXMLDOMBuilder }[] = [];
+    /** Stored extension path for re-initialization on config change. */
+    private extensionPath = '';
 
     /**
      * Initialize the service with the path to the extension root.
-     * The catalog.xml is expected at `<extensionPath>/dtds/catalog.xml`.
+     * The master catalog.xml is at `<extensionPath>/dtds/catalog.xml`
+     * and chains to DITA 1.2, 1.3, and 2.0 sub-catalogs.
+     *
+     * @param extensionPath Path to the extension root directory.
+     * @param externalCatalogPath Optional user-configured external catalog path.
      */
-    initialize(extensionPath: string): void {
-        const catalogPath = path.join(extensionPath, 'dtds', 'catalog.xml');
+    initialize(extensionPath: string, externalCatalogPath?: string): void {
+        this.extensionPath = extensionPath;
+        const catalogPath = externalCatalogPath && fs.existsSync(externalCatalogPath)
+            ? externalCatalogPath
+            : path.join(extensionPath, 'dtds', 'catalog.xml');
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -68,15 +79,28 @@ export class CatalogValidationService {
                 this.catalog = new typesxml.Catalog(catalogPath);
             }
 
-            this.available = true;
-
             // Pre-warm the parser pool
+            this.parserPool = [];
             for (let i = 0; i < PARSER_POOL_SIZE; i++) {
                 this.parserPool.push(this.createParserPair());
             }
+
+            this.available = true;
         } catch (error) {
             this.loadError = error instanceof Error ? error.message : String(error);
         }
+    }
+
+    /**
+     * Re-initialize with a new external catalog path (on config change).
+     * Drains the parser pool and creates new parsers with the updated catalog.
+     */
+    reinitialize(externalCatalogPath?: string): void {
+        this.available = false;
+        this.catalog = null;
+        this.loadError = null;
+        this.parserPool = [];
+        this.initialize(this.extensionPath, externalCatalogPath);
     }
 
     /** Whether TypesXML is loaded and ready. */
@@ -114,9 +138,9 @@ export class CatalogValidationService {
             parser.setContentHandler(handler);
             parser.parseString(text);
 
-            // Return parser to pool for reuse
+            // Return parser to pool for reuse (with fresh handler slot)
             if (this.parserPool.length < PARSER_POOL_SIZE) {
-                this.parserPool.push({ parser, handler });
+                this.parserPool.push({ parser, handler: new this.typesxml!.DOMBuilder() });
             }
 
             return []; // Valid
@@ -178,7 +202,7 @@ export class CatalogValidationService {
 
         return {
             severity: DiagnosticSeverity.Error,
-            range: Range.create(line, column, line, column + 1),
+            range: Range.create(line, column, line, column + 1000),
             message,
             source: SOURCE,
             code: 'DITA-DTD-001',

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-keyscope">
+    <glossterm>Key Scope</glossterm>
+    <glossdef>A DITA feature (via the <codeph>@keyscope</codeph> attribute) that enables different key definitions within different contexts of the same map. Key scopes allow the same key name to resolve to different targets depending on the context. DitaCraft supports scope-qualified key references (e.g., <codeph>admin.audience</codeph>).</glossdef>
+</glossentry>

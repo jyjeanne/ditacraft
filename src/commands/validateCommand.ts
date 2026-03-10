@@ -6,7 +6,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { DitaValidator } from '../providers/ditaValidator';
-import { configManager } from '../utils/configurationManager';
 import { createRateLimiter, RateLimiter } from '../utils/rateLimiter';
 
 // Global validator instance
@@ -15,25 +14,6 @@ let extensionContext: vscode.ExtensionContext | undefined;
 
 // Rate limiter for validation requests (P3-6: DoS protection)
 let validationRateLimiter: RateLimiter | undefined;
-
-// Debounce timers for validation (per file)
-const validationDebounceTimers: Map<string, NodeJS.Timeout> = new Map();
-
-/**
- * Get the validation debounce delay from configuration
- * P1-4 Fix: Use centralized configManager
- */
-function getValidationDebounceMs(): number {
-    return configManager.get('validationDebounceMs');
-}
-
-/**
- * Check if auto-validation is enabled (reads fresh value)
- * P1-4 Fix: Use centralized configManager
- */
-function isAutoValidateEnabled(): boolean {
-    return configManager.get('autoValidate');
-}
 
 /**
  * Initialize the validator
@@ -47,49 +27,28 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
     validationRateLimiter = createRateLimiter('VALIDATION');
     context.subscriptions.push(validationRateLimiter);
 
-    // Register save listener - checks autoValidate dynamically on each save
-    // This allows the setting to be changed without extension reload
+    // NOTE: Client-side on-save auto-validation is DISABLED since v0.6.2.
+    // The LSP server now handles real-time validation on every keystroke with
+    // smart debouncing (300ms topics, 1000ms maps), covering:
+    //   - XML well-formedness, DITA structure, ID validation
+    //   - DTD validation (TypesXML catalog), RNG validation
+    //   - Cross-reference validation, DITA rules (35), profiling validation
+    // Client-side validation duplicated the LSP checks (XML, structure, empty
+    // elements, DOCTYPE) and produced duplicate diagnostics with different source
+    // labels ('dita-validator' vs 'dita-lsp').
+    // The manual 'ditacraft.validate' command is still available for explicit
+    // validation with progress notification and summary message.
+
+    // Clear stale 'dita' diagnostics (from manual validate command) when a file
+    // is saved, so they don't persist alongside fresh LSP 'dita-lsp' diagnostics
     context.subscriptions.push(
-        vscode.workspace.onDidSaveTextDocument(async (document) => {
-            // Check autoValidate setting dynamically (allows runtime changes)
-            if (!isAutoValidateEnabled()) {
-                return;
-            }
-
+        vscode.workspace.onDidSaveTextDocument((document) => {
             const ext = path.extname(document.uri.fsPath).toLowerCase();
-            if (['.dita', '.ditamap', '.bookmap'].includes(ext)) {
-                const filePath = document.uri.fsPath;
-
-                // Clear existing timer for this file
-                const existingTimer = validationDebounceTimers.get(filePath);
-                if (existingTimer) {
-                    clearTimeout(existingTimer);
-                }
-
-                // Set new debounced validation
-                const timer = setTimeout(async () => {
-                    validationDebounceTimers.delete(filePath);
-
-                    // P3-6: Check rate limit before validation
-                    if (validationRateLimiter && !validationRateLimiter.isAllowed(filePath)) {
-                        return; // Skip if rate limited
-                    }
-
-                    await validator?.validateFile(document.uri);
-                }, getValidationDebounceMs());
-
-                validationDebounceTimers.set(filePath, timer);
+            if (['.dita', '.ditamap', '.bookmap'].includes(ext) && validator) {
+                validator.clearDiagnostics(document.uri);
             }
         })
     );
-
-    // Clean up debounce timers on deactivation
-    context.subscriptions.push({
-        dispose: () => {
-            validationDebounceTimers.forEach(timer => clearTimeout(timer));
-            validationDebounceTimers.clear();
-        }
-    });
 }
 
 /**

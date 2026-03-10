@@ -1,742 +1,449 @@
 # DitaCraft Validation Specification
 
-**Version:** 1.0
-**Date:** January 2025
-**Status:** Draft
+**Version:** 2.0
+**Date:** March 2026
+**Status:** Implemented
 **Author:** Jeremy Jeanne
 
 ---
 
 ## Executive Summary
 
-This document explores different approaches to validating DITA files within the DitaCraft VS Code extension. The goal is to provide robust, accurate, and user-friendly validation that helps technical writers catch errors early in their authoring workflow.
+This document describes the validation architecture implemented in DitaCraft v0.6.2. The system uses a **6-layer LSP-based validation pipeline** running in a dedicated Language Server process, providing real-time diagnostics as the user types.
 
-The document was prompted by feedback from Stan Doherty (OASIS DITA TC member, ACM SIGDOC) who noted that the current "built-in" validation engine may not be meeting all user needs and suggested exploring DITA-OT-based validation as an alternative.
+The original spec (v1.0, January 2025) explored different validation approaches. The chosen architecture combines a custom DITA Language Server with TypesXML DTD validation, optional RelaxNG validation, a 35-rule Schematron-equivalent engine, cross-reference validation, and profiling/subject scheme validation — all running in real-time with smart debouncing.
+
+This document was originally prompted by feedback from Stan Doherty (OASIS DITA TC member, ACM SIGDOC) who noted that the built-in validation engine was insufficient and suggested exploring DITA-OT-based validation. The implemented solution goes beyond that suggestion by providing real-time, zero-dependency validation with bundled DTDs.
 
 ---
 
 ## Table of Contents
 
-1. [Current State](#1-current-state)
-2. [Validation Requirements](#2-validation-requirements)
-3. [Validation Approaches](#3-validation-approaches)
-   - [3.1 Built-in XML Parser](#31-built-in-xml-parser)
-   - [3.2 xmllint (libxml2)](#32-xmllint-libxml2)
-   - [3.3 DITA-OT Validation](#33-dita-ot-validation-piggy-back-approach)
-   - [3.4 DTD/Schema Validation](#34-dtdschema-validation)
-   - [3.5 Schematron Rules](#35-schematron-rules)
-   - [3.6 Language Server Protocol (LSP)](#36-language-server-protocol-lsp)
-4. [Comparison Matrix](#4-comparison-matrix)
-5. [Recommended Architecture](#5-recommended-architecture)
-6. [Implementation Roadmap](#6-implementation-roadmap)
-7. [Open Questions](#7-open-questions)
+1. [Implemented Architecture](#1-implemented-architecture)
+2. [Validation Pipeline](#2-validation-pipeline)
+3. [Validation Layers](#3-validation-layers)
+4. [Diagnostic Codes](#4-diagnostic-codes)
+5. [Error Reporting](#5-error-reporting)
+6. [Configuration](#6-configuration)
+7. [Approaches Considered](#7-approaches-considered)
+8. [Implementation History](#8-implementation-history)
+9. [Remaining Work](#9-remaining-work)
 
 ---
 
-## 1. Current State
+## 1. Implemented Architecture
 
-### 1.1 Existing Validation Engines
+### 1.1 Architecture Overview
 
-DitaCraft currently supports two validation engines configured via `ditacraft.validationEngine`:
+DitaCraft uses a **client-server architecture** with the LSP server as the sole real-time diagnostics provider:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    VS Code Client (Extension Host)              │
+│                                                                 │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐  │
+│  │ Manual Validate   │  │ Diagnostics View │  │ Problems     │  │
+│  │ (Ctrl+Shift+V)    │  │ (Activity Bar)   │  │ Panel        │  │
+│  └──────────────────┘  └──────────────────┘  └──────────────┘  │
+│           │                     ▲                    ▲          │
+│           │ client-side         │ dedup              │ LSP      │
+│           ▼ 'dita' source      │ filter             │ 'dita-   │
+│  ┌──────────────────┐          │                    │ lsp'     │
+│  │ DitaValidator     │──────────┘                    │ source   │
+│  │ (on-demand only)  │                               │          │
+│  └──────────────────┘                               │          │
+└─────────────────────────────────┬───────────────────┘          │
+                                  │ IPC (JSON-RPC)               │
+┌─────────────────────────────────▼───────────────────────────────┐
+│                    LSP Server (Node.js process)                  │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │              Pull Diagnostics Handler (server.ts)          │  │
+│  │  Smart debouncing: 300ms topics, 1000ms maps               │  │
+│  │  Per-document cancellation                                 │  │
+│  └──────────────────────┬─────────────────────────────────────┘  │
+│                         │                                        │
+│  ┌──────────────────────▼─────────────────────────────────────┐  │
+│  │                 6-Layer Validation Pipeline                 │  │
+│  │                                                            │  │
+│  │  Layer 1: XML well-formedness        (fast-xml-parser)     │  │
+│  │  Layer 2: DTD validation             (TypesXML + catalog)  │  │
+│  │  Layer 3: RNG validation             (salve-annos, opt.)   │  │
+│  │  Layer 4: DITA structure + IDs       (validation.ts)       │  │
+│  │  Layer 5: 35 DITA rules              (ditaRulesValidator)  │  │
+│  │  Layer 6: Cross-refs + profiling     (crossRef + profiling)│  │
+│  │                                                            │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| LSP as sole real-time provider | Eliminates duplicate diagnostics; client-side on-save validation disabled in v0.6.2 |
+| Pull-based diagnostics (LSP 3.17) | Client requests diagnostics; server responds with `DocumentDiagnosticReportKind.Full` |
+| Smart debouncing per file type | 300ms for topics (fast feedback), 1000ms for maps (heavier processing) |
+| Per-document cancellation | Typing cancels stale validation for the same document |
+| Bundled DITA 1.3 DTDs | Zero-configuration; OASIS catalog resolves PUBLIC identifiers |
+| Comment/CDATA stripping | All layers operate on cleaned text; line structure preserved for offset accuracy |
+
+### 1.3 Technology Stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| LSP Framework | vscode-languageserver 9.x | JSON-RPC, document sync, capability negotiation |
+| XML Parsing | fast-xml-parser | Layer 1: well-formedness checking |
+| DTD Validation | TypesXML + OASIS Catalog | Layer 2: full DTD validation with public ID resolution |
+| RNG Validation | salve-annos + saxes | Layer 3: optional RelaxNG schema validation |
+| Regex Engine | Built-in RegExp | Layers 4-6: structure, rules, cross-refs |
+| i18n | Custom t() with JSON bundles | 70 diagnostic messages in English + French |
+
+### 1.4 Validation Engines (Legacy Client-Side)
+
+The client-side validation engines are retained for on-demand manual validation (`Ctrl+Shift+V`):
 
 | Engine | Description | Status |
 |--------|-------------|--------|
-| `xmllint` | External xmllint binary (libxml2) | Requires installation |
-| `built-in` | JavaScript-based XML parser | Always available |
-
-### 1.2 Current Capabilities
-
-**Built-in Validator:**
-- Well-formedness checking (XML syntax)
-- Basic structure validation
-- Element nesting validation
-- Attribute presence checking
-- No DTD/Schema validation
-- No DITA-specific semantic validation
-
-**xmllint Validator:**
-- Well-formedness checking
-- DTD validation (if DTD is accessible)
-- XSD Schema validation
-- Better error messages with line/column numbers
-- Requires external binary installation
-
-### 1.3 Known Limitations
-
-1. **DTD Resolution:** DTDs referenced in DITA files often use public identifiers that require catalog resolution
-2. **DITA-Specific Rules:** Neither engine validates DITA-specific constraints (e.g., required elements, valid attribute values)
-3. **Cross-File Validation:** No validation of references (conrefs, keyrefs, topicrefs)
-4. **Specialization Support:** No validation of specialized DITA types
-5. **Installation Barrier:** xmllint requires users to install external tools
+| `typesxml` | TypesXML DTD validation (default) | Active |
+| `built-in` | fast-xml-parser + xmldom | Active (fallback) |
+| `xmllint` | External xmllint binary | Active (if installed) |
 
 ---
 
-## 2. Validation Requirements
+## 2. Validation Pipeline
 
-### 2.1 Functional Requirements
+### 2.1 Trigger Flow
 
-| ID | Requirement | Priority |
-|----|-------------|----------|
-| V-01 | Validate XML well-formedness | P0 (Critical) |
-| V-02 | Validate against DITA DTDs | P0 (Critical) |
-| V-03 | Report errors with accurate line/column | P0 (Critical) |
-| V-04 | Work without external dependencies | P1 (High) |
-| V-05 | Validate DITA-specific constraints | P1 (High) |
-| V-06 | Validate cross-file references | P2 (Medium) |
-| V-07 | Support DITA specializations | P2 (Medium) |
-| V-08 | Real-time validation (as-you-type) | P1 (High) |
-| V-09 | Batch validation (entire project) | P2 (Medium) |
-| V-10 | Custom validation rules | P3 (Low) |
+```
+Document change (typing)
+  └─> onDidChangeContent (server.ts)
+        └─> Smart debounce (300ms topic / 1000ms map)
+              └─> connection.languages.diagnostics.refresh()
+                    └─> Pull diagnostics handler
+                          └─> 6-layer pipeline
+                                └─> Return Diagnostic[]
+                                      └─> VS Code Problems Panel
+```
 
-### 2.2 Non-Functional Requirements
+### 2.2 Pipeline Execution Order
 
-| ID | Requirement | Target |
+Each layer runs sequentially. Diagnostics are capped at `maxNumberOfProblems` (default 100):
+
+```typescript
+// server.ts — pull diagnostics handler
+const diagnostics: Diagnostic[] = [];
+
+// Layer 1+4: XML well-formedness + DITA structure + IDs
+diagnostics.push(...validateDITADocument(textDocument, settings));
+
+// Layer 2: DTD validation (TypesXML + OASIS catalog)
+if (catalogValidationService.isAvailable) {
+    diagnostics.push(...catalogValidationService.validate(text));
+}
+
+// Layer 3: RNG validation (optional)
+if (rngValidationService.isAvailable && settings.schemaFormat === 'rng') {
+    diagnostics.push(...rngValidationService.validate(text));
+}
+
+// Layer 5: 35 DITA rules (Schematron-equivalent)
+if (settings.ditaRulesEnabled) {
+    diagnostics.push(...validateDitaRules(text, settings));
+}
+
+// Layer 6a: Cross-reference validation
+if (settings.crossRefValidationEnabled) {
+    diagnostics.push(...validateCrossReferences(text, uri, ...));
+}
+
+// Layer 6b: Profiling/subject scheme validation
+if (settings.subjectSchemeValidationEnabled) {
+    diagnostics.push(...validateProfilingAttributes(text, ...));
+}
+```
+
+### 2.3 Comment/CDATA Stripping
+
+All layers that analyze document content first strip comments and CDATA sections, replacing non-newline characters with spaces to preserve line/column offsets:
+
+```typescript
+function stripCommentsAndCDATA(text: string): string {
+    return text
+        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
+        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
+}
+```
+
+---
+
+## 3. Validation Layers
+
+### Layer 1: XML Well-Formedness (`validation.ts`)
+
+**Engine:** fast-xml-parser
+**Trigger:** Every document change (debounced)
+**Purpose:** Catch XML syntax errors (unclosed tags, mismatched tags, malformed attributes)
+
+The DOCTYPE declaration is stripped before parsing (fast-xml-parser doesn't handle it), replaced with whitespace to preserve line offsets.
+
+### Layer 2: DTD Validation (`catalogValidationService.ts`)
+
+**Engine:** TypesXML with OASIS XML Catalog
+**Trigger:** Every document change (debounced)
+**Purpose:** Validate document against its declared DTD
+
+- Uses bundled DITA 1.3 DTDs at `<extensionPath>/dtds/`
+- OASIS catalog at `<extensionPath>/dtds/catalog.xml` resolves PUBLIC identifiers
+- Parser pool of 3 pre-configured instances for efficient reuse
+- Shared catalog instance across all validations for grammar caching
+
+### Layer 3: RNG Validation (`rngValidationService.ts`)
+
+**Engine:** salve-annos + saxes
+**Trigger:** Every document change (debounced), when `schemaFormat` is `rng`
+**Purpose:** Optional RelaxNG schema validation
+
+- Grammar compilation with caching (max 20 schemas)
+- Configurable schema path via `ditacraft.rngSchemaPath`
+- Disabled by default (DTD is the default schema format)
+
+### Layer 4: DITA Structure + ID Validation (`validation.ts`)
+
+**Engine:** Regex-based analysis on raw text
+**Trigger:** Every document change (debounced)
+**Purpose:** DITA structural conformance
+
+**Checks performed:**
+
+| Check | File Types | Severity | Code |
+|-------|-----------|----------|------|
+| Missing DOCTYPE | .dita, .ditamap, .bookmap | Warning | DITA-STRUCT-001 |
+| Invalid root element | all | Error | DITA-STRUCT-002 |
+| Missing `id` on root | .dita | Error | DITA-STRUCT-003 |
+| Empty `id` on root | .dita | Error | DITA-STRUCT-003 |
+| Missing `<title>` | .dita (error), .ditamap (warning) | Error/Warning | DITA-STRUCT-004 |
+| Empty elements (`<p>`, `<title>`, `<shortdesc>`) | all | Warning | DITA-STRUCT-005 |
+| Missing `<booktitle>` | .bookmap | Warning | DITA-STRUCT-006 |
+| Missing `<mainbooktitle>` | .bookmap (when `<booktitle>` exists) | Warning | DITA-STRUCT-007 |
+| `<topicref>` without target | .ditamap, .bookmap | Info | DITA-STRUCT-008 |
+| Duplicate IDs | all | Error | DITA-ID-001 |
+| Invalid ID format | all | Warning | DITA-ID-002 |
+
+**ID validation details:**
+- Supports both double-quoted (`id="value"`) and single-quoted (`id='value'`) attributes
+- Root elements (topic, map types) use XML ID rules: must start with letter/underscore
+- Non-root elements use NMTOKEN rules: can start with digits
+- IDs inside comments/CDATA are excluded
+
+**Topicref validation details:**
+- Warns when `<topicref>` lacks `href`, `keyref`, `keys`, `conref`, or `conkeyref`
+- Self-closing `<topicref/>` elements are skipped (intentional grouping containers)
+- Severity is Information (hint level) since href-less topicrefs are often legitimate
+
+### Layer 5: DITA Rules Engine (`ditaRulesValidator.ts`)
+
+**Engine:** 35 Schematron-equivalent rules implemented in TypeScript
+**Trigger:** Every document change (debounced)
+**Purpose:** DITA best practices, deprecated elements, accessibility
+
+5 categories, version-filtered per DITA version (auto-detected from `@DITAArchVersion` or DOCTYPE):
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| **mandatory** | 4 | Missing `otherrole`, `othertype`; deprecated `<indextermref>`; `collection-type` misuse |
+| **recommendation** | 8 | Deprecated elements/attributes; long `<shortdesc>`; `<topichead>` missing navtitle |
+| **authoring** | 7 | `<xref>` in `<title>`; `<required-cleanup>`; trademark chars; multiple section titles |
+| **accessibility** | 3 | Missing alt text on images/objects; abstract without shortdesc |
+| **DITA 2.0 removal** | 13 | Removed elements (`<boolean>`, `<object>`, learning), removed attributes (`@print`, `@copy-to`) |
+
+### Layer 6: Cross-References + Profiling
+
+#### 6a: Cross-Reference Validation (`crossRefValidation.ts`)
+
+Validates targets of `href`, `conref`, `keyref`, and `conkeyref` attributes:
+
+| Code | Description |
+|------|-------------|
+| DITA-XREF-001 | Target file not found |
+| DITA-XREF-002 | Topic ID not found in target |
+| DITA-XREF-003 | Element ID not found in target |
+| DITA-KEY-001 | Key not defined in any map |
+| DITA-KEY-002 | Key has no target (no href on keydef) |
+| DITA-KEY-003 | Element ID not found in key's target |
+
+#### 6b: Profiling Validation (`profilingValidation.ts`)
+
+Validates profiling attribute values against subject scheme controlled vocabularies:
+
+| Code | Description |
+|------|-------------|
+| DITA-PROF-001 | Attribute value not allowed by subject scheme |
+
+---
+
+## 4. Diagnostic Codes
+
+### Complete Code Reference
+
+| Code | Layer | Severity | Description |
+|------|-------|----------|-------------|
+| DITA-XML-001 | 1 | Error | XML well-formedness violation |
+| DITA-DTD-001 | 2 | Error | DTD validation error |
+| DITA-STRUCT-001 | 4 | Warning | Missing DOCTYPE declaration |
+| DITA-STRUCT-002 | 4 | Error | Invalid root element for file type |
+| DITA-STRUCT-003 | 4 | Error | Missing/empty `id` on root element |
+| DITA-STRUCT-004 | 4 | Error/Warning | Missing `<title>` element |
+| DITA-STRUCT-005 | 4 | Warning | Empty element |
+| DITA-STRUCT-006 | 4 | Warning | Missing `<booktitle>` in bookmap |
+| DITA-STRUCT-007 | 4 | Warning | Missing `<mainbooktitle>` in booktitle |
+| DITA-STRUCT-008 | 4 | Info | `<topicref>` without target attribute |
+| DITA-ID-001 | 4 | Error | Duplicate `id` attribute |
+| DITA-ID-002 | 4 | Warning | Invalid ID format |
+| DITA-SCH-001..046 | 5 | Various | DITA rules (35 codes) |
+| DITA-SCH-050..059 | 5 | Various | DITA 2.0 removal rules (10 codes) |
+| DITA-XREF-001..003 | 6a | Warning | Cross-reference target issues |
+| DITA-KEY-001..003 | 6a | Warning | Key resolution issues |
+| DITA-PROF-001 | 6b | Warning | Profiling value not allowed |
+
+---
+
+## 5. Error Reporting
+
+### 5.1 Diagnostic Range Precision
+
+Diagnostics use two range strategies:
+
+1. **Full-line ranges** — `createRange(line, col)` returns `Range(line, col, line, col + 1000)`. VS Code clamps to end-of-line, producing a visible full-line underline.
+
+2. **Exact match ranges** — `offsetToRange(text, start, end)` converts byte offsets to LSP positions with CRLF-aware line/column computation, producing precise underlines on the matched text.
+
+### 5.2 Localization
+
+All 70 diagnostic messages are localized via the `t()` function with parameterized message keys:
+
+- English: `server/src/messages/en.json`
+- French: `server/src/messages/fr.json`
+- Auto-detected from VS Code display language via LSP `locale` parameter
+
+### 5.3 Deduplication
+
+- **LSP is the sole real-time provider** — Client-side on-save auto-validation was disabled in v0.6.2
+- **Diagnostics View** — Deduplicates by composite key: `file:line:col:severity:message`
+- **Stale cleanup** — Client-side `dita` diagnostics from manual validation are cleared on save
+
+---
+
+## 6. Configuration
+
+### 6.1 LSP Server Settings
+
+| Setting | Type | Default | Purpose |
+|---------|------|---------|---------|
+| `maxNumberOfProblems` | number | 100 | Max diagnostics per file |
+| `ditaRulesEnabled` | boolean | true | Enable DITA rules engine |
+| `ditaRulesCategories` | string[] | all 5 | Rule categories to activate |
+| `crossRefValidationEnabled` | boolean | true | Validate cross-references |
+| `subjectSchemeValidationEnabled` | boolean | true | Validate profiling values |
+| `ditaVersion` | string | `auto` | DITA version for rule filtering |
+| `schemaFormat` | string | `dtd` | Schema format: `dtd` or `rng` |
+| `rngSchemaPath` | string | `""` | Custom RNG schema file path |
+
+### 6.2 Client-Side Settings
+
+| Setting | Type | Default | Purpose |
+|---------|------|---------|---------|
+| `validationEngine` | string | `typesxml` | Engine for manual validation |
+| `autoValidate` | boolean | true | Enable auto-validation (legacy, used by LSP debouncing) |
+| `validationDebounceMs` | number | 300 | Client-side debounce (legacy) |
+
+---
+
+## 7. Approaches Considered
+
+This section preserves the original analysis from v1.0 (January 2025) for reference.
+
+### 7.1 Built-in XML Parser
+
+**Status:** Implemented as Layer 1 (fast-xml-parser for well-formedness)
+
+Used for real-time XML syntax checking. Cannot validate DTD/Schema, but fast enough for as-you-type feedback.
+
+### 7.2 xmllint (libxml2)
+
+**Status:** Available as client-side validation engine option
+
+Full DTD/XSD validation but requires external installation. Superseded by TypesXML for zero-dependency DTD validation.
+
+### 7.3 DITA-OT Validation
+
+**Status:** Not implemented for validation (used for publishing only)
+
+Too slow for real-time validation (2-10 seconds). Would provide the most comprehensive checks but the LSP 6-layer approach covers most use cases without external dependencies.
+
+### 7.4 TypesXML DTD Validation
+
+**Status:** Implemented as Layer 2
+
+Pure TypeScript DTD validator with OASIS XML Catalog support. Bundled DITA 1.3 DTDs provide zero-configuration validation. 100% W3C XML Conformance Test Suite compliance.
+
+### 7.5 RelaxNG Validation
+
+**Status:** Implemented as Layer 3 (optional)
+
+Via salve-annos + saxes. More expressive than DTDs. Grammar caching for performance. User-configurable schema path.
+
+### 7.6 Schematron-Equivalent Rules
+
+**Status:** Implemented as Layer 5
+
+35 rules in TypeScript instead of XML Schematron format. No external processor needed. Version-filtered. Covers deprecated elements, accessibility, authoring best practices.
+
+### 7.7 Custom DITA Language Server
+
+**Status:** Fully implemented (v0.5.0+)
+
+Full LSP with 14 language features. The original estimate of "3-6 months" proved accurate — development spanned from v0.5.0 through v0.6.2.
+
+---
+
+## 8. Implementation History
+
+| Phase | Version | What was delivered |
+|-------|---------|-------------------|
+| Phase 1 | v0.4.1 | TypesXML DTD validation with bundled DITA 1.3 DTDs |
+| Phase 2 | v0.5.0 | Full LSP server with 14 features, Layer 1+4 validation |
+| Phase 3 | v0.6.0 | Layers 5+6: DITA rules (22), cross-refs, profiling, subject scheme |
+| Phase 4 | v0.6.1 | Layer 2+3: Catalog + RNG services, i18n, 35 rules, DITA 2.0 |
+| Phase 5 | v0.6.2 | Validation dedup, bookmap/topicref checks, improved error ranges, single-quote IDs |
+
+### Requirements Status
+
+| ID | Requirement | Status |
 |----|-------------|--------|
-| NF-01 | Validation latency | < 500ms for single file |
-| NF-02 | Memory usage | < 100MB additional |
-| NF-03 | Cross-platform support | Windows, macOS, Linux |
-| NF-04 | Offline capability | Full functionality offline |
-| NF-05 | Error message clarity | Actionable, user-friendly |
+| V-01 | XML well-formedness | **Done** (Layer 1) |
+| V-02 | DTD validation | **Done** (Layer 2) |
+| V-03 | Accurate line/column | **Done** (offsetToRange, findLineAndColumn) |
+| V-04 | No external dependencies | **Done** (all bundled) |
+| V-05 | DITA-specific constraints | **Done** (Layer 4+5) |
+| V-06 | Cross-file references | **Done** (Layer 6a) |
+| V-07 | Specialization support | **Done** (@class matching) |
+| V-08 | Real-time validation | **Done** (smart debouncing) |
+| V-09 | Batch validation | Planned |
+| V-10 | Custom validation rules | Planned |
 
 ---
 
-## 3. Validation Approaches
-
-### 3.1 Built-in XML Parser
-
-**Description:**
-Use a JavaScript/TypeScript XML parser library to validate XML well-formedness and basic structure.
-
-**Current Implementation:**
-DitaCraft uses a custom XML parser based on `fast-xml-parser` or similar libraries.
-
-**Libraries Available:**
-- `fast-xml-parser` - Fast, configurable XML parser
-- `xml2js` - XML to JavaScript object converter
-- `saxes` - SAX parser (streaming, low memory)
-- `@rgrove/parse-xml` - Lightweight DOM parser
-
-**Capabilities:**
-```
-? Well-formedness checking
-? Element structure validation
-? Attribute parsing
-? No external dependencies
-? Cross-platform
-? No DTD validation
-? No schema validation
-? Limited error details
-```
-
-**Pros:**
-- Zero external dependencies
-- Works offline
-- Fast for simple checks
-- Cross-platform by default
-
-**Cons:**
-- Cannot validate against DTD/XSD
-- Limited DITA-specific validation
-- May miss semantic errors
-- Error messages less detailed
-
-**Use Case:**
-Quick well-formedness checks during typing.
-
----
-
-### 3.2 xmllint (libxml2)
-
-**Description:**
-Use the `xmllint` command-line tool from the libxml2 library for comprehensive XML validation.
-
-**Current Implementation:**
-DitaCraft spawns `xmllint` as a child process when the `validationEngine` is set to `xmllint`.
-
-**Command Examples:**
-```bash
-# Well-formedness check
-xmllint --noout file.dita
-
-# DTD validation
-xmllint --valid --noout file.dita
-
-# With XML catalog for DTD resolution
-xmllint --valid --noout --catalogs file.dita
-```
-
-**Capabilities:**
-```
-? Well-formedness checking
-? DTD validation
-? XSD Schema validation
-? XML Catalog support
-? Detailed error messages
-? Line/column information
-? Requires installation
-? Catalog configuration needed
-? Platform-specific binaries
-```
-
-**Pros:**
-- Industry-standard validation
-- Full DTD/XSD support
-- Excellent error messages
-- Widely documented
-
-**Cons:**
-- Requires external installation
-- Catalog setup is complex
-- Platform-specific (need different binaries)
-- May not be available in all environments
-
-**Installation:**
-```bash
-# macOS
-brew install libxml2
-
-# Ubuntu/Debian
-sudo apt-get install libxml2-utils
-
-# Windows
-# Download from https://www.zlatkovic.com/libxml.en.html
-# Or use WSL
-```
-
-**Catalog Configuration:**
-```xml
-<!-- catalog.xml -->
-<?xml version="1.0"?>
-<!DOCTYPE catalog PUBLIC "-//OASIS//DTD XML Catalogs V1.1//EN"
-  "http://www.oasis-open.org/committees/entity/release/1.1/catalog.dtd">
-<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
-  <delegatePublic publicIdStartString="-//OASIS//DTD DITA"
-    catalog="file:///path/to/dita-ot/catalog-dita.xml"/>
-</catalog>
-```
-
----
-
-### 3.3 DITA-OT Validation (Piggy-back Approach)
-
-**Description:**
-Leverage the DITA Open Toolkit's built-in validation capabilities by running a validation-only transformation.
-
-**How It Works:**
-1. DITA-OT performs comprehensive validation during preprocessing
-2. Use a minimal transtype or custom plugin that only validates
-3. Parse DITA-OT output for errors and warnings
-4. Map errors back to source files
-
-**Command Examples:**
-```bash
-# Basic validation using preprocess
-dita --input=file.dita --format=preprocess --output=/dev/null
-
-# Using the validate transtype (if available)
-dita --input=file.dita --format=validate
-
-# With verbose output for error capture
-dita -v --input=file.dita --format=html5 2>&1 | grep -E "(ERROR|WARN)"
-```
-
-**Capabilities:**
-```
-? Full DITA validation
-? DTD validation with bundled DTDs
-? Conref resolution validation
-? Keyref validation
-? Cross-file reference checking
-? Specialization support
-? DITA-OT error codes (DOTXxxxE)
-? Requires DITA-OT installation
-? Slower than other methods
-? Output parsing complexity
-? Not suitable for real-time validation
-```
-
-**Pros:**
-- Most comprehensive DITA validation
-- Validates relationships between files
-- Uses official DITA DTDs
-- Catches semantic errors
-- Same validation as publishing
-
-**Cons:**
-- Requires DITA-OT (external dependency)
-- Slower (2-10 seconds per validation)
-- Complex output parsing
-- Not suitable for as-you-type validation
-
-**DITA-OT Error Format:**
-```
-[DOTX001E][ERROR] File not found: missing-topic.dita
-[DOTX012W][WARN] No navtitle attribute on topicref
-[DOTJ003E][ERROR] Invalid element "bogus" in "task/taskbody"
-```
-
-**Potential Custom Plugin:**
-```xml
-<!-- org.ditacraft.validate/plugin.xml -->
-<plugin id="org.ditacraft.validate">
-  <feature extension="dita.conductor.transtype.check" value="validate"/>
-  <transtype name="validate" desc="Validation only (no output)">
-    <param name="validate.mode" default="strict"/>
-  </transtype>
-</plugin>
-```
-
-**Implementation Approach:**
-```typescript
-async function validateWithDitaOT(filePath: string): Promise<ValidationResult[]> {
-  const ditaOtPath = config.get('ditaOtPath');
-  const tempDir = os.tmpdir();
-
-  const result = await execAsync(
-    `"${ditaOtPath}/bin/dita" --input="${filePath}" --format=preprocess --output="${tempDir}" -v`,
-    { timeout: 30000 }
-  );
-
-  return parseDitaOtOutput(result.stderr);
-}
-```
-
----
-
-### 3.4 DTD/Schema Validation
-
-**Description:**
-Direct validation against DITA DTDs or RelaxNG/XSD schemas without DITA-OT.
-
-**DTD Sources:**
-1. **DITA-OT Bundle:** DTDs included in DITA-OT distribution
-2. **OASIS DITA:** Official DTDs from OASIS (dita.xml.org)
-3. **Custom DTDs:** Organization-specific specializations
-
-**Approaches:**
-
-#### 3.4.1 Bundled DTDs
-
-Bundle DITA DTDs directly with the extension:
-
-```
-ditacraft/
-+-- resources/
-�   +-- dtd/
-�       +-- base/
-�       �   +-- dtd/
-�       �   +-- rng/
-�       +-- technicalContent/
-�       +-- catalog-dita.xml
-```
-
-**Pros:**
-- Works offline
-- No external dependencies
-- Consistent behavior
-
-**Cons:**
-- Increases extension size (~5-10MB)
-- Version management complexity
-- May miss custom specializations
-
-#### 3.4.2 RelaxNG Schemas
-
-Use RelaxNG (RNG/RNC) schemas instead of DTDs:
-
-```bash
-# Using jing (RelaxNG validator)
-java -jar jing.jar dita-topic.rng file.dita
-```
-
-**Pros:**
-- More expressive than DTDs
-- Better error messages
-- Supports DITA 1.3 fully
-
-**Cons:**
-- Requires Java runtime
-- Additional dependency
-
-#### 3.4.3 XSD Schemas
-
-Use W3C XML Schema (XSD) for validation:
-
-```bash
-# Using xmllint with XSD
-xmllint --schema dita-topic.xsd file.dita
-```
-
-**Pros:**
-- Wide tool support
-- No XML catalog needed
-
-**Cons:**
-- DITA XSD support is limited
-- Some DITA features not expressible in XSD
-
----
-
-### 3.5 Schematron Rules
-
-**Description:**
-Use Schematron rules for DITA-specific semantic validation beyond what DTDs can express.
-
-**What Schematron Can Validate:**
-- Required child elements
-- Attribute value constraints
-- Cross-reference integrity
-- Content model constraints
-- Business rules
-
-**Example Schematron Rules:**
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://purl.oclc.org/dml/schematron">
-  <title>DITA Validation Rules</title>
-
-  <!-- Task must have steps or steps-unordered -->
-  <pattern>
-    <rule context="taskbody">
-      <assert test="steps or steps-unordered or steps-informal">
-        A task body must contain steps, steps-unordered, or steps-informal.
-      </assert>
-    </rule>
-  </pattern>
-
-  <!-- Conref must point to existing ID -->
-  <pattern>
-    <rule context="*[@conref]">
-      <let name="target" value="substring-after(@conref, '#')"/>
-      <assert test="document(substring-before(@conref, '#'))//*[@id = $target]">
-        Conref target "<value-of select="@conref"/>" not found.
-      </assert>
-    </rule>
-  </pattern>
-
-  <!-- Image must have alt text -->
-  <pattern>
-    <rule context="image">
-      <assert test="alt or @alt">
-        Images should have alternative text for accessibility.
-      </assert>
-    </rule>
-  </pattern>
-</schema>
-```
-
-**Capabilities:**
-```
-? Custom validation rules
-? Semantic validation
-? Cross-reference checking
-? Business rule enforcement
-? Accessibility checks
-? Requires Schematron processor
-? Additional dependency
-? Rule authoring complexity
-```
-
-**Tools:**
-- **SchXslt:** XSLT-based Schematron implementation
-- **Jing:** Java-based (supports Schematron via ISO)
-- **node-schematron:** Node.js implementation
-
----
-
-### 3.6 Language Server Protocol (LSP)
-
-**Description:**
-Implement or integrate a DITA-aware Language Server that provides validation as part of broader language intelligence.
-
-**Existing XML/DITA LSPs:**
-- **LemMinX (Eclipse):** XML Language Server with DTD/XSD support
-- **xml-language-server:** Generic XML LSP
-- **No dedicated DITA LSP exists currently**
-
-**LemMinX Integration:**
-```json
-{
-  "xml.catalogs": [
-    "/path/to/dita-ot/catalog-dita.xml"
-  ],
-  "xml.validation.enabled": true,
-  "xml.validation.schema.enabled": "always"
-}
-```
-
-**Custom DITA LSP Features:**
-- Real-time validation
-- DTD-based validation
-- Conref/keyref resolution
-- Completion suggestions
-- Hover documentation
-- Go to definition
-
-**Capabilities:**
-```
-? Real-time validation
-? Rich editor integration
-? Completion/hover/go-to
-? Standardized protocol
-? Reusable across editors
-? Complex to implement
-? No existing DITA LSP
-? Performance overhead
-```
-
-**Implementation Effort:**
-Creating a full DITA LSP would be a significant project (estimated 3-6 months for a basic implementation).
-
----
-
-## 4. Comparison Matrix
-
-| Approach | Well-formed | DTD Valid | DITA Semantic | Cross-file | Real-time | Dependencies | Effort |
-|----------|-------------|-----------|---------------|------------|-----------|--------------|--------|
-| Built-in Parser | ? | ? | ? | ? | ? | None | Low |
-| xmllint | ? | ? | ? | ? | ? | External | Low |
-| DITA-OT | ? | ? | ? | ? | ? | External | Medium |
-| Bundled DTDs | ? | ? | ? | ? | ? | Bundled | Medium |
-| Schematron | Partial | ? | ? | ? | ?? | External | High |
-| Custom LSP | ? | ? | ? | ? | ? | Bundled | Very High |
-
-### Legend:
-- ? Full support
-- ?? Partial/conditional support
-- ? Not supported
-
----
-
-## 5. Recommended Architecture
-
-Based on the analysis, we recommend a **layered validation architecture** that combines multiple approaches:
-
-```
-+---------------------------------------------------------------------+
-�                     DitaCraft Validation System                     �
-+---------------------------------------------------------------------�
-�                                                                     �
-�  +-------------------------------------------------------------+   �
-�  �                    Layer 1: Real-time                        �   �
-�  �              (As-you-type, < 100ms latency)                  �   �
-�  �                                                               �   �
-�  �  +-----------------+    +-----------------+                  �   �
-�  �  � Built-in Parser �    �  Basic DITA     �                  �   �
-�  �  � (Well-formed)   �    �  Rules Engine   �                  �   �
-�  �  +-----------------+    +-----------------+                  �   �
-�  +-------------------------------------------------------------+   �
-�                              �                                      �
-�                              ?                                      �
-�  +-------------------------------------------------------------+   �
-�  �                    Layer 2: On-Save                          �   �
-�  �              (Triggered on file save, < 2s)                  �   �
-�  �                                                               �   �
-�  �  +-----------------+    +-----------------+                  �   �
-�  �  � xmllint + DTD   � OR � Bundled DTD     �                  �   �
-�  �  � (if available)  �    � Validator       �                  �   �
-�  �  +-----------------+    +-----------------+                  �   �
-�  +-------------------------------------------------------------+   �
-�                              �                                      �
-�                              ?                                      �
-�  +-------------------------------------------------------------+   �
-�  �                   Layer 3: Deep Validation                   �   �
-�  �           (On-demand or pre-publish, < 30s)                  �   �
-�  �                                                               �   �
-�  �  +-----------------+    +-----------------+                  �   �
-�  �  �   DITA-OT       �    �  Schematron     �                  �   �
-�  �  �   Validation    �    �  Rules          �                  �   �
-�  �  +-----------------+    +-----------------+                  �   �
-�  +-------------------------------------------------------------+   �
-�                                                                     �
-+---------------------------------------------------------------------+
-```
-
-### 5.1 Layer 1: Real-time Validation
-
-**Trigger:** As user types (debounced)
-**Latency Target:** < 100ms
-**Purpose:** Catch obvious errors immediately
-
-**Features:**
-- XML well-formedness
-- Basic element structure
-- Required attribute checks
-- Common DITA patterns
-
-**Implementation:**
-```typescript
-// Lightweight real-time validation
-function validateRealtime(content: string): Diagnostic[] {
-  const diagnostics: Diagnostic[] = [];
-
-  // 1. Well-formedness check
-  const parseResult = parseXML(content);
-  if (parseResult.errors) {
-    diagnostics.push(...parseResult.errors);
-  }
-
-  // 2. Basic DITA rules (fast checks only)
-  if (parseResult.root) {
-    diagnostics.push(...checkBasicDitaRules(parseResult.root));
-  }
-
-  return diagnostics;
-}
-```
-
-### 5.2 Layer 2: On-Save Validation
-
-**Trigger:** File save
-**Latency Target:** < 2 seconds
-**Purpose:** Full DTD validation
-
-**Features:**
-- DTD validation
-- Element content models
-- Attribute value validation
-- ID/IDREF checking
-
-**Implementation:**
-```typescript
-// DTD validation on save
-async function validateOnSave(filePath: string): Promise<Diagnostic[]> {
-  // Try xmllint first (if available)
-  if (await isXmllintAvailable()) {
-    return await validateWithXmllint(filePath);
-  }
-
-  // Fall back to bundled DTD validator
-  return await validateWithBundledDTD(filePath);
-}
-```
-
-### 5.3 Layer 3: Deep Validation
-
-**Trigger:** Manual command or pre-publish
-**Latency Target:** < 30 seconds
-**Purpose:** Comprehensive DITA validation
-
-**Features:**
-- Full DITA-OT validation
-- Conref resolution
-- Keyref resolution
-- Cross-file references
-- Map structure validation
-
-**Implementation:**
-```typescript
-// Deep validation with DITA-OT
-async function validateDeep(filePath: string): Promise<Diagnostic[]> {
-  const ditaOtPath = config.get('ditaOtPath');
-
-  if (!ditaOtPath) {
-    return [createWarning('DITA-OT not configured for deep validation')];
-  }
-
-  return await validateWithDitaOT(filePath);
-}
-```
-
-### 5.4 Configuration
-
-```json
-{
-  // Validation engine for on-save validation
-  "ditacraft.validationEngine": "auto",  // "auto" | "xmllint" | "built-in" | "dita-ot"
-
-  // Enable/disable validation layers
-  "ditacraft.validation.realtime": true,
-  "ditacraft.validation.onSave": true,
-  "ditacraft.validation.deep": false,     // Manual trigger only
-
-  // Deep validation settings
-  "ditacraft.validation.deepOnPublish": true,
-  "ditacraft.validation.ditaOtTimeout": 30000
-}
-```
-
----
-
-## 6. Implementation Roadmap
-
-> **Note:** This validation-specific roadmap aligns with Milestone 5 (v0.7.0) in the main project `ROADMAP.md`. The phases below describe incremental validation improvements that may be delivered across multiple minor releases.
-
-### Phase 1: Improve Existing (v0.5.0)
-
-**Timeline:** 2-3 weeks
-**Goal:** Make current validation reliable
-
-| Task | Description | Effort |
-|------|-------------|--------|
-| Fix built-in parser | Improve error messages and accuracy | 3 days |
-| xmllint detection | Auto-detect xmllint availability | 1 day |
-| Catalog support | Configure XML catalogs for DTD resolution | 3 days |
-| Error mapping | Better line/column mapping | 2 days |
-| Documentation | User guide for validation setup | 1 day |
-
-### Phase 2: DITA-OT Integration (v0.6.0)
-
-**Timeline:** 3-4 weeks
-**Goal:** Add DITA-OT-based validation option
-
-| Task | Description | Effort |
-|------|-------------|--------|
-| DITA-OT command | Implement validation command execution | 3 days |
-| Output parsing | Parse DITA-OT error output | 4 days |
-| Error mapping | Map errors to source locations | 3 days |
-| UI integration | Add "Validate with DITA-OT" command | 2 days |
-| Progress reporting | Show validation progress | 1 day |
-| Testing | Comprehensive test suite | 3 days |
-
-### Phase 3: Bundled DTDs (v0.7.0)
-
-**Timeline:** 2-3 weeks
-**Goal:** Zero-configuration DTD validation
-
-| Task | Description | Effort |
-|------|-------------|--------|
-| DTD bundling | Bundle DITA 1.3 DTDs with extension | 2 days |
-| Catalog generation | Auto-generate XML catalog | 2 days |
-| DTD validator | Implement DTD validation without xmllint | 5 days |
-| Specialization | Support for common specializations | 3 days |
-| Testing | Validation accuracy tests | 3 days |
-
-### Phase 4: Advanced Features (v0.8.0+)
-
-**Timeline:** 4-6 weeks
-**Goal:** Semantic validation and custom rules
-
-| Task | Description | Effort |
-|------|-------------|--------|
-| Schematron support | Basic Schematron rule evaluation | 2 weeks |
-| Built-in rules | Common DITA validation rules | 1 week |
-| Custom rules | User-defined validation rules | 1 week |
-| LSP exploration | Evaluate LSP architecture | 2 weeks |
-
----
-
-## 7. Open Questions
-
-### 7.1 Technical Questions
-
-1. **DTD Licensing:** ? RESOLVED - See `docs/VALIDATION-LICENSE-ANALYSIS.md`. OASIS IPR Policy permits bundling DTDs for implementation purposes. Precedent set by DITA-OT (Apache 2.0).
-2. **Specialization Support:** How to handle custom specializations users may have?
-3. **Performance:** Can DITA-OT validation be fast enough for on-save triggers?
-4. **Catalog Resolution:** How to handle DTD resolution across different OS platforms?
-
-### 7.2 User Experience Questions
-
-1. **Default Engine:** What should be the default validation engine?
-2. **Error Severity:** How to classify DITA-OT warnings vs errors?
-3. **Partial Validation:** Should we validate incomplete/draft content?
-4. **Caching:** Can we cache validation results for unchanged files?
-
-### 7.3 Scope Questions
-
-1. **Map Validation:** Should single-file validation include referenced files?
-2. **Specialization Detection:** Should we auto-detect specialized DITA types?
-3. **LightweightDITA:** Should we support LwDITA (MDITA, HDITA)?
+## 9. Remaining Work
+
+| Feature | Priority | Description |
+|---------|----------|-------------|
+| Batch validation | P2 | Validate entire workspace with progress reporting |
+| DITA-OT validation option | P3 | "Piggy-back" approach for comprehensive pre-publish checks |
+| External catalog configuration | P3 | Allow users to point to custom DTD catalogs |
+| Custom validation rules | P3 | User-defined rules via configuration |
+| DITA 1.2 / 2.0 DTDs | P3 | Additional bundled DTD versions |
+| LightweightDITA | P3 | Support LwDITA (MDITA, HDITA) validation |
 
 ---
 
@@ -785,8 +492,10 @@ Common DITA-OT error codes for reference:
 - [libxml2 / xmllint](http://xmlsoft.org/)
 - [LemMinX XML Language Server](https://github.com/eclipse/lemminx)
 - [Schematron](http://schematron.com/)
+- [TypesXML](https://github.com/nicolo-ribaudo/typesxml)
+- [salve-annos](https://github.com/lddubeau/salve-annos)
 - [ACM SIGDOC Structured Content](https://acm-sigdoc-structured.org/)
 
 ---
 
-*This specification is a living document and will be updated as implementation progresses.*
+*Last updated: March 2026 (v0.6.2 — 6-layer LSP validation pipeline fully implemented)*

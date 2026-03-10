@@ -1,7 +1,7 @@
 # DitaCraft Architecture
 
 **Technical Architecture Documentation**
-*Version: 0.4.2 | Last Updated: January 2025*
+*Version: 0.6.2 | Last Updated: March 2026*
 
 This document describes the architecture, component responsibilities, data flows, and design decisions of the DitaCraft VS Code extension.
 
@@ -22,24 +22,25 @@ This document describes the architecture, component responsibilities, data flows
 
 ## Overview
 
-DitaCraft is a VS Code extension that provides comprehensive support for DITA (Darwin Information Typing Architecture) authoring, including:
+DitaCraft is a VS Code extension providing comprehensive DITA authoring support through a **client-server architecture**:
 
-- XML/DITA validation with multiple engine support
-- Live preview with HTML rendering
-- Key reference resolution and navigation
-- DITA-OT integration for publishing
-- Map visualization
+- **Client (Extension Host):** UI commands, file creation, publishing, preview, activity bar views
+- **LSP Server (Separate Process):** Validation, IntelliSense, navigation, formatting, code actions
 
 ### Technology Stack
 
 | Component | Technology |
 |-----------|------------|
-| Runtime | VS Code Extension Host (Node.js) |
+| Client Runtime | VS Code Extension Host (Node.js) |
+| LSP Server | vscode-languageserver 9.x (Node.js IPC) |
 | Language | TypeScript 5.x |
 | XML Parsing | fast-xml-parser, @xmldom/xmldom |
-| DTD Validation | TypesXML (bundled) |
+| DTD Validation | TypesXML + OASIS XML Catalog (bundled) |
+| RNG Validation | salve-annos + saxes (optional) |
+| XML Tokenizer | Custom state-machine (8 states, 22 token types) |
 | Publishing | DITA-OT (external) |
 | Testing | Mocha + VS Code Extension Test API |
+| Test Count | 1082 tests (652 client + 430 server) |
 
 ---
 
@@ -49,30 +50,53 @@ DitaCraft is a VS Code extension that provides comprehensive support for DITA (D
 ┌─────────────────────────────────────────────────────────────────┐
 │                    VS CODE EXTENSION HOST                        │
 │  (Event Bus, File System, Text Editors, Output Channels)         │
-└─────────────────────────────┬───────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        │                     │                     │
-   ┌────▼─────┐        ┌──────▼──────┐       ┌──────▼──────┐
-   │ Commands │        │  Providers  │       │   Utils     │
-   └──────────┘        └─────────────┘       └─────────────┘
-   │ validate │        │ ditaValidator│      │ ditaOtWrapper│
-   │ publish  │        │ linkProvider │      │ keySpaceRes. │
-   │ preview  │        │ keyDiagnostic│      │ configManager│
-   │ newFile  │        │ previewPanel │      │ logger       │
-   │ configure│        │ mapVisualizer│      │ errorUtils   │
-   └──────────┘        └─────────────┘       └─────────────┘
-        │                     │                     │
-        └─────────────────────┼─────────────────────┘
-                              │
-               ┌──────────────▼──────────────┐
-               │   External Integrations     │
-               └─────────────────────────────┘
-               │ DITA-OT (child_process)     │
-               │ TypesXML (DTD validation)   │
-               │ fast-xml-parser (XML)       │
-               │ @xmldom/xmldom (SAX/DOM)    │
-               └─────────────────────────────┘
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+        ┌──────────────────┼──────────────────────┐
+        │                  │                      │
+   ┌────▼─────┐     ┌──────▼──────┐       ┌──────▼──────┐
+   │ Commands │     │  Providers  │       │   Utils     │
+   └──────────┘     └─────────────┘       └─────────────┘
+   │ validate │     │ ditaValidator│      │ ditaOtWrapper│
+   │ publish  │     │ linkProvider │      │ keySpaceRes. │
+   │ preview  │     │ diagView     │      │ configManager│
+   │ newFile  │     │ ditaExplorer │      │ rateLimiter  │
+   │ setRoot  │     │ keySpaceView │      │ logger       │
+   │ cSpell   │     │ fileDecorat. │      │ errorUtils   │
+   └──────────┘     │ previewPanel │      └─────────────┘
+                    │ mapVisualizer│
+                    └─────────────┘
+                           │
+                    ┌──────▼──────────────────────────────────┐
+                    │          Language Server (IPC)           │
+                    ├─────────────────────────────────────────┤
+                    │  Features:     │  Services:              │
+                    │  validation    │  keySpaceService        │
+                    │  completion    │  subjectSchemeService   │
+                    │  hover         │  catalogValidation      │
+                    │  definition    │  rngValidation          │
+                    │  references    │                         │
+                    │  rename        │  Utils:                 │
+                    │  formatting    │  xmlTokenizer           │
+                    │  codeActions   │  referenceParser        │
+                    │  folding       │  ditaVersionDetector    │
+                    │  linkedEditing │  workspaceScanner       │
+                    │  documentLinks │  i18n                   │
+                    │  symbols       │                         │
+                    │  crossRefValid │  Data:                  │
+                    │  ditaRules     │  ditaSchema             │
+                    │  profiling     │  ditaSpecialization     │
+                    └─────────────────────────────────────────┘
+                           │
+               ┌───────────▼───────────────┐
+               │   External Integrations   │
+               └───────────────────────────┘
+               │ DITA-OT (child_process)   │
+               │ TypesXML (DTD validation) │
+               │ salve-annos (RNG valid.)  │
+               │ fast-xml-parser (XML)     │
+               │ @xmldom/xmldom (SAX/DOM)  │
+               └───────────────────────────┘
 ```
 
 ### Layer Descriptions
@@ -80,9 +104,10 @@ DitaCraft is a VS Code extension that provides comprehensive support for DITA (D
 | Layer | Purpose | Communication |
 |-------|---------|---------------|
 | **Commands** | User-triggered actions (menu items, keyboard shortcuts) | Calls Providers and Utils |
-| **Providers** | VS Code API integrations (diagnostics, document links, webviews) | Uses Utils, responds to VS Code events |
+| **Providers** | VS Code API integrations (diagnostics, views, webviews) | Uses Utils, responds to VS Code events |
 | **Utils** | Shared business logic and utilities | Called by Commands and Providers |
-| **External** | Third-party tools and libraries | Called by Utils |
+| **LSP Server** | Language intelligence (validation, completions, navigation) | IPC via JSON-RPC |
+| **External** | Third-party tools and libraries | Called by Utils and LSP Server |
 
 ---
 
@@ -92,23 +117,27 @@ DitaCraft is a VS Code extension that provides comprehensive support for DITA (D
 
 | File | Responsibility |
 |------|----------------|
-| `validateCommand.ts` | Manual validation trigger, auto-validation on save |
+| `validateCommand.ts` | Manual validation trigger; stale diagnostics cleanup on save |
 | `publishCommand.ts` | DITA-OT publishing to HTML5, PDF, etc. |
 | `previewCommand.ts` | Live HTML preview in VS Code panel |
 | `fileCreationCommands.ts` | New DITA file creation from templates |
 | `configureCommand.ts` | Extension configuration UI |
+| `cspellSetupCommand.ts` | cSpell DITA dictionary setup |
 
 ### Providers (`src/providers/`)
 
 | File | Responsibility |
 |------|----------------|
-| `ditaValidator.ts` | Orchestrates validation engines, manages diagnostics |
+| `ditaValidator.ts` | Orchestrates client-side validation engines, manages 'dita' diagnostics |
 | `ditaLinkProvider.ts` | Ctrl+Click navigation for href/keyref attributes |
 | `keyDiagnostics.ts` | Warnings for missing key references |
 | `previewPanel.ts` | WebView-based live HTML preview |
 | `mapVisualizerPanel.ts` | Visual map hierarchy display |
+| `ditaExplorerProvider.ts` | Activity bar: DITA map tree view |
+| `keySpaceViewProvider.ts` | Activity bar: key space view (defined/undefined/unused) |
+| `diagnosticsViewProvider.ts` | Activity bar: aggregated diagnostics with dedup |
+| `ditaFileDecorationProvider.ts` | Error/warning badges on tree items |
 | `typesxmlValidator.ts` | TypesXML DTD validation engine |
-| `ditaContentModelValidator.ts` | DITA content model validation |
 
 ### Validation Engines (`src/providers/validation/`)
 
@@ -119,55 +148,130 @@ DitaCraft is a VS Code extension that provides comprehensive support for DITA (D
 | `typesxmlEngine.ts` | TypesXML-based DTD validation |
 | `builtinEngine.ts` | fast-xml-parser + xmldom validation |
 | `xmllintEngine.ts` | External xmllint tool integration |
-| `ditaStructureValidator.ts` | DITA-specific structural rules |
+| `ditaStructureValidator.ts` | Client-side DITA structural rules |
 | `diagnosticsManager.ts` | VS Code diagnostics collection management |
+
+### LSP Server (`server/src/`)
+
+| File | Responsibility |
+|------|----------------|
+| `server.ts` | Entry point: IPC connection, handler wiring, smart debouncing |
+| `settings.ts` | Per-document configuration caching |
+| `features/validation.ts` | XML well-formedness + DITA structure + ID validation (Layer 1+4) |
+| `features/completion.ts` | Element, attribute, value, keyref, href completions |
+| `features/hover.ts` | Element docs, key metadata, href/conref preview |
+| `features/codeActions.ts` | 9 quick fixes for diagnostics |
+| `features/crossRefValidation.ts` | Cross-file reference validation (Layer 6a) |
+| `features/ditaRulesValidator.ts` | 35 Schematron-equivalent DITA rules (Layer 5) |
+| `features/profilingValidation.ts` | Subject scheme profiling validation (Layer 6b) |
+| `services/catalogValidationService.ts` | TypesXML DTD + OASIS catalog (Layer 2) |
+| `services/rngValidationService.ts` | salve-annos RelaxNG validation (Layer 3) |
+| `services/keySpaceService.ts` | DITA key space resolution (BFS map traversal) |
+| `services/subjectSchemeService.ts` | Subject scheme parsing and value constraints |
+| `utils/xmlTokenizer.ts` | Error-tolerant state-machine XML tokenizer |
+| `utils/i18n.ts` | Localization with 70 messages in EN+FR |
 
 ### Utils (`src/utils/`)
 
 | File | Responsibility |
 |------|----------------|
 | `configurationManager.ts` | Centralized settings access with caching |
-| `keySpaceResolver.ts` | DITA key reference resolution |
+| `keySpaceResolver.ts` | Client-side DITA key reference resolution |
 | `ditaOtWrapper.ts` | DITA-OT process management |
 | `ditaOtErrorParser.ts` | Parse DITA-OT error output |
 | `dtdResolver.ts` | Local DTD file resolution |
 | `logger.ts` | Centralized logging to output channel |
 | `errorUtils.ts` | Error message extraction, fire-and-forget |
-| `debounceUtils.ts` | Debouncing utilities for events |
-| `providerFactory.ts` | Centralized provider creation with DI |
 | `rateLimiter.ts` | Rate limiting for DoS protection |
-| `constants.ts` | Global constants and configuration |
+| `mapHierarchyParser.ts` | Shared map hierarchy parser (Explorer + Visualizer) |
+| `keyUsageScanner.ts` | Workspace-wide keyref/conkeyref scanner |
 
 ---
 
 ## Data Flow Diagrams
 
-### Validation Pipeline
+### LSP Validation Pipeline (Primary — Real-time)
 
 ```
-User Action (save/Ctrl+Shift+V)
+User types in .dita file
          │
          ▼
-validateCommand.ts (debounced 500ms)
+onDidChangeContent (server.ts)
+         │
+         ▼
+Smart debounce (300ms topic / 1000ms map)
+Per-document cancellation
+         │
+         ▼
+connection.languages.diagnostics.refresh()
+         │
+         ▼
+Pull diagnostics handler
+         │
+         ├──► Layer 1+4: validateDITADocument()
+         │         ├── XML well-formedness (fast-xml-parser)
+         │         ├── DITA structure (root, DOCTYPE, title)
+         │         ├── Bookmap validation (booktitle, mainbooktitle)
+         │         ├── Map/Bookmap topicref check (missing target attrs)
+         │         └── ID validation (duplicates, format, single/double quotes)
+         │
+         ├──► Layer 2: catalogValidationService.validate()
+         │         └── DTD validation (TypesXML + OASIS catalog)
+         │
+         ├──► Layer 3: rngValidationService.validate() [optional]
+         │         └── RelaxNG schema validation (salve-annos)
+         │
+         ├──► Layer 5: validateDitaRules()
+         │         └── 35 rules (5 categories, version-filtered)
+         │
+         ├──► Layer 6a: validateCrossReferences()
+         │         └── href/conref/keyref/conkeyref target resolution
+         │
+         └──► Layer 6b: validateProfilingAttributes()
+                   └── Subject scheme controlled values
+                            │
+                            ▼
+                   Diagnostic[] (capped at maxNumberOfProblems)
+                            │
+                            ▼
+                   VS Code Problems Panel ('dita-lsp' source)
+```
+
+### Client-Side Validation (Manual — On Demand)
+
+```
+User presses Ctrl+Shift+V
+         │
+         ▼
+validateCommand.ts
          │
          ▼
 DitaValidator.validateFile()
          │
          ├──► Choose engine (config: typesxml/built-in/xmllint)
-         │         │
          │         ├──► TypesxmlEngine (full DTD)
          │         ├──► BuiltinEngine (XML + basic DTD)
          │         └──► XmllintEngine (external)
          │
-         ├──► DitaStructureValidator.validate()
-         │
-         └──► validateDitaContentModel() [if not TypesXML]
+         └──► DitaStructureValidator.validate()
                   │
                   ▼
-         DiagnosticsManager.update()
+         DiagnosticsManager.update() ('dita' source)
                   │
                   ▼
-         Problems Panel displays errors/warnings
+         Problems Panel + status bar summary
+```
+
+### Deduplication Flow
+
+```
+On file save:
+  └─► validateCommand.ts clears stale 'dita' diagnostics
+        (so they don't persist alongside fresh 'dita-lsp' diagnostics)
+
+DiagnosticsViewProvider._collectDitaDiagnostics():
+  └─► Deduplicates by composite key: file:line:col:severity:message
+        (filters identical diagnostics from different sources)
 ```
 
 ### Key Resolution Flow
@@ -176,21 +280,18 @@ DitaValidator.validateFile()
 User requests key resolution (hover/click on keyref)
          │
          ▼
-KeySpaceResolver.resolveKey(keyName, contextFile)
+KeySpaceService.resolveKey(keyName, contextFile)
          │
          ├──► findRootMap(contextFile)
-         │         │
-         │         └──► Search up directory tree for .ditamap/.bookmap
+         │         └──► Explicit rootMap setting, or search up for .ditamap/.bookmap
          │
          └──► buildKeySpace(rootMapPath)
                   │
-                  ├──► Check cache (TTL-based)
-                  │
+                  ├──► Check cache (TTL-based, default 5 min)
                   ├──► [cache miss] BFS traversal of map hierarchy
-                  │         │
                   │         ├──► Extract key definitions (first-wins precedence)
-                  │         └──► Follow mapref/topicref to submaps
-                  │
+                  │         ├──► Follow mapref/topicref to submaps
+                  │         └──► Detect subject scheme maps
                   └──► Return KeyDefinition or null
 ```
 
@@ -203,15 +304,11 @@ User opens preview (Ctrl+Shift+P)
 previewCommand.ts
          │
          ├──► Validate input file
-         │
          └──► DitaOtWrapper.runDitaOt('html5')
                   │
                   ├──► Spawn DITA-OT process
-                  │
                   ├──► Stream stdout/stderr
-                  │
                   └──► On complete: PreviewPanel.createOrShow()
-                           │
                            └──► Load HTML into WebView
 ```
 
@@ -223,99 +320,80 @@ previewCommand.ts
 
 ```typescript
 // extension.ts - activate()
-1. Initialize logger
-2. Initialize configuration manager
-3. Create DitaOtWrapper
-4. Register commands (validate, publish, preview, etc.)
-5. Initialize DitaValidator with context
-6. Register link provider for DITA documents
-7. Register key diagnostics provider
-8. Set up file watchers for auto-validation
+1.  Initialize logger
+2.  Initialize configuration manager
+3.  Create DitaOtWrapper
+4.  Register commands (validate, publish, preview, setRootMap, etc.)
+5.  Initialize DitaValidator with context
+6.  Register link provider for DITA documents
+7.  Register key diagnostics provider
+8.  Start LSP client (launches server process)
+9.  Register Activity Bar views (Explorer, Key Space, Diagnostics)
+10. Register file decoration provider
+11. Register openFile command for tree views
+12. Check cSpell auto-prompt (disabled by default)
+13. Show welcome message (first install)
 ```
 
 ### Deactivation
 
 ```typescript
 // extension.ts - deactivate()
-1. Dispose all registered providers
-2. Clear all caches
-3. Stop any running DITA-OT processes
-4. Dispose file watchers
-5. Dispose logger
-```
-
-### Disposable Pattern
-
-All components implement `vscode.Disposable`:
-
-```typescript
-class MyProvider implements vscode.Disposable {
-    private disposables: vscode.Disposable[] = [];
-
-    constructor() {
-        // Register listeners
-        this.disposables.push(
-            vscode.workspace.onDidChangeConfiguration(/* ... */),
-            vscode.workspace.onDidSaveTextDocument(/* ... */)
-        );
-    }
-
-    dispose(): void {
-        this.disposables.forEach(d => d.dispose());
-    }
-}
+1. Stop LSP client (server process terminates)
+2. Dispose all registered providers
+3. Clear all caches
+4. Stop any running DITA-OT processes
+5. Dispose file watchers
+6. Dispose logger
 ```
 
 ---
 
 ## Caching Strategies
 
-### Key Space Cache
+### Key Space Cache (Server-Side)
 
 | Property | Value |
 |----------|-------|
-| Location | `KeySpaceResolver.keySpaceCache` |
+| Location | `KeySpaceService.keySpaceCache` |
 | Key | Absolute path to root map |
 | TTL | Configurable (default 5 minutes) |
 | Max Size | 10 entries |
 | Eviction | LRU + TTL-based |
-| Invalidation | File watcher on .ditamap/.bookmap changes |
+| Invalidation | File watcher on .ditamap/.bookmap changes (debounced 300ms) |
 
-```typescript
-interface KeySpace {
-    rootMap: string;
-    keys: Map<string, KeyDefinition>;
-    buildTime: number;
-    mapHierarchy: string[];
-}
-```
-
-### Root Map Cache
+### Subject Scheme Cache (Server-Side)
 
 | Property | Value |
 |----------|-------|
-| Location | `KeySpaceResolver.rootMapCache` |
-| Key | Directory path |
-| TTL | 1 minute |
-| Purpose | Avoid repeated directory scans |
+| Location | `SubjectSchemeService` |
+| Key | Scheme file path |
+| TTL | Per-file with invalidation |
+| Invalidation | File watcher events |
 
-### Configuration Cache
+### RNG Grammar Cache (Server-Side)
+
+| Property | Value |
+|----------|-------|
+| Location | `RngValidationService` |
+| Max Size | 20 compiled grammars |
+| Eviction | Oldest-first |
+
+### DTD Parser Pool (Server-Side)
+
+| Property | Value |
+|----------|-------|
+| Location | `CatalogValidationService` |
+| Pool Size | 3 pre-configured parser instances |
+| Strategy | Pop/push; create new if pool empty; discard on error |
+
+### Configuration Cache (Client-Side)
 
 | Property | Value |
 |----------|-------|
 | Location | `ConfigurationManager` |
 | TTL | Until configuration change event |
 | Invalidation | `onDidChangeConfiguration` listener |
-
-### Adaptive Cleanup
-
-Cache cleanup runs periodically but skips when caches are empty:
-
-```typescript
-if (this.keySpaceCache.size === 0 && this.rootMapCache.size === 0) {
-    return; // Skip cleanup when empty
-}
-```
 
 ---
 
@@ -325,44 +403,14 @@ if (this.keySpaceCache.size === 0 && this.rootMapCache.size === 0) {
 
 | Pattern | Location | Purpose |
 |---------|----------|---------|
+| **Client-Server** | Extension ↔ LSP Server | Separate processes for UI and language intelligence |
 | **Singleton** | `ConfigurationManager`, `Logger` | Single instance for global state |
 | **Observer** | `configManager.onConfigurationChange()` | React to config changes |
 | **Strategy** | Validation engine selection | Swap validation algorithms |
 | **Factory** | `ProviderFactory` | Centralized provider creation |
 | **Adapter** | `DitaOtWrapper` | Adapt CLI to TypeScript API |
-| **Facade** | `configManager` proxy | Simplify configuration access |
-
-### Factory Pattern Example
-
-```typescript
-// providerFactory.ts
-class ProviderFactory {
-    getValidator(): DitaValidator {
-        if (!this.validator) {
-            this.validator = new DitaValidator(this.context);
-            this.disposables.push(this.validator);
-        }
-        return this.validator;
-    }
-
-    getKeySpaceResolver(): KeySpaceResolver {
-        // Shared instance for dependency injection
-    }
-}
-```
-
-### Strategy Pattern Example
-
-```typescript
-// ditaValidator.ts
-private getActiveEngine(): IValidationEngine | null {
-    switch (this.currentEngine) {
-        case 'typesxml': return this.typesxmlEngine;
-        case 'xmllint': return this.xmllintEngine;
-        case 'built-in': return this.builtinEngine;
-    }
-}
-```
+| **Object Pool** | DTD parser pool, RNG grammar cache | Reuse expensive resources |
+| **Pipeline** | 6-layer validation | Sequential processing stages |
 
 ---
 
@@ -385,7 +433,6 @@ All resolved paths are validated against workspace boundaries:
 
 ```typescript
 private isPathWithinWorkspace(absolutePath: string): boolean {
-    // Only allow paths INSIDE workspace folders, not equal to root
     return normalizedPath.startsWith(normalizedWorkspace + path.sep);
 }
 ```
@@ -395,11 +442,7 @@ private isPathWithinWorkspace(absolutePath: string): boolean {
 External tools are called using `execFile` (not `exec`) with argument arrays:
 
 ```typescript
-// Safe: arguments passed as array
 await execFileAsync('xmllint', ['--noout', filePath]);
-
-// Unsafe (not used): shell string interpolation
-// exec(`xmllint --noout ${filePath}`);  // NEVER DO THIS
 ```
 
 ### Rate Limiting
@@ -418,31 +461,67 @@ if (!rateLimiter.isAllowed(filePath)) {
 ## File Structure
 
 ```
-src/
-├── commands/           # User-triggered actions
-│   ├── validateCommand.ts
-│   ├── publishCommand.ts
-│   ├── previewCommand.ts
-│   └── ...
-├── providers/          # VS Code API integrations
-│   ├── ditaValidator.ts
-│   ├── ditaLinkProvider.ts
-│   ├── validation/     # Modular validation engines
-│   │   ├── index.ts
-│   │   ├── typesxmlEngine.ts
-│   │   ├── builtinEngine.ts
+ditacraft/
+├── src/                           # Client-side (Extension Host)
+│   ├── commands/                  # User-triggered actions
+│   │   ├── validateCommand.ts     #   Manual validation + stale cleanup
+│   │   ├── publishCommand.ts
+│   │   ├── previewCommand.ts
+│   │   ├── cspellSetupCommand.ts
 │   │   └── ...
-│   └── ...
-├── utils/              # Shared utilities
-│   ├── configurationManager.ts
-│   ├── keySpaceResolver.ts
-│   ├── providerFactory.ts
-│   └── ...
-├── test/               # Test suites
-│   └── suite/
-│       ├── ditaValidator.test.ts
-│       └── ...
-└── extension.ts        # Entry point
+│   ├── providers/                 # VS Code API integrations
+│   │   ├── ditaValidator.ts       #   Client-side validation orchestrator
+│   │   ├── ditaLinkProvider.ts    #   Ctrl+Click navigation
+│   │   ├── ditaExplorerProvider.ts#   Activity bar: map tree
+│   │   ├── keySpaceViewProvider.ts#   Activity bar: key space
+│   │   ├── diagnosticsViewProvider.ts # Activity bar: diagnostics (dedup)
+│   │   ├── validation/            #   Modular validation engines
+│   │   │   ├── typesxmlEngine.ts
+│   │   │   ├── builtinEngine.ts
+│   │   │   └── ...
+│   │   └── ...
+│   ├── utils/                     # Shared client utilities
+│   │   ├── configurationManager.ts
+│   │   ├── keySpaceResolver.ts
+│   │   ├── rateLimiter.ts
+│   │   ├── mapHierarchyParser.ts
+│   │   └── ...
+│   ├── test/                      # Client tests (652)
+│   └── extension.ts               # Entry point
+│
+├── server/                        # LSP Server (Separate Process)
+│   ├── src/
+│   │   ├── server.ts              # LSP entry point + smart debouncing
+│   │   ├── settings.ts
+│   │   ├── features/              # 14 LSP feature handlers
+│   │   │   ├── validation.ts      #   Layer 1+4: XML + structure + IDs
+│   │   │   ├── crossRefValidation.ts # Layer 6a: cross-references
+│   │   │   ├── ditaRulesValidator.ts # Layer 5: 35 DITA rules
+│   │   │   ├── profilingValidation.ts# Layer 6b: profiling
+│   │   │   ├── completion.ts
+│   │   │   ├── hover.ts
+│   │   │   ├── codeActions.ts
+│   │   │   └── ...
+│   │   ├── services/              # Domain services with caching
+│   │   │   ├── catalogValidationService.ts # Layer 2: DTD
+│   │   │   ├── rngValidationService.ts     # Layer 3: RNG
+│   │   │   ├── keySpaceService.ts
+│   │   │   └── subjectSchemeService.ts
+│   │   ├── utils/                 # Server utilities
+│   │   │   ├── xmlTokenizer.ts
+│   │   │   ├── i18n.ts
+│   │   │   └── ...
+│   │   ├── messages/              # Localized diagnostic messages
+│   │   │   ├── en.json            #   70 messages (English)
+│   │   │   └── fr.json            #   70 messages (French)
+│   │   └── data/                  # Static schema data
+│   │       ├── ditaSchema.ts
+│   │       └── ditaSpecialization.ts
+│   └── test/                      # Server tests (430)
+│
+├── dtds/                          # Bundled DITA 1.3 DTDs + catalog.xml
+├── docs/                          # Architecture documentation
+└── package.json                   # Extension manifest
 ```
 
 ---

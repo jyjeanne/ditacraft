@@ -11,6 +11,9 @@
     "struct.missingTopicTitle": "Un topic DITA doit contenir un élément <title> (requis par la DTD)",
     "struct.missingMapTitle": "Une carte DITA devrait contenir un élément <title>",
     "struct.emptyElement": "L'élément <{0}> vide devrait être supprimé ou rempli",
+    "struct.missingBooktitle": "Un bookmap devrait contenir un élément <booktitle>",
+    "struct.missingMainbooktitle": "L'élément <booktitle> devrait contenir un élément <mainbooktitle>",
+    "struct.topicrefMissingHref": "<topicref> n'a pas d'attribut href, keyref ou keys — il peut s'agir d'un conteneur vide",
 
     "id.duplicate": "Identifiant dupliqué \"{0}\"",
     "id.duplicateRelated": "\"{0}\" est aussi défini ici",
@@ -62,6 +65,16 @@
     "sch059.removedQuery": "L'attribut query sur <{0}> a été supprimé dans DITA 2.0.",
 
     "prof.invalidValue": "La valeur \"{0}\" n'est pas autorisée pour @{1}. Valeurs valides : {2}",
+
+    "scope.externalRelativeHref": "scope=\"external\" mais href est un chemin relatif. Les références externes doivent utiliser des URI absolues.",
+    "scope.localAbsoluteHref": "scope=\"local\" mais href est une URI absolue. Les références locales doivent utiliser des chemins relatifs.",
+    "scope.missingOnUrl": "href est une URL absolue mais scope n'est pas défini. Envisagez d'ajouter scope=\"external\".",
+
+    "cycle.detected": "Référence circulaire détectée : {0}",
+
+    "id.crossFileDuplicate": "L'identifiant racine \"{0}\" est aussi utilisé dans {1}",
+
+    "orphan.unusedTopic": "Le topic n'est référencé par aucune carte dans l'espace de travail",
 
     "dtd.validationError": "Erreur de validation DTD"
 }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================= -->
+<!--                    HEADER                                     -->
+<!-- ============================================================= -->
+<!--  MODULE:    DITA Utilities Domain                             -->
+<!--  VERSION:   2.0                                               -->
+<!--  DATE:      [[[Release date]]]                                       -->
+<!--  PURPOSE:   Declaring the elements and specialization         -->
+<!--             attributes for the DITA Utilities Domain          -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                    TYPICAL INVOCATION                         -->
+<!--                                                               -->
+<!--  Refer to this file by the following public identifier or an  -->
+<!--       appropriate system identifier                           -->
+<!-- PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Utilities Domain//EN"     -->
+<!--       Delivered as file "utilitiesDomain.mod"                 -->
+<!-- ============================================================= -->
+<!--                                                               -->
+<!--             (C) Copyright OASIS Open 2005, 2019.              -->
+<!--             (C) Copyright IBM Corporation 2001, 2004.         -->
+<!--             All Rights Reserved.                              -->
+<!--                                                               -->
+<!--  UPDATES:                                                     -->
+<!--    2019.08.28 KJE: Changed specialization base of imagemap    -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!--                                                               -->
+
+<!-- ============================================================= -->
+<!--                    ELEMENT EXTENSION ENTITY DECLARATIONS      -->
+<!-- ============================================================= -->
+
+<!ENTITY % ut-d-div
+  "imagemap"
+>
+<!ENTITY % ut-d-data
+  "sort-as"
+>
+
+<!-- ================ End DITA Utilities Domain ================== -->
+ 

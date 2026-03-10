@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="urn:oasis:names:tc:dita:rng:vocabularyModuleDesc.rng"
+                         schematypens="http://relaxng.org/ns/structure/1.0"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+  xmlns:dita="http://dita.oasis-open.org/architecture/2005/"
+  xmlns="http://relaxng.org/ns/structure/1.0" 
+  datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <moduleDesc xmlns="http://dita.oasis-open.org/architecture/2005/">
+    <moduleTitle>DITA Metadata</moduleTitle>
+    <headerComment><![CDATA[
+=============================================================
+                   HEADER                                    
+=============================================================
+ MODULE:    DITA Metadata                                    
+ VERSION:   2.0                                              
+ DATE:      [[[Release date]]]                                    
+ PURPOSE:   Declaring the elements and specialization        
+            attributes for the DITA XML Metadata             
+                                                             
+=============================================================
+
+=============================================================
+                   PUBLIC DOCUMENT TYPE DEFINITION           
+                   TYPICAL INVOCATION                        
+                                                             
+ Refer to this file by the following public identifier or an 
+      appropriate system identifier 
+PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Metadata//EN"
+      Delivered as file "metaDecl.mod"                            
+
+=============================================================
+                                                             
+            (C) Copyright OASIS Open 2005, 2009.             
+            (C) Copyright IBM Corporation 2001, 2004.        
+            All Rights Reserved.                             
+                                                             
+ UPDATES:                                                    
+=============================================================
+   
+ ]]></headerComment>
+    <moduleMetadata>
+      <moduleType>base</moduleType>
+      <moduleShortName>metaDecl</moduleShortName>
+      <modulePublicIds>
+        <dtdMod>-//OASIS//ELEMENTS DITA<var presep=" " name="ditaver"/> Metadata//EN</dtdMod>
+        <rngMod>urn:pubid:oasis:names:tc:dita:rng:metaDeclMod.rng<var presep=":" name="ditaver"/></rngMod>
+      </modulePublicIds>
+      <domainsContribution/>
+    </moduleMetadata>
+  </moduleDesc>
+  <div>
+    <a:documentation>Define type patterns</a:documentation>
+    <define name="date-format">
+      <data type="string"/>
+    </define>
+
+  </div>
+  <div>
+    <a:documentation>ELEMENT TYPE DECLARATIONS</a:documentation>
+
+    <div>
+      <a:documentation>LONG NAME: Author</a:documentation>
+      <define name="author.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="author.attributes">
+        <ref name="univ-atts"/>
+        <optional>
+          <attribute name="href"/>
+        </optional>
+        <optional>
+          <attribute name="format"/>
+        </optional>
+        <optional>
+          <attribute name="scope">
+            <choice>
+              <value>external</value>
+              <value>local</value>
+              <value>peer</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+      </define>
+      <define name="author.element">
+        <element name="author" dita:longName="Author">
+          <a:documentation></a:documentation>
+          <ref name="author.attlist"/>
+          <ref name="author.content"/>
+        </element>
+      </define>
+      <define name="author.attlist" combine="interleave">
+        <ref name="author.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Source</a:documentation>
+      <define name="source.content">
+        <zeroOrMore>
+          <choice>
+            <ref name="words.cnt"/>
+            <ref name="ph"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="source.attributes">
+        <ref name="univ-atts"/>
+        <optional>
+          <attribute name="href"/>
+        </optional>
+        <optional>
+          <attribute name="format"/>
+        </optional>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+        <optional>
+          <attribute name="scope">
+            <choice>
+              <value>external</value>
+              <value>local</value>
+              <value>peer</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+      </define>
+      <define name="source.element">
+        <element name="source" dita:longName="Source">
+          <a:documentation></a:documentation>
+          <ref name="source.attlist"/>
+          <ref name="source.content"/>
+        </element>
+      </define>
+      <define name="source.attlist" combine="interleave">
+        <ref name="source.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Publisher</a:documentation>
+      <define name="publisher.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="publisher.attributes">
+        <optional>
+          <attribute name="href"/>
+        </optional>
+        <optional>
+          <attribute name="format"/>
+        </optional>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+        <optional>
+          <attribute name="scope">
+            <choice>
+              <value>external</value>
+              <value>local</value>
+              <value>peer</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="keyref"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="publisher.element">
+        <element name="publisher" dita:longName="Publisher">
+          <a:documentation></a:documentation>
+          <ref name="publisher.attlist"/>
+          <ref name="publisher.content"/>
+        </element>
+      </define>
+      <define name="publisher.attlist" combine="interleave">
+        <ref name="publisher.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Copyright</a:documentation>
+      <define name="copyright.content">
+        <oneOrMore>
+          <ref name="copyryear"/>
+        </oneOrMore>
+        <ref name="copyrholder"/>
+      </define>
+      <define name="copyright.attributes">
+        <ref name="univ-atts"/>
+        <optional>
+          <attribute name="type"/>
+        </optional>
+      </define>
+      <define name="copyright.element">
+        <element name="copyright" dita:longName="Copyright">
+          <a:documentation></a:documentation>
+          <ref name="copyright.attlist"/>
+          <ref name="copyright.content"/>
+        </element>
+      </define>
+      <define name="copyright.attlist" combine="interleave">
+        <ref name="copyright.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Copyright Year</a:documentation>
+      <define name="copyryear.content">
+        <empty/>
+      </define>
+      <define name="copyryear.attributes">
+        <attribute name="year">
+          <ref name="date-format"/>
+        </attribute>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="copyryear.element">
+        <element name="copyryear" dita:longName="Copyright Year">
+          <a:documentation></a:documentation>
+          <ref name="copyryear.attlist"/>
+          <ref name="copyryear.content"/>
+        </element>
+      </define>
+      <define name="copyryear.attlist" combine="interleave">
+        <ref name="copyryear.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Copyright Holder</a:documentation>
+      <define name="copyrholder.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="copyrholder.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="copyrholder.element">
+        <element name="copyrholder" dita:longName="Copyright Holder">
+          <a:documentation></a:documentation>
+          <ref name="copyrholder.attlist"/>
+          <ref name="copyrholder.content"/>
+        </element>
+      </define>
+      <define name="copyrholder.attlist" combine="interleave">
+        <ref name="copyrholder.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Critical Dates</a:documentation>
+      <define name="critdates.content">
+        <optional>
+          <ref name="created"/>
+        </optional>
+        <zeroOrMore>
+          <ref name="revised"/>
+        </zeroOrMore>
+      </define>
+      <define name="critdates.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="critdates.element">
+        <element name="critdates" dita:longName="Critical Dates">
+          <a:documentation></a:documentation>
+          <ref name="critdates.attlist"/>
+          <ref name="critdates.content"/>
+        </element>
+      </define>
+      <define name="critdates.attlist" combine="interleave">
+        <ref name="critdates.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Created Date</a:documentation>
+      <define name="created.content">
+        <empty/>
+      </define>
+      <define name="created.attributes">
+        <attribute name="date">
+          <ref name="date-format"/>
+        </attribute>
+        <optional>
+          <attribute name="golive">
+            <ref name="date-format"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="expiry">
+            <ref name="date-format"/>
+          </attribute>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="created.element">
+        <element name="created" dita:longName="Created Date">
+          <a:documentation></a:documentation>
+          <ref name="created.attlist"/>
+          <ref name="created.content"/>
+        </element>
+      </define>
+      <define name="created.attlist" combine="interleave">
+        <ref name="created.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Revised Date</a:documentation>
+      <define name="revised.content">
+        <empty/>
+      </define>
+      <define name="revised.attributes">
+        <attribute name="modified">
+          <ref name="date-format"/>
+        </attribute>
+        <optional>
+          <attribute name="golive">
+            <ref name="date-format"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="expiry">
+            <ref name="date-format"/>
+          </attribute>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="revised.element">
+        <element name="revised" dita:longName="Revised Date">
+          <a:documentation></a:documentation>
+          <ref name="revised.attlist"/>
+          <ref name="revised.content"/>
+        </element>
+      </define>
+      <define name="revised.attlist" combine="interleave">
+        <ref name="revised.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Permissions</a:documentation>
+      <define name="permissions.content">
+        <empty/>
+      </define>
+      <define name="permissions.attributes">
+        <ref name="univ-atts"/>
+        <attribute name="view"/>
+      </define>
+      <define name="permissions.element">
+        <element name="permissions" dita:longName="Permissions">
+          <a:documentation></a:documentation>
+          <ref name="permissions.attlist"/>
+          <ref name="permissions.content"/>
+        </element>
+      </define>
+      <define name="permissions.attlist" combine="interleave">
+        <ref name="permissions.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Category</a:documentation>
+      <define name="category.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="category.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="category.element">
+        <element name="category" dita:longName="Category">
+          <a:documentation></a:documentation>
+          <ref name="category.attlist"/>
+          <ref name="category.content"/>
+        </element>
+      </define>
+      <define name="category.attlist" combine="interleave">
+        <ref name="category.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Metadata</a:documentation>
+      <define name="metadata.content">
+        <zeroOrMore>
+          <ref name="audience"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="category"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="keywords"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="prodinfo"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="othermeta"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <choice>
+            <ref name="data.elements.incl"/>
+            <ref name="foreign.unknown.incl"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="metadata.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="metadata.element">
+        <element name="metadata" dita:longName="Metadata">
+          <a:documentation></a:documentation>
+          <ref name="metadata.attlist"/>
+          <ref name="metadata.content"/>
+        </element>
+      </define>
+      <define name="metadata.attlist" combine="interleave">
+        <ref name="metadata.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Audience</a:documentation>
+      <define name="audience.content">
+        <empty/>
+      </define>
+      <define name="audience.attributes">
+        <optional>
+          <attribute name="type"/>
+        </optional>
+        <optional>
+          <attribute name="job"/>
+        </optional>
+        <optional>
+          <attribute name="experiencelevel"/>
+        </optional>
+        <optional>
+          <attribute name="name">
+            <data type="NMTOKEN"/>
+          </attribute>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="audience.element">
+        <element name="audience" dita:longName="Audience">
+          <a:documentation></a:documentation>
+          <ref name="audience.attlist"/>
+          <ref name="audience.content"/>
+        </element>
+      </define>
+      <define name="audience.attlist" combine="interleave">
+        <ref name="audience.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Keywords</a:documentation>
+      <define name="keywords.content">
+        <zeroOrMore>
+          <choice>
+            <ref name="indexterm"/>
+            <ref name="keyword"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="keywords.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="keywords.element">
+        <element name="keywords" dita:longName="Keywords">
+          <a:documentation></a:documentation>
+          <ref name="keywords.attlist"/>
+          <ref name="keywords.content"/>
+        </element>
+      </define>
+      <define name="keywords.attlist" combine="interleave">
+        <ref name="keywords.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Product Information</a:documentation>
+      <define name="prodinfo.content">
+        <ref name="prodname"/>
+        <optional>
+          <ref name="vrmlist"/>
+        </optional>
+        <zeroOrMore>
+          <choice>
+            <ref name="brand"/>
+            <ref name="component"/>
+            <ref name="featnum"/>
+            <ref name="platform"/>
+            <ref name="prognum"/>
+            <ref name="series"/>
+          </choice>
+        </zeroOrMore>
+      </define>
+      <define name="prodinfo.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="prodinfo.element">
+        <element name="prodinfo" dita:longName="Product Information">
+          <a:documentation></a:documentation>
+          <ref name="prodinfo.attlist"/>
+          <ref name="prodinfo.content"/>
+        </element>
+      </define>
+      <define name="prodinfo.attlist" combine="interleave">
+        <ref name="prodinfo.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Product Name</a:documentation>
+      <define name="prodname.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="prodname.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="prodname.element">
+        <element name="prodname" dita:longName="Product Name">
+          <a:documentation></a:documentation>
+          <ref name="prodname.attlist"/>
+          <ref name="prodname.content"/>
+        </element>
+      </define>
+      <define name="prodname.attlist" combine="interleave">
+        <ref name="prodname.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Version Release and Modification List</a:documentation>
+      <define name="vrmlist.content">
+        <oneOrMore>
+          <ref name="vrm"/>
+        </oneOrMore>
+      </define>
+      <define name="vrmlist.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="vrmlist.element">
+        <element name="vrmlist" dita:longName="Version Release and Modification List">
+          <a:documentation></a:documentation>
+          <ref name="vrmlist.attlist"/>
+          <ref name="vrmlist.content"/>
+        </element>
+      </define>
+      <define name="vrmlist.attlist" combine="interleave">
+        <ref name="vrmlist.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Version Release and Modification</a:documentation>
+      <define name="vrm.content">
+        <empty/>
+      </define>
+      <define name="vrm.attributes">
+        <attribute name="version"/>
+        <optional>
+          <attribute name="release"/>
+        </optional>
+        <optional>
+          <attribute name="modification"/>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="vrm.element">
+        <element name="vrm" dita:longName="Version Release and Modification">
+          <a:documentation></a:documentation>
+          <ref name="vrm.attlist"/>
+          <ref name="vrm.content"/>
+        </element>
+      </define>
+      <define name="vrm.attlist" combine="interleave">
+        <ref name="vrm.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Brand</a:documentation>
+      <define name="brand.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="brand.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="brand.element">
+        <element name="brand" dita:longName="Brand">
+          <a:documentation></a:documentation>
+          <ref name="brand.attlist"/>
+          <ref name="brand.content"/>
+        </element>
+      </define>
+      <define name="brand.attlist" combine="interleave">
+        <ref name="brand.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Series</a:documentation>
+      <define name="series.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="series.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="series.element">
+        <element name="series" dita:longName="Series">
+          <a:documentation></a:documentation>
+          <ref name="series.attlist"/>
+          <ref name="series.content"/>
+        </element>
+      </define>
+      <define name="series.attlist" combine="interleave">
+        <ref name="series.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Platform</a:documentation>
+      <define name="platform.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="platform.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="platform.element">
+        <element name="platform" dita:longName="Platform">
+          <a:documentation></a:documentation>
+          <ref name="platform.attlist"/>
+          <ref name="platform.content"/>
+        </element>
+      </define>
+      <define name="platform.attlist" combine="interleave">
+        <ref name="platform.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Program Number</a:documentation>
+      <define name="prognum.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="prognum.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="prognum.element">
+        <element name="prognum" dita:longName="Program Number">
+          <a:documentation></a:documentation>
+          <ref name="prognum.attlist"/>
+          <ref name="prognum.content"/>
+        </element>
+      </define>
+      <define name="prognum.attlist" combine="interleave">
+        <ref name="prognum.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Feature Number</a:documentation>
+      <define name="featnum.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="featnum.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="featnum.element">
+        <element name="featnum" dita:longName="Feature Number">
+          <a:documentation></a:documentation>
+          <ref name="featnum.attlist"/>
+          <ref name="featnum.content"/>
+        </element>
+      </define>
+      <define name="featnum.attlist" combine="interleave">
+        <ref name="featnum.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Component</a:documentation>
+      <define name="component.content">
+        <zeroOrMore>
+          <ref name="words.cnt"/>
+        </zeroOrMore>
+      </define>
+      <define name="component.attributes">
+        <ref name="univ-atts"/>
+      </define>
+      <define name="component.element">
+        <element name="component" dita:longName="Component">
+          <a:documentation></a:documentation>
+          <ref name="component.attlist"/>
+          <ref name="component.content"/>
+        </element>
+      </define>
+      <define name="component.attlist" combine="interleave">
+        <ref name="component.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Other Metadata NOTE: needs to be HTML-equiv, at least </a:documentation>
+      <define name="othermeta.content">
+        <empty/>
+      </define>
+      <define name="othermeta.attributes">
+        <attribute name="name"/>
+        <attribute name="content"/>
+        <optional>
+          <attribute name="translate-content">
+            <choice>
+              <value>no</value>
+              <value>yes</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <ref name="univ-atts"/>
+      </define>
+      <define name="othermeta.element">
+        <element name="othermeta" dita:longName="Other Metadata">
+          <a:documentation></a:documentation>
+          <ref name="othermeta.attlist"/>
+          <ref name="othermeta.content"/>
+        </element>
+      </define>
+      <define name="othermeta.attlist" combine="interleave">
+        <ref name="othermeta.attributes"/>
+      </define>
+
+    </div>
+    <div>
+      <a:documentation>LONG NAME: Resource Identifier</a:documentation>
+      <define name="resourceid.content">
+        <zeroOrMore>
+          <ref name="data.elements.incl"/>
+        </zeroOrMore>
+      </define>
+      <define name="resourceid.attributes">
+        <ref name="univ-atts"/>
+        <optional>
+          <attribute name="appname"/>
+        </optional>
+        <optional>
+          <attribute name="appid"/>
+        </optional>
+        <optional>
+          <attribute name="appid-role"
+            a:defaultValue="context-sensitive-help"
+            dita:since="2.0"/>
+        </optional>
+        <optional>
+          <attribute name="ux-context-string"/>
+        </optional>
+        <optional>
+          <attribute name="ux-source-priority"
+                     a:defaultValue="topic-and-map">
+            <choice>
+              <value>topic-and-map</value>
+              <value>topic-only</value>
+              <value>map-only</value>
+              <value>map-takes-priority</value>
+              <value>topic-takes-priority</value>
+              <value>-dita-use-conref-target</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="ux-windowref"/>
+        </optional>
+      </define>
+      <define name="resourceid.element">
+        <element name="resourceid" dita:longName="Resource Identifier">
+          <a:documentation></a:documentation>
+          <ref name="resourceid.attlist"/>
+          <ref name="resourceid.content"/>
+        </element>
+      </define>
+      <define name="resourceid.attlist" combine="interleave">
+        <ref name="resourceid.attributes"/>
+      </define>
+
+    </div>
+  </div>
+  <div>
+    <a:documentation>Specialization attributes. Global attributes and class defaults</a:documentation>
+
+    <define name="author.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/author "/>
+      </optional>
+    </define>
+    <define name="source.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/source "/>
+      </optional>
+    </define>
+    <define name="publisher.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/publisher "/>
+      </optional>
+    </define>
+    <define name="copyright.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/copyright "/>
+      </optional>
+    </define>
+    <define name="copyryear.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/copyryear "/>
+      </optional>
+    </define>
+    <define name="copyrholder.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/copyrholder "/>
+      </optional>
+    </define>
+    <define name="critdates.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/critdates "/>
+      </optional>
+    </define>
+    <define name="created.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/created "/>
+      </optional>
+    </define>
+    <define name="revised.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/revised "/>
+      </optional>
+    </define>
+    <define name="permissions.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/permissions "/>
+      </optional>
+    </define>
+    <define name="category.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/category "/>
+      </optional>
+    </define>
+    <define name="metadata.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/metadata "/>
+      </optional>
+    </define>
+    <define name="audience.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/audience "/>
+      </optional>
+    </define>
+    <define name="keywords.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/keywords "/>
+      </optional>
+    </define>
+    <define name="prodinfo.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/prodinfo "/>
+      </optional>
+    </define>
+    <define name="prodname.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/prodname "/>
+      </optional>
+    </define>
+    <define name="vrmlist.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/vrmlist "/>
+      </optional>
+    </define>
+    <define name="vrm.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/vrm "/>
+      </optional>
+    </define>
+    <define name="brand.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/brand "/>
+      </optional>
+    </define>
+    <define name="series.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/series "/>
+      </optional>
+    </define>
+    <define name="platform.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/platform "/>
+      </optional>
+    </define>
+    <define name="prognum.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/prognum "/>
+      </optional>
+    </define>
+    <define name="featnum.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/featnum "/>
+      </optional>
+    </define>
+    <define name="component.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/component "/>
+      </optional>
+    </define>
+    <define name="othermeta.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/othermeta "/>
+      </optional>
+    </define>
+    <define name="resourceid.attlist" combine="interleave">
+      <optional>
+        <attribute name="class" a:defaultValue="- topic/resourceid "/>
+      </optional>
+    </define>
+  </div>
+</grammar>

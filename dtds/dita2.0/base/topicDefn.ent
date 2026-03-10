@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================= -->
+<!--                    HEADER                                     -->
+<!-- ============================================================= -->
+<!--  MODULE:    DITA DITA Topic                                   -->
+<!--  VERSION:   2.0                                               -->
+<!--  DATE:      [[[Release date]]]                                     -->
+<!--  PURPOSE:   Declaring the elements and specialization         -->
+<!--             attributes for the base Topic type                -->
+<!--                                                               -->
+<!-- ============================================================= -->
+<!-- ============================================================= -->
+<!--                    PUBLIC DOCUMENT TYPE DEFINITION            -->
+<!--                    TYPICAL INVOCATION                         -->
+<!--                                                               -->
+<!--  Refer to this file by the following public identifier or an  -->
+<!--       appropriate system identifier                           -->
+<!-- PUBLIC "-//OASIS//ELEMENTS DITA 2.0 Topic//EN"                -->
+<!--       Delivered as file "topic.mod"                           -->
+<!-- ============================================================= -->
+<!--                                                               -->
+<!--             (C) Copyright OASIS Open 2005, 2009.              -->
+<!--             (C) Copyright IBM Corporation 2001, 2004.         -->
+<!--             All Rights Reserved.                              -->
+<!--                                                               -->
+<!--  UPDATES:                                                     -->
+<!-- ============================================================= -->
+
+
+<!-- ============================================================= -->
+<!--                    ELEMENT NAME ENTITIES                      -->
+<!-- ============================================================= -->
+
+        
+<!ENTITY % topic       "topic"                                       >
+<!ENTITY % titlealts   "titlealts"                                   >
+<!ENTITY % searchtitle "searchtitle"                                 >
+<!ENTITY % shortdesc   "shortdesc"                                   >
+<!ENTITY % abstract    "abstract"                                    >
+<!ENTITY % body        "body"                                        >
+<!ENTITY % bodydiv     "bodydiv"                                     >
+<!ENTITY % no-topic-nesting
+                       "no-topic-nesting"                            >
+<!ENTITY % section     "section"                                     >
+<!ENTITY % prolog      "prolog"                                      >
+<!ENTITY % related-links
+                       "related-links"                               >
+<!ENTITY % link        "link"                                        >
+<!ENTITY % linktext    "linktext"                                    >
+<!ENTITY % linklist    "linklist"                                    >
+<!ENTITY % linkinfo    "linkinfo"                                    >
+<!ENTITY % linkpool    "linkpool"                                    >
+
+<!--                    Also include common elements used in topics
+                        and maps                                      -->
+<!ENTITY % commonDefns 
+  PUBLIC 
+                       "-//OASIS//ENTITIES DITA 2.0 Common Elements//EN" 
+ "commonElements.ent"                          >
+%commonDefns;
+          
+<!-- ================ End DITA Topic Module ================== -->
+ 
