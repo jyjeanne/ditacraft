@@ -26,7 +26,7 @@ const DITA_CONTENT_MODELS: Record<string, {
             'title', 'topicmeta', 'anchor', 'data', 'data-about',
             'navref', 'reltable', 'topicref', 'mapref', 'keydef',
             'topicgroup', 'topichead', 'topicset', 'topicsetref',
-            'anchorref', 'ditavalref'
+            'anchorref', 'ditavalref', 'glossref'
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'msgblock',
@@ -65,7 +65,7 @@ const DITA_CONTENT_MODELS: Record<string, {
         allowedChildren: [
             'booktitle', 'title', 'bookmeta', 'frontmatter', 'chapter',
             'part', 'appendices', 'appendix', 'backmatter', 'reltable',
-            'topicref', 'mapref', 'keydef', 'ditavalref'
+            'topicref', 'mapref', 'keydef', 'ditavalref', 'glossref'
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -166,7 +166,7 @@ const DITA_CONTENT_MODELS: Record<string, {
     },
     'glossentry': {
         allowedChildren: [
-            'glossterm', 'glossdef', 'prolog', 'related-links', 'glossentry'
+            'glossterm', 'glossdef', 'glossBody', 'prolog', 'related-links'
         ],
         disallowedChildren: ['topicref', 'map', 'chapter', 'bookmap', 'body', 'conbody', 'taskbody', 'refbody'],
         description: 'Glossentry uses glossterm and glossdef'

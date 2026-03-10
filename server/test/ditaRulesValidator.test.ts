@@ -227,6 +227,13 @@ suite('validateDitaRules', () => {
             const matches = diags.filter(d => d.code === 'DITA-SCH-023');
             assert.strictEqual(matches.length, 0);
         });
+
+        test('DITA-SCH-023: titles inside fig/example are not counted as section titles', () => {
+            const text = '<section><title>Section</title><fig><title>Figure</title><p>content</p></fig><fig><title>Figure 2</title><p>more</p></fig></section>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-023');
+            assert.strictEqual(matches.length, 0, 'titles inside fig should not trigger multiple-title warning');
+        });
     });
 
     suite('Accessibility rules', () => {

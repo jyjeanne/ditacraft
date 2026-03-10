@@ -79,15 +79,15 @@ export class DitaStructureValidator {
         skipDtdChecks: boolean
     ): void {
         // Check for root element (topic, concept, task, reference, etc.)
-        const topicTypes = ['<topic', '<concept', '<task', '<reference'];
-        const hasTopicRoot = topicTypes.some(type => content.includes(type));
+        const topicTypes = ['topic', 'concept', 'task', 'reference', 'glossentry', 'troubleshooting'];
+        const hasTopicRoot = topicTypes.some(type => new RegExp(`<${type}[\\s>]`).test(content));
 
         if (!hasTopicRoot) {
             errors.push({
                 line: 0,
                 column: 0,
                 severity: 'error',
-                message: 'DITA topic must have a valid root element (topic, concept, task, or reference)',
+                message: 'DITA topic must have a valid root element (topic, concept, task, reference, glossentry, or troubleshooting)',
                 source: 'dita-validator'
             });
         }
@@ -98,7 +98,7 @@ export class DitaStructureValidator {
         }
 
         // Check for id attribute on root (REQUIRED per DITA DTD)
-        const idMatch = content.match(/<(?:topic|concept|task|reference)\s+[^>]*id="([^"]*)"/);
+        const idMatch = content.match(/<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*id="([^"]*)"/);
         if (!idMatch) {
             errors.push({
                 line: 0,
@@ -137,16 +137,16 @@ export class DitaStructureValidator {
      * Validate title element exists as direct child of topic root
      */
     private validateTopicTitle(content: string, errors: ValidationError[]): void {
-        const rootTitlePattern = /<(?:topic|concept|task|reference)\s+[^>]*>[\s\S]*?(?=<(?:title|shortdesc|prolog|abstract|body|conbody|taskbody|refbody|related-links))/;
+        const rootTitlePattern = /<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*>[\s\S]*?(?=<(?:title|shortdesc|prolog|abstract|body|conbody|taskbody|refbody|glossBody|related-links))/;
         const rootMatch = content.match(rootTitlePattern);
 
         if (rootMatch) {
-            const titleAfterRootPattern = /<(?:topic|concept|task|reference)\s+[^>]*>[\s]*<title>/;
+            const titleAfterRootPattern = /<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*>[\s]*<title>/;
             const hasRootTitle = titleAfterRootPattern.test(content);
 
             if (!hasRootTitle) {
                 // Double-check: look for title as first child element
-                const firstChildPattern = /<(?:topic|concept|task|reference)\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
+                const firstChildPattern = /<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
                 const firstChildMatch = content.match(firstChildPattern);
 
                 if (!firstChildMatch || firstChildMatch[1] !== 'title') {
@@ -182,15 +182,25 @@ export class DitaStructureValidator {
         warnings: ValidationError[],
         skipDtdChecks: boolean
     ): void {
-        // Check for map root element
-        if (!content.includes('<map')) {
+        // Accept both <map> and <bookmap> (bookmaps may use .ditamap extension)
+        const hasMapRoot = /<map[\s>]/.test(content);
+        const hasBookmapRoot = /<bookmap[\s>]/.test(content);
+
+        if (!hasMapRoot && !hasBookmapRoot) {
             errors.push({
                 line: 0,
                 column: 0,
                 severity: 'error',
-                message: 'DITA map must have a <map> root element',
+                message: 'DITA map must have a <map> or <bookmap> root element',
                 source: 'dita-validator'
             });
+            return;
+        }
+
+        // If this is actually a bookmap, delegate to bookmap validation
+        if (hasBookmapRoot) {
+            this.validateBookmap(content, errors, warnings, skipDtdChecks);
+            return;
         }
 
         // Skip title check if DTD validation is active
@@ -246,7 +256,8 @@ export class DitaStructureValidator {
             return;
         }
 
-        if (!content.includes('<booktitle>')) {
+        const hasBooktitle = /<booktitle[\s>]/.test(content);
+        if (!hasBooktitle) {
             warnings.push({
                 line: 0,
                 column: 0,
@@ -256,7 +267,7 @@ export class DitaStructureValidator {
             });
         }
 
-        if (!content.includes('<mainbooktitle>')) {
+        if (hasBooktitle && !/<mainbooktitle[\s>]/.test(content)) {
             warnings.push({
                 line: 0,
                 column: 0,

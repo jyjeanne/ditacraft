@@ -356,12 +356,11 @@ const DITA_RULES: DitaRule[] = [
         versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
         severity: DiagnosticSeverity.Warning,
         check(text, diagnostics) {
-            // Multiple <title> in a <section>
+            // Multiple <title> in a <section> (only direct-child titles, not titles inside nested elements)
             const sectionRegex = new RegExp(`<section\\b${TAG_ATTRS}>([\\s\\S]*?)<\\/section>`, 'g');
             let match;
             while ((match = sectionRegex.exec(text)) !== null) {
-                const sectionContent = match[1];
-                const titleCount = (sectionContent.match(/<title\b/g) || []).length;
+                const titleCount = countDirectChildTitles(match[1]);
                 if (titleCount > 1) {
                     diagnostics.push(makeDiag(text, match.index, match[0].length,
                         t('sch023.multipleSectionTitles', titleCount),
@@ -850,6 +849,44 @@ function stripCommentsAndCDATA(text: string): string {
     return text
         .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
         .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
+}
+
+/**
+ * Count <title> elements that are direct children of the given content.
+ * Uses depth tracking: only titles at depth 0 are counted.
+ * Depth increases on any opening tag (except self-closing) and decreases on closing tags.
+ */
+function countDirectChildTitles(content: string): number {
+    let count = 0;
+    let depth = 0;
+    // Match opening tags, closing tags, and self-closing tags
+    const tagRegex = /<(\/?)(\w+)\b(?:"[^"]*"|'[^']*'|[^>"'])*?(\/?)>/g;
+    let m;
+    while ((m = tagRegex.exec(content)) !== null) {
+        const isClosing = m[1] === '/';
+        const tagName = m[2];
+        const isSelfClosing = m[3] === '/';
+
+        if (isSelfClosing) {
+            // Self-closing tags don't change depth
+            // But check if it's a self-closing <title/> at depth 0
+            if (tagName === 'title' && depth === 0) {
+                count++;
+            }
+            continue;
+        }
+
+        if (isClosing) {
+            depth--;
+        } else {
+            // Opening tag
+            if (tagName === 'title' && depth === 0) {
+                count++;
+            }
+            depth++;
+        }
+    }
+    return count;
 }
 
 function isInsideTag(text: string, pos: number): boolean {

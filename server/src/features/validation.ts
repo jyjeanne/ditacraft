@@ -224,7 +224,8 @@ function validateTopicStructure(
 }
 
 function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
-    if (!/<map[\s>]/.test(text)) {
+    // Accept both <map> and <bookmap> (bookmaps may use .ditamap extension)
+    if (!/<map[\s>]/.test(text) && !/<bookmap[\s>]/.test(text)) {
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
@@ -232,6 +233,12 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
+        return;
+    }
+
+    // If this is actually a bookmap, delegate to bookmap validation
+    if (/<bookmap[\s>]/.test(text)) {
+        validateBookmapStructure(text, diagnostics);
         return;
     }
 

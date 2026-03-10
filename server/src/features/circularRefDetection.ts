@@ -18,8 +18,15 @@ export const CYCLE_CODES = {
 /** Maximum traversal depth to prevent runaway DFS on very deep hierarchies. */
 const MAX_DEPTH = 50;
 
-/** Regex to extract href and conref values from DITA/map content. */
-const REF_REGEX = /\b(?:href|conref)\s*=\s*["']([^"'#]+)/g;
+/**
+ * Regex to extract structural map references (topicref, mapref, chapter, etc.)
+ * while skipping keydef elements and topic-level references (xref, link, coderef, etc.).
+ * Only matches href/conref on elements that represent structural map includes.
+ */
+const STRUCTURAL_REF_REGEX = /<(topicref|mapref|chapter|part|appendix|appendices|frontmatter|backmatter|booklists|notices|preface|colophon|dedication|amendments|glossarylist|abbrevlist|bibliolist|figurelist|indexlist|tablelist|trademarklist|toc|topicgroup|topicset|topicsetref|anchorref|glossref)\b(?:"[^"]*"|'[^']*'|[^>"'])*?\bhref\s*=\s*["']([^"'#]+)/g;
+
+/** Regex for conref which can create real circular dependencies in any element. */
+const CONREF_REGEX = /\bconref\s*=\s*["']([^"'#]+)/g;
 
 /**
  * Detect circular references originating from a DITA document.
@@ -69,32 +76,49 @@ interface FileRef {
     range: { start: { line: number; character: number }; end: { line: number; character: number } };
 }
 
-/** Extract local file references (href/conref) from text, resolving paths relative to baseDir. */
+/** Extract structural file references from text, resolving paths relative to baseDir.
+ *  Only follows topicref/mapref/chapter/etc. href (not keydef, xref, link, coderef)
+ *  and conref attributes on any element. */
 function extractFileReferences(text: string, baseDir: string): FileRef[] {
     const refs: FileRef[] = [];
-    // Strip comments to avoid false matches
+    // Strip comments and CDATA to avoid false matches
     const cleanText = text
-        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '));
+        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
+        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
 
+    // Structural href references (topicref, mapref, chapter, etc.)
     let match: RegExpExecArray | null;
-    const regex = new RegExp(REF_REGEX.source, REF_REGEX.flags);
+    const structuralRegex = new RegExp(STRUCTURAL_REF_REGEX.source, STRUCTURAL_REF_REGEX.flags);
+    while ((match = structuralRegex.exec(cleanText)) !== null) {
+        const refValue = match[2];
+        const ref = resolveRef(refValue, baseDir, text, match);
+        if (ref) refs.push(ref);
+    }
 
-    while ((match = regex.exec(cleanText)) !== null) {
+    // Conref references (can create cycles from any element)
+    const conrefRegex = new RegExp(CONREF_REGEX.source, CONREF_REGEX.flags);
+    while ((match = conrefRegex.exec(cleanText)) !== null) {
         const refValue = match[1];
-        // Skip external URLs
-        if (/^https?:\/\/|^mailto:|^ftp:\/\//.test(refValue)) continue;
-        // Skip empty values
-        if (!refValue.trim()) continue;
-
-        const targetPath = path.resolve(baseDir, refValue);
-        // Only consider DITA files
-        if (!isDitaFile(targetPath)) continue;
-
-        const range = offsetToRange(text, match.index, match.index + match[0].length);
-        refs.push({ targetPath: normalizePath(targetPath), range });
+        const ref = resolveRef(refValue, baseDir, text, match);
+        if (ref) refs.push(ref);
     }
 
     return refs;
+}
+
+/** Resolve a reference value to a FileRef, or null if it should be skipped. */
+function resolveRef(refValue: string, baseDir: string, text: string, match: RegExpExecArray): FileRef | null {
+    // Skip external URLs
+    if (/^https?:\/\/|^mailto:|^ftp:\/\//.test(refValue)) return null;
+    // Skip empty values
+    if (!refValue.trim()) return null;
+
+    const targetPath = path.resolve(baseDir, refValue);
+    // Only consider DITA files (not generic .xml)
+    if (!isDitaFile(targetPath)) return null;
+
+    const range = offsetToRange(text, match.index, match.index + match[0].length);
+    return { targetPath: normalizePath(targetPath), range };
 }
 
 /**
@@ -150,7 +174,7 @@ async function dfsDetectCycle(
 
 function isDitaFile(filePath: string): boolean {
     const ext = path.extname(filePath).toLowerCase();
-    return ext === '.dita' || ext === '.ditamap' || ext === '.bookmap' || ext === '.xml';
+    return ext === '.dita' || ext === '.ditamap' || ext === '.bookmap';
 }
 
 function normalizePath(filePath: string): string {

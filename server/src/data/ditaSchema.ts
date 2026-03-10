@@ -281,7 +281,7 @@ export const DITA_ELEMENTS: Record<string, string[]> = {
     'sort-as': [],
 
     // ===== Map elements =====
-    map: ['title', 'topicmeta', 'anchor', 'navref', 'topicref', 'mapref', 'keydef', 'reltable', 'topicgroup', 'topichead', 'topicset', 'topicsetref', 'anchorref', 'ditavalref'],
+    map: ['title', 'topicmeta', 'anchor', 'navref', 'topicref', 'mapref', 'keydef', 'reltable', 'topicgroup', 'topichead', 'topicset', 'topicsetref', 'anchorref', 'ditavalref', 'glossref'],
     topicref: ['topicmeta', 'anchor', 'topicref', 'ditavalref'],
     topichead: ['topicmeta', 'anchor', 'topicref'],
     topicgroup: ['topicmeta', 'anchor', 'topicref'],
@@ -324,7 +324,8 @@ export const DITA_ELEMENTS: Record<string, string[]> = {
     bibliolist: [],
     booklist: [],
     figurelist: [],
-    glossarylist: ['topicmeta', 'topicref'],
+    glossarylist: ['topicmeta', 'topicref', 'glossref'],
+    glossref: ['topicmeta'],
     indexlist: [],
     tablelist: [],
     trademarklist: [],
@@ -490,6 +491,7 @@ export const ELEMENT_ATTRIBUTES: Record<string, string[]> = {
     anchorref: ['href', 'keys', 'keyref', 'format', 'scope'],
     topicset: ['href', 'keys', 'keyref', 'format', 'scope', 'chunk', 'id'],
     topicsetref: ['href', 'keys', 'keyref', 'format', 'scope'],
+    glossref: ['href', 'keys', 'keyref', 'format', 'scope', 'type', 'toc', 'print'],
     ditavalref: ['href', 'format', 'processing-role'],
     reltable: ['title'],
     // Content elements
@@ -705,6 +707,7 @@ export const ELEMENT_DOCS: Record<string, string> = {
     part: '**`<part>`** — Book part\n\nMajor division of a book containing chapters.\n\n**Children:** topicmeta, chapter, appendix, topicref',
     preface: '**`<preface>`** — Book preface\n\nIntroductory section of a book.',
     notices: '**`<notices>`** — Legal notices\n\nLegal and copyright notices for a book.',
+    glossref: '**`<glossref>`** — Glossary reference\n\nReference to a glossary entry topic in a bookmap. Specialization of `<topicref>` for glossary lists.\n\n**Attributes:** href, keys, toc, print',
     // Software domain
     screen: '**`<screen>`** — Screen display\n\nText displayed on a computer screen. Preformatted.',
     msgblock: '**`<msgblock>`** — Message block\n\nMulti-line system message. Preformatted.',

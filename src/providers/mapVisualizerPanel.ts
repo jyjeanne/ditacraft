@@ -266,6 +266,7 @@ export class MapVisualizerPanel {
         .icon-topic::before { content: "📄"; }
         .icon-topicref::before { content: "📄"; }
         .icon-keydef::before { content: "🔑"; }
+        .icon-glossref::before { content: "📝"; }
         .icon-unknown::before { content: "❓"; }
 
         .node-label {
@@ -335,6 +336,7 @@ export class MapVisualizerPanel {
         <span class="legend-item"><span class="icon icon-appendix"></span> Appendix</span>
         <span class="legend-item"><span class="icon icon-topicref"></span> Topic</span>
         <span class="legend-item"><span class="icon icon-keydef"></span> Key</span>
+        <span class="legend-item"><span class="icon icon-glossref"></span> Glossref</span>
     </div>
 
     <script>

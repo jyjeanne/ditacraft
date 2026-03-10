@@ -20,6 +20,7 @@ const ICON_MAP: Record<MapNode['type'], vscode.ThemeIcon> = {
     keydef: new vscode.ThemeIcon('key'),
     appendix: new vscode.ThemeIcon('file-add'),
     part: new vscode.ThemeIcon('folder'),
+    glossref: new vscode.ThemeIcon('symbol-text'),
     unknown: new vscode.ThemeIcon('question')
 };
 

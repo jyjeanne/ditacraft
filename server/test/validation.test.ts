@@ -178,6 +178,12 @@ suite('validateDITADocument', () => {
             assert.strictEqual(rootDiags.length, 0);
         });
 
+        test('bookmap with .ditamap extension produces no root error', () => {
+            const diags = validate('<bookmap><booktitle><mainbooktitle>T</mainbooktitle></booktitle></bookmap>', 'file:///test.ditamap');
+            const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
+            assert.strictEqual(rootDiags.length, 0, 'bookmap in .ditamap file should not trigger invalid root error');
+        });
+
         test('missing bookmap root produces error', () => {
             const diags = validate('<map></map>', 'file:///test.bookmap');
             const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');

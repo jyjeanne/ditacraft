@@ -14,7 +14,7 @@ import * as fsPromises from 'fs/promises';
 export interface MapNode {
     id: string;
     label: string;
-    type: 'map' | 'topic' | 'chapter' | 'appendix' | 'part' | 'topicref' | 'keydef' | 'unknown';
+    type: 'map' | 'topic' | 'chapter' | 'appendix' | 'part' | 'topicref' | 'keydef' | 'glossref' | 'unknown';
     href?: string;
     filePath?: string;
     exists: boolean;
@@ -37,10 +37,7 @@ export function extractAttribute(attributes: string, name: string): string | nul
 /**
  * Detect the type of a DITA map from its content.
  */
-export function detectMapType(content: string): MapNode['type'] {
-    if (content.includes('<!DOCTYPE bookmap') || /<bookmap[\s>]/i.test(content)) {
-        return 'map';
-    }
+export function detectMapType(_content: string): MapNode['type'] {
     return 'map';
 }
 
@@ -54,10 +51,11 @@ const TAG_TYPE_MAP: Record<string, MapNode['type']> = {
     part: 'part',
     topicref: 'topicref',
     keydef: 'keydef',
-    mapref: 'map'
+    mapref: 'map',
+    glossref: 'glossref'
 };
 
-const COMBINED_TAG_REGEX = /<(chapter|appendix|part|topicref|keydef|mapref)\b([^>]*)>/gi;
+const COMBINED_TAG_REGEX = /<(chapter|appendix|part|topicref|keydef|mapref|glossref)\b([^>]*)>/gi;
 const COMMENT_REGEX = /<!--[\s\S]*?-->/g;
 
 export async function parseReferences(
