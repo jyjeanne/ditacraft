@@ -166,9 +166,6 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
                 resolveProvider: true,
             },
             linkedEditingRangeProvider: true,
-            executeCommandProvider: {
-                commands: ['ditacraft.setRootMap', 'ditacraft.clearRootMap', 'ditacraft.validateWorkspace'],
-            },
         },
     };
 

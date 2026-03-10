@@ -1,9 +1,5 @@
 # DitaCraft
 
-<p align="center">
-  <img src="docs/user-guide/front_page_picture.png" alt="DitaCraft - A Beginner-Friendly VS Code Extension for DITA Authoring and Publishing" width="360" />
-</p>
-
 **The easiest way to edit and publish your DITA files**
 
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.80+-blue.svg)](https://code.visualstudio.com/)

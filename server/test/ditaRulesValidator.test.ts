@@ -319,6 +319,13 @@ suite('validateDitaRules', () => {
             assert.strictEqual(matches.length, 0);
         });
 
+        test('DITA-SCH-040: self-closing xref siblings are not false positives', () => {
+            const text = '<p>See <xref keyref="root-map"/> for details and <xref href="b.dita">link</xref>.</p>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-040');
+            assert.strictEqual(matches.length, 0, 'sibling self-closing xref must not trigger nested-xref error');
+        });
+
         test('DITA-SCH-041: image inside pre', () => {
             const text = '<pre>Code <image href="pic.png"/> here</pre>';
             const diags = validate(text);

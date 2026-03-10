@@ -422,8 +422,8 @@ const DITA_RULES: DitaRule[] = [
         versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
         severity: DiagnosticSeverity.Error,
         check(text, diagnostics) {
-            // <xref> must not nest another <xref>
-            const regex = new RegExp(`<xref\\b${TAG_ATTRS}>([\\s\\S]*?)<\\/xref>`, 'g');
+            // <xref> must not nest another <xref> (skip self-closing <xref .../>)
+            const regex = new RegExp(`<xref\\b${TAG_ATTRS}(?<!\\/)>([\\s\\S]*?)<\\/xref>`, 'g');
             let match;
             while ((match = regex.exec(text)) !== null) {
                 const inner = match[1];
