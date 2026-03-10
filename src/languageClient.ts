@@ -56,6 +56,13 @@ export async function startLanguageClient(
 }
 
 /**
+ * Get the active language client instance (for sending commands).
+ */
+export function getLanguageClient(): LanguageClient | undefined {
+    return client;
+}
+
+/**
  * Stop the DITA Language Server
  */
 export async function stopLanguageClient(): Promise<void> {

@@ -11,6 +11,8 @@ import { XMLValidator } from 'fast-xml-parser';
 import { URI } from 'vscode-uri';
 
 import { DitaCraftSettings } from '../settings';
+import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
+import { t } from '../utils/i18n';
 
 const SOURCE = 'dita-lsp';
 
@@ -62,8 +64,13 @@ export function validateDITADocument(
  */
 function validateXML(text: string, diagnostics: Diagnostic[]): void {
     try {
-        // Strip DOCTYPE declaration — fast-xml-parser chokes on it
-        const stripped = text.replace(/<!DOCTYPE[^>]*>/gi, '');
+        // Strip DOCTYPE declaration — fast-xml-parser chokes on it.
+        // Replace with whitespace (preserving newlines) to keep line/column offsets valid.
+        // Handles internal subsets: <!DOCTYPE topic PUBLIC "..." "..." [ ... ]>
+        const stripped = text.replace(
+            /<!DOCTYPE\s[\s\S]*?(?:\[[\s\S]*?\]\s*)?>|<!DOCTYPE[^>]*>/gi,
+            (m) => m.replace(/[^\n\r]/g, ' ')
+        );
 
         const result = XMLValidator.validate(stripped, {
             allowBooleanAttributes: true,
@@ -117,48 +124,50 @@ function validateDITAStructure(
 ): void {
     const ext = getFileExtension(uri);
 
+    // Strip comments to avoid matching elements inside them.
+    // Line structure is preserved so offsets from the original text remain valid.
+    const cleanText = stripCommentsAndCDATA(text);
+
     // DITAVAL files have different structure — no DOCTYPE/title/id required
     if (ext === '.ditaval') {
-        validateDitavalStructure(text, diagnostics);
+        validateDitavalStructure(cleanText, diagnostics);
         return;
     }
 
-    // Missing DOCTYPE
+    // Missing DOCTYPE (check raw text — DOCTYPE is not inside comments)
     if (!text.includes('<!DOCTYPE')) {
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
             range: createRange(0, 0),
-            message: 'Missing DOCTYPE declaration',
+            message: t('struct.missingDoctype'),
             source: SOURCE,
             code: CODES.MISSING_DOCTYPE,
         });
     }
 
     if (ext === '.dita') {
-        validateTopicStructure(text, diagnostics);
+        validateTopicStructure(cleanText, diagnostics);
     } else if (ext === '.ditamap') {
-        validateMapStructure(text, diagnostics);
+        validateMapStructure(cleanText, diagnostics);
     } else if (ext === '.bookmap') {
-        validateBookmapStructure(text, diagnostics);
+        validateBookmapStructure(cleanText, diagnostics);
     }
 
     // Empty elements check
-    checkEmptyElements(text, diagnostics);
+    checkEmptyElements(cleanText, diagnostics);
 }
 
 function validateTopicStructure(
     text: string,
     diagnostics: Diagnostic[]
 ): void {
-    const topicTypes = ['<topic', '<concept', '<task', '<reference'];
-    const hasTopicRoot = topicTypes.some((t) => text.includes(t));
+    const hasTopicRoot = [...TOPIC_TYPE_NAMES].some((name) => new RegExp(`<${name}[\\s>]`).test(text));
 
     if (!hasTopicRoot) {
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
-            message:
-                'DITA topic must have a valid root element (topic, concept, task, or reference)',
+            message: t('struct.invalidTopicRoot', [...TOPIC_TYPE_NAMES].slice(0, 4).join(', ')),
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
@@ -166,28 +175,28 @@ function validateTopicStructure(
     }
 
     // Check id attribute on root element
+    const topicPattern = [...TOPIC_TYPE_NAMES].join('|');
     const idMatch = text.match(
-        /<(?:topic|concept|task|reference)\s+[^>]*id="([^"]*)"/
+        new RegExp(`<(?:${topicPattern})\\s+[^>]*id=(?:"([^"]*)"|'([^']*)')`)
     );
     if (!idMatch) {
-        const rootMatch = text.match(/<(?:topic|concept|task|reference)[\s>]/);
+        const rootMatch = text.match(new RegExp(`<(?:${topicPattern})[\\s>]`));
         const pos = rootMatch
             ? findLineAndColumn(text, rootMatch.index!)
             : { line: 0, col: 0 };
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(pos.line, pos.col),
-            message:
-                'Root element must have an id attribute (required by DITA DTD)',
+            message: t('struct.missingId'),
             source: SOURCE,
             code: CODES.MISSING_ID,
         });
-    } else if (idMatch[1] === '') {
+    } else if ((idMatch[1] ?? idMatch[2]) === '') {
         const pos = findLineAndColumn(text, idMatch.index!);
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(pos.line, pos.col),
-            message: 'Root element id attribute cannot be empty',
+            message: t('struct.emptyId'),
             source: SOURCE,
             code: CODES.MISSING_ID,
         });
@@ -198,8 +207,7 @@ function validateTopicStructure(
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
-            message:
-                'DITA topic must contain a <title> element (required by DTD)',
+            message: t('struct.missingTopicTitle'),
             source: SOURCE,
             code: CODES.MISSING_TITLE,
         });
@@ -211,7 +219,7 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
-            message: 'DITA map must have a <map> root element',
+            message: t('struct.invalidMapRoot'),
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
@@ -221,7 +229,7 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
             range: createRange(0, 0),
-            message: 'DITA map should contain a <title> element',
+            message: t('struct.missingMapTitle'),
             source: SOURCE,
             code: CODES.MISSING_TITLE,
         });
@@ -236,7 +244,7 @@ function validateBookmapStructure(
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
-            message: 'Bookmap must have a <bookmap> root element',
+            message: t('struct.invalidBookmapRoot'),
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
@@ -251,7 +259,7 @@ function validateDitavalStructure(
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
-            message: 'DITAVAL file must have a <val> root element',
+            message: t('struct.invalidDitavalRoot'),
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
@@ -278,7 +286,7 @@ function checkEmptyElements(text: string, diagnostics: Diagnostic[]): void {
                         character: pos.col + match[0].length,
                     },
                 },
-                message: `Empty <${name}> element should be removed or filled with content`,
+                message: t('struct.emptyElement', name),
                 source: SOURCE,
                 code: CODES.EMPTY_ELEMENT,
             });
@@ -298,11 +306,10 @@ function stripCommentsAndCDATA(text: string): string {
 
 // DITA topic/map root elements use XML ID type (must start with letter/underscore).
 // All other elements use NMTOKEN type (can start with digits).
+// Derived from the canonical sets in ditaSpecialization.ts (lowercased for case-insensitive matching).
 const DITA_ROOT_ELEMENTS = new Set([
-    'topic', 'concept', 'task', 'reference', 'glossentry', 'glossgroup',
-    'troubleshooting', 'map', 'bookmap', 'subjectscheme',
-    'learningassessment', 'learningcontent', 'learningoverview',
-    'learningplan', 'learningsummary',
+    ...[...TOPIC_TYPE_NAMES].map(n => n.toLowerCase()),
+    ...[...MAP_TYPE_NAMES].map(n => n.toLowerCase()),
 ]);
 
 /**
@@ -348,6 +355,9 @@ function validateIDs(
     }
 
     for (const [idValue, locations] of idLocations) {
+        // id="value" is 4 + value.length chars (id=" + value + ")
+        const idAttrLen = 4 + idValue.length + 1;
+
         // Invalid ID format
         if (idValue) {
             const isRootElement = DITA_ROOT_ELEMENTS.has(locations[0].element);
@@ -357,20 +367,20 @@ function validateIDs(
                     const pos = locations[0];
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
-                        range: createRange(pos.line, pos.col),
-                        message: `ID "${idValue}" should start with a letter or underscore and contain only letters, digits, hyphens, underscores, and periods`,
+                        range: Range.create(pos.line, pos.col, pos.line, pos.col + idAttrLen),
+                        message: t('id.invalidXmlId', idValue),
                         source: SOURCE,
                         code: CODES.INVALID_ID_FORMAT,
                     });
                 }
             } else {
                 // NMTOKEN type: can start with digit but must contain only valid characters
-                if (!/^[\w.\-]+$/.test(idValue)) {
+                if (!/^[\w.-]+$/.test(idValue)) {
                     const pos = locations[0];
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
-                        range: createRange(pos.line, pos.col),
-                        message: `ID "${idValue}" should contain only letters, digits, hyphens, underscores, and periods`,
+                        range: Range.create(pos.line, pos.col, pos.line, pos.col + idAttrLen),
+                        message: t('id.invalidNmtoken', idValue),
                         source: SOURCE,
                         code: CODES.INVALID_ID_FORMAT,
                     });
@@ -391,16 +401,16 @@ function validateIDs(
                                 other.line,
                                 other.col,
                                 other.line,
-                                other.col + idValue.length + 4
+                                other.col + idAttrLen
                             )
                         ),
-                        message: `"${idValue}" also defined here`,
+                        message: t('id.duplicateRelated', idValue),
                     }));
 
                 diagnostics.push({
                     severity: DiagnosticSeverity.Error,
-                    range: createRange(pos.line, pos.col),
-                    message: `Duplicate id "${idValue}"`,
+                    range: Range.create(pos.line, pos.col, pos.line, pos.col + idAttrLen),
+                    message: t('id.duplicate', idValue),
                     source: SOURCE,
                     code: CODES.DUPLICATE_ID,
                     relatedInformation: relatedInfo,

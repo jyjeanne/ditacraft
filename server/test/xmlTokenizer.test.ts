@@ -329,6 +329,40 @@ suite('xmlTokenizer', () => {
             assert.deepStrictEqual(types, [TokenType.CHAR_DATA]);
             assert.strictEqual(tokens[0].text, 'just some text');
         });
+
+        test('unquoted attribute value', () => {
+            // <p id=foo> should recover, treating foo as the value of id
+            const tokens = allTokens('<p id=foo>');
+            const attrName = tokens.find(t => t.type === TokenType.ATTR_NAME);
+            assert.strictEqual(attrName!.text, 'id');
+            const attrValue = tokens.find(t => t.type === TokenType.ATTR_VALUE);
+            assert.strictEqual(attrValue!.text, 'foo');
+        });
+
+        test('unquoted attribute value before self-close', () => {
+            const tokens = allTokens('<image href=pic.png/>');
+            const attrValue = tokens.find(t => t.type === TokenType.ATTR_VALUE);
+            assert.strictEqual(attrValue!.text, 'pic.png');
+            const hasClose = tokens.some(t => t.type === TokenType.EMPTY_ELEMENT_END);
+            assert.ok(hasClose);
+        });
+
+        test('unquoted attribute value with findAttributeAtOffset', () => {
+            const input = '<p id=myid>';
+            // cursor inside "myid" (offset 7)
+            const result = findAttributeAtOffset(input, 7);
+            assert.ok(result);
+            assert.strictEqual(result!.attrName, 'id');
+            assert.strictEqual(result!.attrValue, 'myid');
+        });
+
+        test('multiple attributes with some unquoted', () => {
+            const tokens = allTokens('<p id=foo class="bar">');
+            const attrValues = tokens
+                .filter(t => t.type === TokenType.ATTR_VALUE)
+                .map(t => t.text);
+            assert.deepStrictEqual(attrValues, ['foo', 'bar']);
+        });
     });
 
     suite('complete DITA document', () => {

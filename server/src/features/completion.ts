@@ -23,6 +23,7 @@ import {
 } from '../data/ditaSchema';
 import { KeySpaceService } from '../services/keySpaceService';
 import { SubjectSchemeService } from '../services/subjectSchemeService';
+import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
 
 const enum Context {
     ElementName,
@@ -288,13 +289,14 @@ function getAttributeCompletions(ctx: CompletionContext): CompletionItem[] {
     const all = DITAVAL_ELEMENTS.has(ctx.elementName)
         ? specific
         : [...specific, ...COMMON_ATTRIBUTES];
-    // Deduplicate
+    // Deduplicate, tracking which attrs are element-specific
+    const specificSet = new Set(specific);
     const unique = [...new Set(all)];
 
     return unique.map((attr, index) => ({
         label: attr,
         kind: CompletionItemKind.Property,
-        sortText: index < specific.length
+        sortText: specificSet.has(attr)
             ? `0${String(index).padStart(3, '0')}`
             : `1${String(index).padStart(3, '0')}`,
         insertText: `${attr}="$1"`,
@@ -331,18 +333,31 @@ async function getAttributeValueCompletions(
 
     // --- Subject scheme controlled values ---
     // When a subject scheme constrains this attribute, offer only valid values
+    // with hierarchy grouping and default value preselection.
     if (subjectSchemeService && subjectSchemeService.hasSchemeData()) {
         const schemeValues = subjectSchemeService.getValidValues(attrName, ctx.elementName);
         if (schemeValues && schemeValues.size > 0) {
+            const defaultValue = subjectSchemeService.getDefaultValue(attrName, ctx.elementName);
             const items: CompletionItem[] = [];
             let index = 0;
             for (const val of schemeValues) {
-                items.push({
+                const hierarchyPath = subjectSchemeService.getHierarchyPath(val);
+                // Use the hierarchy path's top-level group as sortText prefix
+                // so values from the same branch sort together
+                const groupPrefix = hierarchyPath
+                    ? hierarchyPath.split(' > ')[0]
+                    : '';
+                const item: CompletionItem = {
                     label: val,
                     kind: CompletionItemKind.EnumMember,
-                    detail: 'Subject scheme',
-                    sortText: String(index).padStart(3, '0'),
-                });
+                    detail: hierarchyPath || 'Subject scheme',
+                    sortText: `${groupPrefix.padEnd(30)}${String(index).padStart(3, '0')}`,
+                    preselect: val === defaultValue,
+                };
+                if (val === defaultValue) {
+                    item.documentation = 'Default value (from subject scheme)';
+                }
+                items.push(item);
                 index++;
             }
             return items;
@@ -563,11 +578,11 @@ const HREF_FILE_EXTENSIONS = /\.(dita|ditamap|xml|ditaval|bookmap)$/i;
 
 // --- ID extraction helpers ---
 
-/** DITA topic-type element names for topic ID extraction. */
-const TOPIC_ELEMENTS = /^(?:topic|concept|task|reference|glossentry|glossgroup|troubleshooting)$/;
+/** DITA topic-type element names for topic ID extraction (from ditaSpecialization). */
+const TOPIC_ELEMENTS = new RegExp(`^(?:${[...TOPIC_TYPE_NAMES].join('|')})$`);
 
 /** Same list as a string for use in dynamic RegExp construction. */
-const TOPIC_ELEMENTS_ALT = 'topic|concept|task|reference|glossentry|glossgroup|troubleshooting';
+const TOPIC_ELEMENTS_ALT = [...TOPIC_TYPE_NAMES].join('|');
 
 /**
  * Extract all topic-level IDs (root elements of topic types).

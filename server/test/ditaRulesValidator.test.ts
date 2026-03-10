@@ -31,14 +31,17 @@ suite('validateDitaRules', () => {
         });
 
         test('version filtering excludes rules', () => {
-            // SCH-014 only applies to DITA 1.2
+            // SCH-014 applies to DITA 1.2-1.3 (deprecated), removed in 2.0 (SCH-058)
             const text = '<topicref navtitle="Test" href="test.dita"/>';
             const diags12 = validate(text, { ditaVersion: '1.2' });
             const diags13 = validate(text, { ditaVersion: '1.3' });
+            const diags11 = validate(text, { ditaVersion: '1.1' });
             const sch014_12 = diags12.filter(d => d.code === 'DITA-SCH-014');
             const sch014_13 = diags13.filter(d => d.code === 'DITA-SCH-014');
+            const sch014_11 = diags11.filter(d => d.code === 'DITA-SCH-014');
             assert.strictEqual(sch014_12.length, 1, 'should fire on DITA 1.2');
-            assert.strictEqual(sch014_13.length, 0, 'should NOT fire on DITA 1.3');
+            assert.strictEqual(sch014_13.length, 1, 'should fire on DITA 1.3');
+            assert.strictEqual(sch014_11.length, 0, 'should NOT fire on DITA 1.1');
         });
     });
 
@@ -297,6 +300,135 @@ suite('validateDitaRules', () => {
             assert.ok(codes.has('DITA-SCH-003'), 'should fire SCH-003 for indextermref');
             assert.ok(codes.has('DITA-SCH-010'), 'should fire SCH-010 for boolean');
             assert.ok(codes.has('DITA-SCH-030'), 'should fire SCH-030 for image');
+        });
+    });
+
+    suite('New rules (Phase 2)', () => {
+        test('DITA-SCH-040: nested xref inside xref', () => {
+            const text = '<xref href="a.dita">See <xref href="b.dita">this</xref></xref>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-040');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('must not contain'));
+        });
+
+        test('DITA-SCH-040: xref without nesting is OK', () => {
+            const text = '<xref href="a.dita">See this</xref>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-040');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-SCH-041: image inside pre', () => {
+            const text = '<pre>Code <image href="pic.png"/> here</pre>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-041');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('image'));
+        });
+
+        test('DITA-SCH-041: sub inside pre', () => {
+            const text = '<pre>H<sub>2</sub>O</pre>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-041');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('sub'));
+        });
+
+        test('DITA-SCH-041: text-only pre is OK', () => {
+            const text = '<pre>just plain code</pre>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-041');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-SCH-042: abstract without shortdesc', () => {
+            const text = '<abstract><p>Some long description.</p></abstract>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-042');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('shortdesc'));
+        });
+
+        test('DITA-SCH-042: abstract with shortdesc is OK', () => {
+            const text = '<abstract><shortdesc>Brief.</shortdesc><p>More detail.</p></abstract>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-042');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-SCH-043: no-topic-nesting present', () => {
+            const text = '<topic id="t1"><body/><no-topic-nesting/></topic>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-043');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('no output'));
+        });
+
+        test('DITA-SCH-044: deprecated role="sample"', () => {
+            const text = '<link role="sample" href="test.dita"/>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-044');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('deprecated'));
+        });
+
+        test('DITA-SCH-044: deprecated role="external"', () => {
+            const text = '<link role="external" href="test.dita"/>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-044');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-SCH-044: role="parent" is OK', () => {
+            const text = '<link role="parent" href="test.dita"/>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-044');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-SCH-045: single paragraph body', () => {
+            const text = '<body><p>Only one paragraph here.</p></body>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-045');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('shortdesc'));
+        });
+
+        test('DITA-SCH-045: multi-paragraph body is OK', () => {
+            const text = '<body><p>First.</p><p>Second.</p></body>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-045');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-SCH-045: body with list is OK', () => {
+            const text = '<body><p>Intro.</p><ul><li>item</li></ul></body>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-045');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-SCH-046: titled section without id', () => {
+            const text = '<section><title>My Section</title><p>Content.</p></section>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-046');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('id'));
+        });
+
+        test('DITA-SCH-046: titled section with id is OK', () => {
+            const text = '<section id="s1"><title>My Section</title><p>Content.</p></section>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-046');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-SCH-046: section without title is OK', () => {
+            const text = '<section><p>Content without title.</p></section>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-SCH-046');
+            assert.strictEqual(matches.length, 0);
         });
     });
 

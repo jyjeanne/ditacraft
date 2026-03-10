@@ -409,6 +409,24 @@ export const DITA_ELEMENTS: Record<string, string[]> = {
     'change-completed': [],
     'change-summary': [],
 
+    // ===== DITA 2.0 Multimedia elements =====
+    audio: ['desc', 'fallback', 'media-source', 'media-track'],
+    video: ['desc', 'fallback', 'media-source', 'media-track', 'video-poster'],
+    'media-source': [],
+    'media-track': [],
+    'video-poster': [],
+    fallback: ['p', 'div', 'ul', 'ol', 'dl', 'sl', 'fig', 'image', 'lines', 'lq', 'note', 'object', 'pre', 'simpletable', 'table'],
+
+    // ===== DITA 2.0 Include element =====
+    include: ['fallback'],
+
+    // ===== DITA 2.0 Keytext element =====
+    keytext: [],
+
+    // ===== DITA 2.0 Emphasis domain =====
+    strong: [],
+    em: [],
+
     // ===== Abbreviate domain =====
     'abbreviated-form': [],
 
@@ -495,6 +513,15 @@ export const ELEMENT_ATTRIBUTES: Record<string, string[]> = {
     keyword: ['keyref'],
     'abbreviated-form': ['keyref'],
     tm: ['tmtype', 'trademark'],
+    // DITA 2.0 multimedia attributes
+    audio: ['autoplay', 'controls', 'loop', 'muted', 'tabindex', 'keyref'],
+    video: ['autoplay', 'controls', 'loop', 'muted', 'tabindex', 'height', 'width', 'keyref'],
+    'media-source': ['href', 'keyref', 'format'],
+    'media-track': ['href', 'keyref', 'kind', 'srclang'],
+    'video-poster': ['href', 'keyref'],
+    include: ['href', 'keyref', 'format', 'parse', 'encoding'],
+    strong: ['keyref'],
+    em: ['keyref'],
     // Metadata
     audience: ['type', 'job', 'experiencelevel'],
     othermeta: ['name', 'content'],
@@ -705,6 +732,17 @@ export const ELEMENT_DOCS: Record<string, string> = {
     keyref: '**`keyref`** attribute — Key reference\n\nReferences content via an indirect key.\n\nKey must be defined in a map via `<keydef>`.',
     // Utilities domain
     imagemap: '**`<imagemap>`** — Image map\n\nImage with clickable areas.\n\n**Children:** image, area',
+    // DITA 2.0 multimedia
+    audio: '**`<audio>`** — Audio player *(DITA 2.0)*\n\nEmbeds an audio resource.\n\n**Children:** desc, fallback, media-source, media-track\n\n**Attributes:** autoplay, controls, loop, muted',
+    video: '**`<video>`** — Video player *(DITA 2.0)*\n\nEmbeds a video resource.\n\n**Children:** desc, fallback, media-source, media-track, video-poster\n\n**Attributes:** autoplay, controls, loop, muted, height, width',
+    'media-source': '**`<media-source>`** — Media source *(DITA 2.0)*\n\nSpecifies a media resource for `<audio>` or `<video>`.\n\n**Attributes:** href, keyref, format',
+    'media-track': '**`<media-track>`** — Media track *(DITA 2.0)*\n\nSpecifies a timed text track (subtitles, captions) for `<audio>` or `<video>`.\n\n**Attributes:** href, keyref, kind, srclang',
+    'video-poster': '**`<video-poster>`** — Video poster image *(DITA 2.0)*\n\nSpecifies a poster image for `<video>`.\n\n**Attributes:** href, keyref',
+    fallback: '**`<fallback>`** — Fallback content *(DITA 2.0)*\n\nContent displayed when the parent multimedia or include element cannot be rendered.',
+    include: '**`<include>`** — Include external content *(DITA 2.0)*\n\nIncludes content from another resource (text, XML, code).\n\n**Attributes:** href, keyref, format, parse, encoding',
+    keytext: '**`<keytext>`** — Key text *(DITA 2.0)*\n\nDefines the text content for a key definition.',
+    strong: '**`<strong>`** — Strong emphasis *(DITA 2.0)*\n\nStrong emphasis (replaces `<b>` for semantic markup).',
+    em: '**`<em>`** — Emphasis *(DITA 2.0)*\n\nEmphasis (replaces `<i>` for semantic markup).',
     // DITAVAL ref
     ditavalref: '**`<ditavalref>`** — DITAVAL reference\n\nApplies a DITAVAL filter to a branch of the map.\n\n**Attributes:** href, format',
     // DITAVAL file elements

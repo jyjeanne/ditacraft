@@ -18,6 +18,8 @@ export interface SubjectSchemeData {
     validValuesMap: Map<string, Map<string, Set<string>>>;
     /** attributeName → (elementName → defaultValue) */
     defaultValueMap: Map<string, Map<string, string>>;
+    /** key → hierarchy path (e.g., "Platform > Linux > Ubuntu") */
+    hierarchyPaths: Map<string, string>;
 }
 
 const ANY_ELEMENT = '*';
@@ -63,6 +65,7 @@ export class SubjectSchemeService {
             const empty: SubjectSchemeData = {
                 validValuesMap: new Map(),
                 defaultValueMap: new Map(),
+                hierarchyPaths: new Map(),
             };
             return empty;
         }
@@ -71,7 +74,17 @@ export class SubjectSchemeService {
         const data: SubjectSchemeData = {
             validValuesMap: new Map(),
             defaultValueMap: new Map(),
+            hierarchyPaths: new Map(),
         };
+
+        // Build hierarchy paths for all subject definitions (deduplicate shared defs)
+        const visited = new Set<SubjectDefinition>();
+        for (const def of subjectDefs.values()) {
+            if (!visited.has(def)) {
+                visited.add(def);
+                this.buildHierarchyPaths(def, [], data.hierarchyPaths);
+            }
+        }
 
         this.processEnumerationDefs(content, subjectDefs, data);
         this.cache.set(mapFilePath, { data, timestamp: Date.now() });
@@ -90,10 +103,17 @@ export class SubjectSchemeService {
         const merged: SubjectSchemeData = {
             validValuesMap: new Map(),
             defaultValueMap: new Map(),
+            hierarchyPaths: new Map(),
         };
 
         for (const schemePath of this.registeredSchemes) {
             const data = this.parseSubjectScheme(schemePath);
+            // Merge hierarchy paths (first-definition-wins)
+            for (const [key, pathStr] of data.hierarchyPaths) {
+                if (!merged.hierarchyPaths.has(key)) {
+                    merged.hierarchyPaths.set(key, pathStr);
+                }
+            }
             // Merge valid values
             for (const [attr, elements] of data.validValuesMap) {
                 if (!merged.validValuesMap.has(attr)) {
@@ -149,6 +169,27 @@ export class SubjectSchemeService {
     isControlledAttribute(attributeName: string): boolean {
         const data = this.getMergedSchemeData();
         return data.validValuesMap.has(attributeName);
+    }
+
+    /**
+     * Get the hierarchy path for a subject key (e.g., "Platform > Linux > Ubuntu").
+     */
+    getHierarchyPath(key: string): string | null {
+        const data = this.getMergedSchemeData();
+        return data.hierarchyPaths.get(key) ?? null;
+    }
+
+    /**
+     * Get the default value for an attribute on an element.
+     */
+    getDefaultValue(attributeName: string, elementName?: string): string | null {
+        const data = this.getMergedSchemeData();
+        const elements = data.defaultValueMap.get(attributeName);
+        if (!elements) return null;
+        if (elementName) {
+            return elements.get(elementName) ?? elements.get(ANY_ELEMENT) ?? null;
+        }
+        return elements.get(ANY_ELEMENT) ?? null;
     }
 
     /** Check if any scheme data is available. */
@@ -318,6 +359,30 @@ export class SubjectSchemeService {
                 }
                 data.validValuesMap.get(attributeName)!.set(elementName, valueSet);
             }
+        }
+    }
+
+    /**
+     * Build hierarchy paths for subject definitions.
+     * E.g., for a tree "Platform > Linux > Ubuntu", stores "Platform > Linux > Ubuntu" for key "ubuntu".
+     */
+    private buildHierarchyPaths(
+        def: SubjectDefinition,
+        parentPath: string[],
+        result: Map<string, string>
+    ): void {
+        // Use navtitle as the canonical label; fall back to first key
+        const label = def.navtitle || (def.keys.size > 0 ? [...def.keys][0] : '');
+        const currentPath = label ? [...parentPath, label] : parentPath;
+
+        for (const key of def.keys) {
+            if (currentPath.length > 0) {
+                result.set(key, currentPath.join(' > '));
+            }
+        }
+
+        for (const child of def.children) {
+            this.buildHierarchyPaths(child, currentPath, result);
         }
     }
 

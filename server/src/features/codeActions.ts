@@ -8,6 +8,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 
 // Diagnostic codes from validation.ts
 const CODES = {
@@ -94,7 +95,8 @@ function getFixesForDiagnostic(
  */
 function fixMissingDoctype(text: string, document: TextDocument): CodeAction[] {
     // Detect root element type
-    const rootMatch = text.match(/<(topic|concept|task|reference|map|bookmap)[\s>]/);
+    const allRootTypes = [...TOPIC_TYPE_NAMES, ...MAP_TYPE_NAMES].join('|');
+    const rootMatch = text.match(new RegExp(`<(${allRootTypes})[\\s>]`));
     if (!rootMatch) return [];
 
     const rootType = rootMatch[1];
@@ -103,8 +105,12 @@ function fixMissingDoctype(text: string, document: TextDocument): CodeAction[] {
         concept: '<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">',
         task: '<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">',
         reference: '<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">',
+        glossentry: '<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">',
+        glossgroup: '<!DOCTYPE glossgroup PUBLIC "-//OASIS//DTD DITA Glossary Group//EN" "glossgroup.dtd">',
+        troubleshooting: '<!DOCTYPE troubleshooting PUBLIC "-//OASIS//DTD DITA Troubleshooting//EN" "troubleshooting.dtd">',
         map: '<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">',
         bookmap: '<!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd">',
+        subjectScheme: '<!DOCTYPE subjectScheme PUBLIC "-//OASIS//DTD DITA Subject Scheme Map//EN" "subjectScheme.dtd">',
     };
 
     const doctype = doctypeMap[rootType];
@@ -136,7 +142,8 @@ function fixMissingDoctype(text: string, document: TextDocument): CodeAction[] {
  * Fix: Add id attribute to root element.
  */
 function fixMissingId(text: string, document: TextDocument): CodeAction[] {
-    const rootMatch = text.match(/<(topic|concept|task|reference)\s/);
+    const topicPattern = [...TOPIC_TYPE_NAMES].join('|');
+    const rootMatch = text.match(new RegExp(`<(${topicPattern})([\\s>])`));
     if (!rootMatch || rootMatch.index === undefined) return [];
 
     // Generate an id from the filename
@@ -146,8 +153,8 @@ function fixMissingId(text: string, document: TextDocument): CodeAction[] {
         .replace(/[^a-zA-Z0-9_-]/g, '_');
     const id = filename || 'topic_id';
 
-    // Insert id attribute right after the tag name
-    const insertOffset = rootMatch.index + rootMatch[0].length;
+    // Insert ` id="..."` right after '<tagname', before the space or '>'.
+    const insertOffset = rootMatch.index + 1 + rootMatch[1].length;
     const insertPos = document.positionAt(insertOffset);
 
     return [{
@@ -157,7 +164,7 @@ function fixMissingId(text: string, document: TextDocument): CodeAction[] {
             changes: {
                 [document.uri]: [{
                     range: Range.create(insertPos, insertPos),
-                    newText: `id="${id}" `,
+                    newText: ` id="${id}"`,
                 }],
             },
         },
@@ -168,7 +175,8 @@ function fixMissingId(text: string, document: TextDocument): CodeAction[] {
  * Fix: Add <title> element after root element opening tag.
  */
 function fixMissingTitle(text: string, document: TextDocument): CodeAction[] {
-    const rootMatch = text.match(/<(topic|concept|task|reference|map|bookmap)[^>]*>/);
+    const allTypes = [...TOPIC_TYPE_NAMES, ...MAP_TYPE_NAMES].join('|');
+    const rootMatch = text.match(new RegExp(`<(${allTypes})[^>]*>`));
     if (!rootMatch || rootMatch.index === undefined) return [];
 
     // Insert after the root element's opening tag

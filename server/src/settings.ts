@@ -8,7 +8,8 @@ import { RuleCategory } from './features/ditaRulesValidator';
 export interface DitaCraftSettings {
     autoValidate: boolean;
     validationDebounceMs: number;
-    validationEngine: string;
+    /** Validation engine: 'built-in' | 'typesxml' | 'xmllint' */
+    validationEngine: 'built-in' | 'typesxml' | 'xmllint';
     keySpaceCacheTtlMinutes: number;
     maxLinkMatches: number;
     maxNumberOfProblems: number;
@@ -22,6 +23,12 @@ export interface DitaCraftSettings {
     crossRefValidationEnabled: boolean;
     /** Enable subject scheme controlled value validation. */
     subjectSchemeValidationEnabled: boolean;
+    /** Override auto-detected DITA version ('auto' | '1.0' | '1.1' | '1.2' | '1.3' | '2.0'). */
+    ditaVersion: 'auto' | '1.0' | '1.1' | '1.2' | '1.3' | '2.0';
+    /** Schema format for validation: 'dtd' (default) or 'rng' (requires salve-annos). */
+    schemaFormat: 'dtd' | 'rng';
+    /** Path to directory containing RNG schema files (e.g., DITA-OT's schema directory). */
+    rngSchemaPath: string;
 }
 
 const defaultSettings: DitaCraftSettings = {
@@ -36,6 +43,9 @@ const defaultSettings: DitaCraftSettings = {
     ditaRulesCategories: ['mandatory', 'recommendation', 'authoring', 'accessibility'],
     crossRefValidationEnabled: true,
     subjectSchemeValidationEnabled: true,
+    ditaVersion: 'auto',
+    schemaFormat: 'dtd',
+    rngSchemaPath: '',
 };
 
 // Cache of settings per document URI
@@ -54,8 +64,8 @@ export function getGlobalSettings(): DitaCraftSettings {
     return globalSettings;
 }
 
-export function updateGlobalSettings(settings: DitaCraftSettings): void {
-    globalSettings = settings;
+export function updateGlobalSettings(settings: Partial<DitaCraftSettings>): void {
+    globalSettings = { ...defaultSettings, ...settings };
 }
 
 export function getDocumentSettings(resource: string): Thenable<DitaCraftSettings> {
@@ -67,7 +77,10 @@ export function getDocumentSettings(resource: string): Thenable<DitaCraftSetting
         result = connection.workspace.getConfiguration({
             scopeUri: resource,
             section: 'ditacraft'
-        }) ?? Promise.resolve(globalSettings);
+        }).then((conf: Partial<DitaCraftSettings>) => ({
+            ...defaultSettings,
+            ...conf,
+        }));
         documentSettings.set(resource, result);
     }
     return result;

@@ -130,6 +130,14 @@ async function getKeyrefHover(
     }
     contents.push(`**Defined in:** ${path.basename(keyDef.sourceMap)}`);
 
+    // Conkeyref content preview — resolve key target, then extract element
+    if (ref.type === 'conkeyref' && elementId && keyDef.targetFile) {
+        const preview = getConrefPreview(keyDef.targetFile, elementId);
+        if (preview) {
+            contents.push(`---\n\n**Preview:**\n\n\`\`\`xml\n${preview}\n\`\`\``);
+        }
+    }
+
     return {
         contents: {
             kind: MarkupKind.Markdown,
@@ -140,7 +148,8 @@ async function getKeyrefHover(
 
 /**
  * Generate hover content for href/conref attribute values.
- * Shows resolved path, fragment info, and file existence warning.
+ * Shows resolved path, fragment info, file existence warning,
+ * and inline content preview for conref references.
  */
 function getHrefHover(
     ref: { type: string; value: string },
@@ -181,12 +190,88 @@ function getHrefHover(
         contents.push(`**Fragment:** \`${parsed.fragment}\``);
     }
 
+    // Conref content preview — show the referenced element's content
+    if (ref.type === 'conref' && parsed.fragment) {
+        const preview = getConrefPreview(resolvedPath, parsed.fragment);
+        if (preview) {
+            contents.push(`---\n\n**Preview:**\n\n\`\`\`xml\n${preview}\n\`\`\``);
+        }
+    }
+
     return {
         contents: {
             kind: MarkupKind.Markdown,
             value: contents.join('\n\n'),
         },
     };
+}
+
+/**
+ * Extract the content of a referenced element for conref preview.
+ * Fragment format: "topicid/elementid" or just "topicid".
+ * Returns the first ~300 chars of the element's XML content, or null.
+ */
+function getConrefPreview(filePath: string, fragment: string): string | null {
+    let content: string;
+    try {
+        content = fs.readFileSync(filePath, 'utf-8');
+    } catch {
+        return null;
+    }
+
+    // Parse fragment: topicid/elementid
+    const slashPos = fragment.indexOf('/');
+    const targetId = slashPos !== -1 ? fragment.substring(slashPos + 1) : fragment;
+    if (!targetId) return null;
+
+    // Find the element with the target id
+    const escaped = targetId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Use quote-aware pattern to handle '>' inside attribute values
+    const TAG_ATTRS = `(?:"[^"]*"|'[^']*'|[^>"'])*`;
+    const regex = new RegExp(`<([\\w-]+)\\b${TAG_ATTRS}\\bid\\s*=\\s*["']${escaped}["']${TAG_ATTRS}>`, 'g');
+    const match = regex.exec(content);
+    if (!match) return null;
+
+    const tagName = match[1];
+    const startIdx = match.index;
+
+    // Find matching closing tag (simple depth tracking)
+    const closeTag = `</${tagName}>`;
+    let depth = 1;
+    let pos = startIdx + match[0].length;
+    const openPattern = new RegExp(`<${tagName}\\b(?:"[^"]*"|'[^']*'|[^>"'])*\\/?>`, 'g');
+
+    while (depth > 0 && pos < content.length) {
+        const nextClose = content.indexOf(closeTag, pos);
+        if (nextClose === -1) break;
+
+        // Count opens between pos and nextClose
+        openPattern.lastIndex = pos;
+        let openMatch;
+        while ((openMatch = openPattern.exec(content)) !== null && openMatch.index < nextClose) {
+            if (!openMatch[0].endsWith('/>')) {
+                depth++;
+            }
+        }
+
+        depth--;
+        if (depth === 0) {
+            const fullElement = content.substring(startIdx, nextClose + closeTag.length);
+            const MAX_PREVIEW = 300;
+            if (fullElement.length > MAX_PREVIEW) {
+                return fullElement.substring(0, MAX_PREVIEW) + '\n  ...';
+            }
+            return fullElement;
+        }
+        pos = nextClose + closeTag.length;
+    }
+
+    // Fallback: just show the opening tag + first line of content
+    const lineEnd = content.indexOf('\n', startIdx + match[0].length);
+    if (lineEnd !== -1) {
+        return content.substring(startIdx, lineEnd) + '\n  ...';
+    }
+    return match[0];
 }
 
 /**

@@ -8,6 +8,7 @@
 
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
 import { SubjectSchemeService } from '../services/subjectSchemeService';
+import { t } from '../utils/i18n';
 
 const SOURCE = 'dita-lsp';
 
@@ -73,7 +74,7 @@ export function validateProfilingAttributes(
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
                         range,
-                        message: `Value "${token}" is not allowed for @${attrName}. Valid values: ${allowed}`,
+                        message: t('prof.invalidValue', token, attrName, allowed),
                         code: PROFILING_CODES.INVALID_VALUE,
                         source: SOURCE,
                     });

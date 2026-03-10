@@ -6,10 +6,12 @@
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
 import { URI } from 'vscode-uri';
 import * as path from 'path';
-import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 
 import { KeySpaceService } from '../services/keySpaceService';
 import { parseReference } from '../utils/referenceParser';
+import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
+import { t } from '../utils/i18n';
 
 const SOURCE = 'dita-lsp';
 
@@ -23,9 +25,8 @@ export const XREF_CODES = {
     KEY_MISSING_ELEMENT: 'DITA-KEY-003',
 } as const;
 
-/** DITA topic-type element names for topic ID validation. */
-const TOPIC_ELEMENTS_PATTERN =
-    'topic|concept|task|reference|glossentry|glossgroup|troubleshooting';
+/** DITA topic-type element names for topic ID validation (regex alternation). */
+const TOPIC_ELEMENTS_PATTERN = [...TOPIC_TYPE_NAMES].join('|');
 
 /**
  * Validate all cross-references in a DITA document.
@@ -64,11 +65,13 @@ export async function validateCrossReferences(
         // Check file existence
         if (parsed.filePath) {
             const targetPath = path.resolve(currentDir, parsed.filePath);
-            if (!fs.existsSync(targetPath)) {
+            try {
+                await fsp.access(targetPath);
+            } catch {
                 diagnostics.push({
                     severity: DiagnosticSeverity.Warning,
                     range,
-                    message: `Target file not found: ${parsed.filePath}`,
+                    message: t('xref.missingFile', parsed.filePath),
                     code: XREF_CODES.MISSING_FILE,
                     source: SOURCE,
                 });
@@ -79,7 +82,7 @@ export async function validateCrossReferences(
             if (parsed.fragment) {
                 let targetContent: string;
                 try {
-                    targetContent = fs.readFileSync(targetPath, 'utf-8');
+                    targetContent = await fsp.readFile(targetPath, 'utf-8');
                 } catch {
                     continue;
                 }
@@ -117,7 +120,7 @@ export async function validateCrossReferences(
                 diagnostics.push({
                     severity: DiagnosticSeverity.Warning,
                     range,
-                    message: `Key "${keyName}" is not defined in any map`,
+                    message: t('key.undefined', keyName),
                     code: XREF_CODES.UNDEFINED_KEY,
                     source: SOURCE,
                 });
@@ -128,7 +131,7 @@ export async function validateCrossReferences(
                 diagnostics.push({
                     severity: DiagnosticSeverity.Warning,
                     range,
-                    message: `Key "${keyName}" has no target (no href on keydef)`,
+                    message: t('key.noTarget', keyName),
                     code: XREF_CODES.KEY_NO_TARGET,
                     source: SOURCE,
                 });
@@ -137,20 +140,20 @@ export async function validateCrossReferences(
 
             // Check element ID within key's target
             if (elementId && keyDef.targetFile) {
-                if (fs.existsSync(keyDef.targetFile)) {
-                    let targetContent: string;
-                    try {
-                        targetContent = fs.readFileSync(keyDef.targetFile, 'utf-8');
-                    } catch {
-                        continue;
-                    }
+                let targetContent: string | null = null;
+                try {
+                    targetContent = await fsp.readFile(keyDef.targetFile, 'utf-8');
+                } catch {
+                    // File missing or unreadable — skip element ID check
+                }
+                if (targetContent !== null) {
                     const escaped = escapeRegex(elementId);
                     const idRegex = new RegExp(`\\bid\\s*=\\s*["']${escaped}["']`);
                     if (!idRegex.test(targetContent)) {
                         diagnostics.push({
                             severity: DiagnosticSeverity.Warning,
                             range,
-                            message: `Element ID "${elementId}" not found in target of key "${keyName}"`,
+                            message: t('key.missingElement', elementId, keyName),
                             code: XREF_CODES.KEY_MISSING_ELEMENT,
                             source: SOURCE,
                         });
@@ -196,7 +199,7 @@ function validateFragment(
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
             range,
-            message: `Topic ID "${topicId}" not found in ${fileName}`,
+            message: t('xref.missingTopicId', topicId, fileName),
             code: XREF_CODES.MISSING_TOPIC_ID,
             source: SOURCE,
         });
@@ -211,7 +214,7 @@ function validateFragment(
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
                 range,
-                message: `Element ID "${elementId}" not found in topic "${topicId}" of ${fileName}`,
+                message: t('xref.missingElementId', elementId, topicId, fileName),
                 code: XREF_CODES.MISSING_ELEMENT_ID,
                 source: SOURCE,
             });

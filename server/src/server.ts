@@ -32,6 +32,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import * as path from 'path';
 
 import {
     initSettings,
@@ -59,7 +60,10 @@ import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { validateProfilingAttributes } from './features/profilingValidation';
 import { detectDitaVersion } from './utils/ditaVersionDetector';
+import { CatalogValidationService } from './services/catalogValidationService';
+import { RngValidationService } from './services/rngValidationService';
 import { URI } from 'vscode-uri';
+import { setLocale } from './utils/i18n';
 
 // Create LSP connection using IPC transport
 const connection = createConnection(ProposedFeatures.all);
@@ -71,6 +75,8 @@ let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let keySpaceService: KeySpaceService | undefined;
 const subjectSchemeService = new SubjectSchemeService();
+const catalogValidationService = new CatalogValidationService();
+const rngValidationService = new RngValidationService();
 
 connection.onInitialize((params: InitializeParams): InitializeResult => {
     const capabilities = params.capabilities;
@@ -81,6 +87,9 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
     hasWorkspaceFolderCapability = !!(
         capabilities.workspace && capabilities.workspace.workspaceFolders
     );
+
+    // Set locale from client for localized diagnostic messages
+    setLocale(params.locale);
 
     initSettings(connection, hasConfigurationCapability);
 
@@ -99,6 +108,26 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
         },
         (msg) => connection.console.log(msg)
     );
+
+    // Initialize TypesXML catalog validation service.
+    // The server module runs from <extensionPath>/server/out/server.js,
+    // so extensionPath is two directories up from __dirname.
+    const serverDir = __dirname; // server/out
+    const extensionPath = path.resolve(serverDir, '..', '..');
+    catalogValidationService.initialize(extensionPath);
+    if (catalogValidationService.isAvailable) {
+        connection.console.log('TypesXML catalog validation initialized');
+    } else if (catalogValidationService.error) {
+        connection.console.log(`TypesXML not available: ${catalogValidationService.error}`);
+    }
+
+    // Initialize RNG validation service (optional — requires salve-annos + saxes)
+    rngValidationService.initialize();
+    if (rngValidationService.isAvailable) {
+        connection.console.log('RNG validation service initialized (salve-annos)');
+    } else if (rngValidationService.error) {
+        connection.console.log(`RNG validation not available: ${rngValidationService.error}`);
+    }
 
     const result: InitializeResult = {
         capabilities: {
@@ -127,6 +156,9 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
                 resolveProvider: true,
             },
             linkedEditingRangeProvider: true,
+            executeCommandProvider: {
+                commands: ['ditacraft.setRootMap', 'ditacraft.clearRootMap'],
+            },
         },
     };
 
@@ -164,14 +196,44 @@ connection.onInitialized(() => {
     connection.console.log('DITA Language Server ready');
 });
 
+// Workspace commands: setRootMap / clearRootMap
+connection.onExecuteCommand(async (params) => {
+    if (params.command === 'ditacraft.setRootMap') {
+        const rootMapPath = params.arguments?.[0] as string | undefined;
+        if (rootMapPath) {
+            keySpaceService?.setExplicitRootMap(rootMapPath);
+            connection.console.log(`Root map set to: ${rootMapPath}`);
+            // Trigger revalidation of all open documents
+            connection.languages.diagnostics.refresh();
+        }
+        return null;
+    }
+
+    if (params.command === 'ditacraft.clearRootMap') {
+        keySpaceService?.setExplicitRootMap(null);
+        connection.console.log('Root map cleared — reverting to auto-discovery');
+        connection.languages.diagnostics.refresh();
+        return null;
+    }
+
+    return null;
+});
+
 // File watcher — invalidate key space cache on map changes
 connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
+    let mapChanged = false;
     for (const change of params.changes) {
         const filePath = URI.parse(change.uri).fsPath;
         if (filePath.endsWith('.ditamap') || filePath.endsWith('.bookmap')) {
             keySpaceService?.invalidateForFile(filePath);
             subjectSchemeService.invalidate(filePath);
+            mapChanged = true;
         }
+    }
+    // When external map files change, revalidate all open documents
+    // (key space and cross-references may have changed)
+    if (mapChanged) {
+        debouncedRefresh('__map_external__', MAP_DEBOUNCE_MS);
     }
 });
 
@@ -209,6 +271,35 @@ connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Pr
 
     const text = document.getText();
 
+    // Schema validation: DTD (TypesXML) or RNG (salve-annos) — mutually exclusive.
+    // When schemaFormat is 'rng' and available, skip DTD validation to avoid duplicates.
+    const useRng = rngValidationService.isAvailable && settings.schemaFormat === 'rng';
+
+    // DTD validation via TypesXML + OASIS catalog (when available).
+    // Only run when typesxml engine is selected AND RNG is not active.
+    if (!useRng && catalogValidationService.isAvailable && settings.validationEngine === 'typesxml') {
+        const existingErrorLines = new Set(
+            diagnostics
+                .filter(d => d.code === 'DITA-XML-001')
+                .map(d => d.range.start.line)
+        );
+        const dtdDiags = catalogValidationService.validate(text);
+        for (const diag of dtdDiags) {
+            if (!existingErrorLines.has(diag.range.start.line)) {
+                diagnostics.push(diag);
+            }
+        }
+    }
+
+    // RNG validation via salve-annos (when available and selected)
+    if (useRng) {
+        if (settings.rngSchemaPath) {
+            rngValidationService.setSchemaBasePath(settings.rngSchemaPath);
+        }
+        const rngDiags = await rngValidationService.validate(text);
+        diagnostics.push(...rngDiags);
+    }
+
     // Cross-reference validation (async — needs file system + key space)
     if (settings.crossRefValidationEnabled !== false) {
         const xrefDiags = await validateCrossReferences(
@@ -233,8 +324,10 @@ connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Pr
         diagnostics.push(...profilingDiags);
     }
 
-    // Schematron-equivalent DITA rules (auto-detect DITA version)
-    const ditaVersion = detectDitaVersion(text);
+    // Schematron-equivalent DITA rules (auto-detect DITA version, with override)
+    const ditaVersion = settings.ditaVersion && settings.ditaVersion !== 'auto'
+        ? settings.ditaVersion
+        : detectDitaVersion(text);
     const ruleDiags = validateDitaRules(text, {
         enabled: settings.ditaRulesEnabled !== false,
         categories: settings.ditaRulesCategories ?? ['mandatory', 'recommendation', 'authoring', 'accessibility'],
@@ -308,18 +401,56 @@ connection.onDocumentLinkResolve((link: DocumentLink) => handleDocumentLinkResol
 // Linked Editing Range handler (simultaneous open/close tag renaming)
 connection.languages.onLinkedEditingRange((params: LinkedEditingRangeParams) => handleLinkedEditingRange(params, documents));
 
+// --- Smart debouncing for diagnostics refresh ---
+// Tiered delays: map files change less often but affect all documents;
+// topic files change frequently and only affect themselves.
+const TOPIC_DEBOUNCE_MS = 300;
+const MAP_DEBOUNCE_MS = 1000;
+const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+function isMapFile(uri: string): boolean {
+    return uri.endsWith('.ditamap') || uri.endsWith('.bookmap');
+}
+
+/**
+ * Debounced diagnostics refresh, keyed by document URI.
+ * Cancels any pending refresh for the same key before scheduling a new one.
+ */
+function debouncedRefresh(key: string, delayMs: number): void {
+    const existing = debounceTimers.get(key);
+    if (existing) clearTimeout(existing);
+    debounceTimers.set(key, setTimeout(() => {
+        debounceTimers.delete(key);
+        connection.languages.diagnostics.refresh();
+    }, delayMs));
+}
+
 // Document lifecycle events
 documents.onDidOpen((event: TextDocumentChangeEvent<TextDocument>) => {
     connection.console.log(`Document opened: ${event.document.uri}`);
 });
 
-documents.onDidChangeContent((_change: TextDocumentChangeEvent<TextDocument>) => {
-    connection.languages.diagnostics.refresh();
+documents.onDidChangeContent((change: TextDocumentChangeEvent<TextDocument>) => {
+    const uri = change.document.uri;
+    if (isMapFile(uri)) {
+        // Map changes affect key space for all documents — use longer delay
+        keySpaceService?.invalidateForFile(URI.parse(uri).fsPath);
+        debouncedRefresh(uri, MAP_DEBOUNCE_MS);
+    } else {
+        debouncedRefresh(uri, TOPIC_DEBOUNCE_MS);
+    }
 });
 
 documents.onDidClose((event: TextDocumentChangeEvent<TextDocument>) => {
-    clearDocumentSettings(event.document.uri);
-    connection.console.log(`Document closed: ${event.document.uri}`);
+    const uri = event.document.uri;
+    clearDocumentSettings(uri);
+    // Clean up any pending debounce timer for this document
+    const timer = debounceTimers.get(uri);
+    if (timer) {
+        clearTimeout(timer);
+        debounceTimers.delete(uri);
+    }
+    connection.console.log(`Document closed: ${uri}`);
 });
 
 // Wire up document manager and start listening

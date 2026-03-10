@@ -16,6 +16,9 @@ function defaultSettings(): DitaCraftSettings {
         ditaRulesCategories: ['mandatory', 'recommendation', 'authoring', 'accessibility'],
         crossRefValidationEnabled: true,
         subjectSchemeValidationEnabled: true,
+        ditaVersion: 'auto',
+        schemaFormat: 'dtd',
+        rngSchemaPath: '',
     };
 }
 

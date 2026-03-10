@@ -221,6 +221,14 @@
         "command": "ditacraft.diagnosticsGroupByType",
         "title": "Group by Severity",
         "icon": "$(symbol-enum)"
+      },
+      {
+        "command": "ditacraft.setRootMap",
+        "title": "DITA: Set Root Map"
+      },
+      {
+        "command": "ditacraft.clearRootMap",
+        "title": "DITA: Clear Root Map (Auto-Discover)"
       }
     ],
     "menus": {
@@ -429,8 +437,8 @@
             "xmllint"
           ],
           "enumDescriptions": [
-            "Full DTD validation using TypesXML (recommended, pure TypeScript)",
             "Built-in validation with content model checking (no DTD, lightweight)",
+            "Full DTD validation using TypesXML (recommended, pure TypeScript)",
             "External xmllint for DTD validation (requires libxml2 installed)"
           ],
           "description": "XML validation engine. TypesXML provides full DTD validation. Built-in provides content model checking without full DTD.",
@@ -549,6 +557,12 @@
           "default": true,
           "description": "Enable subject scheme controlled value validation. When a subject scheme map constrains profiling attributes, validates that only allowed values are used.",
           "order": 23
+        },
+        "ditacraft.rootMap": {
+          "type": "string",
+          "default": "",
+          "description": "Explicit root map path (relative to workspace root). Leave empty for automatic discovery. Set via 'DITA: Set Root Map' command.",
+          "order": 24
         }
       }
     },
@@ -642,7 +656,7 @@
     "nyc": "^18.0.0",
     "sinon": "^21.0.2",
     "typescript": "^5.2.2",
-    "typescript-eslint": "^8.56.1"
+    "typescript-eslint": "^8.57.0"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",

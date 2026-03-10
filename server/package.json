@@ -9,12 +9,16 @@
   },
   "dependencies": {
     "fast-xml-parser": "^5.3.4",
+    "salve-annos": "^1.2.4",
+    "saxes": "^6.0.0",
+    "typesxml": "^1.17.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11",
-    "vscode-uri": "^3.0.8"
+    "vscode-uri": "^3.0.8",
+    "xregexp": "^4.4.1"
   },
   "devDependencies": {
-    "mocha": "^11.7.5",
-    "@types/mocha": "^10.0.1"
+    "@types/mocha": "^10.0.1",
+    "mocha": "^11.7.5"
   }
 }

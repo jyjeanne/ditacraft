@@ -64,6 +64,7 @@ export function* tokenize(input: string): Generator<Token> {
     let column = 0;
     let state: State = State.CONTENT;
     let attrQuoteChar = '"';
+    let lastTokenType: TokenType | null = null;
     const elementStack: string[] = [];
 
     function peek(ahead = 0): string {
@@ -95,6 +96,7 @@ export function* tokenize(input: string): Generator<Token> {
         type: TokenType, text: string,
         startLine: number, startCol: number, startOffset: number
     ): Token {
+        lastTokenType = type;
         return { type, text, line: startLine, column: startCol, offset: startOffset };
     }
 
@@ -282,8 +284,21 @@ export function* tokenize(input: string): Generator<Token> {
                     yield makeToken(TokenType.ATTR_QUOTE, ch, startLine, startCol, startOffset);
                     state = State.ATTR_VALUE;
                 } else if (isNameStartChar(ch)) {
-                    const name = scanName();
-                    yield makeToken(TokenType.ATTR_NAME, name, startLine, startCol, startOffset);
+                    if (lastTokenType === TokenType.EQUALS) {
+                        // Error recovery: unquoted attribute value (e.g., href=file.dita)
+                        let value = '';
+                        while (pos < input.length
+                            && !isWhitespace(input[pos])
+                            && input[pos] !== '>'
+                            && input[pos] !== '/'
+                            && input[pos] !== '<') {
+                            value += advance();
+                        }
+                        yield makeToken(TokenType.ATTR_VALUE, value, startLine, startCol, startOffset);
+                    } else {
+                        const name = scanName();
+                        yield makeToken(TokenType.ATTR_NAME, name, startLine, startCol, startOffset);
+                    }
                 } else {
                     // Error recovery: emit synthetic '>' and go back to content
                     yield makeToken(TokenType.ELEMENT_END, '>', startLine, startCol, startOffset);

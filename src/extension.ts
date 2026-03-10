@@ -35,11 +35,12 @@ import { DitaExplorerProvider, DitaExplorerItem } from './providers/ditaExplorer
 import { DitaFileDecorationProvider } from './providers/ditaFileDecorationProvider';
 import { KeySpaceViewProvider } from './providers/keySpaceViewProvider';
 import { DiagnosticsViewProvider } from './providers/diagnosticsViewProvider';
-import { startLanguageClient, stopLanguageClient } from './languageClient';
+import { startLanguageClient, stopLanguageClient, getLanguageClient } from './languageClient';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
 let outputChannel: vscode.OutputChannel;
+let rootMapStatusBarItem: vscode.StatusBarItem;
 
 /**
  * Extension activation function
@@ -159,10 +160,15 @@ export function activate(context: vscode.ExtensionContext) {
             fileDecorationProvider
         );
 
+        // Register root map commands and status bar
+        registerRootMapFeature(context);
+
         // Start Language Server
         outputChannel.appendLine('Starting DITA Language Server...');
         startLanguageClient(context).then(() => {
             outputChannel.appendLine('DITA Language Server started');
+            // Send initial root map setting to server if configured
+            sendInitialRootMapSetting();
         }).catch((err) => {
             const msg = err instanceof Error ? err.message : 'Unknown error';
             logger.error('Failed to start DITA Language Server', err);
@@ -193,6 +199,143 @@ export function activate(context: vscode.ExtensionContext) {
             outputChannel.show();
         }
         throw error;
+    }
+}
+
+/**
+ * Register the Set Root Map / Clear Root Map commands and status bar item.
+ */
+function registerRootMapFeature(context: vscode.ExtensionContext): void {
+    // Status bar item showing current root map
+    rootMapStatusBarItem = vscode.window.createStatusBarItem(
+        vscode.StatusBarAlignment.Left,
+        50
+    );
+    rootMapStatusBarItem.command = 'ditacraft.setRootMap';
+    rootMapStatusBarItem.tooltip = 'Click to set DITA root map';
+    updateRootMapStatusBar(null);
+    context.subscriptions.push(rootMapStatusBarItem);
+
+    // Only show status bar when a DITA file is active
+    const updateVisibility = () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor && editor.document.languageId === 'dita') {
+            rootMapStatusBarItem.show();
+        } else {
+            rootMapStatusBarItem.hide();
+        }
+    };
+    updateVisibility();
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(updateVisibility));
+
+    // Set Root Map command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.setRootMap', async () => {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders) {
+                vscode.window.showWarningMessage('No workspace open');
+                return;
+            }
+
+            // Find all .ditamap and .bookmap files in workspace
+            const mapFiles = await vscode.workspace.findFiles(
+                '**/*.{ditamap,bookmap}',
+                '**/node_modules/**',
+                100
+            );
+
+            if (mapFiles.length === 0) {
+                vscode.window.showWarningMessage('No .ditamap or .bookmap files found in workspace');
+                return;
+            }
+
+            const items = mapFiles.map(uri => {
+                const relative = vscode.workspace.asRelativePath(uri);
+                return { label: relative, description: uri.fsPath, uri };
+            }).sort((a, b) => a.label.localeCompare(b.label));
+
+            const selected = await vscode.window.showQuickPick(items, {
+                placeHolder: 'Select the root map for key resolution and validation',
+                title: 'Set DITA Root Map',
+            });
+
+            if (selected) {
+                const rootMapPath = selected.uri.fsPath;
+                // Save in workspace settings
+                const config = vscode.workspace.getConfiguration('ditacraft');
+                await config.update('rootMap', vscode.workspace.asRelativePath(selected.uri), vscode.ConfigurationTarget.Workspace);
+
+                // Send to language server
+                const client = getLanguageClient();
+                if (client) {
+                    await client.sendRequest('workspace/executeCommand', {
+                        command: 'ditacraft.setRootMap',
+                        arguments: [rootMapPath],
+                    });
+                }
+
+                updateRootMapStatusBar(selected.label);
+                logger.info(`Root map set to: ${rootMapPath}`);
+            }
+        })
+    );
+
+    // Clear Root Map command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.clearRootMap', async () => {
+            const config = vscode.workspace.getConfiguration('ditacraft');
+            await config.update('rootMap', '', vscode.ConfigurationTarget.Workspace);
+
+            const client = getLanguageClient();
+            if (client) {
+                await client.sendRequest('workspace/executeCommand', {
+                    command: 'ditacraft.clearRootMap',
+                    arguments: [],
+                });
+            }
+
+            updateRootMapStatusBar(null);
+            logger.info('Root map cleared — auto-discovery mode');
+        })
+    );
+}
+
+/**
+ * Update the root map status bar item text.
+ */
+function updateRootMapStatusBar(rootMapName: string | null): void {
+    if (rootMapStatusBarItem) {
+        if (rootMapName) {
+            rootMapStatusBarItem.text = `$(file-symlink-directory) ${rootMapName}`;
+            rootMapStatusBarItem.tooltip = `Root map: ${rootMapName}\nClick to change`;
+        } else {
+            rootMapStatusBarItem.text = '$(file-symlink-directory) Root Map: Auto';
+            rootMapStatusBarItem.tooltip = 'Root map: auto-discovery\nClick to set explicitly';
+        }
+    }
+}
+
+/**
+ * Send initial root map setting to the server on startup.
+ */
+function sendInitialRootMapSetting(): void {
+    const config = vscode.workspace.getConfiguration('ditacraft');
+    const rootMap = config.get<string>('rootMap', '');
+    if (rootMap) {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders) {
+            const absolutePath = vscode.Uri.joinPath(workspaceFolders[0].uri, rootMap).fsPath;
+            const client = getLanguageClient();
+            if (client) {
+                client.sendRequest('workspace/executeCommand', {
+                    command: 'ditacraft.setRootMap',
+                    arguments: [absolutePath],
+                }).catch((error: unknown) => {
+                    logger.error('Failed to send initial root map to server', error);
+                });
+            }
+            updateRootMapStatusBar(rootMap);
+        }
     }
 }
 

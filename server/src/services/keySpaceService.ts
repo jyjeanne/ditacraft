@@ -9,6 +9,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 
+/**
+ * Regex fragment that matches tag attributes correctly,
+ * even when attribute values contain literal `>` characters.
+ */
+const TAG_ATTRS = `(?:"[^"]*"|'[^']*'|[^>"'])*`;
+
 // --- Interfaces ---
 
 export interface KeyDefinition {
@@ -72,6 +78,9 @@ export class KeySpaceService {
     private pendingInvalidations: Set<string> = new Set();
     private cleanupTimer: ReturnType<typeof setInterval> | undefined;
 
+    /** Explicitly set root map path (overrides auto-discovery). */
+    private explicitRootMapPath: string | null = null;
+
     constructor(
         workspaceFolders: string[],
         getSettings: () => Promise<KeySpaceSettings>,
@@ -99,6 +108,23 @@ export class KeySpaceService {
     /** Get the current workspace folder paths. */
     public getWorkspaceFolders(): readonly string[] {
         return this.workspaceFolders;
+    }
+
+    /**
+     * Set an explicit root map path, overriding auto-discovery.
+     * Pass null to revert to auto-discovery.
+     */
+    public setExplicitRootMap(rootMapPath: string | null): void {
+        this.explicitRootMapPath = rootMapPath;
+        // Clear both caches so findRootMap uses the new explicit path
+        // and key space is rebuilt from the new root map
+        this.rootMapCache.clear();
+        this.keySpaceCache.clear();
+    }
+
+    /** Get the current explicit root map path (null if auto-discovering). */
+    public getExplicitRootMap(): string | null {
+        return this.explicitRootMapPath;
     }
 
     /**
@@ -182,9 +208,15 @@ export class KeySpaceService {
 
     /**
      * Find root map for a given file by searching upward through directories.
+     * If an explicit root map is set via setExplicitRootMap(), it is always returned.
      * Priority: root.ditamap > main.ditamap > master.ditamap > first alphabetically.
      */
     public async findRootMap(filePath: string): Promise<string | null> {
+        // Explicit root map overrides auto-discovery
+        if (this.explicitRootMapPath) {
+            return this.explicitRootMapPath;
+        }
+
         const absolutePath = path.isAbsolute(filePath)
             ? filePath
             : path.resolve(filePath);
@@ -316,7 +348,11 @@ export class KeySpaceService {
         };
 
         const visited = new Set<string>();
-        const queue: string[] = [absoluteRootPath];
+        // Each queue entry carries an array of scope prefixes (combinatorial).
+        // An empty array means no scope; each string is one fully-qualified prefix path.
+        const queue: { mapPath: string; scopePrefixes: string[] }[] = [
+            { mapPath: absoluteRootPath, scopePrefixes: [] },
+        ];
         let maxLinkMatches = 10000;
 
         try {
@@ -327,7 +363,7 @@ export class KeySpaceService {
         }
 
         while (queue.length > 0) {
-            const currentMap = queue.shift()!;
+            const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
             const normalizedPath = path.normalize(currentMap);
 
             if (visited.has(normalizedPath)) continue;
@@ -343,11 +379,27 @@ export class KeySpaceService {
                 // Strip comments and CDATA to avoid false matches
                 const mapContent = this.stripCommentsAndCdata(rawContent);
 
+                // Detect keyscope(s) on root element of this map
+                const rootScopes = this.extractRootKeyscope(mapContent);
+                // Combine parent prefixes with root-level scopes (cross product)
+                const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, rootScopes);
+
                 // Extract key definitions — first definition wins
                 const keys = this.extractKeyDefinitions(mapContent, currentMap, maxLinkMatches);
                 for (const keyDef of keys) {
+                    // Store unqualified key name (first definition wins)
                     if (!keySpace.keys.has(keyDef.keyName)) {
                         keySpace.keys.set(keyDef.keyName, keyDef);
+                    }
+                    // Store scope-qualified key names (e.g., "a.x.keyname", "b.x.keyname")
+                    for (const prefix of effectivePrefixes) {
+                        const qualifiedName = `${prefix}.${keyDef.keyName}`;
+                        if (!keySpace.keys.has(qualifiedName)) {
+                            keySpace.keys.set(qualifiedName, {
+                                ...keyDef,
+                                keyName: qualifiedName,
+                            });
+                        }
                     }
                 }
 
@@ -356,9 +408,15 @@ export class KeySpaceService {
                     keySpace.subjectSchemePaths.push(currentMap);
                 }
 
-                // Queue submaps
+                // Queue submaps (inherit scope prefixes + detect new scopes)
                 const submaps = this.extractMapReferences(mapContent, currentMap, maxLinkMatches);
-                queue.push(...submaps);
+                for (const submap of submaps) {
+                    const childPrefixes = this.combineScopePrefixes(effectivePrefixes, submap.keyscopes);
+                    queue.push({
+                        mapPath: submap.path,
+                        scopePrefixes: childPrefixes,
+                    });
+                }
             } catch {
                 // Error reading/parsing map, skip
             }
@@ -379,7 +437,7 @@ export class KeySpaceService {
         const keys: KeyDefinition[] = [];
         const mapDir = path.dirname(mapPath);
 
-        const keydefRegex = /<(\w+)[^>]*\bkeys\s*=\s*["']([^"']+)["'][^>]*>/gi;
+        const keydefRegex = new RegExp(`<(\\w+)\\b${TAG_ATTRS}\\bkeys\\s*=\\s*["']([^"']+)["']${TAG_ATTRS}>`, 'gi');
         let match: RegExpExecArray | null;
         let matchCount = 0;
 
@@ -526,13 +584,14 @@ export class KeySpaceService {
         mapContent: string,
         mapPath: string,
         maxLinkMatches: number
-    ): string[] {
-        const submaps: string[] = [];
+    ): { path: string; keyscopes: string[] }[] {
+        const submaps: { path: string; keyscopes: string[] }[] = [];
         const mapDir = path.dirname(mapPath);
         // Match ANY element with href pointing to a .ditamap or .bookmap file.
         // This covers mapref, topicref, chapter, appendix, part, glossarylist,
         // frontmatter, backmatter, notices, preface, topichead, anchorref, etc.
-        const mapRefRegex = /<\w+[^>]*\bhref\s*=\s*["']([^"']+\.(?:ditamap|bookmap))["'][^>]*>/gi;
+        // Also capture keyscope attribute for key scope support.
+        const mapRefRegex = new RegExp(`<\\w+\\b${TAG_ATTRS}\\bhref\\s*=\\s*["']([^"']+\\.(?:ditamap|bookmap))["']${TAG_ATTRS}>`, 'gi');
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
@@ -546,7 +605,12 @@ export class KeySpaceService {
 
             const absolutePath = path.resolve(mapDir, href);
             if (this.isPathWithinWorkspace(absolutePath)) {
-                submaps.push(absolutePath);
+                // Extract all keyscope names from the element
+                const keyscopeMatch = match[0].match(/\bkeyscope\s*=\s*["']([^"']+)["']/i);
+                const keyscopes = keyscopeMatch
+                    ? keyscopeMatch[1].split(/\s+/).filter(s => s.length > 0)
+                    : [];
+                submaps.push({ path: absolutePath, keyscopes });
             }
         }
 
@@ -645,6 +709,33 @@ export class KeySpaceService {
             const normalizedWorkspace = path.normalize(folder);
             return normalizedPath.startsWith(normalizedWorkspace + path.sep);
         });
+    }
+
+    /**
+     * Compute the cross product of parent scope prefixes and child scope names.
+     * - If childScopes is empty, returns parentPrefixes unchanged (scope is inherited).
+     * - If parentPrefixes is empty, returns childScopes as new prefixes.
+     * - Otherwise returns every "parent.child" combination.
+     * Uses a Set internally to deduplicate (handles diamond-shaped scope graphs).
+     */
+    private combineScopePrefixes(parentPrefixes: string[], childScopes: string[]): string[] {
+        if (childScopes.length === 0) return parentPrefixes;
+        if (parentPrefixes.length === 0) return childScopes;
+        const combined = new Set<string>();
+        for (const parent of parentPrefixes) {
+            for (const child of childScopes) {
+                combined.add(`${parent}.${child}`);
+            }
+        }
+        return Array.from(combined);
+    }
+
+    /** Extract keyscope(s) from the root map/bookmap element. */
+    private extractRootKeyscope(mapContent: string): string[] {
+        const rootMatch = mapContent.match(new RegExp(`<(?:map|bookmap)\\b(${TAG_ATTRS})`, 'i'));
+        if (!rootMatch) return [];
+        const keyscopeMatch = rootMatch[1].match(/\bkeyscope\s*=\s*["']([^"']+)["']/i);
+        return keyscopeMatch ? keyscopeMatch[1].split(/\s+/).filter(s => s.length > 0) : [];
     }
 
     /** Check if a map file is a subject scheme map (root element is <subjectScheme>). */
