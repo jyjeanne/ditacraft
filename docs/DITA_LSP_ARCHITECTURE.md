@@ -6,7 +6,7 @@ DitaCraft is a VS Code extension providing a full-featured Language Server Proto
 
 **Version:** 0.6.2 | **Last Updated:** March 2026
 
-**Stack:** TypeScript · vscode-languageserver 9.x · Node.js IPC transport · Mocha (TDD) · 430 tests
+**Stack:** TypeScript · vscode-languageserver 9.x · Node.js IPC transport · Mocha (TDD) · 461 tests
 
 ---
 
@@ -33,19 +33,24 @@ server/
 │   │   ├── documentLinks.ts            #   Clickable href/conref/keyref links
 │   │   ├── crossRefValidation.ts       #   Cross-file reference validation
 │   │   ├── ditaRulesValidator.ts       #   Schematron-equivalent DITA rules engine
-│   │   └── profilingValidation.ts      #   Subject scheme controlled value validation
+│   │   ├── profilingValidation.ts      #   Subject scheme controlled value validation
+│   │   ├── circularRefDetection.ts     #   Circular reference detection (DFS traversal)
+│   │   └── workspaceValidation.ts      #   Cross-file duplicate IDs + unused topics
 │   │
 │   ├── services/                        # Domain services with caching
+│   │   ├── validationPipeline.ts        #   10-phase validation orchestrator with error isolation
 │   │   ├── keySpaceService.ts           #   DITA key space resolution (BFS map traversal)
 │   │   ├── subjectSchemeService.ts      #   Subject scheme parsing and value constraints
-│   │   ├── catalogValidationService.ts  #   TypesXML DTD + OASIS catalog (Layer 2)
-│   │   └── rngValidationService.ts      #   salve-annos RelaxNG validation (Layer 3)
+│   │   ├── catalogValidationService.ts  #   TypesXML DTD + OASIS catalog
+│   │   └── rngValidationService.ts      #   salve-annos RelaxNG validation
 │   │
 │   ├── utils/                           # Shared utilities
 │   │   ├── xmlTokenizer.ts              #   Error-tolerant state-machine XML tokenizer
 │   │   ├── referenceParser.ts           #   Parse and locate href/conref/keyref values
 │   │   ├── workspaceScanner.ts          #   Collect DITA files, cross-file search
 │   │   ├── ditaVersionDetector.ts       #   Detect DITA version from content
+│   │   ├── textUtils.ts                 #   Shared: comment stripping, offsetToRange, escapeRegex
+│   │   ├── patterns.ts                  #   Shared: TAG_ATTRS regex pattern
 │   │   └── i18n.ts                      #   Localization (70 messages, EN+FR)
 │   │
 │   ├── messages/                        # Localized diagnostic messages
@@ -56,7 +61,7 @@ server/
 │       ├── ditaSchema.ts                #   Element hierarchy, attributes, documentation
 │       └── ditaSpecialization.ts        #   DITA @class attribute matching
 │
-└── test/                                # Mocha TDD tests (430 tests)
+└── test/                                # Mocha TDD tests (461 tests)
     ├── helper.ts                        #   Test utilities (mock documents)
     ├── validation.test.ts
     ├── completion.test.ts
@@ -69,6 +74,9 @@ server/
     ├── crossRefValidation.test.ts
     ├── ditaRulesValidator.test.ts
     ├── profilingValidation.test.ts
+    ├── circularRefDetection.test.ts
+    ├── definition.test.ts
+    ├── keySpaceService.test.ts
     ├── referenceParser.test.ts
     ├── subjectSchemeService.test.ts
     ├── ditaSpecialization.test.ts
@@ -88,9 +96,10 @@ server/
 ```
 Client (VS Code)  ──IPC──>  server.ts  ──delegates──>  features/*
                                 │
-                                ├── KeySpaceService    (key resolution, map traversal)
+                                ├── ValidationPipeline  (10-phase validation orchestrator)
+                                ├── KeySpaceService     (key resolution, map traversal)
                                 ├── SubjectSchemeService (controlled values)
-                                └── TextDocuments       (open document cache)
+                                └── TextDocuments        (open document cache)
 ```
 
 On initialization, the server:
@@ -99,45 +108,60 @@ On initialization, the server:
 3. Creates the `SubjectSchemeService` singleton
 4. Initializes the `CatalogValidationService` (TypesXML + OASIS catalog, parser pool of 3)
 5. Initializes the `RngValidationService` (salve-annos, optional)
-6. Sets up the `i18n` locale from client's display language
-7. Registers all LSP handlers
+6. Creates the `ValidationPipeline` with all validation services and a logger
+7. Sets up the `i18n` locale from client's display language
+8. Registers all LSP handlers
 
 ### Document Validation Pipeline
 
-Diagnostics are pull-based (LSP 3.17 — the client requests them). The pipeline runs 6 layers in order, triggered by a smart debounce mechanism (300ms for topics, 1000ms for maps) with per-document cancellation:
+Diagnostics are pull-based (LSP 3.17 — the client requests them). The `ValidationPipeline` class (`services/validationPipeline.ts`) orchestrates all 10 validation phases, triggered by a smart debounce mechanism (300ms for topics, 1000ms for maps) with per-document cancellation.
+
+Each phase is wrapped in error isolation (try/catch with logging) so a failure in one phase doesn't discard results from others.
 
 ```
 Document change (typing)
   └─> onDidChangeContent → smart debounce → diagnostics.refresh()
         │
-        └─> Pull diagnostics handler runs all 6 layers:
+        └─> Pull diagnostics handler → ValidationPipeline.validate()
               │
-              ├─> Layer 1+4: validateDITADocument()
+              ├─> Phase 1-3: validateDITADocument()
               │     ├── XML well-formedness (fast-xml-parser)
               │     ├── DITA structure (root, DOCTYPE, title)
               │     ├── Bookmap validation (booktitle, mainbooktitle)
               │     ├── Topicref check (missing href/keyref/keys/conref/conkeyref)
               │     └── ID validation (duplicates, format, single+double quotes)
               │
-              ├─> Layer 2: catalogValidationService.validate()
-              │     └── DTD validation (TypesXML + OASIS catalog, parser pool)
+              ├─> Phase 4: Schema validation (DTD or RNG, mutually exclusive)
+              │     ├── catalogValidationService.validate() — DTD (TypesXML + catalog)
+              │     └── rngValidationService.validate() — RNG (salve-annos, optional)
               │
-              ├─> Layer 3: rngValidationService.validate()  [optional]
-              │     └── RelaxNG validation (salve-annos + saxes)
-              │
-              ├─> Layer 5: validateDitaRules()
-              │     └── 35 rules (5 categories, version-filtered)
-              │
-              ├─> Layer 6a: validateCrossReferences()
+              ├─> Phase 5: validateCrossReferences()
               │     └── href/conref/keyref/conkeyref target validation
               │
-              └─> Layer 6b: validateProfilingAttributes()
-                    └── Subject scheme controlled values
+              ├─> Phase 6: Subject scheme registration
+              │     └── Discover and register subject schemes from key space
+              │
+              ├─> Phase 7: validateProfilingAttributes()
+              │     └── Subject scheme controlled values
+              │
+              ├─> Phase 8: validateDitaRules()
+              │     └── 35 rules (5 categories, version-filtered)
+              │
+              ├─> Phase 9: detectCircularReferences()
+              │     └── DFS traversal to detect href/conref/mapref cycles
+              │
+              └─> Phase 10: Workspace-level checks
+                    ├── Cross-file duplicate root ID detection
+                    └── Unused topic detection (orphaned .dita files)
               │
               └─> cap at maxNumberOfProblems → return Diagnostic[]
 ```
 
-Each layer uses **comment/CDATA stripping** to avoid matching inside non-content regions. The stripping replaces non-newline characters with spaces to preserve offsets for accurate diagnostic positioning.
+Each phase uses **comment/CDATA stripping** to avoid matching inside non-content regions. Two variants are provided by `utils/textUtils.ts`:
+- **`stripCommentsAndCDATA`** — Strips comments and CDATA only (used by ditaRulesValidator, which needs to inspect code element content)
+- **`stripCommentsAndCodeContent`** — Also blanks codeblock/pre/screen/msgblock content (used by validation, crossRefValidation, profilingValidation to prevent false positives from code examples)
+
+Both variants replace non-newline characters with spaces to preserve offsets for accurate diagnostic positioning.
 
 ### Error Range Precision
 
@@ -332,6 +356,19 @@ Optional RelaxNG schema validation via salve-annos + saxes. Grammar cache (max 2
 |------|-------------|
 | DITA-PROF-001 | Attribute value not allowed by subject scheme |
 
+### Circular Reference Detection (circularRefDetection.ts)
+
+| Code | Description |
+|------|-------------|
+| DITA-CYCLE-001 | Circular reference detected (displays cycle path) |
+
+### Workspace Validation (workspaceValidation.ts)
+
+| Code | Description |
+|------|-------------|
+| DITA-ID-003 | Cross-file duplicate root element ID |
+| DITA-ORPHAN-001 | Unused topic (not referenced by any map) |
+
 ---
 
 ## Quick Fixes (Code Actions)
@@ -397,26 +434,30 @@ Settings are cached per document URI and cleared on configuration change events.
 server.ts
 │
 ├── settings.ts
+├── services/validationPipeline.ts ── orchestrates all features below
 │
 ├── features/
-│   ├── validation.ts ─────────── fast-xml-parser, i18n, ditaSpecialization
+│   ├── validation.ts ─────────── fast-xml-parser, i18n, ditaSpecialization, textUtils
 │   ├── completion.ts ─────────── ditaSchema, keySpaceService, subjectSchemeService
-│   ├── hover.ts ──────────────── ditaSchema, referenceParser, keySpaceService
+│   ├── hover.ts ──────────────── ditaSchema, referenceParser, keySpaceService, patterns
 │   ├── definition.ts ─────────── referenceParser, keySpaceService
 │   ├── references.ts ─────────── referenceParser, workspaceScanner
 │   ├── rename.ts ─────────────── referenceParser, workspaceScanner
 │   ├── symbols.ts ────────────── workspaceScanner
 │   ├── documentLinks.ts ──────── keySpaceService
-│   ├── crossRefValidation.ts ─── referenceParser, keySpaceService, i18n
-│   ├── ditaRulesValidator.ts ─── ditaVersionDetector, i18n
-│   ├── profilingValidation.ts ── subjectSchemeService, i18n
+│   ├── crossRefValidation.ts ─── referenceParser, keySpaceService, i18n, textUtils
+│   ├── ditaRulesValidator.ts ─── ditaVersionDetector, i18n, textUtils, patterns
+│   ├── profilingValidation.ts ── subjectSchemeService, i18n, textUtils
+│   ├── circularRefDetection.ts ── i18n, textUtils
+│   ├── workspaceValidation.ts ── keySpaceService, workspaceScanner, textUtils
 │   ├── formatting.ts ─────────── (no dependencies)
 │   ├── folding.ts ────────────── (no dependencies)
 │   ├── linkedEditing.ts ──────── (no dependencies)
 │   └── codeActions.ts ────────── (no dependencies)
 │
 ├── services/
-│   ├── keySpaceService.ts ──────── (no service dependencies)
+│   ├── validationPipeline.ts ───── features/*, services/* (validation orchestrator)
+│   ├── keySpaceService.ts ──────── patterns
 │   ├── subjectSchemeService.ts ─── (no service dependencies)
 │   ├── catalogValidationService.ts ── TypesXML (external)
 │   └── rngValidationService.ts ──── salve-annos, saxes (external)
@@ -426,6 +467,8 @@ server.ts
 │   ├── referenceParser.ts ────── (no dependencies)
 │   ├── workspaceScanner.ts ───── referenceParser
 │   ├── ditaVersionDetector.ts ── (no dependencies)
+│   ├── textUtils.ts ──────────── (no dependencies)
+│   ├── patterns.ts ───────────── (no dependencies)
 │   └── i18n.ts ───────────────── messages/en.json, messages/fr.json
 │
 ├── messages/
@@ -437,14 +480,14 @@ server.ts
     └── ditaSpecialization.ts ─── (no dependencies)
 ```
 
-Leaf modules (`formatting`, `folding`, `linkedEditing`, `codeActions`, `xmlTokenizer`, `referenceParser`, `ditaVersionDetector`, and both `data/` files) have zero internal dependencies, making them independently testable.
+Leaf modules (`formatting`, `folding`, `linkedEditing`, `codeActions`, `xmlTokenizer`, `referenceParser`, `ditaVersionDetector`, `textUtils`, `patterns`, and both `data/` files) have zero internal dependencies, making them independently testable.
 
 ---
 
 ## Test Strategy
 
 **Framework:** Mocha with TDD interface (`suite` / `test`)
-**Total:** 398 tests, all passing
+**Total:** 461 tests, all passing
 
 Tests use a `helper.ts` module providing:
 - `createDoc(content, uri?)` — creates a mock `TextDocument`

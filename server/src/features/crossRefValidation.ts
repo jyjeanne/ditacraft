@@ -12,6 +12,7 @@ import { KeySpaceService } from '../services/keySpaceService';
 import { parseReference } from '../utils/referenceParser';
 import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
 import { t } from '../utils/i18n';
+import { stripCommentsAndCodeContent, offsetToRange, escapeRegex } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -47,7 +48,7 @@ export async function validateCrossReferences(
     const currentDir = path.dirname(filePath);
 
     // Strip comments/CDATA to avoid matching inside them
-    const cleanText = stripCommentsAndCDATA(text);
+    const cleanText = stripCommentsAndCodeContent(text);
 
     // --- Validate href and conref attributes ---
     const hrefRegex = /\b(href|conref)\s*=\s*["']([^"']+)["']/g;
@@ -269,51 +270,3 @@ function validateFragment(
     }
 }
 
-function escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/** Strip XML comments and CDATA sections, preserving line structure. */
-function stripCommentsAndCDATA(text: string): string {
-    return text
-        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
-}
-
-/** Convert byte offsets to LSP Range. Handles \r\n correctly. */
-function offsetToRange(text: string, start: number, end: number): Range {
-    let line = 0;
-    let char = 0;
-    let startLine = 0;
-    let startChar = 0;
-    let endLine = 0;
-    let endChar = 0;
-
-    const safeStart = Math.min(start, text.length);
-    const safeEnd = Math.min(end, text.length);
-
-    for (let i = 0; i <= safeEnd; i++) {
-        if (i === safeStart) { startLine = line; startChar = char; }
-        if (i === safeEnd) { endLine = line; endChar = char; break; }
-        if (text[i] === '\r') {
-            line++;
-            char = 0;
-            // Skip \n in \r\n pair
-            if (i + 1 <= safeEnd && text[i + 1] === '\n') {
-                i++;
-                if (i === safeStart) { startLine = line; startChar = char; }
-                if (i === safeEnd) { endLine = line; endChar = char; break; }
-            }
-        } else if (text[i] === '\n') {
-            line++;
-            char = 0;
-        } else {
-            char++;
-        }
-    }
-
-    return {
-        start: { line: startLine, character: startChar },
-        end: { line: endLine, character: endChar },
-    };
-}

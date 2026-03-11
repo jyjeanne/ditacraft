@@ -9,11 +9,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 
-/**
- * Regex fragment that matches tag attributes correctly,
- * even when attribute values contain literal `>` characters.
- */
-const TAG_ATTRS = `(?:"[^"]*"|'[^']*'|[^>"'])*`;
+import { TAG_ATTRS } from '../utils/patterns';
 
 // --- Interfaces ---
 

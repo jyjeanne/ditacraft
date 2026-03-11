@@ -13,6 +13,7 @@ import { URI } from 'vscode-uri';
 import { DitaCraftSettings } from '../settings';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { t } from '../utils/i18n';
+import { stripCommentsAndCodeContent, offsetToRange } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -129,7 +130,7 @@ function validateDITAStructure(
 
     // Strip comments to avoid matching elements inside them.
     // Line structure is preserved so offsets from the original text remain valid.
-    const cleanText = stripCommentsAndCDATA(text);
+    const cleanText = stripCommentsAndCodeContent(text);
 
     // DITAVAL files have different structure — no DOCTYPE/title/id required
     if (ext === '.ditaval') {
@@ -391,21 +392,6 @@ function checkEmptyElements(text: string, diagnostics: Diagnostic[]): void {
     }
 }
 
-/**
- * Strip XML comments and CDATA sections, preserving line structure
- * so that line/column offsets from the original text remain valid.
- */
-function stripCommentsAndCDATA(text: string): string {
-    return text
-        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '))
-        // Blank out text content of code/pre elements to avoid false ID matches
-        // on literal code examples (e.g., &lt;variable id="x"> inside codeblock).
-        // Preserve the opening/closing tags (which may have real id attributes).
-        .replace(/(<(?:codeblock|pre|screen|msgblock)\b[^>]*>)([\s\S]*?)(<\/(?:codeblock|pre|screen|msgblock)>)/g,
-            (_m, open: string, content: string, close: string) =>
-                open + content.replace(/[^\n\r]/g, ' ') + close);
-}
 
 // DITA topic/map root elements use XML ID type (must start with letter/underscore).
 // All other elements use NMTOKEN type (can start with digits).
@@ -439,7 +425,7 @@ function validateIDs(
     diagnostics: Diagnostic[]
 ): void {
     // Use cleaned text to avoid matching IDs inside comments/CDATA
-    const cleanText = stripCommentsAndCDATA(text);
+    const cleanText = stripCommentsAndCodeContent(text);
     const idPattern = /\bid=(["'])([^"']*)\1/g;
     const idLocations = new Map<
         string,
@@ -567,38 +553,3 @@ function createRange(line: number, col: number, length?: number): Range {
     return Range.create(line, col, line, col + 1000);
 }
 
-/**
- * Create a range from text offsets, handling CRLF correctly.
- */
-function offsetToRange(text: string, start: number, end: number): Range {
-    let line = 0;
-    let char = 0;
-    let startLine = 0;
-    let startChar = 0;
-    let endLine = 0;
-    let endChar = 0;
-
-    const safeStart = Math.min(start, text.length);
-    const safeEnd = Math.min(end, text.length);
-
-    for (let i = 0; i <= safeEnd; i++) {
-        if (i === safeStart) { startLine = line; startChar = char; }
-        if (i === safeEnd) { endLine = line; endChar = char; break; }
-        if (text[i] === '\r') {
-            line++;
-            char = 0;
-            if (i + 1 <= safeEnd && text[i + 1] === '\n') {
-                i++;
-                if (i === safeStart) { startLine = line; startChar = char; }
-                if (i === safeEnd) { endLine = line; endChar = char; break; }
-            }
-        } else if (text[i] === '\n') {
-            line++;
-            char = 0;
-        } else {
-            char++;
-        }
-    }
-
-    return Range.create(startLine, startChar, endLine, endChar);
-}

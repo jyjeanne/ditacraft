@@ -6,9 +6,10 @@
  * only allowed values are used.
  */
 
-import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
+import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { SubjectSchemeService } from '../services/subjectSchemeService';
 import { t } from '../utils/i18n';
+import { stripCommentsAndCodeContent, offsetToRange, escapeRegex } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -37,7 +38,7 @@ export function validateProfilingAttributes(
     }
 
     const diagnostics: Diagnostic[] = [];
-    const cleanText = stripCommentsAndCDATA(text);
+    const cleanText = stripCommentsAndCodeContent(text);
 
     // Match profiling attributes in element tags
     for (const attrName of PROFILING_ATTRIBUTES) {
@@ -65,8 +66,11 @@ export function validateProfilingAttributes(
             for (const token of tokens) {
                 const tokenOffset = attrValue.indexOf(token, tokenSearchStart);
                 if (!validValues.has(token)) {
-                    // Calculate position of the invalid value
-                    const valueStart = match.index + match[0].lastIndexOf(attrValue);
+                    // Calculate position of the attribute value inside the match.
+                    // Find the attribute name + '=' to anchor the search, avoiding false
+                    // hits if attrValue appears earlier in the tag (element/attribute names).
+                    const attrNamePos = match[0].indexOf(attrName);
+                    const valueStart = match.index + match[0].indexOf(attrValue, attrNamePos + attrName.length);
                     const tokenStart = valueStart + tokenOffset;
                     const range = offsetToRange(text, tokenStart, tokenStart + token.length);
 
@@ -87,52 +91,3 @@ export function validateProfilingAttributes(
     return diagnostics;
 }
 
-// --- Helpers ---
-
-function escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/** Strip XML comments and CDATA sections, preserving line structure. */
-function stripCommentsAndCDATA(text: string): string {
-    return text
-        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
-}
-
-/** Convert byte offsets to LSP Range. Handles \r\n correctly. */
-function offsetToRange(text: string, start: number, end: number): Range {
-    let line = 0;
-    let char = 0;
-    let startLine = 0;
-    let startChar = 0;
-    let endLine = 0;
-    let endChar = 0;
-
-    const safeStart = Math.min(start, text.length);
-    const safeEnd = Math.min(end, text.length);
-
-    for (let i = 0; i <= safeEnd; i++) {
-        if (i === safeStart) { startLine = line; startChar = char; }
-        if (i === safeEnd) { endLine = line; endChar = char; break; }
-        if (text[i] === '\r') {
-            line++;
-            char = 0;
-            if (i + 1 <= safeEnd && text[i + 1] === '\n') {
-                i++;
-                if (i === safeStart) { startLine = line; startChar = char; }
-                if (i === safeEnd) { endLine = line; endChar = char; break; }
-            }
-        } else if (text[i] === '\n') {
-            line++;
-            char = 0;
-        } else {
-            char++;
-        }
-    }
-
-    return {
-        start: { line: startLine, character: startChar },
-        end: { line: endLine, character: endChar },
-    };
-}

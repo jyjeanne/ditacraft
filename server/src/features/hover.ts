@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import { ELEMENT_DOCS, DITA_ELEMENTS } from '../data/ditaSchema';
 import { findReferenceAtOffset, parseReference } from '../utils/referenceParser';
 import { KeySpaceService } from '../services/keySpaceService';
+import { TAG_ATTRS } from '../utils/patterns';
 
 /**
  * Handle hover requests.
@@ -226,8 +227,6 @@ function getConrefPreview(filePath: string, fragment: string): string | null {
 
     // Find the element with the target id
     const escaped = targetId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    // Use quote-aware pattern to handle '>' inside attribute values
-    const TAG_ATTRS = `(?:"[^"]*"|'[^']*'|[^>"'])*`;
     const regex = new RegExp(`<([\\w-]+)\\b${TAG_ATTRS}\\bid\\s*=\\s*["']${escaped}["']${TAG_ATTRS}>`, 'g');
     const match = regex.exec(content);
     if (!match) return null;

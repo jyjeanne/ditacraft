@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.7.0)
+## Current Status (v0.7.1)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -61,7 +61,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **9 LSP Settings** | Complete | 100% |
 | **Glossref Element Support** | Complete | 100% |
 | **Glossentry/Troubleshooting Validation** | Complete | 100% |
-| **Server Test Suite (435 tests)** | Complete | 100% |
+| **Server Test Suite (559 tests)** | Complete | 100% |
 | **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
@@ -95,8 +95,20 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Workspace Validation Command** | Complete | 100% |
 | **Cross-File Duplicate ID Detection (DITA-ID-003)** | Complete | 100% |
 | **Unused Topic Detection (DITA-ORPHAN-001)** | Complete | 100% |
+| **ValidationPipeline (10-phase orchestrator)** | Complete | 100% |
+| **Shared Utilities (textUtils, patterns)** | Complete | 100% |
 
-### Recent Changes (v0.7.0)
+### Recent Changes (v0.7.1)
+- **ValidationPipeline Extraction** — Refactored 111-line monolithic validation handler into a 10-phase orchestrator class with per-phase error isolation (try/catch + logging)
+- **Shared Utilities** — Extracted `textUtils.ts` (stripCommentsAndCDATA, stripCommentsAndCodeContent, offsetToRange, escapeRegex) and `patterns.ts` (TAG_ATTRS), eliminating 15 duplicate function definitions
+- **Two-Variant Comment Stripping** — Basic `stripCommentsAndCDATA` vs `stripCommentsAndCodeContent` (also blanks codeblock/pre/screen/msgblock content)
+- **Bug Fixes** — Profiling validation lastIndexOf positioning, code action single-quote ID handling, completion startPos negative clamping, XML tokenizer CRLF handling, openFile error handling
+- **Test Coverage Boost** — 461→559 server tests (+98), 6 new test files (textUtils, validationPipeline, workspaceValidation, i18n, definition, workspaceScanner), 85% statement coverage
+- **Specification Updates** — ARCHITECTURE.md, DITA_LSP_ARCHITECTURE.md, VALIDATION-SPECIFICATION.md all updated for 10-phase pipeline
+- **Dependency Update** — fast-xml-parser ^5.3.4 → ^5.4.2
+- **1211+ Total Tests** — Client (652) + Server (559)
+
+### Previous Changes (v0.7.0)
 - **Multi-Version DTD Support** — Bundled DITA 1.2, 1.3, and 2.0 DTDs with master OASIS XML Catalog chaining via `<nextCatalog>`
 - **External XML Catalog** — New `ditacraft.xmlCatalogPath` setting for custom DTD specializations; hot-reloads on config change
 - **Scope Validation** — Validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
@@ -382,7 +394,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] OASIS XML Catalog support for DITA public identifier resolution
 - [x] 100% W3C XML Conformance Test Suite compliance
 - [x] Three validation engines: TypesXML (default), built-in, xmllint
-- [x] 6-layer LSP validation pipeline (XML → DTD → RNG → structure → rules → cross-refs/profiling)
+- [x] 10-phase LSP validation pipeline with per-phase error isolation (XML → Structure → DTD → RNG → DITA Rules → Cross-refs → Profiling → Circular Refs → Workspace)
 - [x] Validation architecture documented (`docs/VALIDATION-SPECIFICATION.md` v2.0)
 - [x] Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
 
@@ -562,10 +574,11 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.6.0 | Activity bar views, advanced LSP, 1010+ Tests | Released |
 | v0.6.1 | i18n, DITA 2.0 rules, root map, RNG/catalog, 1040+ Tests | Released |
 | v0.6.2 | Bookmap/topicref validation, error ranges, dedup, 1082 Tests | Released |
-| v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, glossref, 1087+ Tests | **Current** |
+| v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, glossref, 1087+ Tests | Released |
+| v0.7.1 | ValidationPipeline refactoring, shared utilities, bug fixes, 1211+ Tests | **Current** |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: March 2026 (v0.7.0 — multi-version DTD support, scope validation, circular reference detection, workspace-level analysis, glossref/glossentry support, 1087+ tests)*
+*Last updated: March 2026 (v0.7.1 — ValidationPipeline extraction, shared utilities, bug fixes, 1211+ tests)*

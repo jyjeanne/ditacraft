@@ -8,6 +8,7 @@ import { URI } from 'vscode-uri';
 import * as path from 'path';
 import { promises as fsp } from 'fs';
 import { t } from '../utils/i18n';
+import { offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -82,9 +83,7 @@ interface FileRef {
 function extractFileReferences(text: string, baseDir: string): FileRef[] {
     const refs: FileRef[] = [];
     // Strip comments and CDATA to avoid false matches
-    const cleanText = text
-        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
+    const cleanText = stripCommentsAndCDATA(text);
 
     // Structural href references (topicref, mapref, chapter, etc.)
     let match: RegExpExecArray | null;
@@ -181,33 +180,3 @@ function normalizePath(filePath: string): string {
     return path.resolve(filePath).toLowerCase();
 }
 
-/** Convert byte offsets to LSP Range. */
-function offsetToRange(text: string, start: number, end: number) {
-    let line = 0;
-    let char = 0;
-    let startLine = 0, startChar = 0, endLine = 0, endChar = 0;
-    const safeStart = Math.min(start, text.length);
-    const safeEnd = Math.min(end, text.length);
-
-    for (let i = 0; i <= safeEnd; i++) {
-        if (i === safeStart) { startLine = line; startChar = char; }
-        if (i === safeEnd) { endLine = line; endChar = char; break; }
-        if (text[i] === '\r') {
-            line++; char = 0;
-            if (i + 1 <= safeEnd && text[i + 1] === '\n') {
-                i++;
-                if (i === safeStart) { startLine = line; startChar = char; }
-                if (i === safeEnd) { endLine = line; endChar = char; break; }
-            }
-        } else if (text[i] === '\n') {
-            line++; char = 0;
-        } else {
-            char++;
-        }
-    }
-
-    return {
-        start: { line: startLine, character: startChar },
-        end: { line: endLine, character: endChar },
-    };
-}

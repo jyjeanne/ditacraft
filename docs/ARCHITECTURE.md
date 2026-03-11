@@ -40,7 +40,7 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | XML Tokenizer | Custom state-machine (8 states, 22 token types) |
 | Publishing | DITA-OT (external) |
 | Testing | Mocha + VS Code Extension Test API |
-| Test Count | 1082 tests (652 client + 430 server) |
+| Test Count | 1113 tests (652 client + 461 server) |
 
 ---
 
@@ -71,21 +71,24 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
                     │          Language Server (IPC)           │
                     ├─────────────────────────────────────────┤
                     │  Features:     │  Services:              │
-                    │  validation    │  keySpaceService        │
-                    │  completion    │  subjectSchemeService   │
-                    │  hover         │  catalogValidation      │
-                    │  definition    │  rngValidation          │
-                    │  references    │                         │
-                    │  rename        │  Utils:                 │
-                    │  formatting    │  xmlTokenizer           │
-                    │  codeActions   │  referenceParser        │
-                    │  folding       │  ditaVersionDetector    │
+                    │  validation    │  validationPipeline     │
+                    │  completion    │  keySpaceService        │
+                    │  hover         │  subjectSchemeService   │
+                    │  definition    │  catalogValidation      │
+                    │  references    │  rngValidation          │
+                    │  rename        │                         │
+                    │  formatting    │  Utils:                 │
+                    │  codeActions   │  xmlTokenizer           │
+                    │  folding       │  referenceParser        │
                     │  linkedEditing │  workspaceScanner       │
-                    │  documentLinks │  i18n                   │
-                    │  symbols       │                         │
-                    │  crossRefValid │  Data:                  │
-                    │  ditaRules     │  ditaSchema             │
-                    │  profiling     │  ditaSpecialization     │
+                    │  documentLinks │  ditaVersionDetector    │
+                    │  symbols       │  textUtils              │
+                    │  crossRefValid │  patterns               │
+                    │  ditaRules     │  i18n                   │
+                    │  profiling     │                         │
+                    │  circularRef   │  Data:                  │
+                    │  workspaceVal  │  ditaSchema             │
+                    │                │  ditaSpecialization     │
                     └─────────────────────────────────────────┘
                            │
                ┌───────────▼───────────────┐
@@ -164,11 +167,16 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `features/crossRefValidation.ts` | Cross-file reference validation (Layer 6a) |
 | `features/ditaRulesValidator.ts` | 35 Schematron-equivalent DITA rules (Layer 5) |
 | `features/profilingValidation.ts` | Subject scheme profiling validation (Layer 6b) |
+| `features/circularRefDetection.ts` | Circular reference detection via DFS traversal |
+| `features/workspaceValidation.ts` | Cross-file duplicate IDs + unused topic detection |
+| `services/validationPipeline.ts` | Orchestrates all 9 validation phases with error isolation |
 | `services/catalogValidationService.ts` | TypesXML DTD + OASIS catalog (Layer 2) |
 | `services/rngValidationService.ts` | salve-annos RelaxNG validation (Layer 3) |
 | `services/keySpaceService.ts` | DITA key space resolution (BFS map traversal) |
 | `services/subjectSchemeService.ts` | Subject scheme parsing and value constraints |
 | `utils/xmlTokenizer.ts` | Error-tolerant state-machine XML tokenizer |
+| `utils/textUtils.ts` | Shared text utilities (comment stripping, offsetToRange, escapeRegex) |
+| `utils/patterns.ts` | Shared regex patterns (TAG_ATTRS) |
 | `utils/i18n.ts` | Localization with 70 messages in EN+FR |
 
 ### Utils (`src/utils/`)
@@ -192,6 +200,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 
 ### LSP Validation Pipeline (Primary — Real-time)
 
+All validation is orchestrated by the `ValidationPipeline` class (`services/validationPipeline.ts`), which wraps each phase in error isolation (try/catch with logging) so a failure in one phase doesn't discard results from others.
+
 ```
 User types in .dita file
          │
@@ -206,29 +216,37 @@ Per-document cancellation
 connection.languages.diagnostics.refresh()
          │
          ▼
-Pull diagnostics handler
+Pull diagnostics handler → ValidationPipeline.validate()
          │
-         ├──► Layer 1+4: validateDITADocument()
+         ├──► Phase 1-3: validateDITADocument()
          │         ├── XML well-formedness (fast-xml-parser)
          │         ├── DITA structure (root, DOCTYPE, title)
          │         ├── Bookmap validation (booktitle, mainbooktitle)
          │         ├── Map/Bookmap topicref check (missing target attrs)
          │         └── ID validation (duplicates, format, single/double quotes)
          │
-         ├──► Layer 2: catalogValidationService.validate()
-         │         └── DTD validation (TypesXML + OASIS catalog)
+         ├──► Phase 4: Schema validation (DTD or RNG, mutually exclusive)
+         │         ├── catalogValidationService.validate() — DTD (TypesXML + OASIS catalog)
+         │         └── rngValidationService.validate() — RNG (salve-annos, optional)
          │
-         ├──► Layer 3: rngValidationService.validate() [optional]
-         │         └── RelaxNG schema validation (salve-annos)
-         │
-         ├──► Layer 5: validateDitaRules()
-         │         └── 35 rules (5 categories, version-filtered)
-         │
-         ├──► Layer 6a: validateCrossReferences()
+         ├──► Phase 5: validateCrossReferences()
          │         └── href/conref/keyref/conkeyref target resolution
          │
-         └──► Layer 6b: validateProfilingAttributes()
-                   └── Subject scheme controlled values
+         ├──► Phase 6: Subject scheme registration
+         │         └── Discover and register subject schemes from key space
+         │
+         ├──► Phase 7: validateProfilingAttributes()
+         │         └── Subject scheme controlled values
+         │
+         ├──► Phase 8: validateDitaRules()
+         │         └── 35 rules (5 categories, version-filtered)
+         │
+         ├──► Phase 9: detectCircularReferences()
+         │         └── DFS traversal to detect href/conref/mapref cycles
+         │
+         └──► Phase 10: Workspace-level checks
+                   ├── Cross-file duplicate root ID detection
+                   └── Unused topic detection (orphaned .dita files)
                             │
                             ▼
                    Diagnostic[] (capped at maxNumberOfProblems)
@@ -410,7 +428,7 @@ previewCommand.ts
 | **Factory** | `ProviderFactory` | Centralized provider creation |
 | **Adapter** | `DitaOtWrapper` | Adapt CLI to TypeScript API |
 | **Object Pool** | DTD parser pool, RNG grammar cache | Reuse expensive resources |
-| **Pipeline** | 6-layer validation | Sequential processing stages |
+| **Pipeline** | `ValidationPipeline` (10-phase validation) | Sequential processing with error isolation per phase |
 
 ---
 
@@ -493,22 +511,27 @@ ditacraft/
 │   ├── src/
 │   │   ├── server.ts              # LSP entry point + smart debouncing
 │   │   ├── settings.ts
-│   │   ├── features/              # 14 LSP feature handlers
-│   │   │   ├── validation.ts      #   Layer 1+4: XML + structure + IDs
-│   │   │   ├── crossRefValidation.ts # Layer 6a: cross-references
-│   │   │   ├── ditaRulesValidator.ts # Layer 5: 35 DITA rules
-│   │   │   ├── profilingValidation.ts# Layer 6b: profiling
+│   │   ├── features/              # 16 LSP feature handlers
+│   │   │   ├── validation.ts      #   XML + structure + IDs
+│   │   │   ├── crossRefValidation.ts # Cross-file references
+│   │   │   ├── ditaRulesValidator.ts # 35 DITA rules
+│   │   │   ├── profilingValidation.ts# Profiling/subject scheme
+│   │   │   ├── circularRefDetection.ts # Circular ref DFS
+│   │   │   ├── workspaceValidation.ts  # Duplicate IDs + orphans
 │   │   │   ├── completion.ts
 │   │   │   ├── hover.ts
 │   │   │   ├── codeActions.ts
 │   │   │   └── ...
 │   │   ├── services/              # Domain services with caching
-│   │   │   ├── catalogValidationService.ts # Layer 2: DTD
-│   │   │   ├── rngValidationService.ts     # Layer 3: RNG
+│   │   │   ├── validationPipeline.ts       # 10-phase orchestration
+│   │   │   ├── catalogValidationService.ts # DTD (TypesXML)
+│   │   │   ├── rngValidationService.ts     # RNG (salve-annos)
 │   │   │   ├── keySpaceService.ts
 │   │   │   └── subjectSchemeService.ts
 │   │   ├── utils/                 # Server utilities
 │   │   │   ├── xmlTokenizer.ts
+│   │   │   ├── textUtils.ts       #   Shared: comment stripping, offsetToRange
+│   │   │   ├── patterns.ts        #   Shared: TAG_ATTRS regex
 │   │   │   ├── i18n.ts
 │   │   │   └── ...
 │   │   ├── messages/              # Localized diagnostic messages
@@ -517,7 +540,7 @@ ditacraft/
 │   │   └── data/                  # Static schema data
 │   │       ├── ditaSchema.ts
 │   │       └── ditaSpecialization.ts
-│   └── test/                      # Server tests (430)
+│   └── test/                      # Server tests (461)
 │
 ├── dtds/                          # Bundled DITA 1.3 DTDs + catalog.xml
 ├── docs/                          # Architecture documentation

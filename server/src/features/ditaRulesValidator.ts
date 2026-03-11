@@ -3,17 +3,12 @@
  * No XSLT or Schematron engine needed — rules operate on document text via regex.
  */
 
-import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
+import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { t } from '../utils/i18n';
+import { stripCommentsAndCDATA, offsetToRange } from '../utils/textUtils';
+import { TAG_ATTRS } from '../utils/patterns';
 
 const SOURCE = 'dita-rules';
-
-/**
- * Regex fragment that matches tag content (attributes) correctly,
- * even when attribute values contain literal `>` characters.
- * Consumes quoted strings as atomic units: "..." or '...' or non-quote/non->.
- */
-const TAG_ATTRS = `(?:"[^"]*"|'[^']*'|[^>"'])*`;
 
 /** DITA version type. */
 export type DitaVersion = '1.0' | '1.1' | '1.2' | '1.3' | '2.0' | 'unknown';
@@ -807,49 +802,6 @@ function makeDiag(
     };
 }
 
-/** Handles \r\n correctly. */
-function offsetToRange(text: string, start: number, end: number): Range {
-    let line = 0;
-    let char = 0;
-    let startLine = 0;
-    let startChar = 0;
-    let endLine = 0;
-    let endChar = 0;
-
-    const safeStart = Math.min(start, text.length);
-    const safeEnd = Math.min(end, text.length);
-
-    for (let i = 0; i <= safeEnd; i++) {
-        if (i === safeStart) { startLine = line; startChar = char; }
-        if (i === safeEnd) { endLine = line; endChar = char; break; }
-        if (text[i] === '\r') {
-            line++;
-            char = 0;
-            if (i + 1 <= safeEnd && text[i + 1] === '\n') {
-                i++;
-                if (i === safeStart) { startLine = line; startChar = char; }
-                if (i === safeEnd) { endLine = line; endChar = char; break; }
-            }
-        } else if (text[i] === '\n') {
-            line++;
-            char = 0;
-        } else {
-            char++;
-        }
-    }
-
-    return {
-        start: { line: startLine, character: startChar },
-        end: { line: endLine, character: endChar },
-    };
-}
-
-/** Strip XML comments and CDATA sections, preserving offsets (non-newline chars → spaces). */
-function stripCommentsAndCDATA(text: string): string {
-    return text
-        .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
-}
 
 /**
  * Count <title> elements that are direct children of the given content.

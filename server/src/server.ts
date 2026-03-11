@@ -42,7 +42,6 @@ import {
     DitaCraftSettings,
 } from './settings';
 
-import { validateDITADocument } from './features/validation';
 import { handleCompletion } from './features/completion';
 import { handleHover } from './features/hover';
 import { handleDocumentSymbol, handleWorkspaceSymbol } from './features/symbols';
@@ -54,16 +53,12 @@ import { handlePrepareRename, handleRename } from './features/rename';
 import { handleFoldingRanges } from './features/folding';
 import { handleDocumentLinks, handleDocumentLinkResolve } from './features/documentLinks';
 import { handleLinkedEditingRange } from './features/linkedEditing';
-import { validateCrossReferences } from './features/crossRefValidation';
-import { validateDitaRules } from './features/ditaRulesValidator';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
-import { validateProfilingAttributes } from './features/profilingValidation';
-import { detectCircularReferences } from './features/circularRefDetection';
-import { buildRootIdIndex, detectCrossFileDuplicateIds, detectUnusedTopics, createUnusedTopicDiagnostic } from './features/workspaceValidation';
-import { detectDitaVersion } from './utils/ditaVersionDetector';
+import { buildRootIdIndex, detectUnusedTopics } from './features/workspaceValidation';
 import { CatalogValidationService } from './services/catalogValidationService';
 import { RngValidationService } from './services/rngValidationService';
+import { ValidationPipeline } from './services/validationPipeline';
 import { URI } from 'vscode-uri';
 import { setLocale } from './utils/i18n';
 
@@ -79,6 +74,10 @@ let keySpaceService: KeySpaceService | undefined;
 const subjectSchemeService = new SubjectSchemeService();
 const catalogValidationService = new CatalogValidationService();
 const rngValidationService = new RngValidationService();
+const validationPipeline = new ValidationPipeline(
+    catalogValidationService, rngValidationService, subjectSchemeService,
+    (msg) => connection.console.log(msg),
+);
 
 /** Workspace-level root ID index for cross-file duplicate detection. */
 let rootIdIndex: Map<string, string[]> = new Map();
@@ -315,102 +314,10 @@ connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Pr
     }
 
     const settings = await getDocumentSettings(document.uri);
-    const diagnostics = validateDITADocument(document, settings);
-
-    const text = document.getText();
-
-    // Schema validation: DTD (TypesXML) or RNG (salve-annos) — mutually exclusive.
-    // When schemaFormat is 'rng' and available, skip DTD validation to avoid duplicates.
-    const useRng = rngValidationService.isAvailable && settings.schemaFormat === 'rng';
-
-    // DTD validation via TypesXML + OASIS catalog (when available).
-    // Only run when typesxml engine is selected AND RNG is not active.
-    if (!useRng && catalogValidationService.isAvailable && settings.validationEngine === 'typesxml') {
-        const existingErrorLines = new Set(
-            diagnostics
-                .filter(d => d.code === 'DITA-XML-001')
-                .map(d => d.range.start.line)
-        );
-        const dtdDiags = catalogValidationService.validate(text);
-        for (const diag of dtdDiags) {
-            if (!existingErrorLines.has(diag.range.start.line)) {
-                diagnostics.push(diag);
-            }
-        }
-    }
-
-    // RNG validation via salve-annos (when available and selected)
-    if (useRng) {
-        if (settings.rngSchemaPath) {
-            rngValidationService.setSchemaBasePath(settings.rngSchemaPath);
-        }
-        const rngDiags = await rngValidationService.validate(text);
-        diagnostics.push(...rngDiags);
-    }
-
-    // Cross-reference validation (async — needs file system + key space)
-    if (settings.crossRefValidationEnabled !== false) {
-        const xrefDiags = await validateCrossReferences(
-            text, document.uri,
-            keySpaceService, settings.maxNumberOfProblems
-        );
-        diagnostics.push(...xrefDiags);
-    }
-
-    // Register subject scheme maps discovered during key space build
-    if (keySpaceService) {
-        const filePath = URI.parse(document.uri).fsPath;
-        const schemePaths = await keySpaceService.getSubjectSchemePaths(filePath);
-        subjectSchemeService.registerSchemes(schemePaths);
-    }
-
-    // Profiling attribute validation (subject scheme constraints)
-    if (settings.subjectSchemeValidationEnabled !== false) {
-        const profilingDiags = validateProfilingAttributes(
-            text, subjectSchemeService, settings.maxNumberOfProblems
-        );
-        diagnostics.push(...profilingDiags);
-    }
-
-    // Schematron-equivalent DITA rules (auto-detect DITA version, with override)
-    const ditaVersion = settings.ditaVersion && settings.ditaVersion !== 'auto'
-        ? settings.ditaVersion
-        : detectDitaVersion(text);
-    const ruleDiags = validateDitaRules(text, {
-        enabled: settings.ditaRulesEnabled !== false,
-        categories: settings.ditaRulesCategories ?? ['mandatory', 'recommendation', 'authoring', 'accessibility'],
-        ditaVersion,
-    });
-    diagnostics.push(...ruleDiags);
-
-    // Circular reference detection (async — follows file references)
-    if (settings.crossRefValidationEnabled !== false) {
-        const cycleDiags = await detectCircularReferences(text, document.uri);
-        diagnostics.push(...cycleDiags);
-    }
-
-    // Workspace-level checks (only if workspace validation has been run)
-    const filePath = URI.parse(document.uri).fsPath;
-
-    // Cross-file duplicate root ID detection
-    if (rootIdIndex.size > 0) {
-        const dupIdDiags = detectCrossFileDuplicateIds(text, filePath, rootIdIndex);
-        diagnostics.push(...dupIdDiags);
-    }
-
-    // Unused topic detection
-    if (unusedTopicPaths.size > 0) {
-        const normalizedPath = path.resolve(filePath).toLowerCase();
-        if (unusedTopicPaths.has(normalizedPath)) {
-            diagnostics.push(createUnusedTopicDiagnostic());
-        }
-    }
-
-    // Cap total diagnostics
-    const maxProblems = settings.maxNumberOfProblems ?? 100;
-    const items = diagnostics.length > maxProblems
-        ? diagnostics.slice(0, maxProblems)
-        : diagnostics;
+    const items = await validationPipeline.validate(
+        document, settings, keySpaceService,
+        { rootIdIndex, unusedTopicPaths },
+    );
 
     return {
         kind: DocumentDiagnosticReportKind.Full,

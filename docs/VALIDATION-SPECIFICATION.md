@@ -9,9 +9,9 @@
 
 ## Executive Summary
 
-This document describes the validation architecture implemented in DitaCraft v0.6.2. The system uses a **6-layer LSP-based validation pipeline** running in a dedicated Language Server process, providing real-time diagnostics as the user types.
+This document describes the validation architecture implemented in DitaCraft v0.7.0. The system uses a **10-phase LSP-based validation pipeline** (`ValidationPipeline` class) running in a dedicated Language Server process, providing real-time diagnostics as the user types. Each phase is error-isolated so a failure in one doesn't discard results from others.
 
-The original spec (v1.0, January 2025) explored different validation approaches. The chosen architecture combines a custom DITA Language Server with TypesXML DTD validation, optional RelaxNG validation, a 35-rule Schematron-equivalent engine, cross-reference validation, and profiling/subject scheme validation — all running in real-time with smart debouncing.
+The original spec (v1.0, January 2025) explored different validation approaches. The chosen architecture combines a custom DITA Language Server with TypesXML DTD validation, optional RelaxNG validation, a 35-rule Schematron-equivalent engine, cross-reference validation, profiling/subject scheme validation, circular reference detection, and workspace-level checks — all running in real-time with smart debouncing.
 
 This document was originally prompted by feedback from Stan Doherty (OASIS DITA TC member, ACM SIGDOC) who noted that the built-in validation engine was insufficient and suggested exploring DITA-OT-based validation. The implemented solution goes beyond that suggestion by providing real-time, zero-dependency validation with bundled DTDs.
 
@@ -21,7 +21,7 @@ This document was originally prompted by feedback from Stan Doherty (OASIS DITA 
 
 1. [Implemented Architecture](#1-implemented-architecture)
 2. [Validation Pipeline](#2-validation-pipeline)
-3. [Validation Layers](#3-validation-layers)
+3. [Validation Phases](#3-validation-phases)
 4. [Diagnostic Codes](#4-diagnostic-codes)
 5. [Error Reporting](#5-error-reporting)
 6. [Configuration](#6-configuration)
@@ -64,14 +64,17 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 │  └──────────────────────┬─────────────────────────────────────┘  │
 │                         │                                        │
 │  ┌──────────────────────▼─────────────────────────────────────┐  │
-│  │                 6-Layer Validation Pipeline                 │  │
+│  │            10-Phase Validation Pipeline                    │  │
+│  │            (ValidationPipeline — error-isolated phases)    │  │
 │  │                                                            │  │
-│  │  Layer 1: XML well-formedness        (fast-xml-parser)     │  │
-│  │  Layer 2: DTD validation             (TypesXML + catalog)  │  │
-│  │  Layer 3: RNG validation             (salve-annos, opt.)   │  │
-│  │  Layer 4: DITA structure + IDs       (validation.ts)       │  │
-│  │  Layer 5: 35 DITA rules              (ditaRulesValidator)  │  │
-│  │  Layer 6: Cross-refs + profiling     (crossRef + profiling)│  │
+│  │  Phase 1-3: XML + structure + IDs    (validation.ts)       │  │
+│  │  Phase 4:   DTD or RNG schema        (catalog/rng service) │  │
+│  │  Phase 5:   Cross-references         (crossRefValidation)  │  │
+│  │  Phase 6:   Subject scheme registration                    │  │
+│  │  Phase 7:   Profiling validation     (profilingValidation) │  │
+│  │  Phase 8:   35 DITA rules            (ditaRulesValidator)  │  │
+│  │  Phase 9:   Circular ref detection   (circularRefDetection)│  │
+│  │  Phase 10:  Workspace checks         (workspaceValidation) │  │
 │  │                                                            │  │
 │  └────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
@@ -83,10 +86,12 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 |----------|-----------|
 | LSP as sole real-time provider | Eliminates duplicate diagnostics; client-side on-save validation disabled in v0.6.2 |
 | Pull-based diagnostics (LSP 3.17) | Client requests diagnostics; server responds with `DocumentDiagnosticReportKind.Full` |
+| `ValidationPipeline` class | Orchestrates all 10 phases; extracted from monolithic 111-line handler in server.ts |
+| Error isolation per phase | Each phase in try/catch with logging; failure in one doesn't discard others |
 | Smart debouncing per file type | 300ms for topics (fast feedback), 1000ms for maps (heavier processing) |
 | Per-document cancellation | Typing cancels stale validation for the same document |
 | Bundled DITA 1.3 DTDs | Zero-configuration; OASIS catalog resolves PUBLIC identifiers |
-| Comment/CDATA stripping | All layers operate on cleaned text; line structure preserved for offset accuracy |
+| Two-variant comment stripping | `stripCommentsAndCDATA` (basic) vs `stripCommentsAndCodeContent` (also blanks code elements) — centralized in `textUtils.ts` |
 
 ### 1.3 Technology Stack
 
@@ -128,58 +133,71 @@ Document change (typing)
 
 ### 2.2 Pipeline Execution Order
 
-Each layer runs sequentially. Diagnostics are capped at `maxNumberOfProblems` (default 100):
+All 10 phases run sequentially inside `ValidationPipeline.validate()`, each wrapped in error isolation (try/catch with logging). Diagnostics are capped at `maxNumberOfProblems` (default 100):
 
 ```typescript
-// server.ts — pull diagnostics handler
+// services/validationPipeline.ts — ValidationPipeline.validate()
 const diagnostics: Diagnostic[] = [];
 
-// Layer 1+4: XML well-formedness + DITA structure + IDs
-diagnostics.push(...validateDITADocument(textDocument, settings));
+// Phase 1-3: XML well-formedness + DITA structure + IDs
+try { diagnostics.push(...validateDITADocument(document, settings)); }
+catch (e) { this.log(`[validation] base validation failed: ${e}`); }
 
-// Layer 2: DTD validation (TypesXML + OASIS catalog)
-if (catalogValidationService.isAvailable) {
-    diagnostics.push(...catalogValidationService.validate(text));
-}
+// Phase 4: Schema validation (DTD or RNG, mutually exclusive)
+const useRng = this.rngValidation.isAvailable && settings.schemaFormat === 'rng';
+if (!useRng && this.catalogValidation.isAvailable) { ... }
+if (useRng) { ... }
 
-// Layer 3: RNG validation (optional)
-if (rngValidationService.isAvailable && settings.schemaFormat === 'rng') {
-    diagnostics.push(...rngValidationService.validate(text));
-}
+// Phase 5: Cross-reference validation
+if (settings.crossRefValidationEnabled !== false) { ... }
 
-// Layer 5: 35 DITA rules (Schematron-equivalent)
-if (settings.ditaRulesEnabled) {
-    diagnostics.push(...validateDitaRules(text, settings));
-}
+// Phase 6: Subject scheme registration
+if (keySpaceService) { ... }
 
-// Layer 6a: Cross-reference validation
-if (settings.crossRefValidationEnabled) {
-    diagnostics.push(...validateCrossReferences(text, uri, ...));
-}
+// Phase 7: Profiling attribute validation
+if (settings.subjectSchemeValidationEnabled !== false) { ... }
 
-// Layer 6b: Profiling/subject scheme validation
-if (settings.subjectSchemeValidationEnabled) {
-    diagnostics.push(...validateProfilingAttributes(text, ...));
-}
+// Phase 8: 35 DITA rules (Schematron-equivalent, version-filtered)
+if (settings.ditaRulesEnabled !== false) { ... }
+
+// Phase 9: Circular reference detection
+if (settings.crossRefValidationEnabled !== false) { ... }
+
+// Phase 10: Workspace-level checks (duplicate IDs, unused topics)
+if (workspace.rootIdIndex.size > 0) { ... }
+if (workspace.unusedTopicPaths.size > 0) { ... }
 ```
 
 ### 2.3 Comment/CDATA Stripping
 
-All layers that analyze document content first strip comments and CDATA sections, replacing non-newline characters with spaces to preserve line/column offsets:
+All phases that analyze document content first strip comments and CDATA sections, replacing non-newline characters with spaces to preserve line/column offsets. Two variants are provided by `utils/textUtils.ts`:
 
 ```typescript
+// Basic: strips comments and CDATA only
 function stripCommentsAndCDATA(text: string): string {
     return text
         .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
         .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
 }
+
+// Extended: also blanks code element content (codeblock, pre, screen, msgblock)
+function stripCommentsAndCodeContent(text: string): string {
+    return stripCommentsAndCDATA(text)
+        .replace(/(<(codeblock|pre|screen|msgblock)\b[^>]*>)([\s\S]*?)(<\/\2>)/g,
+            (_m, open, _tag, content, close) =>
+                open + content.replace(/[^\n\r]/g, ' ') + close);
+}
 ```
+
+**Which variant to use:**
+- `stripCommentsAndCodeContent` — Used by `validation.ts`, `crossRefValidation.ts`, `profilingValidation.ts` to prevent false positives from literal XML inside code examples
+- `stripCommentsAndCDATA` — Used by `ditaRulesValidator.ts` (rules like SCH-041 need to inspect `<pre>` content) and `circularRefDetection.ts`, `workspaceValidation.ts`
 
 ---
 
-## 3. Validation Layers
+## 3. Validation Phases
 
-### Layer 1: XML Well-Formedness (`validation.ts`)
+### Phase 1-3: XML Well-Formedness + Structure + IDs (`validation.ts`)
 
 **Engine:** fast-xml-parser
 **Trigger:** Every document change (debounced)
@@ -187,7 +205,7 @@ function stripCommentsAndCDATA(text: string): string {
 
 The DOCTYPE declaration is stripped before parsing (fast-xml-parser doesn't handle it), replaced with whitespace to preserve line offsets.
 
-### Layer 2: DTD Validation (`catalogValidationService.ts`)
+### Phase 4a: DTD Validation (`catalogValidationService.ts`)
 
 **Engine:** TypesXML with OASIS XML Catalog
 **Trigger:** Every document change (debounced)
@@ -198,7 +216,7 @@ The DOCTYPE declaration is stripped before parsing (fast-xml-parser doesn't hand
 - Parser pool of 3 pre-configured instances for efficient reuse
 - Shared catalog instance across all validations for grammar caching
 
-### Layer 3: RNG Validation (`rngValidationService.ts`)
+### Phase 4b: RNG Validation (`rngValidationService.ts`)
 
 **Engine:** salve-annos + saxes
 **Trigger:** Every document change (debounced), when `schemaFormat` is `rng`
@@ -208,7 +226,7 @@ The DOCTYPE declaration is stripped before parsing (fast-xml-parser doesn't hand
 - Configurable schema path via `ditacraft.rngSchemaPath`
 - Disabled by default (DTD is the default schema format)
 
-### Layer 4: DITA Structure + ID Validation (`validation.ts`)
+### Phase 1-3 (continued): DITA Structure + ID Validation (`validation.ts`)
 
 **Engine:** Regex-based analysis on raw text
 **Trigger:** Every document change (debounced)
@@ -241,7 +259,7 @@ The DOCTYPE declaration is stripped before parsing (fast-xml-parser doesn't hand
 - Self-closing `<topicref/>` elements are skipped (intentional grouping containers)
 - Severity is Information (hint level) since href-less topicrefs are often legitimate
 
-### Layer 5: DITA Rules Engine (`ditaRulesValidator.ts`)
+### Phase 8: DITA Rules Engine (`ditaRulesValidator.ts`)
 
 **Engine:** 35 Schematron-equivalent rules implemented in TypeScript
 **Trigger:** Every document change (debounced)
@@ -257,9 +275,9 @@ The DOCTYPE declaration is stripped before parsing (fast-xml-parser doesn't hand
 | **accessibility** | 3 | Missing alt text on images/objects; abstract without shortdesc |
 | **DITA 2.0 removal** | 13 | Removed elements (`<boolean>`, `<object>`, learning), removed attributes (`@print`, `@copy-to`) |
 
-### Layer 6: Cross-References + Profiling
+### Phase 5 + 7: Cross-References + Profiling
 
-#### 6a: Cross-Reference Validation (`crossRefValidation.ts`)
+#### Phase 5: Cross-Reference Validation (`crossRefValidation.ts`)
 
 Validates targets of `href`, `conref`, `keyref`, and `conkeyref` attributes:
 
@@ -272,7 +290,7 @@ Validates targets of `href`, `conref`, `keyref`, and `conkeyref` attributes:
 | DITA-KEY-002 | Key has no target (no href on keydef) |
 | DITA-KEY-003 | Element ID not found in key's target |
 
-#### 6b: Profiling Validation (`profilingValidation.ts`)
+#### Phase 7: Profiling Validation (`profilingValidation.ts`)
 
 Validates profiling attribute values against subject scheme controlled vocabularies:
 
@@ -280,31 +298,59 @@ Validates profiling attribute values against subject scheme controlled vocabular
 |------|-------------|
 | DITA-PROF-001 | Attribute value not allowed by subject scheme |
 
+### Phase 9: Circular Reference Detection (`circularRefDetection.ts`)
+
+**Engine:** DFS traversal with path tracking
+**Trigger:** Every document change (debounced), when cross-ref validation is enabled
+**Purpose:** Detect href/conref/mapref cycles that would cause infinite processing
+
+Uses depth-first search to follow structural references (topicref, mapref, chapter, etc.) and conref attributes. Only follows DITA files (.dita, .ditamap, .bookmap). Maximum traversal depth of 50 to prevent runaway DFS on deep hierarchies.
+
+| Code | Description |
+|------|-------------|
+| DITA-CYCLE-001 | Circular reference detected (displays the cycle path) |
+
+### Phase 10: Workspace-Level Checks (`workspaceValidation.ts`)
+
+**Engine:** Workspace-wide file scanning
+**Trigger:** On-demand via `ditacraft.validateWorkspace` command
+**Purpose:** Cross-file duplicate ID detection and unused topic detection
+
+Requires explicit workspace validation command to build indices. Results are used by the pipeline for subsequent file validations until DITA files change.
+
+| Code | Description |
+|------|-------------|
+| DITA-ID-003 | Cross-file duplicate root element ID |
+| DITA-ORPHAN-001 | Topic file not referenced by any map |
+
 ---
 
 ## 4. Diagnostic Codes
 
 ### Complete Code Reference
 
-| Code | Layer | Severity | Description |
+| Code | Phase | Severity | Description |
 |------|-------|----------|-------------|
-| DITA-XML-001 | 1 | Error | XML well-formedness violation |
-| DITA-DTD-001 | 2 | Error | DTD validation error |
-| DITA-STRUCT-001 | 4 | Warning | Missing DOCTYPE declaration |
-| DITA-STRUCT-002 | 4 | Error | Invalid root element for file type |
-| DITA-STRUCT-003 | 4 | Error | Missing/empty `id` on root element |
-| DITA-STRUCT-004 | 4 | Error/Warning | Missing `<title>` element |
-| DITA-STRUCT-005 | 4 | Warning | Empty element |
-| DITA-STRUCT-006 | 4 | Warning | Missing `<booktitle>` in bookmap |
-| DITA-STRUCT-007 | 4 | Warning | Missing `<mainbooktitle>` in booktitle |
-| DITA-STRUCT-008 | 4 | Info | `<topicref>` without target attribute |
-| DITA-ID-001 | 4 | Error | Duplicate `id` attribute |
-| DITA-ID-002 | 4 | Warning | Invalid ID format |
-| DITA-SCH-001..046 | 5 | Various | DITA rules (35 codes) |
-| DITA-SCH-050..059 | 5 | Various | DITA 2.0 removal rules (10 codes) |
-| DITA-XREF-001..003 | 6a | Warning | Cross-reference target issues |
-| DITA-KEY-001..003 | 6a | Warning | Key resolution issues |
-| DITA-PROF-001 | 6b | Warning | Profiling value not allowed |
+| DITA-XML-001 | 1-3 | Error | XML well-formedness violation |
+| DITA-STRUCT-001 | 1-3 | Warning | Missing DOCTYPE declaration |
+| DITA-STRUCT-002 | 1-3 | Error | Invalid root element for file type |
+| DITA-STRUCT-003 | 1-3 | Error | Missing/empty `id` on root element |
+| DITA-STRUCT-004 | 1-3 | Error/Warning | Missing `<title>` element |
+| DITA-STRUCT-005 | 1-3 | Warning | Empty element |
+| DITA-STRUCT-006 | 1-3 | Warning | Missing `<booktitle>` in bookmap |
+| DITA-STRUCT-007 | 1-3 | Warning | Missing `<mainbooktitle>` in booktitle |
+| DITA-STRUCT-008 | 1-3 | Info | `<topicref>` without target attribute |
+| DITA-ID-001 | 1-3 | Error | Duplicate `id` attribute |
+| DITA-ID-002 | 1-3 | Warning | Invalid ID format |
+| DITA-DTD-001 | 4 | Error | DTD validation error |
+| DITA-XREF-001..003 | 5 | Warning | Cross-reference target issues |
+| DITA-KEY-001..003 | 5 | Warning | Key resolution issues |
+| DITA-PROF-001 | 7 | Warning | Profiling value not allowed |
+| DITA-SCH-001..046 | 8 | Various | DITA rules (35 codes) |
+| DITA-SCH-050..059 | 8 | Various | DITA 2.0 removal rules (10 codes) |
+| DITA-CYCLE-001 | 9 | Warning | Circular reference detected |
+| DITA-ID-003 | 10 | Warning | Cross-file duplicate root ID |
+| DITA-ORPHAN-001 | 10 | Info | Unused topic (not referenced by any map) |
 
 ---
 
@@ -416,6 +462,7 @@ Full LSP with 14 language features. The original estimate of "3-6 months" proved
 | Phase 3 | v0.6.0 | Layers 5+6: DITA rules (22), cross-refs, profiling, subject scheme |
 | Phase 4 | v0.6.1 | Layer 2+3: Catalog + RNG services, i18n, 35 rules, DITA 2.0 |
 | Phase 5 | v0.6.2 | Validation dedup, bookmap/topicref checks, improved error ranges, single-quote IDs |
+| Phase 6 | v0.7.0 | ValidationPipeline extraction, shared utilities (textUtils, patterns), error isolation, circular ref + workspace checks, 461 server tests |
 
 ### Requirements Status
 
@@ -498,4 +545,4 @@ Common DITA-OT error codes for reference:
 
 ---
 
-*Last updated: March 2026 (v0.6.2 — 6-layer LSP validation pipeline fully implemented)*
+*Last updated: March 2026 (v0.7.0 — 10-phase ValidationPipeline with error isolation, shared utilities, circular ref + workspace checks)*

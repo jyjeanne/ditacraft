@@ -12,7 +12,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 🔗 **Smart Navigation** - Ctrl+Click on `href`, `conref`, `keyref`, and `conkeyref` attributes with full key space resolution
 🔑 **Key Space Resolution** - Automatic or explicit root map selection with key scope support
-✅ **Multi-Layer Validation** - DTD (TypesXML) + optional RelaxNG (salve-annos) + 35 DITA rules with DITA 1.2/1.3/2.0 support
+✅ **10-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG (salve-annos) + 35 DITA rules with DITA 1.2/1.3/2.0 support and per-phase error isolation
 🌍 **Localized Diagnostics** - All 76+ diagnostic messages translatable (English + French included)
 ⚡ **Real-time Validation** - Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
 🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, and command injection prevention
@@ -22,7 +22,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **1087+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **1211+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (55 files, bookmap structure)
 
 ## Features
