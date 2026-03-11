@@ -91,8 +91,13 @@ export class KeyDiagnosticsProvider implements vscode.Disposable {
         const diagnostics: vscode.Diagnostic[] = [];
         const text = document.getText();
 
+        // Strip comments and CDATA to avoid matching keyref inside <!-- ... --> or <![CDATA[...]]>
+        const cleanText = text
+            .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
+            .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
+
         // Find all key references
-        const keyRefs = this.findKeyReferences(text, document);
+        const keyRefs = this.findKeyReferences(cleanText, document);
 
         // Check each key reference
         for (const keyRef of keyRefs) {

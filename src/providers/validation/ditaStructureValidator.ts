@@ -78,8 +78,13 @@ export class DitaStructureValidator {
         _warnings: ValidationError[],
         skipDtdChecks: boolean
     ): void {
-        // Check for root element (topic, concept, task, reference, etc.)
-        const topicTypes = ['topic', 'concept', 'task', 'reference', 'glossentry', 'troubleshooting'];
+        // Check for root element — all DITA topic specializations
+        const topicTypes = [
+            'topic', 'concept', 'task', 'reference',
+            'glossentry', 'glossgroup', 'troubleshooting',
+            'learningOverview', 'learningContent', 'learningSummary',
+            'learningAssessment', 'learningPlan',
+        ];
         const hasTopicRoot = topicTypes.some(type => new RegExp(`<${type}[\\s>]`).test(content));
 
         if (!hasTopicRoot) {
@@ -87,7 +92,7 @@ export class DitaStructureValidator {
                 line: 0,
                 column: 0,
                 severity: 'error',
-                message: 'DITA topic must have a valid root element (topic, concept, task, reference, glossentry, or troubleshooting)',
+                message: 'DITA topic must have a valid root element (topic, concept, task, reference, glossentry, troubleshooting, etc.)',
                 source: 'dita-validator'
             });
         }
@@ -98,7 +103,8 @@ export class DitaStructureValidator {
         }
 
         // Check for id attribute on root (REQUIRED per DITA DTD)
-        const idMatch = content.match(/<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*id="([^"]*)"/);
+        const topicPattern = topicTypes.join('|');
+        const idMatch = content.match(new RegExp(`<(?:${topicPattern})\\s+[^>]*id=(["'])([^"']*)\\1`));
         if (!idMatch) {
             errors.push({
                 line: 0,
@@ -107,7 +113,7 @@ export class DitaStructureValidator {
                 message: 'Root element MUST have an id attribute (required by DTD)',
                 source: 'dita-validator'
             });
-        } else if (idMatch.length > 1 && idMatch[1] === '') {
+        } else if (idMatch[2] === '') {
             errors.push({
                 line: 0,
                 column: 0,
@@ -142,20 +148,29 @@ export class DitaStructureValidator {
         }
     }
 
+    /** Topic types that use <title> (excludes glossentry which uses <glossterm>) */
+    private static readonly TITLE_TOPIC_TYPES = [
+        'topic', 'concept', 'task', 'reference',
+        'glossgroup', 'troubleshooting',
+        'learningOverview', 'learningContent', 'learningSummary',
+        'learningAssessment', 'learningPlan',
+    ];
+
     /**
      * Validate title element exists as direct child of topic root
      */
     private validateTopicTitle(content: string, errors: ValidationError[]): void {
-        const rootTitlePattern = /<(?:topic|concept|task|reference|troubleshooting)\s+[^>]*>[\s\S]*?(?=<(?:title|shortdesc|prolog|abstract|body|conbody|taskbody|refbody|related-links))/;
+        const alt = DitaStructureValidator.TITLE_TOPIC_TYPES.join('|');
+        const rootTitlePattern = new RegExp(`<(?:${alt})(?:\\s[^>]*)?>[\\s\\S]*?(?=<(?:title|shortdesc|prolog|abstract|body|conbody|taskbody|refbody|related-links))`);
         const rootMatch = content.match(rootTitlePattern);
 
         if (rootMatch) {
-            const titleAfterRootPattern = /<(?:topic|concept|task|reference|troubleshooting)\s+[^>]*>[\s]*<title>/;
+            const titleAfterRootPattern = new RegExp(`<(?:${alt})(?:\\s[^>]*)?>[\\s]*<title>`);
             const hasRootTitle = titleAfterRootPattern.test(content);
 
             if (!hasRootTitle) {
                 // Double-check: look for title as first child element
-                const firstChildPattern = /<(?:topic|concept|task|reference|troubleshooting)\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
+                const firstChildPattern = new RegExp(`<(?:${alt})(?:\\s[^>]*)?>[\\s]*(?:<!--[\\s\\S]*?-->\\s*)*<(\\w+)`);
                 const firstChildMatch = content.match(firstChildPattern);
 
                 if (!firstChildMatch || firstChildMatch[1] !== 'title') {
@@ -186,7 +201,7 @@ export class DitaStructureValidator {
      * Validate glossentry structure: requires <glossterm> as first child instead of <title>
      */
     private validateGlossentryStructure(content: string, errors: ValidationError[]): void {
-        const firstChildPattern = /<glossentry\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
+        const firstChildPattern = /<glossentry(?:\s[^>]*)?>[\s]*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
         const firstChildMatch = content.match(firstChildPattern);
 
         if (!firstChildMatch || firstChildMatch[1] !== 'glossterm') {
@@ -209,24 +224,30 @@ export class DitaStructureValidator {
         warnings: ValidationError[],
         skipDtdChecks: boolean
     ): void {
-        // Accept both <map> and <bookmap> (bookmaps may use .ditamap extension)
-        const hasMapRoot = /<map[\s>]/.test(content);
-        const hasBookmapRoot = /<bookmap[\s>]/.test(content);
+        // Accept all DITA map specializations as valid root elements
+        const mapTypes = ['map', 'bookmap', 'subjectScheme'];
+        const hasAnyMapRoot = mapTypes.some(type => new RegExp(`<${type}[\\s>]`).test(content));
 
-        if (!hasMapRoot && !hasBookmapRoot) {
+        if (!hasAnyMapRoot) {
             errors.push({
                 line: 0,
                 column: 0,
                 severity: 'error',
-                message: 'DITA map must have a <map> or <bookmap> root element',
+                message: 'DITA map must have a valid root element (map, bookmap, subjectScheme, etc.)',
                 source: 'dita-validator'
             });
             return;
         }
 
         // If this is actually a bookmap, delegate to bookmap validation
-        if (hasBookmapRoot) {
+        if (/<bookmap[\s>]/.test(content)) {
             this.validateBookmap(content, errors, warnings, skipDtdChecks);
+            return;
+        }
+
+        // Only plain <map> requires title and topicref checks;
+        // other specializations (subjectScheme, learning maps) have their own structure
+        if (!/<map[\s>]/.test(content)) {
             return;
         }
 

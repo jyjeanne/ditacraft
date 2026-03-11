@@ -129,7 +129,7 @@ export const TOPIC_TYPE_NAMES: ReadonlySet<string> = new Set([
  * Set of element names that are DITA map types.
  */
 export const MAP_TYPE_NAMES: ReadonlySet<string> = new Set([
-    'map', 'bookmap', 'subjectScheme', 'learningMap', 'learningBookmap',
+    'map', 'bookmap', 'subjectScheme',
 ]);
 
 /**

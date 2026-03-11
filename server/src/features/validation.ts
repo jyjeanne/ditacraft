@@ -240,8 +240,10 @@ function validateTopicStructure(
 }
 
 function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
-    // Accept both <map> and <bookmap> (bookmaps may use .ditamap extension)
-    if (!/<map[\s>]/.test(text) && !/<bookmap[\s>]/.test(text)) {
+    // Accept all DITA map specializations as valid root elements
+    const hasMapRoot = [...MAP_TYPE_NAMES].some((name) => new RegExp(`<${name}[\\s>]`).test(text));
+
+    if (!hasMapRoot) {
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range: createRange(0, 0),
@@ -255,6 +257,12 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
     // If this is actually a bookmap, delegate to bookmap validation
     if (/<bookmap[\s>]/.test(text)) {
         validateBookmapStructure(text, diagnostics);
+        return;
+    }
+
+    // Only plain <map> requires title and topicref checks;
+    // other specializations (subjectScheme, learning maps) have their own structure
+    if (!/<map[\s>]/.test(text)) {
         return;
     }
 

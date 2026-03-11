@@ -190,6 +190,14 @@ suite('validateDITADocument', () => {
             assert.strictEqual(titleDiags.length, 1, 'glossentry without glossterm should trigger error');
         });
 
+        test('subjectScheme produces no invalid root error', () => {
+            const diags = validate('<subjectScheme><subjectdef keys="os"><subjectdef keys="linux"/></subjectdef></subjectScheme>', 'file:///test.ditamap');
+            const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
+            assert.strictEqual(rootDiags.length, 0, 'subjectScheme should be accepted as valid map root');
+            const titleDiags = diags.filter(d => d.code === 'DITA-STRUCT-004');
+            assert.strictEqual(titleDiags.length, 0, 'subjectScheme should not require a title');
+        });
+
         test('bookmap with .ditamap extension produces no root error', () => {
             const diags = validate('<bookmap><booktitle><mainbooktitle>T</mainbooktitle></booktitle></bookmap>', 'file:///test.ditamap');
             const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
