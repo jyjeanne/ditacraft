@@ -177,6 +177,8 @@ function isDitaFile(filePath: string): boolean {
 }
 
 function normalizePath(filePath: string): string {
-    return path.resolve(filePath).toLowerCase();
+    const resolved = path.resolve(filePath);
+    // Only lowercase on case-insensitive filesystems (Windows)
+    return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }
 
