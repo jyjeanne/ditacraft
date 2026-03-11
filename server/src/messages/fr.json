@@ -9,6 +9,7 @@
     "struct.missingId": "L'élément racine doit avoir un attribut id (requis par la DTD DITA)",
     "struct.emptyId": "L'attribut id de l'élément racine ne peut pas être vide",
     "struct.missingTopicTitle": "Un topic DITA doit contenir un élément <title> (requis par la DTD)",
+    "struct.missingGlossterm": "Un glossentry DITA doit contenir un élément <glossterm> comme premier enfant (requis par la DTD)",
     "struct.missingMapTitle": "Une carte DITA devrait contenir un élément <title>",
     "struct.emptyElement": "L'élément <{0}> vide devrait être supprimé ou rempli",
     "struct.missingBooktitle": "Un bookmap devrait contenir un élément <booktitle>",

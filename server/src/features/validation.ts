@@ -211,15 +211,31 @@ function validateTopicStructure(
         });
     }
 
-    // Check for title element
-    if (!text.includes('<title>') && !text.includes('<title ')) {
-        diagnostics.push({
-            severity: DiagnosticSeverity.Error,
-            range: createRange(0, 0),
-            message: t('struct.missingTopicTitle'),
-            source: SOURCE,
-            code: CODES.MISSING_TITLE,
-        });
+    // Glossentry uses <glossterm> instead of <title>
+    const isGlossentry = /<glossentry[\s>]/.test(text);
+
+    if (isGlossentry) {
+        // Check for glossterm element
+        if (!text.includes('<glossterm>') && !text.includes('<glossterm ')) {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Error,
+                range: createRange(0, 0),
+                message: t('struct.missingGlossterm'),
+                source: SOURCE,
+                code: CODES.MISSING_TITLE,
+            });
+        }
+    } else {
+        // Check for title element
+        if (!text.includes('<title>') && !text.includes('<title ')) {
+            diagnostics.push({
+                severity: DiagnosticSeverity.Error,
+                range: createRange(0, 0),
+                message: t('struct.missingTopicTitle'),
+                source: SOURCE,
+                code: CODES.MISSING_TITLE,
+            });
+        }
     }
 }
 
@@ -374,7 +390,13 @@ function checkEmptyElements(text: string, diagnostics: Diagnostic[]): void {
 function stripCommentsAndCDATA(text: string): string {
     return text
         .replace(/<!--[\s\S]*?-->/g, (m) => m.replace(/[^\n\r]/g, ' '))
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
+        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '))
+        // Blank out text content of code/pre elements to avoid false ID matches
+        // on literal code examples (e.g., &lt;variable id="x"> inside codeblock).
+        // Preserve the opening/closing tags (which may have real id attributes).
+        .replace(/(<(?:codeblock|pre|screen|msgblock)\b[^>]*>)([\s\S]*?)(<\/(?:codeblock|pre|screen|msgblock)>)/g,
+            (_m, open: string, content: string, close: string) =>
+                open + content.replace(/[^\n\r]/g, ' ') + close);
 }
 
 // DITA topic/map root elements use XML ID type (must start with letter/underscore).

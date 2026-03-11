@@ -9,6 +9,7 @@
     "struct.missingId": "Root element must have an id attribute (required by DITA DTD)",
     "struct.emptyId": "Root element id attribute cannot be empty",
     "struct.missingTopicTitle": "DITA topic must contain a <title> element (required by DTD)",
+    "struct.missingGlossterm": "DITA glossentry must contain a <glossterm> element as first child (required by DTD)",
     "struct.missingMapTitle": "DITA map should contain a <title> element",
     "struct.emptyElement": "Empty <{0}> element should be removed or filled with content",
     "struct.missingBooktitle": "Bookmap should contain a <booktitle> element",

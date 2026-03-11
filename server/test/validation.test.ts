@@ -178,6 +178,18 @@ suite('validateDITADocument', () => {
             assert.strictEqual(rootDiags.length, 0);
         });
 
+        test('glossentry with glossterm produces no missing title error', () => {
+            const diags = validate('<glossentry id="g1"><glossterm>Term</glossterm><glossdef>Def</glossdef></glossentry>');
+            const titleDiags = diags.filter(d => d.code === 'DITA-STRUCT-004');
+            assert.strictEqual(titleDiags.length, 0, 'glossentry with glossterm should not trigger missing title');
+        });
+
+        test('glossentry without glossterm produces missing glossterm error', () => {
+            const diags = validate('<glossentry id="g1"><glossdef>Def</glossdef></glossentry>');
+            const titleDiags = diags.filter(d => d.code === 'DITA-STRUCT-004');
+            assert.strictEqual(titleDiags.length, 1, 'glossentry without glossterm should trigger error');
+        });
+
         test('bookmap with .ditamap extension produces no root error', () => {
             const diags = validate('<bookmap><booktitle><mainbooktitle>T</mainbooktitle></booktitle></bookmap>', 'file:///test.ditamap');
             const rootDiags = diags.filter(d => d.code === 'DITA-STRUCT-002');
@@ -297,6 +309,14 @@ suite('validateDITADocument', () => {
             );
             const dupDiags = diags.filter(d => d.code === 'DITA-ID-001');
             assert.strictEqual(dupDiags.length, 0);
+        });
+
+        test('id inside codeblock text content is not a real ID', () => {
+            const diags = validate(
+                '<topic id="t1"><title>T</title><body><codeblock>&lt;variable id="String1">&lt;/variable>\n&lt;variable id="String1">&lt;/variable></codeblock></body></topic>'
+            );
+            const dupDiags = diags.filter(d => d.code === 'DITA-ID-001');
+            assert.strictEqual(dupDiags.length, 0, 'id= inside codeblock text should not trigger duplicate ID');
         });
     });
 
