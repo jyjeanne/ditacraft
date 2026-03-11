@@ -136,10 +136,11 @@ export async function detectUnusedTopics(
         }
 
         const mapDir = path.dirname(mapFile);
+        const cleanContent = stripCommentsAndCDATA(content);
         const hrefRegex = /\b(?:href|conref)\s*=\s*["']([^"'#]+)/g;
         let match: RegExpExecArray | null;
 
-        while ((match = hrefRegex.exec(content)) !== null) {
+        while ((match = hrefRegex.exec(cleanContent)) !== null) {
             const refValue = match[1];
             if (/^https?:\/\/|^mailto:/.test(refValue)) continue;
             const resolved = normalizeFsPath(path.resolve(mapDir, refValue));
