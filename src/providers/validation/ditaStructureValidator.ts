@@ -117,19 +117,28 @@ export class DitaStructureValidator {
             });
         }
 
-        // Check for required title element as DIRECT CHILD of root
-        this.validateTopicTitle(content, errors);
+        // Glossentry uses <glossterm> instead of <title>, so skip title checks
+        const isGlossentry = /<glossentry[\s>]/.test(content);
 
-        // Check for empty title element
-        const emptyTitlePattern = /<title\s*(?:\/|>\s*<\/title)>/;
-        if (emptyTitlePattern.test(content)) {
-            errors.push({
-                line: 0,
-                column: 0,
-                severity: 'error',
-                message: 'DITA topic <title> element cannot be empty (required by DTD)',
-                source: 'dita-validator'
-            });
+        // Check for required title element as DIRECT CHILD of root
+        if (isGlossentry) {
+            this.validateGlossentryStructure(content, errors);
+        } else {
+            this.validateTopicTitle(content, errors);
+        }
+
+        // Check for empty title element (not applicable to glossentry)
+        if (!isGlossentry) {
+            const emptyTitlePattern = /<title\s*(?:\/|>\s*<\/title)>/;
+            if (emptyTitlePattern.test(content)) {
+                errors.push({
+                    line: 0,
+                    column: 0,
+                    severity: 'error',
+                    message: 'DITA topic <title> element cannot be empty (required by DTD)',
+                    source: 'dita-validator'
+                });
+            }
         }
     }
 
@@ -137,16 +146,16 @@ export class DitaStructureValidator {
      * Validate title element exists as direct child of topic root
      */
     private validateTopicTitle(content: string, errors: ValidationError[]): void {
-        const rootTitlePattern = /<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*>[\s\S]*?(?=<(?:title|shortdesc|prolog|abstract|body|conbody|taskbody|refbody|glossBody|related-links))/;
+        const rootTitlePattern = /<(?:topic|concept|task|reference|troubleshooting)\s+[^>]*>[\s\S]*?(?=<(?:title|shortdesc|prolog|abstract|body|conbody|taskbody|refbody|related-links))/;
         const rootMatch = content.match(rootTitlePattern);
 
         if (rootMatch) {
-            const titleAfterRootPattern = /<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*>[\s]*<title>/;
+            const titleAfterRootPattern = /<(?:topic|concept|task|reference|troubleshooting)\s+[^>]*>[\s]*<title>/;
             const hasRootTitle = titleAfterRootPattern.test(content);
 
             if (!hasRootTitle) {
                 // Double-check: look for title as first child element
-                const firstChildPattern = /<(?:topic|concept|task|reference|glossentry|troubleshooting)\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
+                const firstChildPattern = /<(?:topic|concept|task|reference|troubleshooting)\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
                 const firstChildMatch = content.match(firstChildPattern);
 
                 if (!firstChildMatch || firstChildMatch[1] !== 'title') {
@@ -170,6 +179,24 @@ export class DitaStructureValidator {
                     source: 'dita-validator'
                 });
             }
+        }
+    }
+
+    /**
+     * Validate glossentry structure: requires <glossterm> as first child instead of <title>
+     */
+    private validateGlossentryStructure(content: string, errors: ValidationError[]): void {
+        const firstChildPattern = /<glossentry\s+[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*<(\w+)/;
+        const firstChildMatch = content.match(firstChildPattern);
+
+        if (!firstChildMatch || firstChildMatch[1] !== 'glossterm') {
+            errors.push({
+                line: 0,
+                column: 0,
+                severity: 'error',
+                message: 'DITA glossentry MUST contain a <glossterm> element as first child (required by DTD)',
+                source: 'dita-validator'
+            });
         }
     }
 

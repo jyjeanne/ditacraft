@@ -860,7 +860,7 @@ function countDirectChildTitles(content: string): number {
     let count = 0;
     let depth = 0;
     // Match opening tags, closing tags, and self-closing tags
-    const tagRegex = /<(\/?)(\w+)\b(?:"[^"]*"|'[^']*'|[^>"'])*?(\/?)>/g;
+    const tagRegex = /<(\/?)(\w+)\b(?:"[^"]*"|'[^']*'|[^>"'])*(\/?)>/g;
     let m;
     while ((m = tagRegex.exec(content)) !== null) {
         const isClosing = m[1] === '/';
