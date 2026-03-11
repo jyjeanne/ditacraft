@@ -7,9 +7,9 @@
 import { Diagnostic } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import * as path from 'path';
 
 import { DitaCraftSettings } from '../settings';
+import { normalizeFsPath } from '../utils/textUtils';
 import { validateDITADocument } from '../features/validation';
 import { validateCrossReferences } from '../features/crossRefValidation';
 import { validateDitaRules } from '../features/ditaRulesValidator';
@@ -144,7 +144,7 @@ export class ValidationPipeline {
             }
 
             if (workspace.unusedTopicPaths.size > 0) {
-                const normalizedPath = path.resolve(filePath).toLowerCase();
+                const normalizedPath = normalizeFsPath(filePath);
                 if (workspace.unusedTopicPaths.has(normalizedPath)) {
                     diagnostics.push(createUnusedTopicDiagnostic());
                 }

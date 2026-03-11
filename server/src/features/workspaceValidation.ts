@@ -10,7 +10,7 @@ import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/nod
 import { t } from '../utils/i18n';
 import { collectDitaFiles } from '../utils/workspaceScanner';
 import { KeySpaceService } from '../services/keySpaceService';
-import { offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
+import { normalizeFsPath, offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -83,8 +83,8 @@ export function detectCrossFileDuplicateIds(
     if (!files || files.length <= 1) return diagnostics;
 
     // Find other files with the same root ID (not this file)
-    const normalizedSelf = path.resolve(documentPath).toLowerCase();
-    const others = files.filter(f => path.resolve(f).toLowerCase() !== normalizedSelf);
+    const normalizedSelf = normalizeFsPath(documentPath);
+    const others = files.filter(f => normalizeFsPath(f) !== normalizedSelf);
     if (others.length === 0) return diagnostics;
 
     // Find the position of the id value in the original text using the index from stripped text
@@ -142,7 +142,7 @@ export async function detectUnusedTopics(
         while ((match = hrefRegex.exec(content)) !== null) {
             const refValue = match[1];
             if (/^https?:\/\/|^mailto:/.test(refValue)) continue;
-            const resolved = path.resolve(mapDir, refValue).toLowerCase();
+            const resolved = normalizeFsPath(path.resolve(mapDir, refValue));
             referencedPaths.add(resolved);
         }
     }
@@ -153,7 +153,7 @@ export async function detectUnusedTopics(
             const keySpace = await keySpaceService.buildKeySpace(mapFile);
             for (const [, keyDef] of keySpace.keys) {
                 if (keyDef.targetFile) {
-                    referencedPaths.add(path.resolve(keyDef.targetFile).toLowerCase());
+                    referencedPaths.add(normalizeFsPath(keyDef.targetFile));
                 }
             }
         } catch {
@@ -164,7 +164,7 @@ export async function detectUnusedTopics(
     // Find topics not in the referenced set
     const unusedTopics = new Set<string>();
     for (const topicFile of topicFiles) {
-        const normalized = path.resolve(topicFile).toLowerCase();
+        const normalized = normalizeFsPath(topicFile);
         if (!referencedPaths.has(normalized)) {
             unusedTopics.add(normalized);
         }

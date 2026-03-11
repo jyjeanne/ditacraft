@@ -8,7 +8,7 @@ import { URI } from 'vscode-uri';
 import * as path from 'path';
 import { promises as fsp } from 'fs';
 import { t } from '../utils/i18n';
-import { offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
+import { normalizeFsPath, offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -177,8 +177,6 @@ function isDitaFile(filePath: string): boolean {
 }
 
 function normalizePath(filePath: string): string {
-    const resolved = path.resolve(filePath);
-    // Only lowercase on case-insensitive filesystems (Windows)
-    return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+    return normalizeFsPath(filePath);
 }
 

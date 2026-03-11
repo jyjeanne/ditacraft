@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 
 import { TAG_ATTRS } from '../utils/patterns';
+import { stripCommentsAndCDATA } from '../utils/textUtils';
 
 // --- Interfaces ---
 
@@ -373,7 +374,7 @@ export class KeySpaceService {
             try {
                 const rawContent = await fsPromises.readFile(currentMap, 'utf-8');
                 // Strip comments and CDATA to avoid false matches
-                const mapContent = this.stripCommentsAndCdata(rawContent);
+                const mapContent = stripCommentsAndCDATA(rawContent);
 
                 // Detect keyscope(s) on root element of this map
                 const rootScopes = this.extractRootKeyscope(mapContent);
@@ -686,13 +687,6 @@ export class KeySpaceService {
             }
         }
         for (const key of toDelete) this.keySpaceCache.delete(key);
-    }
-
-    /** Replace comment and CDATA content with spaces (preserves offsets). */
-    private stripCommentsAndCdata(text: string): string {
-        return text
-            .replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length))
-            .replace(/<!\[CDATA\[[\s\S]*?]]>/g, (m) => ' '.repeat(m.length));
     }
 
     private isPathWithinWorkspace(absolutePath: string): boolean {

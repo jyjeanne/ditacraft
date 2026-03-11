@@ -267,7 +267,7 @@ export class DitaStructureValidator {
         // Check topicref elements have href
         const topicrefMatches = content.matchAll(/<topicref([^>]*)>/g);
         for (const match of topicrefMatches) {
-            if (!match[1].includes('href=')) {
+            if (!/(?:href|keyref|keys|conref|conkeyref)\s*=/.test(match[1])) {
                 warnings.push({
                     line: 0,
                     column: 0,

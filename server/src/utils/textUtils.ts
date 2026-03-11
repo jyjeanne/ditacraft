@@ -3,6 +3,7 @@
  * Centralizes functions previously duplicated across multiple feature files.
  */
 
+import * as path from 'path';
 import { Range } from 'vscode-languageserver/node';
 
 /**
@@ -68,6 +69,16 @@ export function offsetToRange(text: string, start: number, end: number): Range {
     }
 
     return Range.create(startLine, startChar, endLine, endChar);
+}
+
+/**
+ * Normalize a file system path for comparison.
+ * On Windows (case-insensitive), lowercases the path.
+ * On Linux/macOS (case-sensitive), preserves case.
+ */
+export function normalizeFsPath(filePath: string): string {
+    const resolved = path.resolve(filePath);
+    return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }
 
 /**
