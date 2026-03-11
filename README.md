@@ -22,7 +22,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **1084+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **1087+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (55 files, bookmap structure)
 
 ## Features
@@ -47,7 +47,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 ### 📝 **DITA Editing**
 - Syntax highlighting for `.dita`, `.ditamap`, `.bookmap`, and `.ditaval` files
 - Intelligent code snippets and auto-completion (21 comprehensive snippets)
-- Support for all DITA topic types (concept, task, reference, topic, glossentry)
+- Support for all DITA topic types (concept, task, reference, topic, glossentry, troubleshooting)
 
 ### 🔗 **Smart Navigation**
 - **Ctrl+Click navigation** in DITA maps, bookmaps, and topics
@@ -148,7 +148,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 ### 🗺️ **Map Visualizer**
 - **Interactive tree view** - Visual hierarchy of DITA maps, bookmaps, and topics
-- **Element type icons** - Different icons for maps, chapters, appendices, parts, topics, and keys
+- **Element type icons** - Different icons for maps, chapters, appendices, parts, topics, keys, and glossrefs
 - **Missing file detection** - Missing referenced files shown with strikethrough styling
 - **Circular reference protection** - Detects and marks circular map references
 - **Double-click navigation** - Open any topic or map directly from the visualizer
@@ -743,18 +743,19 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.6.2 (Current)
-**Enhanced LSP Validation, Diagnostics Deduplication & Bug Fixes**
-- **Bookmap Validation** — LSP now warns on missing `<booktitle>` and `<mainbooktitle>` elements in bookmaps
-- **Topicref Validation** — LSP flags `<topicref>` elements without `href`, `keyref`, `keys`, `conref`, or `conkeyref` (information-level; self-closing containers are skipped)
-- **Single-Quote ID Support** — ID validation (`validateIDs`) now handles `id='value'` in addition to `id="value"`
-- **Improved Error Ranges** — Diagnostic underlines now span full line or exact match bounds instead of 1-character-wide squiggles
-- **Validation Deduplication** — Disabled client-side on-save auto-validation; LSP server is now the sole provider of real-time diagnostics, eliminating duplicate `dita` vs `dita-lsp` entries
-- **Diagnostics View Dedup** — Identical diagnostics from multiple sources are filtered to show each issue only once
-- **Stale Diagnostics Cleanup** — Client-side `dita` diagnostics from manual validation are automatically cleared on save
-- **cSpell Auto-Prompt Disabled** — cSpell setup prompt disabled by default (new `cspellAutoPrompt` setting); `DITA: Setup cSpell Configuration` command still available
-- **Bug Fixes** — Code action single-quote ID handling, DITA Explorer error handling, completion position clamping, XML tokenizer CRLF, `openFile` command declaration
-- **652 Client Tests + 430 Server Tests** — 1082 total
+### Version 0.7.0 (Current)
+**Multi-Version DTD, Workspace Analysis, Glossref & Validation Fixes**
+- **Multi-Version DTD Support** — Bundled DITA 1.2, 1.3, and 2.0 DTDs with OASIS XML Catalog chaining; `ditacraft.xmlCatalogPath` setting for custom specializations
+- **Scope Validation** — Validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
+- **Circular Reference Detection** — DFS traversal detects structural map reference cycles; only follows topicref/mapref/chapter/etc. (not keydef/xref/link), excludes `.xml` files
+- **Workspace Validation** — `DITA: Validate Workspace` command with progress, cross-file duplicate ID detection, and unused topic detection
+- **Glossref Element** — Full support across schema, autocompletion, explorer, map visualizer, content model, and hierarchy parser
+- **Glossentry/Troubleshooting Support** — Recognized as valid topic root elements; glossentry validates `<glossterm>` as first child (not `<title>`)
+- **Bookmap in .ditamap** — Bookmaps using `.ditamap` extension no longer produce false root element errors
+- **SCH-023 Fix** — Section title rule now uses depth-tracking to count only direct-child titles (ignores titles in nested `<fig>`, `<div>`, etc.)
+- **SCH-040 Fix** — Self-closing `<xref/>` no longer triggers false nested-xref error
+- **Bug Fixes** — Bookmap title boundary checks, conditional mainbooktitle warning, single-quote ID handling, error ranges, completion position clamping, XML tokenizer CRLF, openFile command
+- **652 Client Tests + 435 Server Tests** — 1087+ total
 
 ### Version 0.6.1
 **Localization, DITA 2.0 Rules, Root Map & Validation Enhancements**

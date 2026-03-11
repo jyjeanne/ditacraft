@@ -59,7 +59,9 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **LSP: DITA Version Detection** | Complete | 100% |
 | **LSP: 9 Code Actions** | Complete | 100% |
 | **9 LSP Settings** | Complete | 100% |
-| **Server Test Suite (432 tests)** | Complete | 100% |
+| **Glossref Element Support** | Complete | 100% |
+| **Glossentry/Troubleshooting Validation** | Complete | 100% |
+| **Server Test Suite (435 tests)** | Complete | 100% |
 | **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
@@ -98,12 +100,14 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **Multi-Version DTD Support** — Bundled DITA 1.2, 1.3, and 2.0 DTDs with master OASIS XML Catalog chaining via `<nextCatalog>`
 - **External XML Catalog** — New `ditacraft.xmlCatalogPath` setting for custom DTD specializations; hot-reloads on config change
 - **Scope Validation** — Validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
-- **Circular Reference Detection** — DFS traversal with depth limiting detects href/conref/mapref cycles (DITA-CYCLE-001)
+- **Circular Reference Detection** — DFS traversal detects structural map reference cycles (DITA-CYCLE-001); only follows topicref/mapref/chapter/etc., excludes keydef/xref/link hrefs and `.xml` files
 - **Workspace Validation** — `DITA: Validate Workspace` command with progress notification
 - **Cross-File Duplicate ID** — Workspace-wide root ID uniqueness detection (DITA-ID-003)
 - **Unused Topic Detection** — Finds .dita files not referenced by any map (DITA-ORPHAN-001)
-- **Bug Fixes** — 5 bug fixes in workspace validation, circular ref detection, cross-ref offset calculation, catalog service initialization, and root ID regex
-- **1084+ Total Tests** — Client (652) + Server (432)
+- **Glossref Element** — Full support across schema, autocompletion, explorer, map visualizer, content model, and hierarchy parser
+- **Glossentry/Troubleshooting Topics** — Recognized as valid root elements with proper structure validation
+- **Bug Fixes** — Bookmap in .ditamap false positive, SCH-023 section title false positive (depth-tracking), SCH-040 self-closing xref false positive, glossentry title validation, bookmap title boundary checks, circular ref false positives, and more
+- **1087+ Total Tests** — Client (652) + Server (435)
 
 ### Previous Changes (v0.6.2)
 - **Bookmap Validation** — LSP warns on missing `<booktitle>` and `<mainbooktitle>` elements (DITA-STRUCT-006, DITA-STRUCT-007)
@@ -558,10 +562,10 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.6.0 | Activity bar views, advanced LSP, 1010+ Tests | Released |
 | v0.6.1 | i18n, DITA 2.0 rules, root map, RNG/catalog, 1040+ Tests | Released |
 | v0.6.2 | Bookmap/topicref validation, error ranges, dedup, 1082 Tests | Released |
-| v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, 1084+ Tests | **Current** |
+| v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, glossref, 1087+ Tests | **Current** |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: March 2026 (v0.7.0 — multi-version DTD support, scope validation, circular reference detection, workspace-level analysis, 1084+ tests)*
+*Last updated: March 2026 (v0.7.0 — multi-version DTD support, scope validation, circular reference detection, workspace-level analysis, glossref/glossentry support, 1087+ tests)*

@@ -5,12 +5,21 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] - 2026-03-10
+## [0.7.0] - 2026-03-11
 
 ### Added
+- **Glossref Element Support** — Full support for `<glossref>` across schema, autocompletion, explorer, map visualizer, content model validator, and map hierarchy parser
+- **Glossentry/Troubleshooting Topic Types** — Client-side validation now recognizes `<glossentry>` and `<troubleshooting>` as valid topic root elements with proper structure checks (`<glossterm>` required as first child for glossentry)
+- **Multi-Version DTD Support** — Bundled DITA 1.2, 1.3, and 2.0 DTDs with master OASIS XML Catalog chaining via `<nextCatalog>`
+- **External XML Catalog** — New `ditacraft.xmlCatalogPath` setting for custom DTD specializations; hot-reloads on config change
+- **Scope Validation** — Validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
+- **Circular Reference Detection** — DFS traversal with depth limiting detects structural map reference cycles (DITA-CYCLE-001); only follows topicref/mapref/chapter/etc. (not keydef/xref/link hrefs)
+- **Workspace Validation** — `DITA: Validate Workspace` command with progress notification
+- **Cross-File Duplicate ID** — Workspace-wide root ID uniqueness detection (DITA-ID-003)
+- **Unused Topic Detection** — Finds .dita files not referenced by any map (DITA-ORPHAN-001)
 - **Bookmap Validation** — LSP warns on missing `<booktitle>` (DITA-STRUCT-006) and `<mainbooktitle>` (DITA-STRUCT-007) elements in bookmaps
 - **Topicref Validation** — LSP flags `<topicref>` without target attributes (`href`, `keyref`, `keys`, `conref`, `conkeyref`) as information-level hints; self-closing containers are skipped (DITA-STRUCT-008)
-- **Localization (i18n)** — All 70 diagnostic messages translatable; English + French bundles; auto-detects LSP locale
+- **Localization (i18n)** — All 70+ diagnostic messages translatable; English + French bundles; auto-detects LSP locale
 - **DITA 2.0 Rules** — 10 new version-specific rules (SCH-050 to SCH-059): removed elements (`<boolean>`, `<indextermref>`, `<object>`, learning specializations), removed attributes (`@print`, `@copy-to`, `@navtitle`, `@query`), `<audio>`/`<video>` fallback accessibility
 - **35 Total DITA Rules** — Expanded from 18 to 35 Schematron-equivalent rules across 5 categories (mandatory, recommendation, authoring, accessibility, DITA 2.0 removal); version-gated per DITA version
 - **Root Map Management** — Set/clear explicit root map via command palette or clickable status bar item; workspace-level `rootMap` setting; auto-discover mode by default
@@ -21,27 +30,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Conref Content Preview** — Hover on `conref`/`conkeyref` shows inline preview of referenced content
 - **Smart Debouncing** — Tiered validation delays (300ms topics, 1000ms maps) with per-document cancellation
 - **Key Scope Support** — `@keyscope` attribute handling with scope-qualified key resolution
-- **New Settings** — `ditacraft.ditaVersion`, `ditacraft.schemaFormat`, `ditacraft.rngSchemaPath`, `ditacraft.cspellAutoPrompt`
-- **New Commands** — `DITA: Set Root Map`, `DITA: Clear Root Map`, `DITA: Open File`
+- **New Settings** — `ditacraft.ditaVersion`, `ditacraft.schemaFormat`, `ditacraft.rngSchemaPath`, `ditacraft.cspellAutoPrompt`, `ditacraft.xmlCatalogPath`
+- **New Commands** — `DITA: Set Root Map`, `DITA: Clear Root Map`, `DITA: Validate Workspace`, `DITA: Open File`
 - **New Extension Logo** — Updated branding
 - **User Guide Update** — 17 files updated + 8 new DITA topics (localization, root map, 6 glossary entries)
 
 ### Changed
+- **Circular Reference Detection** — Only follows structural map elements (topicref, mapref, chapter, part, appendix, glossref, etc.); excludes keydef hrefs, xref/link targets, and generic `.xml` files to eliminate false positives
 - **Validation Deduplication** — Disabled client-side on-save auto-validation; LSP server now sole provider of real-time diagnostics, eliminating duplicate `dita` vs `dita-lsp` diagnostic entries
 - **Diagnostics View** — Added deduplication logic to filter identical diagnostics from multiple sources
 - **cSpell Auto-Prompt** — Disabled by default (new `cspellAutoPrompt` setting); manual command always available
 - **Stale Diagnostics Cleanup** — Client-side `dita` diagnostics from manual validation are cleared on save to avoid conflicts with LSP diagnostics
+- **Server Command Registration** — Removed `executeCommandProvider` from server capabilities to prevent double-registration of commands with client-side `registerCommand`
 
 ### Fixed
+- **Bookmap in .ditamap Files** — Bookmaps using `.ditamap` extension no longer produce false "must have a `<map>` root element" error; both server and client delegate to bookmap-specific validation
+- **SCH-023: Section Title False Positive** — Multiple-title-in-section rule now uses depth-tracking (`countDirectChildTitles`) to count only direct-child `<title>` elements, ignoring titles inside nested `<fig>`, `<div>`, `<table>`, `<example>`, etc.
+- **SCH-040: Self-Closing Xref False Positive** — Nested xref detection now skips self-closing `<xref .../>` elements via negative lookbehind, preventing false error when sibling xrefs include self-closing ones
+- **Glossentry Title Validation** — Glossentry topics correctly require `<glossterm>` (not `<title>`) as first child element
+- **Bookmap Title Boundary Check** — Client-side `<booktitle>` and `<mainbooktitle>` checks use regex boundary matching (`/<booktitle[\s>]/`) instead of `includes()` to prevent false matches on substrings
+- **Conditional Mainbooktitle Warning** — `<mainbooktitle>` warning only fires when `<booktitle>` exists (matches server-side logic)
 - **ID Validation: Single Quotes** — `validateIDs` now handles `id='value'` via backreference regex, not just `id="value"`
-- **Error Ranges** — Diagnostic underlines now span full line or exact match bounds instead of barely-visible 1-char-wide squiggles (validation.ts `createRange` + `offsetToRange`, catalogValidationService.ts)
+- **Error Ranges** — Diagnostic underlines now span full line or exact match bounds instead of barely-visible 1-char-wide squiggles
 - **Topicref Check: False Positives** — Self-closing `<topicref/>` elements and topicrefs with `conref`/`conkeyref` are correctly excluded from the missing-href warning
-- **Code Action: Duplicate ID** — `fixDuplicateId` quick fix now handles single-quoted `id` attributes (`id='value'`)
+- **Code Action: Duplicate ID** — `fixDuplicateId` quick fix now handles single-quoted `id` attributes
 - **DITA Explorer: Open File** — `ditacraft.openFile` command now has async error handling with user-facing warning
 - **Completion: Invalid Position** — Element completion `startPos.character` clamped to 0 to prevent invalid negative LSP positions
 - **XML Tokenizer: CRLF** — `advance()` now returns full `\r\n` for Windows line endings, fixing token text length mismatches
-- **Package.json** — Added missing `ditacraft.openFile` command declaration for Command Palette visibility
-- **Test Suite** — 11 new server tests for bookmap/topicref validation; real-time validation tests updated for LSP-driven architecture
+- **Package.json** — Added missing `ditacraft.openFile` command declaration
+- **1087+ Total Tests** — Client (652) + Server (435)
 
 ## [0.6.0] - 2026-02-10
 
