@@ -113,7 +113,8 @@ val pdf by tasks.registering {
             "-Dargs.chapter.layout=MINITOC",
             "-Dargs.gen.task.lbl=YES",
             "-Dargs.bookmap-order=retain",
-            "-DoutputFile.base=ditacraft-user-guide"
+            "-DoutputFile.base=ditacraft-user-guide",
+            "-Dcustomization.dir=${file("cfg").absolutePath}"
         )
     }
 }
