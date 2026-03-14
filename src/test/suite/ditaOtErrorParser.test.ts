@@ -192,6 +192,55 @@ ERROR: Another real error`;
         });
     });
 
+    suite('Non-DOT Error Code Prefixes', () => {
+
+        test('Should parse PDFJ error codes', () => {
+            const output = '[PDFJ001E][ERROR] PDF indexing cannot find sort location';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'PDFJ001E');
+            assert.strictEqual(result.errors[0].severity, 'error');
+        });
+
+        test('Should parse PDFX error codes', () => {
+            const output = '[PDFX013F][FATAL] PDF file cannot be generated';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'PDFX013F');
+            assert.strictEqual(result.errors[0].severity, 'error');
+        });
+
+        test('Should parse INDX error codes', () => {
+            const output = '[INDX001I][INFO] Index entry sorted under Special characters';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.infos.length, 1);
+            assert.strictEqual(result.infos[0].code, 'INDX001I');
+            assert.strictEqual(result.infos[0].severity, 'info');
+        });
+
+        test('Should parse XEPJ error codes', () => {
+            const output = '[XEPJ002E][ERROR] XEP processor error';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'XEPJ002E');
+            assert.strictEqual(result.errors[0].severity, 'error');
+        });
+
+        test('Should parse PDFX warning with file path', () => {
+            const output = '[PDFX001W][WARN] Index range problem at chapter1/topic.dita:50:3';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.warnings.length, 1);
+            assert.strictEqual(result.warnings[0].code, 'PDFX001W');
+            assert.strictEqual(result.warnings[0].line, 50);
+            assert.strictEqual(result.warnings[0].column, 3);
+        });
+    });
+
     suite('Severity Mapping', () => {
 
         test('Should map ERROR to error severity', () => {

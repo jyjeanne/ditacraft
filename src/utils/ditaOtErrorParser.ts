@@ -49,7 +49,7 @@ export interface ParsedDitaOtOutput {
  * - 001 = error number
  * - E/W/F/I = severity (Error, Warning, Fatal, Info)
  */
-const ERROR_CODE_PATTERN = /\[(DOT[A-Z]\d{3}[EWFI])\]/;
+const ERROR_CODE_PATTERN = /\[(?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI]\]/;
 
 /**
  * Patterns for extracting file paths and line numbers from DITA-OT output
@@ -57,17 +57,17 @@ const ERROR_CODE_PATTERN = /\[(DOT[A-Z]\d{3}[EWFI])\]/;
 const ERROR_PATTERNS = [
     // Pattern: [DOTX001E][ERROR] message at file:line:column
     {
-        regex: /\[(DOT[A-Z]\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(.+?)\s+at\s+(.+?):(\d+)(?::(\d+))?/i,
+        regex: /\[((?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(.+?)\s+at\s+(.+?):(\d+)(?::(\d+))?/i,
         groups: { code: 1, severity: 2, message: 3, file: 4, line: 5, column: 6 }
     },
     // Pattern: [DOTX001E][ERROR] File "path" message
     {
-        regex: /\[(DOT[A-Z]\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(?:File\s+)?["']?([^"'\n]+?\.(dita|ditamap|xml|ditaval))["']?\s*[:-]?\s*(.+)/i,
+        regex: /\[((?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(?:File\s+)?["']?([^"'\n]+?\.(dita|ditamap|xml|ditaval))["']?\s*[:-]?\s*(.+)/i,
         groups: { code: 1, severity: 2, file: 3, message: 5 }
     },
     // Pattern: [DOTX001E][ERROR] message (no file)
     {
-        regex: /\[(DOT[A-Z]\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(.+)/i,
+        regex: /\[((?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(.+)/i,
         groups: { code: 1, severity: 2, message: 3 }
     },
     // Pattern: Error at line X, column Y: message (common XML parser format)

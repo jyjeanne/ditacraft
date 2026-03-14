@@ -15,3 +15,4 @@ export { previewHTML5Command, initializePreview } from './previewCommand';
 export { newTopicCommand, newMapCommand, newBookmapCommand } from './fileCreationCommands';
 export { configureDitaOTCommand } from './configureCommand';
 export { setupCSpellCommand } from './cspellSetupCommand';
+export { validateGuideCommand } from './validateGuideCommand';

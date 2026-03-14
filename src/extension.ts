@@ -24,13 +24,15 @@ import {
     newMapCommand,
     newBookmapCommand,
     configureDitaOTCommand,
-    setupCSpellCommand
+    setupCSpellCommand,
+    validateGuideCommand
 } from './commands';
 import { registerPreviewPanelSerializer } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
 import { UI_TIMEOUTS } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
+import { ValidationReportPanel } from './providers/validationReportPanel';
 import { DitaExplorerProvider, DitaExplorerItem } from './providers/ditaExplorerProvider';
 import { DitaFileDecorationProvider } from './providers/ditaFileDecorationProvider';
 import { KeySpaceViewProvider } from './providers/keySpaceViewProvider';
@@ -386,6 +388,11 @@ export async function deactivate(): Promise<void> {
         MapVisualizerPanel.currentPanel.dispose();
     }
 
+    // Dispose of Validation Report panel
+    if (ValidationReportPanel.currentPanel) {
+        ValidationReportPanel.currentPanel.dispose();
+    }
+
     if (outputChannel) {
         outputChannel.appendLine('DitaCraft extension deactivated');
         outputChannel.dispose();
@@ -511,6 +518,12 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
             MapVisualizerPanel.createOrShow(context.extensionUri, filePath);
         })
+    );
+
+    // Validate Guide command (DITA-OT full guide validation)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.validateGuide',
+            () => validateGuideCommand(context))
     );
 
     // Test command for debugging (intentionally throws error)

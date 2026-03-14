@@ -233,6 +233,10 @@
       {
         "command": "ditacraft.validateWorkspace",
         "title": "DITA: Validate Workspace"
+      },
+      {
+        "command": "ditacraft.validateGuide",
+        "title": "DITA: Validate Entire Guide Using DITA-OT"
       }
     ],
     "menus": {
