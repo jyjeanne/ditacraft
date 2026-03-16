@@ -26,6 +26,9 @@
     <topicref href="gloss-ditamap.dita" keys="gloss-ditamap"/>
     <topicref href="gloss-dtd.dita" keys="gloss-dtd"/>
 
+    <!-- G -->
+    <topicref href="gloss-guide-validation.dita" keys="gloss-guide-validation"/>
+
     <!-- H -->
     <topicref href="gloss-href.dita" keys="gloss-href"/>
 

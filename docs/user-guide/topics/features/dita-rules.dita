@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="dita-rules">
     <title>DITA Rules Engine</title>
-    <shortdesc>DitaCraft includes 35 Schematron-equivalent validation rules organized in four categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules.</shortdesc>
+    <shortdesc>DitaCraft includes 35 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules.</shortdesc>
 
     <conbody>
         <section id="overview">
@@ -92,12 +92,20 @@
 
         <section id="quick-fixes">
             <title>Quick Fixes</title>
-            <p>Several DITA rules offer automatic quick fixes via the lightbulb menu (<uicontrol>Ctrl+.</uicontrol>):</p>
+            <p>DitaCraft provides 12 automatic quick fixes via the lightbulb menu (<uicontrol>Ctrl+.</uicontrol>):</p>
             <ul>
+                <li><b>Add missing DOCTYPE:</b> Inserts the appropriate DOCTYPE declaration based on root element</li>
+                <li><b>Add missing ID:</b> Adds an ID attribute derived from the filename</li>
+                <li><b>Add missing title:</b> Inserts a <codeph>&lt;title&gt;</codeph> element</li>
+                <li><b>Remove empty element:</b> Removes elements with no content</li>
+                <li><b>Rename duplicate ID:</b> Makes duplicate IDs unique</li>
                 <li><b>Add <codeph>@otherrole</codeph>:</b> Inserts the missing attribute when <codeph>role="other"</codeph> is detected</li>
                 <li><b>Remove deprecated <codeph>&lt;indextermref&gt;</codeph>:</b> Removes the deprecated element</li>
                 <li><b>Convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element:</b> Migrates the deprecated attribute syntax to the modern element form</li>
                 <li><b>Add missing <codeph>&lt;alt&gt;</codeph> to <codeph>&lt;image&gt;</codeph>:</b> Inserts an empty <codeph>&lt;alt&gt;</codeph> child element for accessibility</li>
+                <li><b>Sanitize invalid ID:</b> Fixes invalid ID format by replacing illegal characters and ensuring a valid starting character</li>
+                <li><b>Insert missing <codeph>&lt;booktitle&gt;</codeph>:</b> Adds the required booktitle structure to bookmaps</li>
+                <li><b>Insert missing <codeph>&lt;mainbooktitle&gt;</codeph>:</b> Adds the required mainbooktitle inside an existing booktitle</li>
             </ul>
         </section>
 
@@ -173,6 +181,30 @@
                 <li>Defaults to DITA 1.3 if no version indicator is found</li>
             </ol>
             <p>Version-specific rules are only applied when the detected version matches their applicability range.</p>
+        </section>
+
+        <section id="custom-rules">
+            <title>Custom Regex Rules</title>
+            <p>In addition to the built-in rules, you can define custom validation rules using regex patterns in a JSON file. Set the <codeph>ditacraft.customRulesFile</codeph> setting to an absolute path pointing to your rules file.</p>
+            <p>Each rule supports:</p>
+            <ul>
+                <li><b>id:</b> A unique identifier (e.g., <codeph>CUSTOM-001</codeph>)</li>
+                <li><b>pattern:</b> A regular expression to match against document content</li>
+                <li><b>message:</b> The diagnostic message displayed to the user</li>
+                <li><b>severity:</b> One of <codeph>error</codeph>, <codeph>warning</codeph>, <codeph>information</codeph>, <codeph>hint</codeph></li>
+                <li><b>fileTypes:</b> (Optional) Array of DITA file types to restrict the rule to (topic, concept, task, reference, glossentry, troubleshooting, map, bookmap)</li>
+            </ul>
+            <p>Rules are matched against content with comments and CDATA stripped to avoid false positives. The rules file is automatically reloaded when it changes.</p>
+        </section>
+
+        <section id="suppression">
+            <title>Rule Suppression</title>
+            <p>You can suppress specific rules using:</p>
+            <ul>
+                <li><b>Settings:</b> Use <codeph>ditacraft.validationSeverityOverrides</codeph> to set any diagnostic code to <codeph>"off"</codeph></li>
+                <li><b>Inline comments:</b> Add <codeph>&lt;!-- ditacraft-disable CODE --&gt;</codeph> to suppress a code from that line until a matching <codeph>&lt;!-- ditacraft-enable CODE --&gt;</codeph></li>
+                <li><b>File-level:</b> Add <codeph>&lt;!-- ditacraft-disable-file CODE --&gt;</codeph> anywhere in the file to suppress the code for the entire file</li>
+            </ul>
         </section>
 
         <section id="configuration">

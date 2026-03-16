@@ -4,13 +4,14 @@
  *
  * This factory manages the lifecycle of providers and ensures dependencies are shared correctly.
  * It follows the factory pattern to decouple provider creation from their usage.
+ *
+ * Note: Validation is now handled entirely by the LSP server (Phase 1 consolidation).
+ * This factory manages link providers and key space resolution only.
  */
 
 import * as vscode from 'vscode';
 import { KeySpaceResolver } from './keySpaceResolver';
-import { DitaValidator } from '../providers/ditaValidator';
 import { DitaLinkProvider } from '../providers/ditaLinkProvider';
-import { KeyDiagnosticsProvider } from '../providers/keyDiagnostics';
 import { logger } from './logger';
 
 /**
@@ -28,22 +29,18 @@ export interface ProviderFactoryOptions {
  * Ensures proper dependency injection and lifecycle management
  */
 export class ProviderFactory implements vscode.Disposable {
-    private readonly context: vscode.ExtensionContext;
     private readonly options: ProviderFactoryOptions;
 
     // Shared dependencies
     private keySpaceResolver: KeySpaceResolver | undefined;
 
     // Created providers
-    private validator: DitaValidator | undefined;
     private linkProvider: DitaLinkProvider | undefined;
-    private keyDiagnosticsProvider: KeyDiagnosticsProvider | undefined;
 
     // Track disposables
     private disposables: vscode.Disposable[] = [];
 
-    constructor(context: vscode.ExtensionContext, options: ProviderFactoryOptions = {}) {
-        this.context = context;
+    constructor(_context: vscode.ExtensionContext, options: ProviderFactoryOptions = {}) {
         this.options = options;
         logger.debug('ProviderFactory initialized');
     }
@@ -62,19 +59,6 @@ export class ProviderFactory implements vscode.Disposable {
     }
 
     /**
-     * Create or get the DitaValidator instance
-     * The validator is responsible for validating DITA files
-     */
-    public getValidator(): DitaValidator {
-        if (!this.validator) {
-            this.validator = new DitaValidator(this.context);
-            this.disposables.push(this.validator);
-            logger.debug('DitaValidator created');
-        }
-        return this.validator;
-    }
-
-    /**
      * Create or get the DitaLinkProvider instance
      * The link provider enables Ctrl+Click navigation in DITA files
      */
@@ -86,20 +70,6 @@ export class ProviderFactory implements vscode.Disposable {
             logger.debug('DitaLinkProvider created');
         }
         return this.linkProvider;
-    }
-
-    /**
-     * Create or get the KeyDiagnosticsProvider instance
-     * The diagnostics provider shows warnings for missing key references
-     */
-    public getKeyDiagnosticsProvider(): KeyDiagnosticsProvider {
-        if (!this.keyDiagnosticsProvider) {
-            const keySpaceResolver = this.getKeySpaceResolver();
-            this.keyDiagnosticsProvider = new KeyDiagnosticsProvider(keySpaceResolver);
-            this.disposables.push(this.keyDiagnosticsProvider);
-            logger.debug('KeyDiagnosticsProvider created');
-        }
-        return this.keyDiagnosticsProvider;
     }
 
     /**
@@ -135,61 +105,17 @@ export class ProviderFactory implements vscode.Disposable {
     }
 
     /**
-     * Register the key diagnostics provider
-     * This shows warnings for missing key references in DITA files
-     * Note: Provider is added to context.subscriptions, not factory disposables,
-     * to avoid double disposal when VS Code deactivates
-     */
-    public registerKeyDiagnosticsProvider(): KeyDiagnosticsProvider {
-        const provider = this.getKeyDiagnosticsProvider();
-        // Remove from factory disposables since context will manage lifecycle
-        this.removeFromDisposables(provider);
-        this.context.subscriptions.push(provider);
-        logger.info('Key Diagnostics Provider registered via ProviderFactory');
-        return provider;
-    }
-
-    /**
-     * Register the validator for auto-validation on save
-     * Note: Validator is added to context.subscriptions, not factory disposables,
-     * to avoid double disposal when VS Code deactivates
-     */
-    public registerValidator(): DitaValidator {
-        const validator = this.getValidator();
-        // Remove from factory disposables since context will manage lifecycle
-        this.removeFromDisposables(validator);
-        this.context.subscriptions.push(validator);
-        logger.info('DitaValidator registered via ProviderFactory');
-        return validator;
-    }
-
-    /**
-     * Remove a disposable from the factory's tracking list
-     * Used when ownership is transferred to context.subscriptions
-     */
-    private removeFromDisposables(disposable: vscode.Disposable): void {
-        const index = this.disposables.indexOf(disposable);
-        if (index !== -1) {
-            this.disposables.splice(index, 1);
-        }
-    }
-
-    /**
      * Register all providers at once
      * Convenience method for typical extension activation
      */
     public registerAllProviders(): {
-        validator: DitaValidator;
         linkProvider: DitaLinkProvider;
         linkProviderRegistrations: vscode.Disposable[];
-        keyDiagnosticsProvider: KeyDiagnosticsProvider;
         keySpaceResolver: KeySpaceResolver;
     } {
         return {
-            validator: this.registerValidator(),
             linkProvider: this.getLinkProvider(),
             linkProviderRegistrations: this.registerLinkProvider(),
-            keyDiagnosticsProvider: this.registerKeyDiagnosticsProvider(),
             keySpaceResolver: this.getKeySpaceResolver()
         };
     }
@@ -210,9 +136,7 @@ export class ProviderFactory implements vscode.Disposable {
         }
 
         this.disposables = [];
-        this.validator = undefined;
         this.linkProvider = undefined;
-        this.keyDiagnosticsProvider = undefined;
         this.keySpaceResolver = undefined;
 
         logger.info('ProviderFactory disposed');

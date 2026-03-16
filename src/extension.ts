@@ -12,7 +12,6 @@ import { fireAndForget } from './utils/errorUtils';
 import { configManager, ConfigurationChangeEvent } from './utils/configurationManager';
 import { getGlobalKeySpaceResolver } from './providers/ditaLinkProvider';
 import { registerElementNavigationCommand } from './utils/elementNavigator';
-import { registerKeyDiagnosticsProvider } from './providers/keyDiagnostics';
 import {
     validateCommand,
     initializeValidator,
@@ -80,11 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
         registerElementNavigationCommand(context);
         outputChannel.appendLine('Element navigation command registered');
 
-        // Register key diagnostics provider for missing key warnings
-        outputChannel.appendLine('Registering key diagnostics provider...');
-        const keySpaceResolver = getGlobalKeySpaceResolver();
-        registerKeyDiagnosticsProvider(context, keySpaceResolver);
-        outputChannel.appendLine('Key diagnostics provider registered');
+        // Note: Key diagnostics now provided by the LSP server (crossRefValidation phase)
 
         // Register all commands
         outputChannel.appendLine('Registering commands...');

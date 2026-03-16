@@ -12,9 +12,7 @@ import {
     isProviderFactoryInitialized
 } from '../../utils/providerFactory';
 import { KeySpaceResolver } from '../../utils/keySpaceResolver';
-import { DitaValidator } from '../../providers/ditaValidator';
 import { DitaLinkProvider } from '../../providers/ditaLinkProvider';
-import { KeyDiagnosticsProvider } from '../../providers/keyDiagnostics';
 
 suite('ProviderFactory Test Suite', () => {
     let mockContext: vscode.ExtensionContext;
@@ -104,42 +102,12 @@ suite('ProviderFactory Test Suite', () => {
             factory.dispose();
         });
 
-        test('Should create DitaValidator', () => {
-            const factory = new ProviderFactory(mockContext);
-            const validator = factory.getValidator();
-
-            assert.ok(validator, 'Validator should be created');
-            assert.ok(validator instanceof DitaValidator, 'Should be DitaValidator instance');
-
-            factory.dispose();
-        });
-
-        test('Should return same DitaValidator on multiple calls', () => {
-            const factory = new ProviderFactory(mockContext);
-            const validator1 = factory.getValidator();
-            const validator2 = factory.getValidator();
-
-            assert.strictEqual(validator1, validator2, 'Should return same instance');
-
-            factory.dispose();
-        });
-
         test('Should create DitaLinkProvider', () => {
             const factory = new ProviderFactory(mockContext);
             const linkProvider = factory.getLinkProvider();
 
             assert.ok(linkProvider, 'LinkProvider should be created');
             assert.ok(linkProvider instanceof DitaLinkProvider, 'Should be DitaLinkProvider instance');
-
-            factory.dispose();
-        });
-
-        test('Should create KeyDiagnosticsProvider', () => {
-            const factory = new ProviderFactory(mockContext);
-            const diagnosticsProvider = factory.getKeyDiagnosticsProvider();
-
-            assert.ok(diagnosticsProvider, 'DiagnosticsProvider should be created');
-            assert.ok(diagnosticsProvider instanceof KeyDiagnosticsProvider, 'Should be KeyDiagnosticsProvider instance');
 
             factory.dispose();
         });
@@ -173,9 +141,7 @@ suite('ProviderFactory Test Suite', () => {
 
             // Create all providers
             factory.getKeySpaceResolver();
-            factory.getValidator();
             factory.getLinkProvider();
-            factory.getKeyDiagnosticsProvider();
 
             // Dispose should not throw
             assert.doesNotThrow(() => factory.dispose(), 'Dispose should not throw');
@@ -186,9 +152,7 @@ suite('ProviderFactory Test Suite', () => {
 
             const providers = factory.registerAllProviders();
 
-            assert.ok(providers.validator, 'Validator should be registered');
             assert.ok(providers.linkProvider, 'LinkProvider should be registered');
-            assert.ok(providers.keyDiagnosticsProvider, 'KeyDiagnosticsProvider should be registered');
             assert.ok(providers.keySpaceResolver, 'KeySpaceResolver should be available');
 
             factory.dispose();

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-guide-validation">
+    <glossterm>Guide Validation</glossterm>
+    <glossdef>End-to-end validation of an entire DITA guide by running the DITA Open Toolkit
+        against the root map. Unlike file-level validation, guide validation detects cross-file
+        issues such as broken references, missing images, and unresolved keys that only surface
+        during the full DITA-OT processing pipeline. Results are displayed in a WebView report
+        panel.</glossdef>
+</glossentry>

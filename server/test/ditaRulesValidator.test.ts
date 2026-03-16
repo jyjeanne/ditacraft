@@ -469,4 +469,322 @@ suite('validateDitaRules', () => {
             assert.strictEqual(matches[0].range.start.line, 1);
         });
     });
+
+    suite('Attribute value rules', () => {
+        test('DITA-ATTR-001: invalid note type', () => {
+            const text = '<note type="invalid">Content</note>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-001');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('invalid'));
+        });
+
+        test('DITA-ATTR-001: valid note type is OK', () => {
+            const text = '<note type="tip">Content</note>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-001');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-ATTR-001: note without type is OK', () => {
+            const text = '<note>Content</note>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-001');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-ATTR-002: invalid importance value', () => {
+            const text = '<p importance="critical">Text</p>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-002');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-ATTR-002: valid importance is OK', () => {
+            const text = '<p importance="high">Text</p>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-002');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-ATTR-003: invalid status value', () => {
+            const text = '<topic id="t1" status="draft"><title>T</title></topic>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-003');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-ATTR-003: valid status is OK', () => {
+            const text = '<topic id="t1" status="changed"><title>T</title></topic>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-003');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-ATTR-004: invalid translate value', () => {
+            const text = '<p translate="maybe">Text</p>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-004');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-ATTR-004: valid translate is OK', () => {
+            const text = '<p translate="no">Text</p>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-ATTR-004');
+            assert.strictEqual(matches.length, 0);
+        });
+    });
+
+    suite('Table structure rules', () => {
+        test('DITA-TABLE-001: row with more entries than cols declared', () => {
+            const text = '<tgroup cols="2"><tbody><row><entry/><entry/><entry/></row></tbody></tgroup>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-001');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-TABLE-001: row matching cols is OK', () => {
+            const text = '<tgroup cols="3"><tbody><row><entry/><entry/><entry/></row></tbody></tgroup>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-001');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-TABLE-001: row with fewer entries than cols is OK (spans allowed)', () => {
+            const text = '<tgroup cols="3"><tbody><row><entry/><entry/></row></tbody></tgroup>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-001');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-TABLE-002: namest references undefined colspec', () => {
+            const text = '<tgroup cols="2"><colspec colname="c1"/><colspec colname="c2"/><tbody><row><entry namest="c1" nameend="c3"/></row></tbody></tgroup>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-002');
+            assert.strictEqual(matches.length, 1);
+            assert.ok(matches[0].message.includes('c3'));
+        });
+
+        test('DITA-TABLE-002: valid namest/nameend is OK', () => {
+            const text = '<tgroup cols="2"><colspec colname="c1"/><colspec colname="c2"/><tbody><row><entry namest="c1" nameend="c2"/></row></tbody></tgroup>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-002');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-TABLE-003: simpletable rows with inconsistent stentry counts', () => {
+            const text = '<simpletable><sthead><stentry/><stentry/></sthead><strow><stentry/></strow></simpletable>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-003');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-TABLE-003: consistent stentry counts is OK', () => {
+            const text = '<simpletable><sthead><stentry/><stentry/></sthead><strow><stentry/><stentry/></strow></simpletable>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-003');
+            assert.strictEqual(matches.length, 0);
+        });
+
+        test('DITA-TABLE-004: empty CALS table (no rows)', () => {
+            const text = '<tgroup cols="2"><colspec colname="c1"/></tgroup>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-004');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-TABLE-004: empty simpletable (no strow)', () => {
+            const text = '<simpletable><sthead><stentry/></sthead></simpletable>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-004');
+            assert.strictEqual(matches.length, 1);
+        });
+
+        test('DITA-TABLE-004: non-empty table is OK', () => {
+            const text = '<tgroup cols="2"><tbody><row><entry/><entry/></row></tbody></tgroup>';
+            const diags = validate(text);
+            const matches = diags.filter(d => d.code === 'DITA-TABLE-004');
+            assert.strictEqual(matches.length, 0);
+        });
+    });
+
+    // ====================================================================
+    //  DITA 2.0-specific rules (DITA-SCH-050 to DITA-SCH-059)
+    // ====================================================================
+    suite('DITA 2.0 rules', () => {
+
+        const v20 = { ditaVersion: '2.0' as const };
+        const v13 = { ditaVersion: '1.3' as const };
+
+        // --- DITA-SCH-050: <boolean> removed ---
+        test('DITA-SCH-050: <boolean> detected in DITA 2.0', () => {
+            const text = '<topic id="t1"><body><boolean state="yes"/></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-050').length, 1);
+        });
+
+        test('DITA-SCH-050: <boolean> OK in DITA 1.3', () => {
+            const text = '<topic id="t1"><body><boolean state="yes"/></body></topic>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-050').length, 0);
+        });
+
+        // --- DITA-SCH-051: <indextermref> removed ---
+        test('DITA-SCH-051: <indextermref> detected in DITA 2.0', () => {
+            const text = '<topic id="t1"><body><indextermref/></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-051').length, 1);
+        });
+
+        test('DITA-SCH-051: <indextermref> OK in DITA 1.3', () => {
+            const text = '<topic id="t1"><body><indextermref/></body></topic>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-051').length, 0);
+        });
+
+        // --- DITA-SCH-052: <object> removed ---
+        test('DITA-SCH-052: <object> detected in DITA 2.0', () => {
+            const text = '<topic id="t1"><body><object data="video.swf"/></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-052').length, 1);
+        });
+
+        test('DITA-SCH-052: <object> OK in DITA 1.3', () => {
+            const text = '<topic id="t1"><body><object data="video.swf"/></body></topic>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-052').length, 0);
+        });
+
+        // --- DITA-SCH-053: Learning specializations removed ---
+        test('DITA-SCH-053: <learningOverview> detected in DITA 2.0', () => {
+            const text = '<learningOverview id="lo1"><title>T</title></learningOverview>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-053').length, 1);
+        });
+
+        test('DITA-SCH-053: <learningContent> detected in DITA 2.0', () => {
+            const text = '<learningContent id="lc1"><title>T</title></learningContent>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-053').length, 1);
+        });
+
+        test('DITA-SCH-053: learning elements OK in DITA 1.3', () => {
+            const text = '<learningOverview id="lo1"><title>T</title></learningOverview>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-053').length, 0);
+        });
+
+        // --- DITA-SCH-054: <audio> missing <fallback> ---
+        test('DITA-SCH-054: <audio> without <fallback> in DITA 2.0', () => {
+            const text = '<topic id="t1"><body><audio><source value="a.mp3"/></audio></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-054').length, 1);
+        });
+
+        test('DITA-SCH-054: <audio> with <fallback> is OK', () => {
+            const text = '<topic id="t1"><body><audio><source value="a.mp3"/><fallback>No audio</fallback></audio></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-054').length, 0);
+        });
+
+        test('DITA-SCH-054: self-closing <audio/> also flagged', () => {
+            const text = '<topic id="t1"><body><audio src="a.mp3"/></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-054').length, 1);
+        });
+
+        // --- DITA-SCH-055: <video> missing <fallback> ---
+        test('DITA-SCH-055: <video> without <fallback> in DITA 2.0', () => {
+            const text = '<topic id="t1"><body><video><source value="v.mp4"/></video></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-055').length, 1);
+        });
+
+        test('DITA-SCH-055: <video> with <fallback> is OK', () => {
+            const text = '<topic id="t1"><body><video><source value="v.mp4"/><fallback>No video</fallback></video></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-055').length, 0);
+        });
+
+        test('DITA-SCH-055: self-closing <video/> also flagged', () => {
+            const text = '<topic id="t1"><body><video src="v.mp4"/></body></topic>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-055').length, 1);
+        });
+
+        // --- DITA-SCH-056: @print removed ---
+        test('DITA-SCH-056: @print attribute detected in DITA 2.0', () => {
+            const text = '<topicref href="t.dita" print="yes"/>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-056').length, 1);
+        });
+
+        test('DITA-SCH-056: @print OK in DITA 1.3', () => {
+            const text = '<topicref href="t.dita" print="yes"/>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-056').length, 0);
+        });
+
+        // --- DITA-SCH-057: @copy-to removed ---
+        test('DITA-SCH-057: @copy-to attribute detected in DITA 2.0', () => {
+            const text = '<topicref href="t.dita" copy-to="t2.dita"/>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-057').length, 1);
+        });
+
+        test('DITA-SCH-057: @copy-to OK in DITA 1.3', () => {
+            const text = '<topicref href="t.dita" copy-to="t2.dita"/>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-057').length, 0);
+        });
+
+        // --- DITA-SCH-058: @navtitle removed ---
+        test('DITA-SCH-058: @navtitle attribute detected in DITA 2.0', () => {
+            const text = '<topicref href="t.dita" navtitle="Title"/>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-058').length, 1);
+        });
+
+        test('DITA-SCH-058: @navtitle OK in DITA 1.3 (produces SCH-014 deprecation instead)', () => {
+            const text = '<topicref href="t.dita" navtitle="Title"/>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-058').length, 0);
+        });
+
+        // --- DITA-SCH-059: @query removed ---
+        test('DITA-SCH-059: @query attribute detected in DITA 2.0', () => {
+            const text = '<topicref href="t.dita" query="search"/>';
+            const diags = validate(text, v20);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-059').length, 1);
+        });
+
+        test('DITA-SCH-059: @query OK in DITA 1.3', () => {
+            const text = '<topicref href="t.dita" query="search"/>';
+            const diags = validate(text, v13);
+            assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-059').length, 0);
+        });
+
+        // --- Version isolation: 2.0 rules don't fire on 1.3 content ---
+        test('no DITA 2.0 rules fire on DITA 1.3 documents', () => {
+            const text = '<topic id="t1"><body><boolean state="yes"/><indextermref/><object data="x"/></body></topic>';
+            const diags = validate(text, v13);
+            const v20codes = diags.filter(d => {
+                const code = d.code as string;
+                return code >= 'DITA-SCH-050' && code <= 'DITA-SCH-059';
+            });
+            assert.strictEqual(v20codes.length, 0, 'no DITA 2.0 rules should fire for version 1.3');
+        });
+
+        // --- Elements in comments should not trigger ---
+        test('DITA 2.0 elements inside comments are not flagged', () => {
+            const text = '<!-- <boolean state="yes"/> <indextermref/> <object data="x"/> -->';
+            const diags = validate(text, v20);
+            const v20codes = diags.filter(d => {
+                const code = d.code as string;
+                return code >= 'DITA-SCH-050' && code <= 'DITA-SCH-059';
+            });
+            assert.strictEqual(v20codes.length, 0, 'elements in comments should not trigger rules');
+        });
+    });
 });

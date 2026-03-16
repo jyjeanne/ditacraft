@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { createDebounced } from '../utils/debounceUtils';
 import { isDitaFilePath } from '../utils/constants';
 
-const DITA_SOURCES = new Set(['dita', 'dita-lsp', 'ditacraft-keys']);
+const DITA_SOURCES = new Set(['dita', 'dita-lsp']);
 
 type GroupMode = 'byFile' | 'byType';
 

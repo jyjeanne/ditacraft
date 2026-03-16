@@ -566,11 +566,34 @@
           "description": "Enable subject scheme controlled value validation. When a subject scheme map constrains profiling attributes, validates that only allowed values are used.",
           "order": 23
         },
+        "ditacraft.validationSeverityOverrides": {
+          "type": "object",
+          "default": {},
+          "description": "Override the severity of specific diagnostic rules. Keys are diagnostic codes (e.g. 'DITA-SCH-016'), values are 'error', 'warning', 'information', 'hint', or 'off' to suppress.",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["error", "warning", "information", "hint", "off"]
+          },
+          "order": 24
+        },
+        "ditacraft.largeFileThresholdKB": {
+          "type": "number",
+          "default": 500,
+          "minimum": 0,
+          "description": "File size threshold (KB) above which heavy validation phases (DITA rules, cross-references, circular refs, workspace checks, custom rules) are skipped for performance. Set to 0 to disable.",
+          "order": 25
+        },
+        "ditacraft.customRulesFile": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to a JSON file containing custom validation rules. Each rule has: id, pattern (regex), severity (error/warning/information/hint), message, and optional fileTypes array (topic, concept, task, reference, glossentry, troubleshooting, map, bookmap).",
+          "order": 25
+        },
         "ditacraft.rootMap": {
           "type": "string",
           "default": "",
           "description": "Explicit root map path (relative to workspace root). Leave empty for automatic discovery. Set via 'DITA: Set Root Map' command.",
-          "order": 24
+          "order": 25
         },
         "ditacraft.xmlCatalogPath": {
           "type": "string",

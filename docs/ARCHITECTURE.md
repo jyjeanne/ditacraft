@@ -1,7 +1,7 @@
 # DitaCraft Architecture
 
 **Technical Architecture Documentation**
-*Version: 0.6.2 | Last Updated: March 2026*
+*Version: 0.7.2 | Last Updated: March 2026*
 
 This document describes the architecture, component responsibilities, data flows, and design decisions of the DitaCraft VS Code extension.
 
@@ -40,7 +40,7 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | XML Tokenizer | Custom state-machine (8 states, 22 token types) |
 | Publishing | DITA-OT (external) |
 | Testing | Mocha + VS Code Extension Test API |
-| Test Count | 1113 tests (652 client + 461 server) |
+| Test Count | 1380 tests (683 client + 697 server) |
 
 ---
 
@@ -88,7 +88,7 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
                     │  profiling     │                         │
                     │  circularRef   │  Data:                  │
                     │  workspaceVal  │  ditaSchema             │
-                    │                │  ditaSpecialization     │
+                    │  customRules   │  ditaSpecialization     │
                     └─────────────────────────────────────────┘
                            │
                ┌───────────▼───────────────┐
@@ -163,13 +163,14 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `features/validation.ts` | XML well-formedness + DITA structure + ID validation (Layer 1+4) |
 | `features/completion.ts` | Element, attribute, value, keyref, href completions |
 | `features/hover.ts` | Element docs, key metadata, href/conref preview |
-| `features/codeActions.ts` | 9 quick fixes for diagnostics |
+| `features/codeActions.ts` | 12 quick fixes for diagnostics |
 | `features/crossRefValidation.ts` | Cross-file reference validation (Layer 6a) |
 | `features/ditaRulesValidator.ts` | 35 Schematron-equivalent DITA rules (Layer 5) |
+| `features/customRulesValidator.ts` | User-defined regex validation rules from JSON file |
 | `features/profilingValidation.ts` | Subject scheme profiling validation (Layer 6b) |
 | `features/circularRefDetection.ts` | Circular reference detection via DFS traversal |
 | `features/workspaceValidation.ts` | Cross-file duplicate IDs + unused topic detection |
-| `services/validationPipeline.ts` | Orchestrates all 9 validation phases with error isolation |
+| `services/validationPipeline.ts` | Orchestrates all 12 validation phases with error isolation, severity overrides, comment suppression |
 | `services/catalogValidationService.ts` | TypesXML DTD + OASIS catalog (Layer 2) |
 | `services/rngValidationService.ts` | salve-annos RelaxNG validation (Layer 3) |
 | `services/keySpaceService.ts` | DITA key space resolution (BFS map traversal) |
@@ -244,9 +245,15 @@ Pull diagnostics handler → ValidationPipeline.validate()
          ├──► Phase 9: detectCircularReferences()
          │         └── DFS traversal to detect href/conref/mapref cycles
          │
-         └──► Phase 10: Workspace-level checks
-                   ├── Cross-file duplicate root ID detection
-                   └── Unused topic detection (orphaned .dita files)
+         ├──► Phase 10: Workspace-level checks
+         │         ├── Cross-file duplicate root ID detection
+         │         └── Unused topic detection (orphaned .dita files)
+         │
+         ├──► Phase 11: Post-processing
+         │         ├── Per-rule severity overrides (validationSeverityOverrides)
+         │         └── Comment-based rule suppression (ditacraft-disable/enable)
+         │
+         └──► Phase 12: Custom regex rules (customRulesFile)
                             │
                             ▼
                    Diagnostic[] (capped at maxNumberOfProblems)
@@ -428,7 +435,7 @@ previewCommand.ts
 | **Factory** | `ProviderFactory` | Centralized provider creation |
 | **Adapter** | `DitaOtWrapper` | Adapt CLI to TypeScript API |
 | **Object Pool** | DTD parser pool, RNG grammar cache | Reuse expensive resources |
-| **Pipeline** | `ValidationPipeline` (10-phase validation) | Sequential processing with error isolation per phase |
+| **Pipeline** | `ValidationPipeline` (12-phase validation) | Sequential processing with error isolation per phase |
 
 ---
 
@@ -504,26 +511,27 @@ ditacraft/
 │   │   ├── rateLimiter.ts
 │   │   ├── mapHierarchyParser.ts
 │   │   └── ...
-│   ├── test/                      # Client tests (652)
+│   ├── test/                      # Client tests (683)
 │   └── extension.ts               # Entry point
 │
 ├── server/                        # LSP Server (Separate Process)
 │   ├── src/
 │   │   ├── server.ts              # LSP entry point + smart debouncing
 │   │   ├── settings.ts
-│   │   ├── features/              # 16 LSP feature handlers
+│   │   ├── features/              # 17 LSP feature handlers
 │   │   │   ├── validation.ts      #   XML + structure + IDs
 │   │   │   ├── crossRefValidation.ts # Cross-file references
 │   │   │   ├── ditaRulesValidator.ts # 35 DITA rules
 │   │   │   ├── profilingValidation.ts# Profiling/subject scheme
 │   │   │   ├── circularRefDetection.ts # Circular ref DFS
 │   │   │   ├── workspaceValidation.ts  # Duplicate IDs + orphans
+│   │   │   ├── customRulesValidator.ts # User-defined regex rules
 │   │   │   ├── completion.ts
 │   │   │   ├── hover.ts
 │   │   │   ├── codeActions.ts
 │   │   │   └── ...
 │   │   ├── services/              # Domain services with caching
-│   │   │   ├── validationPipeline.ts       # 10-phase orchestration
+│   │   │   ├── validationPipeline.ts       # 12-phase orchestration
 │   │   │   ├── catalogValidationService.ts # DTD (TypesXML)
 │   │   │   ├── rngValidationService.ts     # RNG (salve-annos)
 │   │   │   ├── keySpaceService.ts
@@ -535,12 +543,12 @@ ditacraft/
 │   │   │   ├── i18n.ts
 │   │   │   └── ...
 │   │   ├── messages/              # Localized diagnostic messages
-│   │   │   ├── en.json            #   70 messages (English)
-│   │   │   └── fr.json            #   70 messages (French)
+│   │   │   ├── en.json            #   76+ messages (English)
+│   │   │   └── fr.json            #   76+ messages (French)
 │   │   └── data/                  # Static schema data
 │   │       ├── ditaSchema.ts
 │   │       └── ditaSpecialization.ts
-│   └── test/                      # Server tests (461)
+│   └── test/                      # Server tests (697)
 │
 ├── dtds/                          # Bundled DITA 1.3 DTDs + catalog.xml
 ├── docs/                          # Architecture documentation

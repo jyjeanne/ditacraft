@@ -6,7 +6,6 @@
 export {
     validateCommand,
     initializeValidator,
-    getValidator,
     getValidationRateLimiter,
     resetValidationRateLimiter
 } from './validateCommand';

@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.7.1)
+## Current Status (v0.7.2)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -52,16 +52,16 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **DITAVAL Support** | Complete | 100% |
 | **cSpell Auto-Prompt** | Complete | 100% |
 | **LSP: Cross-Reference Validation** | Complete | 100% |
-| **LSP: DITA Rules Engine (35 rules)** | Complete | 100% |
+| **LSP: DITA Rules Engine (35 rules + custom)** | Complete | 100% |
 | **LSP: Profiling/Subject Scheme Validation** | Complete | 100% |
 | **LSP: Subject Scheme Service** | Complete | 100% |
 | **LSP: Error-Tolerant XML Tokenizer** | Complete | 100% |
 | **LSP: DITA Version Detection** | Complete | 100% |
-| **LSP: 9 Code Actions** | Complete | 100% |
-| **9 LSP Settings** | Complete | 100% |
+| **LSP: 12 Code Actions** | Complete | 100% |
+| **12 LSP Settings** | Complete | 100% |
 | **Glossref Element Support** | Complete | 100% |
 | **Glossentry/Troubleshooting Validation** | Complete | 100% |
-| **Server Test Suite (559 tests)** | Complete | 100% |
+| **Server Test Suite (697 tests)** | Complete | 100% |
 | **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
@@ -95,10 +95,33 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Workspace Validation Command** | Complete | 100% |
 | **Cross-File Duplicate ID Detection (DITA-ID-003)** | Complete | 100% |
 | **Unused Topic Detection (DITA-ORPHAN-001)** | Complete | 100% |
-| **ValidationPipeline (10-phase orchestrator)** | Complete | 100% |
+| **ValidationPipeline (12-phase orchestrator)** | Complete | 100% |
 | **Shared Utilities (textUtils, patterns)** | Complete | 100% |
+| **DITA-OT Guide Validation** | Complete | 100% |
+| **DITA-OT Error Code Catalog (160+ codes)** | Complete | 100% |
+| **Validation Report WebView** | Complete | 100% |
+| **Per-Rule Severity Overrides** | Complete | 100% |
+| **Comment-Based Rule Suppression** | Complete | 100% |
+| **Custom Regex Rules Validator** | Complete | 100% |
+| **Large File Optimization** | Complete | 100% |
+| **3 Additional Quick Fixes (12 total)** | Complete | 100% |
+| **DITA 2.0 Test Coverage (25 tests)** | Complete | 100% |
 
-### Recent Changes (v0.7.1)
+### Recent Changes (v0.7.2)
+- **Per-Rule Severity Override** — `ditacraft.validationSeverityOverrides` setting: map any diagnostic code to error/warning/information/hint/off; applied as post-processing in the validation pipeline
+- **Comment-Based Rule Suppression** — `<!-- ditacraft-disable CODE -->` / `<!-- ditacraft-enable CODE -->` for range-based suppression; `<!-- ditacraft-disable-file CODE -->` for whole-file suppression; CRLF-aware line counting with exclusive endLine semantics
+- **Custom Regex Rules** — `ditacraft.customRulesFile` points to a JSON file defining regex patterns with fileType filtering (topic, concept, task, reference, glossentry, troubleshooting, map, bookmap), severity mapping, and mtime-based cache invalidation
+- **Large File Optimization** — `ditacraft.largeFileThresholdKB` (default 500): files exceeding threshold skip phases 6–12 for performance; shows DITA-PERF-001 informational diagnostic
+- **3 New Quick Fixes** — Sanitize invalid ID (DITA-ID-002), insert missing `<booktitle>` (DITA-STRUCT-006), insert missing `<mainbooktitle>` (DITA-STRUCT-007); total now 12 code actions
+- **DITA 2.0 Test Coverage** — 25 new tests for all 10 DITA 2.0 rules (SCH-050 through SCH-059) including self-closing audio/video element handling
+- **Bug Fixes** — CRLF handling in suppression comment parsing, exclusive endLine for suppression ranges, large file threshold boundary (`>=`), self-closing audio/video regex (SCH-054/055)
+- **Test Coverage Boost** — 559→697 server tests (+138), new test files (customRulesValidator, expanded ditaRulesValidator/validationPipeline/codeActions)
+- **1380+ Total Tests** — Client (683) + Server (697)
+
+### Previous Changes (v0.7.1)
+- **Validate Entire Guide** — New `DITA: Validate Entire Guide Using DITA-OT` command runs DITA-OT against root map; WebView report with severity filtering, search, grouping (by file/severity/module), JSON export, and DITA-OT build output link
+- **DITA-OT Error Code Catalog** — 160+ error codes with human-readable descriptions and module categorization (Core, Processing, Transform, Indexing, PDF, XEP); enriches validation report with tooltips and module badges
+- **Error Parser Enhancement** — Parser now captures PDFJ, PDFX, INDX, and XEPJ error code prefixes in addition to DOT* codes
 - **ValidationPipeline Extraction** — Refactored 111-line monolithic validation handler into a 10-phase orchestrator class with per-phase error isolation (try/catch + logging)
 - **Shared Utilities** — Extracted `textUtils.ts` (stripCommentsAndCDATA, stripCommentsAndCodeContent, offsetToRange, escapeRegex) and `patterns.ts` (TAG_ATTRS), eliminating 15 duplicate function definitions
 - **Two-Variant Comment Stripping** — Basic `stripCommentsAndCDATA` vs `stripCommentsAndCodeContent` (also blanks codeblock/pre/screen/msgblock content)
@@ -106,7 +129,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **Test Coverage Boost** — 461→559 server tests (+98), 6 new test files (textUtils, validationPipeline, workspaceValidation, i18n, definition, workspaceScanner), 85% statement coverage
 - **Specification Updates** — ARCHITECTURE.md, DITA_LSP_ARCHITECTURE.md, VALIDATION-SPECIFICATION.md all updated for 10-phase pipeline
 - **Dependency Update** — fast-xml-parser ^5.3.4 → ^5.4.2
-- **1211+ Total Tests** — Client (652) + Server (559)
+- **1242+ Total Tests** — Client (683) + Server (559)
 
 ### Previous Changes (v0.7.0)
 - **Multi-Version DTD Support** — Bundled DITA 1.2, 1.3, and 2.0 DTDs with master OASIS XML Catalog chaining via `<nextCatalog>`
@@ -195,7 +218,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **Modular Validation Engine** - Refactored to pluggable architecture with Strategy pattern
 - **Rate Limiting** - DoS protection for validation (10 req/sec per file)
 - **Architecture Documentation** - Comprehensive ARCHITECTURE.md with data flow diagrams
-- **DITA User Guide** - Complete 55-file documentation in DITA format
+- **DITA User Guide** - Complete ~80-file documentation in DITA format
 - **547+ Tests** - Expanded test suite with security and edge case coverage
 
 ---
@@ -394,7 +417,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] OASIS XML Catalog support for DITA public identifier resolution
 - [x] 100% W3C XML Conformance Test Suite compliance
 - [x] Three validation engines: TypesXML (default), built-in, xmllint
-- [x] 10-phase LSP validation pipeline with per-phase error isolation (XML → Structure → DTD → RNG → DITA Rules → Cross-refs → Profiling → Circular Refs → Workspace)
+- [x] 12-phase LSP validation pipeline with per-phase error isolation (XML → Structure → DTD → RNG → DITA Rules → Cross-refs → Profiling → Circular Refs → Workspace → Severity Overrides → Suppression → Custom Rules)
 - [x] Validation architecture documented (`docs/VALIDATION-SPECIFICATION.md` v2.0)
 - [x] Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
 
@@ -409,7 +432,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ### Phase B — Enhanced Validation
 - [x] Cross-file reference validation (href, conref, keyref, conkeyref targets — 6 diagnostic codes)
-- [x] Schematron-equivalent rule engine (35 rules in 5 categories, version-filtered, including 10 DITA 2.0 rules)
+- [x] Schematron-equivalent rule engine (35 rules in 5 categories, version-filtered, including 10 DITA 2.0 rules) + custom regex rules from user JSON file
 - [x] Conref/keyref target validation
 - [x] Subject scheme / profiling attribute validation
 - [x] Scope validation — validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
@@ -575,10 +598,11 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.6.1 | i18n, DITA 2.0 rules, root map, RNG/catalog, 1040+ Tests | Released |
 | v0.6.2 | Bookmap/topicref validation, error ranges, dedup, 1082 Tests | Released |
 | v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, glossref, 1087+ Tests | Released |
-| v0.7.1 | ValidationPipeline refactoring, shared utilities, bug fixes, 1211+ Tests | **Current** |
+| v0.7.1 | Guide validation, error catalog, ValidationPipeline, bug fixes, 1242+ Tests | Released |
+| v0.7.2 | Severity overrides, custom rules, large file optimization, 1380+ Tests | **Current** |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: March 2026 (v0.7.1 — ValidationPipeline extraction, shared utilities, bug fixes, 1211+ tests)*
+*Last updated: March 2026 (v0.7.2 — Severity overrides, custom rules, large file optimization, 1380+ tests)*

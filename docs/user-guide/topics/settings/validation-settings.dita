@@ -2,7 +2,7 @@
 <!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
 <reference id="validation-settings">
     <title>Validation Settings</title>
-    <shortdesc>Configure validation engine, automatic validation, cross-reference checking, DITA rules, and profiling validation.</shortdesc>
+    <shortdesc>Configure validation engine, automatic validation, cross-reference checking, DITA rules, profiling validation, severity overrides, custom rules, and large file optimization.</shortdesc>
 
     <refbody>
         <section id="validation-engine">
@@ -57,7 +57,7 @@
             <ul>
                 <li>When a file is opened</li>
                 <li>When a file is saved</li>
-                <li>After typing stops (with 500ms debounce)</li>
+                <li>After typing stops, with smart debouncing (300ms for topics, 1000ms for maps)</li>
             </ul>
             <p>Set to <codeph>false</codeph> to disable automatic validation. You can still validate manually using <uicontrol>Ctrl+Shift+V</uicontrol>.</p>
             <p><b>When to Disable:</b></p>
@@ -153,6 +153,56 @@
                 <li><b>Manual Validation:</b> Shows a warning if rate limited</li>
             </ul>
             <p>Rate limiting cannot be configured but ensures stable performance during rapid editing.</p>
+        </section>
+
+        <section id="severity-overrides">
+            <title>ditacraft.validationSeverityOverrides</title>
+            <p><b>Type:</b> Object</p>
+            <p><b>Default:</b> <codeph>{}</codeph></p>
+            <p>Override the severity of any diagnostic code. Map diagnostic codes to <codeph>"error"</codeph>, <codeph>"warning"</codeph>, <codeph>"information"</codeph>, <codeph>"hint"</codeph>, or <codeph>"off"</codeph> (to suppress entirely).</p>
+            <codeblock outputclass="language-json">{
+    "ditacraft.validationSeverityOverrides": {
+        "DITA-SCH-001": "hint",
+        "DITA-ID-002": "off",
+        "DITA-STRUCT-005": "error"
+    }
+}</codeblock>
+        </section>
+
+        <section id="custom-rules-file">
+            <title>ditacraft.customRulesFile</title>
+            <p><b>Type:</b> String</p>
+            <p><b>Default:</b> <codeph>""</codeph></p>
+            <p>Absolute path to a JSON file defining custom regex validation rules. Each rule specifies a regex pattern, message, severity, and optional file type filter. Rules are re-loaded automatically when the file changes.</p>
+            <codeblock outputclass="language-json">{
+    "rules": [
+        {
+            "id": "CUSTOM-001",
+            "pattern": "&lt;draft-comment\\b",
+            "message": "Draft comments should be removed before publishing",
+            "severity": "warning",
+            "fileTypes": ["topic", "concept", "task"]
+        }
+    ]
+}</codeblock>
+        </section>
+
+        <section id="large-file-threshold">
+            <title>ditacraft.largeFileThresholdKB</title>
+            <p><b>Type:</b> Number</p>
+            <p><b>Default:</b> <codeph>500</codeph></p>
+            <p>Files larger than this threshold (in KB) skip heavy validation phases (cross-references, DITA rules, profiling, custom rules, etc.) for performance. Set to <codeph>0</codeph> to disable the optimization and always run all phases. A <codeph>DITA-PERF-001</codeph> informational diagnostic is shown when phases are skipped.</p>
+        </section>
+
+        <section id="comment-suppression">
+            <title>Comment-Based Rule Suppression</title>
+            <p>You can suppress specific diagnostic codes inline using XML comments:</p>
+            <ul>
+                <li><codeph>&lt;!-- ditacraft-disable CODE --&gt;</codeph> — Suppress a code from this point until re-enabled</li>
+                <li><codeph>&lt;!-- ditacraft-enable CODE --&gt;</codeph> — Re-enable a previously suppressed code</li>
+                <li><codeph>&lt;!-- ditacraft-disable-file CODE --&gt;</codeph> — Suppress a code for the entire file</li>
+            </ul>
+            <p>Multiple codes can be specified, separated by spaces: <codeph>&lt;!-- ditacraft-disable DITA-SCH-001 DITA-ID-002 --&gt;</codeph></p>
         </section>
 
         <section id="xmllint-setup">

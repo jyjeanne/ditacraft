@@ -629,10 +629,11 @@ const DITA_RULES: DitaRule[] = [
         severity: DiagnosticSeverity.Warning,
         check(text, diagnostics) {
             // <audio> should have a <fallback> child for accessibility
-            const regex = new RegExp(`<audio\\b${TAG_ATTRS}>([\\s\\S]*?)<\\/audio>`, 'g');
+            // Match both <audio ...>...</audio> and self-closing <audio .../>
+            const regex = new RegExp(`<audio\\b${TAG_ATTRS}(?:/>|>([\\s\\S]*?)<\\/audio>)`, 'g');
             let match;
             while ((match = regex.exec(text)) !== null) {
-                if (!/<fallback\b/.test(match[1])) {
+                if (!match[1] || !/<fallback\b/.test(match[1])) {
                     diagnostics.push(makeDiag(text, match.index, '<audio'.length,
                         t('sch054.audioMissingFallback'),
                         DiagnosticSeverity.Warning, 'DITA-SCH-054'));
@@ -647,10 +648,11 @@ const DITA_RULES: DitaRule[] = [
         severity: DiagnosticSeverity.Warning,
         check(text, diagnostics) {
             // <video> should have a <fallback> child for accessibility
-            const regex = new RegExp(`<video\\b${TAG_ATTRS}>([\\s\\S]*?)<\\/video>`, 'g');
+            // Match both <video ...>...</video> and self-closing <video .../>
+            const regex = new RegExp(`<video\\b${TAG_ATTRS}(?:/>|>([\\s\\S]*?)<\\/video>)`, 'g');
             let match;
             while ((match = regex.exec(text)) !== null) {
-                if (!/<fallback\b/.test(match[1])) {
+                if (!match[1] || !/<fallback\b/.test(match[1])) {
                     diagnostics.push(makeDiag(text, match.index, '<video'.length,
                         t('sch055.videoMissingFallback'),
                         DiagnosticSeverity.Warning, 'DITA-SCH-055'));
@@ -738,6 +740,230 @@ const DITA_RULES: DitaRule[] = [
                     diagnostics.push(makeDiag(text, offset, length,
                         t('sch059.removedQuery', match[1]),
                         DiagnosticSeverity.Error, 'DITA-SCH-059'));
+                }
+            }
+        },
+    },
+
+    // --- ATTRIBUTE VALUE RULES ---
+
+    {
+        id: 'DITA-ATTR-001',
+        category: 'recommendation',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Warning,
+        check(text, diagnostics) {
+            // @type on <note>: must be one of the known values
+            const noteTypeValues = new Set([
+                'note', 'tip', 'fastpath', 'restriction', 'important',
+                'remember', 'attention', 'caution', 'danger', 'warning',
+                'trouble', 'notice', 'other',
+            ]);
+            const regex = new RegExp(`<note\\b(${TAG_ATTRS})>`, 'g');
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                const typeAttr = /\btype\s*=\s*["']([^"']+)["']/.exec(match[1]);
+                if (typeAttr && !noteTypeValues.has(typeAttr[1])) {
+                    const attrInfo = findAttrInTag(match[0], 'type');
+                    const offset = match.index + (attrInfo ? attrInfo.offset : 0);
+                    const length = attrInfo ? attrInfo.length : match[0].length;
+                    diagnostics.push(makeDiag(text, offset, length,
+                        t('attr.invalidValue', typeAttr[1], 'type', [...noteTypeValues].join(', ')),
+                        DiagnosticSeverity.Warning, 'DITA-ATTR-001'));
+                }
+            }
+        },
+    },
+    {
+        id: 'DITA-ATTR-002',
+        category: 'recommendation',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Warning,
+        check(text, diagnostics) {
+            // @importance: required-optional-default-deprecated-low-normal-high-recommended-urgent-obsolete
+            const validValues = new Set([
+                'obsolete', 'deprecated', 'optional', 'default',
+                'low', 'normal', 'high', 'recommended', 'required', 'urgent',
+            ]);
+            const regex = /\bimportance\s*=\s*["']([^"']+)["']/g;
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                if (!validValues.has(match[1])) {
+                    const offset = match.index;
+                    diagnostics.push(makeDiag(text, offset, match[0].length,
+                        t('attr.invalidValue', match[1], 'importance', [...validValues].join(', ')),
+                        DiagnosticSeverity.Warning, 'DITA-ATTR-002'));
+                }
+            }
+        },
+    },
+    {
+        id: 'DITA-ATTR-003',
+        category: 'recommendation',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Warning,
+        check(text, diagnostics) {
+            // @status: new, changed, deleted, unchanged
+            const validValues = new Set(['new', 'changed', 'deleted', 'unchanged']);
+            const regex = /\bstatus\s*=\s*["']([^"']+)["']/g;
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                if (!validValues.has(match[1])) {
+                    const offset = match.index;
+                    diagnostics.push(makeDiag(text, offset, match[0].length,
+                        t('attr.invalidValue', match[1], 'status', [...validValues].join(', ')),
+                        DiagnosticSeverity.Warning, 'DITA-ATTR-003'));
+                }
+            }
+        },
+    },
+    {
+        id: 'DITA-ATTR-004',
+        category: 'recommendation',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Warning,
+        check(text, diagnostics) {
+            // @translate: yes, no
+            const validValues = new Set(['yes', 'no']);
+            const regex = /\btranslate\s*=\s*["']([^"']+)["']/g;
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+                if (!validValues.has(match[1])) {
+                    const offset = match.index;
+                    diagnostics.push(makeDiag(text, offset, match[0].length,
+                        t('attr.invalidValue', match[1], 'translate', [...validValues].join(', ')),
+                        DiagnosticSeverity.Warning, 'DITA-ATTR-004'));
+                }
+            }
+        },
+    },
+
+    // --- TABLE STRUCTURE RULES ---
+
+    {
+        id: 'DITA-TABLE-001',
+        category: 'mandatory',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Warning,
+        check(text, diagnostics) {
+            // CALS table: <tgroup cols="N"> must match actual column count in rows
+            const tgroupRegex = /<tgroup\b[^>]*\bcols\s*=\s*["'](\d+)["'][^>]*>/g;
+            let tgroupMatch;
+            while ((tgroupMatch = tgroupRegex.exec(text)) !== null) {
+                const declaredCols = parseInt(tgroupMatch[1], 10);
+                if (isNaN(declaredCols) || declaredCols <= 0) continue;
+                // Find the closing </tgroup>
+                const closeIdx = text.indexOf('</tgroup>', tgroupMatch.index);
+                if (closeIdx === -1) continue;
+                const tgroupContent = text.substring(tgroupMatch.index + tgroupMatch[0].length, closeIdx);
+                // Count <entry> elements in each <row>
+                const rowRegex = /<row\b[^>]*>([\s\S]*?)<\/row>/g;
+                let rowMatch;
+                while ((rowMatch = rowRegex.exec(tgroupContent)) !== null) {
+                    const rowContent = rowMatch[1];
+                    const entries = rowContent.match(/<entry\b/g);
+                    const entryCount = entries ? entries.length : 0;
+                    if (entryCount > declaredCols) {
+                        const rowOffset = tgroupMatch.index + tgroupMatch[0].length + rowMatch.index;
+                        diagnostics.push(makeDiag(text, rowOffset, rowMatch[0].length,
+                            t('table.colsMismatch', String(entryCount), String(declaredCols)),
+                            DiagnosticSeverity.Warning, 'DITA-TABLE-001'));
+                    }
+                }
+            }
+        },
+    },
+    {
+        id: 'DITA-TABLE-002',
+        category: 'mandatory',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Warning,
+        check(text, diagnostics) {
+            // CALS spans: namest/nameend must reference valid <colspec> colname values
+            const tgroupRegex = /<tgroup\b[^>]*>([\s\S]*?)<\/tgroup>/g;
+            let tgroupMatch;
+            while ((tgroupMatch = tgroupRegex.exec(text)) !== null) {
+                const tgroupContent = tgroupMatch[1];
+                // Collect declared colspec names (only from <colspec> elements)
+                const colNames = new Set<string>();
+                const colspecRegex = /<colspec\b[^>]*\bcolname\s*=\s*["']([^"']+)["']/g;
+                let csMatch;
+                while ((csMatch = colspecRegex.exec(tgroupContent)) !== null) {
+                    colNames.add(csMatch[1]);
+                }
+                if (colNames.size === 0) continue; // No colspecs — skip
+
+                // Check namest/nameend references
+                const spanAttrRegex = /\b(namest|nameend)\s*=\s*["']([^"']+)["']/g;
+                let spanMatch;
+                const contentStart = tgroupMatch.index + tgroupMatch[0].indexOf(tgroupMatch[1]);
+                while ((spanMatch = spanAttrRegex.exec(tgroupContent)) !== null) {
+                    const refName = spanMatch[2];
+                    if (!colNames.has(refName)) {
+                        const offset = contentStart + spanMatch.index;
+                        diagnostics.push(makeDiag(text, offset, spanMatch[0].length,
+                            t('table.invalidColRef', spanMatch[1], refName),
+                            DiagnosticSeverity.Warning, 'DITA-TABLE-002'));
+                    }
+                }
+            }
+        },
+    },
+    {
+        id: 'DITA-TABLE-003',
+        category: 'mandatory',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Warning,
+        check(text, diagnostics) {
+            // Simpletable: <sthead> and <strow> must have consistent <stentry> counts
+            const stableRegex = /<simpletable\b[^>]*>([\s\S]*?)<\/simpletable>/g;
+            let stMatch;
+            while ((stMatch = stableRegex.exec(text)) !== null) {
+                const stContent = stMatch[1];
+                const rowRegex = /<(sthead|strow)\b[^>]*>([\s\S]*?)<\/\1>/g;
+                let rowMatch;
+                let expectedCount: number | null = null;
+                while ((rowMatch = rowRegex.exec(stContent)) !== null) {
+                    const entries = rowMatch[2].match(/<stentry\b/g);
+                    const count = entries ? entries.length : 0;
+                    if (expectedCount === null) {
+                        expectedCount = count;
+                    } else if (count !== expectedCount) {
+                        const contentStart = stMatch.index + stMatch[0].indexOf(stMatch[1]);
+                        const rowOffset = contentStart + rowMatch.index;
+                        diagnostics.push(makeDiag(text, rowOffset, rowMatch[0].length,
+                            t('table.stentryMismatch', String(count), String(expectedCount)),
+                            DiagnosticSeverity.Warning, 'DITA-TABLE-003'));
+                    }
+                }
+            }
+        },
+    },
+    {
+        id: 'DITA-TABLE-004',
+        category: 'recommendation',
+        versions: ['1.0', '1.1', '1.2', '1.3', '2.0'],
+        severity: DiagnosticSeverity.Information,
+        check(text, diagnostics) {
+            // Empty tables (no rows)
+            // CALS table with no <row>
+            const tgroupRegex = /<tgroup\b[^>]*>([\s\S]*?)<\/tgroup>/g;
+            let tgroupMatch;
+            while ((tgroupMatch = tgroupRegex.exec(text)) !== null) {
+                if (!/<row\b/.test(tgroupMatch[1])) {
+                    diagnostics.push(makeDiag(text, tgroupMatch.index, '<tgroup'.length,
+                        t('table.emptyTable'),
+                        DiagnosticSeverity.Information, 'DITA-TABLE-004'));
+                }
+            }
+            // Simpletable with no <strow>
+            const stableRegex = /<simpletable\b[^>]*>([\s\S]*?)<\/simpletable>/g;
+            let stMatch;
+            while ((stMatch = stableRegex.exec(text)) !== null) {
+                if (!/<strow\b/.test(stMatch[1])) {
+                    diagnostics.push(makeDiag(text, stMatch.index, '<simpletable'.length,
+                        t('table.emptyTable'),
+                        DiagnosticSeverity.Information, 'DITA-TABLE-004'));
                 }
             }
         },

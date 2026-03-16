@@ -5,10 +5,10 @@
  */
 
 import * as path from 'path';
-import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
 import { t } from '../utils/i18n';
-import { collectDitaFiles } from '../utils/workspaceScanner';
+import { collectDitaFilesAsync } from '../utils/workspaceScanner';
 import { KeySpaceService } from '../services/keySpaceService';
 import { normalizeFsPath, offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
 
@@ -30,39 +30,28 @@ function extractRootId(text: string): { tagName: string; id: string; index: numb
     return { tagName: rootMatch[1], id: rootMatch[2], index: rootMatch.index };
 }
 
-/**
- * Build a workspace-wide index mapping root topic IDs to file paths.
- * Only considers .dita files (not maps).
- */
-export function buildRootIdIndex(workspaceFolders: readonly string[]): Map<string, string[]> {
-    const idToFiles = new Map<string, string[]>();
-    const allFiles = collectDitaFiles(workspaceFolders);
+/** Max concurrent file reads to avoid exhausting file descriptors. */
+const MAX_CONCURRENT_READS = 10;
 
-    for (const filePath of allFiles) {
-        const ext = path.extname(filePath).toLowerCase();
-        // Only index topic files, not maps
-        if (ext !== '.dita') continue;
+/** Run async tasks with bounded concurrency. */
+async function mapWithConcurrency<T, R>(
+    items: T[],
+    limit: number,
+    fn: (item: T) => Promise<R>
+): Promise<R[]> {
+    const results: R[] = new Array(items.length);
+    let index = 0;
 
-        let content: string;
-        try {
-            content = fs.readFileSync(filePath, 'utf-8');
-        } catch {
-            continue;
-        }
-
-        const rootInfo = extractRootId(content);
-        if (rootInfo) {
-            const rootId = rootInfo.id;
-            const existing = idToFiles.get(rootId);
-            if (existing) {
-                existing.push(filePath);
-            } else {
-                idToFiles.set(rootId, [filePath]);
-            }
+    async function worker(): Promise<void> {
+        while (index < items.length) {
+            const i = index++;
+            results[i] = await fn(items[i]);
         }
     }
 
-    return idToFiles;
+    const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
+    await Promise.all(workers);
+    return results;
 }
 
 /**
@@ -115,9 +104,10 @@ export function detectCrossFileDuplicateIds(
  */
 export async function detectUnusedTopics(
     workspaceFolders: readonly string[],
-    keySpaceService: KeySpaceService
+    keySpaceService: KeySpaceService,
+    preScannedFiles?: string[]
 ): Promise<Set<string>> {
-    const allFiles = collectDitaFiles(workspaceFolders);
+    const allFiles = preScannedFiles ?? await collectDitaFilesAsync(workspaceFolders);
     const topicFiles = allFiles.filter(f => path.extname(f).toLowerCase() === '.dita');
     const mapFiles = allFiles.filter(f => {
         const ext = path.extname(f).toLowerCase();
@@ -127,12 +117,12 @@ export async function detectUnusedTopics(
     // Collect all referenced topic paths from all maps
     const referencedPaths = new Set<string>();
 
-    for (const mapFile of mapFiles) {
+    await mapWithConcurrency(mapFiles, MAX_CONCURRENT_READS, async (mapFile) => {
         let content: string;
         try {
-            content = fs.readFileSync(mapFile, 'utf-8');
+            content = await fsp.readFile(mapFile, 'utf-8');
         } catch {
-            continue;
+            return;
         }
 
         const mapDir = path.dirname(mapFile);
@@ -146,7 +136,7 @@ export async function detectUnusedTopics(
             const resolved = normalizeFsPath(path.resolve(mapDir, refValue));
             referencedPaths.add(resolved);
         }
-    }
+    });
 
     // Also add hrefs from key space (keys may reference topics indirectly)
     for (const mapFile of mapFiles) {
@@ -172,6 +162,103 @@ export async function detectUnusedTopics(
     }
 
     return unusedTopics;
+}
+
+/**
+ * Incremental workspace index.
+ * Maintains the root-ID-to-files map with per-file updates
+ * instead of requiring a full rebuild on every change.
+ */
+export class WorkspaceIndex {
+    /** Root ID → file paths. */
+    private idToFiles = new Map<string, string[]>();
+    /** File path → root ID (reverse index for fast removal). */
+    private fileToId = new Map<string, string>();
+    /** Whether the index has been built at least once. */
+    private _initialized = false;
+
+    get rootIdIndex(): Map<string, string[]> {
+        return this.idToFiles;
+    }
+
+    get initialized(): boolean {
+        return this._initialized;
+    }
+
+    /** Full rebuild from scratch. */
+    async buildFull(workspaceFolders: readonly string[], preScannedFiles?: string[]): Promise<void> {
+        const allFiles = preScannedFiles ?? await collectDitaFilesAsync(workspaceFolders);
+        const topicFiles = allFiles.filter(f => path.extname(f).toLowerCase() === '.dita');
+
+        this.idToFiles.clear();
+        this.fileToId.clear();
+
+        await mapWithConcurrency(topicFiles, MAX_CONCURRENT_READS, async (filePath) => {
+            await this.indexFile(filePath);
+        });
+
+        this._initialized = true;
+    }
+
+    /** Update the index for a single file (create or change). */
+    async updateFile(filePath: string): Promise<void> {
+        if (!this._initialized) return;
+        const ext = path.extname(filePath).toLowerCase();
+        if (ext !== '.dita') return;
+
+        // Remove old entry first
+        this.removeFile(filePath);
+        // Re-index
+        await this.indexFile(filePath);
+    }
+
+    /** Remove a file from the index (delete event). */
+    removeFile(filePath: string): void {
+        if (!this._initialized) return;
+        const normalized = normalizeFsPath(filePath);
+        const oldId = this.fileToId.get(normalized);
+        if (oldId !== undefined) {
+            this.fileToId.delete(normalized);
+            const files = this.idToFiles.get(oldId);
+            if (files) {
+                const filtered = files.filter(f => f !== normalized);
+                if (filtered.length === 0) {
+                    this.idToFiles.delete(oldId);
+                } else {
+                    this.idToFiles.set(oldId, filtered);
+                }
+            }
+        }
+    }
+
+    /** Clear the entire index. */
+    clear(): void {
+        this.idToFiles.clear();
+        this.fileToId.clear();
+        this._initialized = false;
+    }
+
+    /** Read a single file and add its root ID to the index. */
+    private async indexFile(filePath: string): Promise<void> {
+        let content: string;
+        try {
+            content = await fsp.readFile(filePath, 'utf-8');
+        } catch {
+            return;
+        }
+
+        const rootInfo = extractRootId(content);
+        if (rootInfo) {
+            const normalized = normalizeFsPath(filePath);
+            this.fileToId.set(normalized, rootInfo.id);
+            const existing = this.idToFiles.get(rootInfo.id);
+            if (existing) {
+                existing.push(normalized);
+            } else {
+                this.idToFiles.set(rootInfo.id, [normalized]);
+            }
+        }
+    }
 }
 
 /**

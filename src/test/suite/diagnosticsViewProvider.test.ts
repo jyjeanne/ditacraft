@@ -56,7 +56,7 @@ suite('Diagnostics View Provider Test Suite', () => {
                 'Unused key definition',
                 vscode.DiagnosticSeverity.Warning
             );
-            diagnostic.source = 'ditacraft-keys';
+            diagnostic.source = 'dita-lsp';
 
             const item = new DiagnosticItem(
                 'Unused key definition',

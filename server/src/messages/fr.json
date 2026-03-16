@@ -24,6 +24,8 @@
     "xref.missingFile": "Fichier cible introuvable : {0}",
     "xref.missingTopicId": "Identifiant de topic \"{0}\" introuvable dans {1}",
     "xref.missingElementId": "Identifiant d'élément \"{0}\" introuvable dans le topic \"{1}\" de {2}",
+    "xref.incompatibleConref": "L'élément source <{0}> du conref n'est pas compatible avec l'élément cible <{1}>. Les éléments source et cible doivent être du même type ou du même groupe de spécialisation.",
+    "key.duplicate": "La clé \"{0}\" est déjà définie dans {1}. Seule la première définition prend effet.",
     "key.undefined": "La clé \"{0}\" n'est définie dans aucune carte",
     "key.noTarget": "La clé \"{0}\" n'a pas de cible (pas de href sur le keydef)",
     "key.missingElement": "Identifiant d'élément \"{0}\" introuvable dans la cible de la clé \"{1}\"",
@@ -77,5 +79,20 @@
 
     "orphan.unusedTopic": "Le topic n'est référencé par aucune carte dans l'espace de travail",
 
-    "dtd.validationError": "Erreur de validation DTD"
+    "ditaval.propMissingAtt": "L'élément <prop> nécessite un attribut att pour spécifier l'attribut de profilage à filtrer.",
+    "ditaval.invalidAction": "Valeur d'action invalide \"{0}\". Doit être include, exclude, passthrough ou flag.",
+    "ditaval.revpropMissingVal": "L'élément <revprop> nécessite un attribut val pour spécifier la valeur de révision à filtrer.",
+    "ditaval.duplicateProp": "Doublon <prop> pour att=\"{0}\" val=\"{1}\". Seule la première occurrence prend effet.",
+    "ditaval.flagMissingContent": "<{0}> doit avoir un attribut imageref ou contenir un élément <alt-text>.",
+
+    "attr.invalidValue": "Valeur \"{0}\" invalide pour @{1}. Valeurs valides : {2}",
+
+    "table.colsMismatch": "La ligne contient {0} entrées mais <tgroup> déclare cols=\"{1}\".",
+    "table.invalidColRef": "L'attribut {0} référence la colonne \"{1}\" qui n'est définie dans aucun <colspec>.",
+    "table.stentryMismatch": "La ligne contient {0} entrées mais {1} sont attendues (d'après la première ligne).",
+    "table.emptyTable": "La table n'a pas de lignes de données.",
+
+    "dtd.validationError": "Erreur de validation DTD",
+
+    "largeFile.skipped": "Certaines vérifications ont été ignorées pour des raisons de performance (taille du fichier : {0} Ko, seuil : {1} Ko)."
 }

@@ -1,6 +1,8 @@
 /**
  * Circular Reference Detection.
  * Detects href/conref/mapref cycles in DITA documents using DFS traversal.
+ * Finds all cycles reachable from the current document, not only those
+ * that loop back to the current file.
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
@@ -16,8 +18,8 @@ export const CYCLE_CODES = {
     CIRCULAR_REF: 'DITA-CYCLE-001',
 } as const;
 
-/** Maximum traversal depth to prevent runaway DFS on very deep hierarchies. */
-const MAX_DEPTH = 50;
+/** Safety depth limit to prevent stack overflow on pathological hierarchies. */
+const MAX_DEPTH = 100;
 
 /**
  * Regex to extract structural map references (topicref, mapref, chapter, etc.)
@@ -31,7 +33,7 @@ const CONREF_REGEX = /\bconref\s*=\s*["']([^"'#]+)/g;
 
 /**
  * Detect circular references originating from a DITA document.
- * Uses DFS with path tracking to find and report cycles.
+ * Uses DFS with path tracking to find and report all reachable cycles.
  *
  * @param text Document text content.
  * @param documentUri LSP document URI.
@@ -45,27 +47,36 @@ export async function detectCircularReferences(
     const currentDir = path.dirname(filePath);
     const diagnostics: Diagnostic[] = [];
 
-    // Extract all local file references from this document
     const refs = extractFileReferences(text, currentDir);
-
-    // For each reference, do a DFS to detect cycles back to this file
     const normalizedSelf = normalizePath(filePath);
 
+    // Cache file contents to avoid re-reading the same file from multiple DFS paths
+    const fileCache = new Map<string, string | null>();
+    // Track which cycle signatures have already been reported
+    const reportedCycles = new Set<string>();
+
     for (const ref of refs) {
-        const cyclePath: string[] = [normalizedSelf];
-        const localVisited = new Set<string>();
-        const detected = await dfsDetectCycle(
-            ref.targetPath, normalizedSelf, cyclePath, localVisited, 0
+        const pathStack = new Set<string>([normalizedSelf]);
+        const pathList: string[] = [normalizedSelf];
+
+        const cyclePath = await dfsDetectAnyCycle(
+            ref.targetPath, pathStack, pathList, fileCache
         );
-        if (detected) {
-            const cycleDisplay = cyclePath.map(p => path.basename(p)).join(' → ');
-            diagnostics.push({
-                severity: DiagnosticSeverity.Warning,
-                range: ref.range,
-                message: t('cycle.detected', cycleDisplay),
-                code: CYCLE_CODES.CIRCULAR_REF,
-                source: SOURCE,
-            });
+
+        if (cyclePath) {
+            // Deduplicate: same cycle found via different refs
+            const cycleKey = canonicalizeCycle(cyclePath);
+            if (!reportedCycles.has(cycleKey)) {
+                reportedCycles.add(cycleKey);
+                const cycleDisplay = cyclePath.map(p => path.basename(p)).join(' → ');
+                diagnostics.push({
+                    severity: DiagnosticSeverity.Warning,
+                    range: ref.range,
+                    message: t('cycle.detected', cycleDisplay),
+                    code: CYCLE_CODES.CIRCULAR_REF,
+                    source: SOURCE,
+                });
+            }
         }
     }
 
@@ -121,54 +132,86 @@ function resolveRef(refValue: string, baseDir: string, text: string, match: RegE
 }
 
 /**
- * DFS cycle detection. Returns true if a cycle back to `targetFile` is found.
- * Mutates `cyclePath` to contain the full cycle when detected.
+ * DFS cycle detection. Returns the cycle path if any cycle is found
+ * (not just cycles back to the root file), or null if no cycle exists.
+ *
+ * Uses pathStack (Set) for O(1) cycle detection and pathList (array)
+ * for building the display path when a cycle is found.
+ *
+ * Note: we intentionally do NOT cache "cycle-free" status across DFS
+ * invocations. Whether a subtree contains a cycle is path-dependent:
+ * node X may be cycle-free when explored from path {A,B} but part of
+ * a cycle when explored from path {A,C} (if X can reach C).
  */
-async function dfsDetectCycle(
+async function dfsDetectAnyCycle(
     currentFile: string,
-    targetFile: string,
-    cyclePath: string[],
-    globalVisited: Set<string>,
-    depth: number
-): Promise<boolean> {
-    if (depth >= MAX_DEPTH) return false;
+    pathStack: Set<string>,
+    pathList: string[],
+    fileCache: Map<string, string | null>,
+): Promise<string[] | null> {
+    // Safety depth limit to prevent stack overflow on pathological hierarchies
+    if (pathList.length >= MAX_DEPTH) return null;
 
     const normalized = normalizePath(currentFile);
 
-    // Cycle found: current file references back to the original file
-    if (normalized === targetFile && depth > 0) {
-        cyclePath.push(normalized);
-        return true;
+    // Cycle found: this file is already on the current DFS path
+    if (pathStack.has(normalized)) {
+        const cycleStart = pathList.indexOf(normalized);
+        return [...pathList.slice(cycleStart), normalized];
     }
 
-    // Already explored this file (no cycle through it)
-    if (globalVisited.has(normalized)) {
-        return false;
+    // Read file (with cache)
+    let content: string | null;
+    if (fileCache.has(normalized)) {
+        content = fileCache.get(normalized)!;
+    } else {
+        try {
+            content = await fsp.readFile(currentFile, 'utf-8');
+        } catch {
+            content = null;
+        }
+        fileCache.set(normalized, content);
     }
-    globalVisited.add(normalized);
-    cyclePath.push(normalized);
 
-    // Read and parse the current file for references
-    let content: string;
-    try {
-        content = await fsp.readFile(currentFile, 'utf-8');
-    } catch {
-        cyclePath.pop();
-        return false;
-    }
+    if (content === null) return null;
+
+    pathStack.add(normalized);
+    pathList.push(normalized);
 
     const dir = path.dirname(currentFile);
     const refs = extractFileReferences(content, dir);
 
     for (const ref of refs) {
-        const found = await dfsDetectCycle(
-            ref.targetPath, targetFile, cyclePath, globalVisited, depth + 1
+        const cycle = await dfsDetectAnyCycle(
+            ref.targetPath, pathStack, pathList, fileCache
         );
-        if (found) return true;
+        if (cycle) {
+            pathStack.delete(normalized);
+            pathList.pop();
+            return cycle;
+        }
     }
 
-    cyclePath.pop();
-    return false;
+    pathStack.delete(normalized);
+    pathList.pop();
+    return null;
+}
+
+/**
+ * Produce a canonical string for a cycle so that the same cycle
+ * discovered from different entry points is reported only once.
+ * Rotates the cycle to start from the lexicographically smallest element.
+ */
+function canonicalizeCycle(cyclePath: string[]): string {
+    // cyclePath is [a, b, c, a] — the core is [a, b, c]
+    const core = cyclePath.slice(0, -1);
+    if (core.length === 0) return '';
+    let minIdx = 0;
+    for (let i = 1; i < core.length; i++) {
+        if (core[i] < core[minIdx]) minIdx = i;
+    }
+    const rotated = [...core.slice(minIdx), ...core.slice(0, minIdx)];
+    return rotated.join('|');
 }
 
 function isDitaFile(filePath: string): boolean {
@@ -179,4 +222,3 @@ function isDitaFile(filePath: string): boolean {
 function normalizePath(filePath: string): string {
     return normalizeFsPath(filePath);
 }
-

@@ -35,7 +35,7 @@
             <ul>
                 <li><b>On Open:</b> When you open a DITA file</li>
                 <li><b>On Save:</b> When you save a DITA file (if <codeph>autoValidate</codeph> is enabled)</li>
-                <li><b>On Change:</b> After you stop typing (with 500ms debounce)</li>
+                <li><b>On Change:</b> After you stop typing, with smart debouncing (300ms for topics, 1000ms for maps)</li>
             </ul>
             <p>To disable automatic validation, set <codeph>ditacraft.autoValidate</codeph> to <codeph>false</codeph> in settings.</p>
         </section>
@@ -76,6 +76,29 @@
                 <li>Excess requests are silently skipped (auto-validation) or show a warning (manual validation)</li>
                 <li>Rate limits reset after the time window expires</li>
             </ul>
+        </section>
+
+        <section id="validate-guide">
+            <title>DITA: Validate Entire Guide Using DITA-OT</title>
+            <p>Runs the DITA Open Toolkit against the configured root map to perform full
+                end-to-end guide validation. This command detects cross-file issues that file-level
+                validation cannot catch.</p>
+            <p><b>Prerequisites:</b></p>
+            <ul>
+                <li>DITA-OT must be installed and configured
+                    (<codeph>ditacraft.ditaOtPath</codeph>)</li>
+                <li>A root map must be set (<codeph>ditacraft.rootMap</codeph> or via
+                    <uicontrol>DITA: Set Root Map</uicontrol>)</li>
+            </ul>
+            <p><b>Output:</b></p>
+            <ul>
+                <li><b>WebView Report</b> — Interactive panel with severity filtering, search,
+                    grouping (by file, severity, or module), error code tooltips, file navigation,
+                    and JSON export</li>
+                <li><b>Problems Panel</b> — Errors and warnings appear with
+                    <codeph>DITA-OT</codeph> source label and error codes</li>
+            </ul>
+            <p>See <xref keyref="guide-validation"/> for detailed documentation.</p>
         </section>
     </refbody>
 </reference>

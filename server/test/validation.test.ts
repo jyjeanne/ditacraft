@@ -20,6 +20,9 @@ function defaultSettings(): DitaCraftSettings {
         schemaFormat: 'dtd',
         rngSchemaPath: '',
         xmlCatalogPath: '',
+        validationSeverityOverrides: {},
+        customRulesFile: '',
+        largeFileThresholdKB: 500,
     };
 }
 
@@ -373,6 +376,120 @@ suite('validateDITADocument', () => {
             );
             const xmlDiags = diags.filter(d => d.code === 'DITA-XML-001');
             assert.ok(xmlDiags.length > 0);
+        });
+
+        test('prop missing att attribute produces warning (DITAVAL-001)', () => {
+            const diags = validate(
+                '<val><prop val="admin" action="include"/></val>',
+                'file:///test.ditaval'
+            );
+            const attDiags = diags.filter(d => d.code === 'DITA-DITAVAL-001');
+            assert.strictEqual(attDiags.length, 1);
+        });
+
+        test('prop with att attribute produces no DITAVAL-001', () => {
+            const diags = validate(
+                '<val><prop att="audience" val="admin" action="include"/></val>',
+                'file:///test.ditaval'
+            );
+            const attDiags = diags.filter(d => d.code === 'DITA-DITAVAL-001');
+            assert.strictEqual(attDiags.length, 0);
+        });
+
+        test('invalid action value produces error (DITAVAL-002)', () => {
+            const diags = validate(
+                '<val><prop att="audience" val="admin" action="remove"/></val>',
+                'file:///test.ditaval'
+            );
+            const actionDiags = diags.filter(d => d.code === 'DITA-DITAVAL-002');
+            assert.strictEqual(actionDiags.length, 1);
+            assert.ok(actionDiags[0].message.includes('remove'));
+        });
+
+        test('valid action values produce no DITAVAL-002', () => {
+            const diags = validate(
+                '<val>' +
+                '<prop att="a" val="1" action="include"/>' +
+                '<prop att="a" val="2" action="exclude"/>' +
+                '<prop att="a" val="3" action="passthrough"/>' +
+                '<prop att="a" val="4" action="flag"/>' +
+                '</val>',
+                'file:///test.ditaval'
+            );
+            const actionDiags = diags.filter(d => d.code === 'DITA-DITAVAL-002');
+            assert.strictEqual(actionDiags.length, 0);
+        });
+
+        test('revprop missing val attribute produces warning (DITAVAL-003)', () => {
+            const diags = validate(
+                '<val><revprop action="flag"/></val>',
+                'file:///test.ditaval'
+            );
+            const valDiags = diags.filter(d => d.code === 'DITA-DITAVAL-003');
+            assert.strictEqual(valDiags.length, 1);
+        });
+
+        test('duplicate prop att+val combination produces warning (DITAVAL-004)', () => {
+            const diags = validate(
+                '<val>' +
+                '<prop att="audience" val="admin" action="include"/>' +
+                '<prop att="audience" val="admin" action="exclude"/>' +
+                '</val>',
+                'file:///test.ditaval'
+            );
+            const dupDiags = diags.filter(d => d.code === 'DITA-DITAVAL-004');
+            assert.strictEqual(dupDiags.length, 1);
+        });
+
+        test('duplicate prop with att only (no val) produces warning (DITAVAL-004)', () => {
+            const diags = validate(
+                '<val>' +
+                '<prop att="audience" action="include"/>' +
+                '<prop att="audience" action="exclude"/>' +
+                '</val>',
+                'file:///test.ditaval'
+            );
+            const dupDiags = diags.filter(d => d.code === 'DITA-DITAVAL-004');
+            assert.strictEqual(dupDiags.length, 1);
+        });
+
+        test('different prop att+val combinations produce no DITAVAL-004', () => {
+            const diags = validate(
+                '<val>' +
+                '<prop att="audience" val="admin" action="include"/>' +
+                '<prop att="audience" val="user" action="exclude"/>' +
+                '</val>',
+                'file:///test.ditaval'
+            );
+            const dupDiags = diags.filter(d => d.code === 'DITA-DITAVAL-004');
+            assert.strictEqual(dupDiags.length, 0);
+        });
+
+        test('startflag without imageref or alt-text produces warning (DITAVAL-005)', () => {
+            const diags = validate(
+                '<val><prop att="audience" val="admin" action="flag"><startflag></startflag></prop></val>',
+                'file:///test.ditaval'
+            );
+            const flagDiags = diags.filter(d => d.code === 'DITA-DITAVAL-005');
+            assert.strictEqual(flagDiags.length, 1);
+        });
+
+        test('startflag with imageref produces no DITAVAL-005', () => {
+            const diags = validate(
+                '<val><prop att="audience" val="admin" action="flag"><startflag imageref="icon.png"></startflag></prop></val>',
+                'file:///test.ditaval'
+            );
+            const flagDiags = diags.filter(d => d.code === 'DITA-DITAVAL-005');
+            assert.strictEqual(flagDiags.length, 0);
+        });
+
+        test('endflag with alt-text produces no DITAVAL-005', () => {
+            const diags = validate(
+                '<val><prop att="audience" val="admin" action="flag"><endflag><alt-text>end</alt-text></endflag></prop></val>',
+                'file:///test.ditaval'
+            );
+            const flagDiags = diags.filter(d => d.code === 'DITA-DITAVAL-005');
+            assert.strictEqual(flagDiags.length, 0);
         });
     });
 

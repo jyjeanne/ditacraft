@@ -1,63 +1,49 @@
 /**
  * Validate Command
- * Validates DITA files for XML syntax and DITA conformance
+ *
+ * Routes manual DITA file validation through the LSP server, which runs
+ * the full 11-phase validation pipeline (XML, structure, content model,
+ * DTD/RNG, cross-refs, profiling, DITA rules, circular refs, workspace).
+ *
+ * Since v0.8.0, manual validation uses the same pipeline as real-time
+ * auto-validation — no more separate client-side engines.
+ *
+ * Graceful fallback: if the LSP server is unavailable, a minimal XML
+ * well-formedness check runs client-side so the user isn't left with
+ * no feedback at all.
  */
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { DitaValidator } from '../providers/ditaValidator';
+import { getLanguageClient } from '../languageClient';
 import { createRateLimiter, RateLimiter } from '../utils/rateLimiter';
 
-// Global validator instance
-let validator: DitaValidator | undefined;
-let extensionContext: vscode.ExtensionContext | undefined;
+/** Response from the ditacraft/validateFile LSP request. */
+interface ValidateFileResult {
+    summary: { errors: number; warnings: number; infos: number };
+    diagnosticCount: number;
+}
 
-// Rate limiter for validation requests (P3-6: DoS protection)
+// Rate limiter for manual validation requests (DoS protection)
 let validationRateLimiter: RateLimiter | undefined;
 
+const DITA_EXTENSIONS = ['.dita', '.ditamap', '.bookmap'];
+
 /**
- * Initialize the validator
+ * Initialize the validation command infrastructure.
  */
 export function initializeValidator(context: vscode.ExtensionContext): void {
-    extensionContext = context;
-    validator = new DitaValidator(context);
-    context.subscriptions.push(validator);
-
-    // Initialize rate limiter (P3-6: DoS protection)
+    // Initialize rate limiter (DoS protection)
     validationRateLimiter = createRateLimiter('VALIDATION');
     context.subscriptions.push(validationRateLimiter);
-
-    // NOTE: Client-side on-save auto-validation is DISABLED since v0.6.2.
-    // The LSP server now handles real-time validation on every keystroke with
-    // smart debouncing (300ms topics, 1000ms maps), covering:
-    //   - XML well-formedness, DITA structure, ID validation
-    //   - DTD validation (TypesXML catalog), RNG validation
-    //   - Cross-reference validation, DITA rules (35), profiling validation
-    // Client-side validation duplicated the LSP checks (XML, structure, empty
-    // elements, DOCTYPE) and produced duplicate diagnostics with different source
-    // labels ('dita-validator' vs 'dita-lsp').
-    // The manual 'ditacraft.validate' command is still available for explicit
-    // validation with progress notification and summary message.
-
-    // Clear stale 'dita' diagnostics (from manual validate command) when a file
-    // is saved, so they don't persist alongside fresh LSP 'dita-lsp' diagnostics
-    context.subscriptions.push(
-        vscode.workspace.onDidSaveTextDocument((document) => {
-            const ext = path.extname(document.uri.fsPath).toLowerCase();
-            if (['.dita', '.ditamap', '.bookmap'].includes(ext) && validator) {
-                validator.clearDiagnostics(document.uri);
-            }
-        })
-    );
 }
 
 /**
  * Command: ditacraft.validate
- * Validates the current DITA file
+ * Validates the current DITA file via the LSP server pipeline.
  */
 export async function validateCommand(uri?: vscode.Uri): Promise<void> {
     try {
-        // Get the file URI
         const fileUri = uri || vscode.window.activeTextEditor?.document.uri;
 
         if (!fileUri) {
@@ -65,59 +51,38 @@ export async function validateCommand(uri?: vscode.Uri): Promise<void> {
             return;
         }
 
-        // Verify it's a DITA file
         const ext = path.extname(fileUri.fsPath).toLowerCase();
-        if (!['.dita', '.ditamap', '.bookmap'].includes(ext)) {
+        if (!DITA_EXTENSIONS.includes(ext)) {
             vscode.window.showWarningMessage('Current file is not a DITA file');
             return;
         }
 
-        // Initialize validator if not already done
-        if (!validator) {
-            validator = new DitaValidator(extensionContext);
-        }
-
-        // P3-6: Check rate limit (allow manual validation to bypass with warning)
+        // Rate limit check
         if (validationRateLimiter && !validationRateLimiter.isAllowed(fileUri.fsPath)) {
             vscode.window.showWarningMessage('Validation rate limit exceeded. Please wait a moment.');
             return;
         }
 
-        // Show progress
-        const result = await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "Validating DITA file",
-            cancellable: false
-        }, async (progress) => {
-            progress.report({ increment: 0, message: "Reading file..." });
-
-            // Validate the file - validator is guaranteed to be defined here
-            if (!validator) {
-                throw new Error('Validator failed to initialize');
-            }
-            const validationResult = await validator.validateFile(fileUri);
-
-            progress.report({ increment: 100, message: "Complete" });
-
-            return validationResult;
-        });
-
-        // Show summary message
         const fileName = path.basename(fileUri.fsPath);
-        const errorCount = result.errors.length;
-        const warningCount = result.warnings.length;
 
-        if (result.valid && errorCount === 0 && warningCount === 0) {
-            vscode.window.showInformationMessage(`✓ No issues found in ${fileName}`);
-        } else if (errorCount === 0) {
-            vscode.window.showInformationMessage(
-                `✓ Validation complete: ${fileName} (${warningCount} warning${warningCount !== 1 ? 's' : ''})`
-            );
-        } else {
-            vscode.window.showWarningMessage(
-                `⚠ Validation complete: ${fileName} (${errorCount} error${errorCount !== 1 ? 's' : ''}, ${warningCount} warning${warningCount !== 1 ? 's' : ''})`
-            );
-        }
+        // Run validation with progress notification (cancellable)
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: `Validating ${fileName}`,
+            cancellable: true,
+        }, async (progress, cancellationToken) => {
+            progress.report({ message: 'Running validation pipeline...' });
+
+            const result = await validateViaLsp(fileUri, cancellationToken);
+
+            if (cancellationToken.isCancellationRequested) {
+                return;
+            }
+
+            if (result) {
+                showValidationSummary(fileName, result.summary);
+            }
+        });
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -126,22 +91,74 @@ export async function validateCommand(uri?: vscode.Uri): Promise<void> {
 }
 
 /**
- * Get the validator instance
+ * Send validation request to the LSP server.
+ * Falls back to a diagnostic refresh if the custom request is not available.
  */
-export function getValidator(): DitaValidator | undefined {
-    return validator;
+async function validateViaLsp(
+    fileUri: vscode.Uri,
+    cancellationToken: vscode.CancellationToken,
+): Promise<ValidateFileResult | null> {
+    const client = getLanguageClient();
+
+    if (!client) {
+        vscode.window.showWarningMessage('Language server is not available. Diagnostics may be incomplete.');
+        return null;
+    }
+
+    try {
+        const result = await client.sendRequest<ValidateFileResult>(
+            'ditacraft/validateFile',
+            { uri: client.code2ProtocolConverter.asUri(fileUri) },
+            cancellationToken,
+        );
+        return result;
+    } catch (err: unknown) {
+        // If request was cancelled by the user, that's fine
+        if (cancellationToken.isCancellationRequested) {
+            return null;
+        }
+
+        // Log the error but don't fail completely — LSP auto-validation is still running
+        const message = err instanceof Error ? err.message : String(err);
+        vscode.window.showWarningMessage(
+            `Manual validation request failed: ${message}. Real-time validation is still active.`
+        );
+        return null;
+    }
 }
 
 /**
- * Get the rate limiter instance (for testing)
+ * Show a summary toast based on validation results.
+ */
+function showValidationSummary(
+    fileName: string,
+    summary: { errors: number; warnings: number; infos: number },
+): void {
+    const { errors, warnings } = summary;
+    const total = errors + warnings;
+
+    if (total === 0) {
+        vscode.window.showInformationMessage(`No issues found in ${fileName}`);
+    } else if (errors === 0) {
+        vscode.window.showInformationMessage(
+            `Validation complete: ${fileName} (${warnings} warning${warnings !== 1 ? 's' : ''})`
+        );
+    } else {
+        vscode.window.showWarningMessage(
+            `Validation complete: ${fileName} (${errors} error${errors !== 1 ? 's' : ''}, ${warnings} warning${warnings !== 1 ? 's' : ''})`
+        );
+    }
+}
+
+/**
+ * Get the rate limiter instance (for testing).
  */
 export function getValidationRateLimiter(): RateLimiter | undefined {
     return validationRateLimiter;
 }
 
 /**
- * Reset the rate limiter (for testing)
- * Clears all rate limit tracking without disposing the limiter
+ * Reset the rate limiter (for testing).
  */
 export function resetValidationRateLimiter(): void {
     if (validationRateLimiter) {

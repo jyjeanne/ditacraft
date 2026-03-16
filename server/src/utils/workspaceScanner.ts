@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { promises as fsp } from 'fs';
 import * as path from 'path';
 import { Location, TextDocuments } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -69,6 +70,40 @@ export function collectDitaFiles(workspaceFolders: readonly string[]): string[] 
     for (const folder of workspaceFolders) {
         walk(folder);
     }
+    return files;
+}
+
+/**
+ * Collect all DITA files in the given workspace folders.
+ * Async recursive directory walk — does not block the server thread.
+ */
+export async function collectDitaFilesAsync(workspaceFolders: readonly string[]): Promise<string[]> {
+    const files: string[] = [];
+
+    async function walk(dir: string): Promise<void> {
+        let entries: fs.Dirent[];
+        try {
+            entries = await fsp.readdir(dir, { withFileTypes: true });
+        } catch {
+            return;
+        }
+        const subdirs: Promise<void>[] = [];
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                if (!SKIP_DIRS.has(entry.name) && !entry.name.startsWith('.')) {
+                    subdirs.push(walk(path.join(dir, entry.name)));
+                }
+            } else if (entry.isFile()) {
+                const ext = path.extname(entry.name).toLowerCase();
+                if (DITA_EXTENSIONS.has(ext)) {
+                    files.push(path.join(dir, entry.name));
+                }
+            }
+        }
+        await Promise.all(subdirs);
+    }
+
+    await Promise.all(workspaceFolders.map(folder => walk(folder)));
     return files;
 }
 

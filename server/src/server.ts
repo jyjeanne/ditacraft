@@ -55,12 +55,20 @@ import { handleDocumentLinks, handleDocumentLinkResolve } from './features/docum
 import { handleLinkedEditingRange } from './features/linkedEditing';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
-import { buildRootIdIndex, detectUnusedTopics } from './features/workspaceValidation';
+import { detectUnusedTopics, WorkspaceIndex } from './features/workspaceValidation';
+import { collectDitaFilesAsync } from './utils/workspaceScanner';
 import { CatalogValidationService } from './services/catalogValidationService';
 import { RngValidationService } from './services/rngValidationService';
-import { ValidationPipeline } from './services/validationPipeline';
+import { ValidationPipeline, ValidationSummary } from './services/validationPipeline';
 import { URI } from 'vscode-uri';
 import { setLocale } from './utils/i18n';
+
+/** Response type for the ditacraft/validateFile custom request. */
+interface ValidateFileResult {
+    summary: ValidationSummary;
+    /** Number of diagnostics (already pushed to the client via pull diagnostics). */
+    diagnosticCount: number;
+}
 
 // Create LSP connection using IPC transport
 const connection = createConnection(ProposedFeatures.all);
@@ -79,8 +87,8 @@ const validationPipeline = new ValidationPipeline(
     (msg) => connection.console.log(msg),
 );
 
-/** Workspace-level root ID index for cross-file duplicate detection. */
-let rootIdIndex: Map<string, string[]> = new Map();
+/** Incremental workspace index for cross-file duplicate detection. */
+const workspaceIndex = new WorkspaceIndex();
 /** Set of unused topic file paths (lowercase normalized). */
 let unusedTopicPaths: Set<string> = new Set();
 
@@ -231,13 +239,17 @@ connection.onExecuteCommand(async (params) => {
 
         connection.console.log('Starting workspace validation...');
 
+        // Scan files once and share across both index builders
+        const allDitaFiles = await collectDitaFilesAsync(folders);
+        connection.console.log(`Found ${allDitaFiles.length} DITA files`);
+
         // Build workspace-level indices
-        rootIdIndex = buildRootIdIndex(folders);
-        connection.console.log(`Root ID index: ${rootIdIndex.size} unique IDs`);
+        await workspaceIndex.buildFull(folders, allDitaFiles);
+        connection.console.log(`Root ID index: ${workspaceIndex.rootIdIndex.size} unique IDs`);
 
         // Detect unused topics
         if (keySpaceService) {
-            unusedTopicPaths = await detectUnusedTopics(folders, keySpaceService);
+            unusedTopicPaths = await detectUnusedTopics(folders, keySpaceService, allDitaFiles);
             connection.console.log(`Unused topics: ${unusedTopicPaths.size} orphaned files`);
         }
 
@@ -250,8 +262,33 @@ connection.onExecuteCommand(async (params) => {
     return null;
 });
 
+// Custom request: ditacraft/validateFile
+// Used by the manual validate command (Ctrl+Shift+V) to run the full pipeline
+// and return a summary. Diagnostics are refreshed via pull diagnostics.
+connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, token): Promise<ValidateFileResult> => {
+    const document = documents.get(params.uri);
+    if (!document) {
+        return { summary: { errors: 0, warnings: 0, infos: 0 }, diagnosticCount: 0 };
+    }
+
+    const settings = await getDocumentSettings(document.uri);
+    const diagnostics = await validationPipeline.validate(
+        document, settings, keySpaceService,
+        { rootIdIndex: workspaceIndex.rootIdIndex, unusedTopicPaths },
+        token,
+    );
+
+    // Refresh pull diagnostics so the Problems panel updates immediately
+    connection.languages.diagnostics.refresh();
+
+    return {
+        summary: ValidationPipeline.summarize(diagnostics),
+        diagnosticCount: diagnostics.length,
+    };
+});
+
 // File watcher — invalidate key space cache on map changes
-connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
+connection.onDidChangeWatchedFiles(async (params: DidChangeWatchedFilesParams) => {
     let mapChanged = false;
     let ditaFileChanged = false;
     for (const change of params.changes) {
@@ -265,20 +302,36 @@ connection.onDidChangeWatchedFiles((params: DidChangeWatchedFilesParams) => {
             ditaFileChanged = true;
         }
     }
-    // Clear stale workspace validation indices when DITA files change
-    if (ditaFileChanged && (rootIdIndex.size > 0 || unusedTopicPaths.size > 0)) {
-        rootIdIndex = new Map();
+    // Incrementally update workspace index for changed .dita files
+    if (ditaFileChanged && workspaceIndex.initialized) {
+        for (const change of params.changes) {
+            const fp = URI.parse(change.uri).fsPath;
+            if (!fp.endsWith('.dita')) continue;
+            if (change.type === 3 /* Deleted */) {
+                workspaceIndex.removeFile(fp);
+            } else {
+                // Created (1) or Changed (2) — re-index
+                await workspaceIndex.updateFile(fp);
+            }
+        }
+        // Unused topics must be fully rebuilt when maps or topics change
         unusedTopicPaths = new Set();
+    }
+    // Invalidate save-dependent phases for changed files
+    for (const change of params.changes) {
+        validationPipeline.invalidateForFileSave(change.uri);
     }
     // When external map files change, revalidate all open documents
     // (key space and cross-references may have changed)
     if (mapChanged) {
+        validationPipeline.invalidateForMapChange();
         debouncedRefresh('__map_external__', MAP_DEBOUNCE_MS);
     }
 });
 
 // Shutdown cleanup
 connection.onShutdown(() => {
+    validationPipeline.invalidateAll();
     keySpaceService?.shutdown();
     subjectSchemeService.shutdown();
 });
@@ -300,11 +353,12 @@ connection.onDidChangeConfiguration(async (change: DidChangeConfigurationParams)
         catalogValidationService.reinitialize(settings.xmlCatalogPath || undefined);
     }
 
+    validationPipeline.invalidateAll();
     connection.languages.diagnostics.refresh();
 });
 
 // Pull-based diagnostics handler
-connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Promise<DocumentDiagnosticReport> => {
+connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams, token): Promise<DocumentDiagnosticReport> => {
     const document = documents.get(params.textDocument.uri);
     if (!document) {
         return {
@@ -316,7 +370,8 @@ connection.languages.diagnostics.on(async (params: DocumentDiagnosticParams): Pr
     const settings = await getDocumentSettings(document.uri);
     const items = await validationPipeline.validate(
         document, settings, keySpaceService,
-        { rootIdIndex, unusedTopicPaths },
+        { rootIdIndex: workspaceIndex.rootIdIndex, unusedTopicPaths },
+        token,
     );
 
     return {
@@ -410,9 +465,11 @@ documents.onDidOpen((event: TextDocumentChangeEvent<TextDocument>) => {
 
 documents.onDidChangeContent((change: TextDocumentChangeEvent<TextDocument>) => {
     const uri = change.document.uri;
+    validationPipeline.invalidateForTextEdit(uri);
     if (isMapFile(uri)) {
         // Map changes affect key space for all documents — use longer delay
         keySpaceService?.invalidateForFile(URI.parse(uri).fsPath);
+        validationPipeline.invalidateForMapChange();
         debouncedRefresh(uri, MAP_DEBOUNCE_MS);
     } else {
         debouncedRefresh(uri, TOPIC_DEBOUNCE_MS);
@@ -422,6 +479,7 @@ documents.onDidChangeContent((change: TextDocumentChangeEvent<TextDocument>) => 
 documents.onDidClose((event: TextDocumentChangeEvent<TextDocument>) => {
     const uri = event.document.uri;
     clearDocumentSettings(uri);
+    validationPipeline.invalidateForDocument(uri);
     // Clean up any pending debounce timer for this document
     const timer = debounceTimers.get(uri);
     if (timer) {

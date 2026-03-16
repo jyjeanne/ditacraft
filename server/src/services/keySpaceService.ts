@@ -38,6 +38,8 @@ export interface KeySpace {
     mapHierarchy: string[];
     /** Paths to subject scheme maps discovered during BFS traversal. */
     subjectSchemePaths: string[];
+    /** Keys defined more than once. Maps key name → all definitions (including the effective first one). */
+    duplicateKeys: Map<string, KeyDefinition[]>;
 }
 
 interface CacheConfig {
@@ -171,6 +173,22 @@ export class KeySpaceService {
 
         const keySpace = await this.buildKeySpace(rootMap);
         return keySpace.subjectSchemePaths;
+    }
+
+    /**
+     * Get duplicate key definitions from the key space for the given context file.
+     * Returns a map of key name → array of all definitions (effective + duplicates).
+     */
+    public async getDuplicateKeys(
+        contextFilePath: string
+    ): Promise<Map<string, KeyDefinition[]>> {
+        const rootMap = await this.findRootMap(contextFilePath);
+        if (!rootMap) {
+            return new Map();
+        }
+
+        const keySpace = await this.buildKeySpace(rootMap);
+        return keySpace.duplicateKeys;
     }
 
     /**
@@ -342,6 +360,7 @@ export class KeySpaceService {
             buildTime: Date.now(),
             mapHierarchy: [],
             subjectSchemePaths: [],
+            duplicateKeys: new Map(),
         };
 
         const visited = new Set<string>();
@@ -387,6 +406,14 @@ export class KeySpaceService {
                     // Store unqualified key name (first definition wins)
                     if (!keySpace.keys.has(keyDef.keyName)) {
                         keySpace.keys.set(keyDef.keyName, keyDef);
+                    } else {
+                        // Track duplicate key definitions
+                        let dups = keySpace.duplicateKeys.get(keyDef.keyName);
+                        if (!dups) {
+                            dups = [keySpace.keys.get(keyDef.keyName)!];
+                            keySpace.duplicateKeys.set(keyDef.keyName, dups);
+                        }
+                        dups.push(keyDef);
                     }
                     // Store scope-qualified key names (e.g., "a.x.keyname", "b.x.keyname")
                     for (const prefix of effectivePrefixes) {

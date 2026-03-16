@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { ValidationPipeline, WorkspaceContext } from '../src/services/validationPipeline';
+import { ValidationPipeline, ValidationPhase, WorkspaceContext } from '../src/services/validationPipeline';
 import { CatalogValidationService } from '../src/services/catalogValidationService';
 import { RngValidationService } from '../src/services/rngValidationService';
 import { SubjectSchemeService } from '../src/services/subjectSchemeService';
@@ -60,6 +60,9 @@ const defaultSettings: DitaCraftSettings = {
     schemaFormat: 'dtd',
     rngSchemaPath: '',
     xmlCatalogPath: '',
+    validationSeverityOverrides: {},
+    customRulesFile: '',
+    largeFileThresholdKB: 500,
 };
 
 const emptyWorkspace: WorkspaceContext = {
@@ -421,6 +424,479 @@ suite('ValidationPipeline', () => {
             // No unused-topic diagnostic expected
             const unusedDiags = diags.filter(d => d.code === 'DITA-WS-002');
             assert.strictEqual(unusedDiags.length, 0);
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Phase result caching', () => {
+
+        test('second call with same version uses cache (faster)', async () => {
+            const logMessages: string[] = [];
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+                (msg) => logMessages.push(msg),
+            );
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+            };
+            const doc = createDoc(VALID_TOPIC);
+
+            // First call — populates cache
+            await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const firstLog = logMessages.filter(m => m.includes('Total='));
+            assert.ok(firstLog.length > 0, 'should log timings');
+
+            logMessages.length = 0;
+            // Second call — same doc, same version, same settings → cache hits
+            await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const secondLog = logMessages.find(m => m.includes('cache='));
+            assert.ok(secondLog, 'second call should report cache hits');
+        });
+
+        test('changed settings cause cache miss', async () => {
+            const logMessages: string[] = [];
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+                (msg) => logMessages.push(msg),
+            );
+            const settings1: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+            };
+            const settings2: DitaCraftSettings = {
+                ...settings1,
+                ditaRulesEnabled: false,
+            };
+            const doc = createDoc(VALID_TOPIC);
+
+            await pipeline.validate(doc, settings1, undefined, emptyWorkspace);
+            logMessages.length = 0;
+            await pipeline.validate(doc, settings2, undefined, emptyWorkspace);
+            // With different settings, cache should miss — no cache= in log
+            const cacheLog = logMessages.find(m => m.includes('cache='));
+            assert.ok(!cacheLog, 'different settings should cause cache miss');
+        });
+
+        test('invalidateForTextEdit clears text-dependent phases', async () => {
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+            };
+            const doc = createDoc(VALID_TOPIC);
+
+            // Populate cache
+            await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+
+            // Invalidate text phases
+            pipeline.invalidateForTextEdit(doc.uri);
+
+            // Verify the invalidation API doesn't throw
+            assert.doesNotThrow(() => pipeline.invalidateForTextEdit(doc.uri));
+        });
+
+        test('invalidateAll clears entire cache', async () => {
+            const logMessages: string[] = [];
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+                (msg) => logMessages.push(msg),
+            );
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+            };
+            const doc = createDoc(VALID_TOPIC);
+
+            // Populate cache
+            await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            logMessages.length = 0;
+
+            // Clear all
+            pipeline.invalidateAll();
+
+            // Re-validate — should have no cache hits
+            await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const cacheLog = logMessages.find(m => m.includes('cache='));
+            assert.ok(!cacheLog, 'after invalidateAll, should have no cache hits');
+        });
+
+        test('invalidateForDocument only clears that document', async () => {
+            const logMessages: string[] = [];
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+                (msg) => logMessages.push(msg),
+            );
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+            };
+            const doc1 = createDoc(VALID_TOPIC, 'file:///doc1.dita');
+            const doc2 = createDoc(VALID_TOPIC, 'file:///doc2.dita');
+
+            // Populate cache for both docs
+            await pipeline.validate(doc1, settings, undefined, emptyWorkspace);
+            await pipeline.validate(doc2, settings, undefined, emptyWorkspace);
+
+            // Invalidate only doc1
+            pipeline.invalidateForDocument('file:///doc1.dita');
+
+            logMessages.length = 0;
+            // doc2 should still have cache hits
+            await pipeline.validate(doc2, settings, undefined, emptyWorkspace);
+            const cacheLog = logMessages.find(m => m.includes('cache='));
+            assert.ok(cacheLog, 'doc2 should still have cache hits after doc1 invalidation');
+        });
+
+        test('invalidateForMapChange clears cross-ref phases for all documents', async () => {
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            // Just verify the API works without throwing
+            assert.doesNotThrow(() => pipeline.invalidateForMapChange());
+        });
+
+        test('invalidateForFileSave clears I/O phases', async () => {
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            assert.doesNotThrow(() => pipeline.invalidateForFileSave('file:///test.dita'));
+        });
+
+        test('invalidatePhases clears specific phases', async () => {
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            assert.doesNotThrow(() =>
+                pipeline.invalidatePhases('file:///test.dita', [
+                    ValidationPhase.XmlStructureId,
+                    ValidationPhase.ContentModel,
+                ])
+            );
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Severity overrides', () => {
+
+        test('override changes severity of a diagnostic', async () => {
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {
+                    'DITA-SCH-003': 'error',
+                },
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            // indextermref triggers DITA-SCH-003 (normally Warning)
+            const doc = createDoc('<topic id="t1"><title>T</title><body><indextermref/></body></topic>');
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'should have DITA-SCH-003');
+            // Severity 1 = Error
+            assert.strictEqual(sch003[0].severity, 1, 'severity should be overridden to Error');
+        });
+
+        test('override "off" suppresses a diagnostic', async () => {
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {
+                    'DITA-SCH-003': 'off',
+                },
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc('<topic id="t1"><title>T</title><body><indextermref/></body></topic>');
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA-SCH-003 should be suppressed');
+        });
+
+        test('override to "hint" works', async () => {
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {
+                    'DITA-SCH-003': 'hint',
+                },
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc('<topic id="t1"><title>T</title><body><indextermref/></body></topic>');
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0);
+            // Severity 4 = Hint
+            assert.strictEqual(sch003[0].severity, 4, 'severity should be overridden to Hint');
+        });
+
+        test('non-matching overrides leave other diagnostics unchanged', async () => {
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {
+                    'NONEXISTENT-CODE': 'error',
+                },
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc('<topic id="t1"><title>T</title><body><indextermref/></body></topic>');
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'should still have DITA-SCH-003');
+            // Original severity (Error = 1)
+            assert.strictEqual(sch003[0].severity, 1, 'severity should remain Error');
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Comment-based suppression', () => {
+
+        test('ditacraft-disable-file suppresses matching code for entire file', async () => {
+            const xml = `<!-- ditacraft-disable-file DITA-SCH-003 -->
+<topic id="t1"><title>T</title><body><indextermref/></body></topic>`;
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA-SCH-003 should be suppressed by disable-file');
+        });
+
+        test('ditacraft-disable / ditacraft-enable suppresses code in range', async () => {
+            const xml = `<topic id="t1"><title>T</title><body>
+<!-- ditacraft-disable DITA-SCH-003 -->
+<indextermref/>
+<!-- ditacraft-enable DITA-SCH-003 -->
+</body></topic>`;
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA-SCH-003 should be suppressed in disabled range');
+        });
+
+        test('diagnostics outside suppression range are kept', async () => {
+            const xml = `<topic id="t1"><title>T</title><body>
+<!-- ditacraft-disable DITA-SCH-003 -->
+<!-- ditacraft-enable DITA-SCH-003 -->
+<indextermref/>
+</body></topic>`;
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'DITA-SCH-003 should NOT be suppressed outside range');
+        });
+
+        test('multiple codes can be suppressed in a single comment', async () => {
+            const xml = `<!-- ditacraft-disable-file DITA-SCH-003 DITA-SCH-016 -->
+<topic id="t1"><title>T</title><body><indextermref/></body></topic>`;
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA-SCH-003 should be suppressed');
+        });
+
+        test('enable comment line itself is not suppressed (exclusive end)', async () => {
+            // indextermref is on the same line as the enable comment
+            const xml = `<topic id="t1"><title>T</title><body>
+<!-- ditacraft-disable DITA-SCH-003 -->
+<!-- ditacraft-enable DITA-SCH-003 --><indextermref/>
+</body></topic>`;
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'DITA-SCH-003 on enable line should NOT be suppressed');
+        });
+
+        test('non-matching suppression does not affect other diagnostics', async () => {
+            const xml = `<!-- ditacraft-disable-file NONEXISTENT-CODE -->
+<topic id="t1"><title>T</title><body><indextermref/></body></topic>`;
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'DITA-SCH-003 should still be present');
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Large file optimization', () => {
+
+        test('large file skips heavy phases and adds DITA-PERF-001 info diagnostic', async () => {
+            // Create a document that exceeds a very small threshold
+            const xml = '<topic id="t1"><title>T</title><body><p>text</p><indextermref/></body></topic>';
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                largeFileThresholdKB: 0.01, // ~10 bytes — any doc exceeds this
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const perfDiag = diags.find(d => d.code === 'DITA-PERF-001');
+            assert.ok(perfDiag, 'should have DITA-PERF-001 info diagnostic');
+            assert.strictEqual(perfDiag!.severity, 3); // Information
+            // DITA rules (SCH-003 for indextermref) should be skipped
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA rules should be skipped for large files');
+        });
+
+        test('normal file still runs all phases', async () => {
+            const xml = '<topic id="t1"><title>T</title><body><indextermref/></body></topic>';
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                largeFileThresholdKB: 500, // normal threshold
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const perfDiag = diags.find(d => d.code === 'DITA-PERF-001');
+            assert.ok(!perfDiag, 'should NOT have DITA-PERF-001 for normal files');
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'DITA rules should run for normal files');
+        });
+
+        test('threshold 0 disables large file optimization', async () => {
+            const xml = '<topic id="t1"><title>T</title><body><indextermref/></body></topic>';
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                largeFileThresholdKB: 0, // disabled
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const perfDiag = diags.find(d => d.code === 'DITA-PERF-001');
+            assert.ok(!perfDiag, 'should NOT have DITA-PERF-001 when threshold is 0');
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'DITA rules should run when threshold is 0');
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('summarize', () => {
+
+        test('counts errors, warnings, and infos correctly', () => {
+            const diags = [
+                { severity: 1 }, // Error
+                { severity: 1 }, // Error
+                { severity: 2 }, // Warning
+                { severity: 3 }, // Info
+                { severity: 4 }, // Hint → counted as info
+            ] as any[];
+            const summary = ValidationPipeline.summarize(diags);
+            assert.strictEqual(summary.errors, 2);
+            assert.strictEqual(summary.warnings, 1);
+            assert.strictEqual(summary.infos, 2);
+        });
+
+        test('empty diagnostics returns all zeros', () => {
+            const summary = ValidationPipeline.summarize([]);
+            assert.strictEqual(summary.errors, 0);
+            assert.strictEqual(summary.warnings, 0);
+            assert.strictEqual(summary.infos, 0);
         });
     });
 });

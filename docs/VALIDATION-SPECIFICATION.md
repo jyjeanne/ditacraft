@@ -1,6 +1,6 @@
 # DitaCraft Validation Specification
 
-**Version:** 2.0
+**Version:** 3.0
 **Date:** March 2026
 **Status:** Implemented
 **Author:** Jeremy Jeanne
@@ -9,9 +9,9 @@
 
 ## Executive Summary
 
-This document describes the validation architecture implemented in DitaCraft v0.7.0. The system uses a **10-phase LSP-based validation pipeline** (`ValidationPipeline` class) running in a dedicated Language Server process, providing real-time diagnostics as the user types. Each phase is error-isolated so a failure in one doesn't discard results from others.
+This document describes the validation architecture implemented in DitaCraft v0.7.2. The system uses a **12-phase LSP-based validation pipeline** (`ValidationPipeline` class) running in a dedicated Language Server process, providing real-time diagnostics as the user types. Each phase is error-isolated so a failure in one doesn't discard results from others.
 
-The original spec (v1.0, January 2025) explored different validation approaches. The chosen architecture combines a custom DITA Language Server with TypesXML DTD validation, optional RelaxNG validation, a 35-rule Schematron-equivalent engine, cross-reference validation, profiling/subject scheme validation, circular reference detection, and workspace-level checks — all running in real-time with smart debouncing.
+The original spec (v1.0, January 2025) explored different validation approaches. The chosen architecture combines a custom DITA Language Server with TypesXML DTD validation, optional RelaxNG validation, a 35-rule Schematron-equivalent engine, cross-reference validation, profiling/subject scheme validation, circular reference detection, workspace-level checks, per-rule severity overrides, comment-based rule suppression, and user-defined custom regex rules — all running in real-time with smart debouncing.
 
 This document was originally prompted by feedback from Stan Doherty (OASIS DITA TC member, ACM SIGDOC) who noted that the built-in validation engine was insufficient and suggested exploring DITA-OT-based validation. The implemented solution goes beyond that suggestion by providing real-time, zero-dependency validation with bundled DTDs.
 
@@ -64,7 +64,7 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 │  └──────────────────────┬─────────────────────────────────────┘  │
 │                         │                                        │
 │  ┌──────────────────────▼─────────────────────────────────────┐  │
-│  │            10-Phase Validation Pipeline                    │  │
+│  │            12-Phase Validation Pipeline                    │  │
 │  │            (ValidationPipeline — error-isolated phases)    │  │
 │  │                                                            │  │
 │  │  Phase 1-3: XML + structure + IDs    (validation.ts)       │  │
@@ -75,6 +75,8 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 │  │  Phase 8:   35 DITA rules            (ditaRulesValidator)  │  │
 │  │  Phase 9:   Circular ref detection   (circularRefDetection)│  │
 │  │  Phase 10:  Workspace checks         (workspaceValidation) │  │
+│  │  Phase 11:  Severity overrides + comment suppression       │  │
+│  │  Phase 12:  Custom regex rules   (customRulesValidator)    │  │
 │  │                                                            │  │
 │  └────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
@@ -86,7 +88,7 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 |----------|-----------|
 | LSP as sole real-time provider | Eliminates duplicate diagnostics; client-side on-save validation disabled in v0.6.2 |
 | Pull-based diagnostics (LSP 3.17) | Client requests diagnostics; server responds with `DocumentDiagnosticReportKind.Full` |
-| `ValidationPipeline` class | Orchestrates all 10 phases; extracted from monolithic 111-line handler in server.ts |
+| `ValidationPipeline` class | Orchestrates all 12 phases; extracted from monolithic 111-line handler in server.ts |
 | Error isolation per phase | Each phase in try/catch with logging; failure in one doesn't discard others |
 | Smart debouncing per file type | 300ms for topics (fast feedback), 1000ms for maps (heavier processing) |
 | Per-document cancellation | Typing cancels stale validation for the same document |
@@ -102,7 +104,7 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 | DTD Validation | TypesXML + OASIS Catalog | Layer 2: full DTD validation with public ID resolution |
 | RNG Validation | salve-annos + saxes | Layer 3: optional RelaxNG schema validation |
 | Regex Engine | Built-in RegExp | Layers 4-6: structure, rules, cross-refs |
-| i18n | Custom t() with JSON bundles | 70 diagnostic messages in English + French |
+| i18n | Custom t() with JSON bundles | 76+ diagnostic messages in English + French |
 
 ### 1.4 Validation Engines (Legacy Client-Side)
 
@@ -133,7 +135,7 @@ Document change (typing)
 
 ### 2.2 Pipeline Execution Order
 
-All 10 phases run sequentially inside `ValidationPipeline.validate()`, each wrapped in error isolation (try/catch with logging). Diagnostics are capped at `maxNumberOfProblems` (default 100):
+All 12 phases run sequentially inside `ValidationPipeline.validate()`, each wrapped in error isolation (try/catch with logging). Diagnostics are capped at `maxNumberOfProblems` (default 100). Large files (exceeding `largeFileThresholdKB`) skip phases 6–12 for performance:
 
 ```typescript
 // services/validationPipeline.ts — ValidationPipeline.validate()
@@ -158,14 +160,25 @@ if (keySpaceService) { ... }
 if (settings.subjectSchemeValidationEnabled !== false) { ... }
 
 // Phase 8: 35 DITA rules (Schematron-equivalent, version-filtered)
-if (settings.ditaRulesEnabled !== false) { ... }
+if (settings.ditaRulesEnabled !== false && !isLargeFile) { ... }
 
 // Phase 9: Circular reference detection
-if (settings.crossRefValidationEnabled !== false) { ... }
+if (settings.crossRefValidationEnabled !== false && !isLargeFile) { ... }
 
 // Phase 10: Workspace-level checks (duplicate IDs, unused topics)
-if (workspace.rootIdIndex.size > 0) { ... }
-if (workspace.unusedTopicPaths.size > 0) { ... }
+if (workspace.rootIdIndex.size > 0 && !isLargeFile) { ... }
+if (workspace.unusedTopicPaths.size > 0 && !isLargeFile) { ... }
+
+// Phase 11: Post-processing (severity overrides + comment suppression)
+// 11a: Per-rule severity overrides from validationSeverityOverrides setting
+// 11b: Comment-based rule suppression (ditacraft-disable/enable/disable-file)
+applySeverityOverrides(diagnostics, settings.validationSeverityOverrides);
+applyCommentSuppressions(diagnostics, text);
+
+// Phase 12: Custom regex rules (user-defined JSON file)
+if (settings.customRulesFile && !isLargeFile) { ... }
+
+// Cap at maxNumberOfProblems
 ```
 
 ### 2.3 Comment/CDATA Stripping
@@ -323,6 +336,76 @@ Requires explicit workspace validation command to build indices. Results are use
 | DITA-ID-003 | Cross-file duplicate root element ID |
 | DITA-ORPHAN-001 | Topic file not referenced by any map |
 
+### Phase 11: Post-Processing (Severity Overrides + Comment Suppression)
+
+**Engine:** Pipeline post-processing
+**Trigger:** After all diagnostic-producing phases complete
+**Purpose:** Allow users to customize diagnostic severity and suppress rules inline
+
+#### 11a: Per-Rule Severity Overrides
+
+Configured via `ditacraft.validationSeverityOverrides` setting. Maps diagnostic codes to severity levels:
+
+```json
+{
+    "ditacraft.validationSeverityOverrides": {
+        "DITA-SCH-001": "hint",
+        "DITA-ID-002": "off",
+        "DITA-STRUCT-005": "error"
+    }
+}
+```
+
+Supported values: `"error"`, `"warning"`, `"information"`, `"hint"`, `"off"` (suppresses the diagnostic entirely).
+
+#### 11b: Comment-Based Rule Suppression
+
+Three directives are supported as XML comments:
+
+| Directive | Scope |
+|-----------|-------|
+| `<!-- ditacraft-disable CODE [CODE2...] -->` | Suppresses codes from this line until a matching `enable` |
+| `<!-- ditacraft-enable CODE [CODE2...] -->` | Re-enables suppressed codes from this line |
+| `<!-- ditacraft-disable-file CODE [CODE2...] -->` | Suppresses codes for the entire file |
+
+Suppression uses a range-based approach with exclusive `endLine` (the `enable` comment line is not suppressed). The parser is CRLF-aware, handling `\r\n`, `\r`, and `\n` line endings.
+
+### Phase 12: Custom Regex Rules (`customRulesValidator.ts`)
+
+**Engine:** User-defined regex patterns from a JSON file
+**Trigger:** Every document change (debounced), when `customRulesFile` is set
+**Purpose:** Allow users to define project-specific validation rules
+
+The JSON file contains an array of rule definitions:
+
+```json
+{
+    "rules": [
+        {
+            "id": "CUSTOM-001",
+            "pattern": "<draft-comment\\b",
+            "message": "Draft comments should be removed before publishing",
+            "severity": "warning",
+            "fileTypes": ["topic", "concept", "task", "reference"]
+        }
+    ]
+}
+```
+
+Features:
+- **fileType filtering**: Rules can target specific DITA file types (topic, concept, task, reference, glossentry, troubleshooting, map, bookmap)
+- **mtime-based caching**: Rules file is re-read only when the file modification time changes
+- **Comment immunity**: Patterns are matched against content with comments and CDATA stripped
+- **Severity mapping**: Supports `"error"`, `"warning"`, `"information"`, `"hint"`
+
+### Large File Optimization
+
+Files exceeding `ditacraft.largeFileThresholdKB` (default 500 KB, 0 = disabled) skip phases 6–12 for performance. A single informational diagnostic is emitted:
+
+| Code | Description |
+|------|-------------|
+| DITA-PERF-001 | Some validation checks were skipped for performance |
+
 ---
 
 ## 4. Diagnostic Codes
@@ -351,6 +434,8 @@ Requires explicit workspace validation command to build indices. Results are use
 | DITA-CYCLE-001 | 9 | Warning | Circular reference detected |
 | DITA-ID-003 | 10 | Warning | Cross-file duplicate root ID |
 | DITA-ORPHAN-001 | 10 | Info | Unused topic (not referenced by any map) |
+| DITA-PERF-001 | — | Info | Heavy validation phases skipped (large file) |
+| CUSTOM-* | 12 | Various | User-defined custom regex rules |
 
 ---
 
@@ -366,7 +451,7 @@ Diagnostics use two range strategies:
 
 ### 5.2 Localization
 
-All 70 diagnostic messages are localized via the `t()` function with parameterized message keys:
+All 76+ diagnostic messages are localized via the `t()` function with parameterized message keys:
 
 - English: `server/src/messages/en.json`
 - French: `server/src/messages/fr.json`
@@ -394,6 +479,9 @@ All 70 diagnostic messages are localized via the `t()` function with parameteriz
 | `ditaVersion` | string | `auto` | DITA version for rule filtering |
 | `schemaFormat` | string | `dtd` | Schema format: `dtd` or `rng` |
 | `rngSchemaPath` | string | `""` | Custom RNG schema file path |
+| `validationSeverityOverrides` | object | `{}` | Per-rule severity overrides (code → severity/off) |
+| `customRulesFile` | string | `""` | Absolute path to custom regex rules JSON file |
+| `largeFileThresholdKB` | number | `500` | Skip heavy phases for files above this size (0 = disabled) |
 
 ### 6.2 Client-Side Settings
 
@@ -463,6 +551,8 @@ Full LSP with 14 language features. The original estimate of "3-6 months" proved
 | Phase 4 | v0.6.1 | Layer 2+3: Catalog + RNG services, i18n, 35 rules, DITA 2.0 |
 | Phase 5 | v0.6.2 | Validation dedup, bookmap/topicref checks, improved error ranges, single-quote IDs |
 | Phase 6 | v0.7.0 | ValidationPipeline extraction, shared utilities (textUtils, patterns), error isolation, circular ref + workspace checks, 461 server tests |
+| Phase 7 | v0.7.1 | Guide validation, DITA-OT error catalog (160+ codes), validation report WebView, 559 server tests |
+| Phase 8 | v0.7.2 | Severity overrides, comment suppression, custom regex rules, large file optimization, 3 new quick fixes (12 total), DITA 2.0 test coverage, 697 server tests |
 
 ### Requirements Status
 
@@ -477,7 +567,7 @@ Full LSP with 14 language features. The original estimate of "3-6 months" proved
 | V-07 | Specialization support | **Done** (@class matching) |
 | V-08 | Real-time validation | **Done** (smart debouncing) |
 | V-09 | Batch validation | Planned |
-| V-10 | Custom validation rules | Planned |
+| V-10 | Custom validation rules | **Done** (Phase 12: regex rules from JSON) |
 
 ---
 
@@ -487,9 +577,9 @@ Full LSP with 14 language features. The original estimate of "3-6 months" proved
 |---------|----------|-------------|
 | Batch validation | P2 | Validate entire workspace with progress reporting |
 | DITA-OT validation option | P3 | "Piggy-back" approach for comprehensive pre-publish checks |
-| External catalog configuration | P3 | Allow users to point to custom DTD catalogs |
-| Custom validation rules | P3 | User-defined rules via configuration |
-| DITA 1.2 / 2.0 DTDs | P3 | Additional bundled DTD versions |
+| ~~External catalog configuration~~ | ~~P3~~ | ~~Allow users to point to custom DTD catalogs~~ — **Done** (`ditacraft.xmlCatalogPath`) |
+| ~~Custom validation rules~~ | ~~P3~~ | ~~User-defined rules via configuration~~ — **Done** (Phase 12: `ditacraft.customRulesFile`) |
+| ~~DITA 1.2 / 2.0 DTDs~~ | ~~P3~~ | ~~Additional bundled DTD versions~~ — **Done** (bundled 1.2, 1.3, 2.0) |
 | LightweightDITA | P3 | Support LwDITA (MDITA, HDITA) validation |
 
 ---
@@ -545,4 +635,4 @@ Common DITA-OT error codes for reference:
 
 ---
 
-*Last updated: March 2026 (v0.7.0 — 10-phase ValidationPipeline with error isolation, shared utilities, circular ref + workspace checks)*
+*Last updated: March 2026 (v0.7.2 — 12-phase ValidationPipeline with severity overrides, comment suppression, custom rules, large file optimization)*

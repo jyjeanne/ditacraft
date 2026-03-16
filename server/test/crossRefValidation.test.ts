@@ -7,18 +7,23 @@ import { validateCrossReferences, XREF_CODES } from '../src/features/crossRefVal
 import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService';
 
 function createMockKeySpaceService(
-    keys: Map<string, KeyDefinition>
+    keys: Map<string, KeyDefinition>,
+    duplicateKeys?: Map<string, KeyDefinition[]>
 ): KeySpaceService {
     return {
         getAllKeys: async () => keys,
         resolveKey: async (keyName: string) => keys.get(keyName) ?? null,
+        getDuplicateKeys: async () => duplicateKeys ?? new Map(),
         getWorkspaceFolders: () => [],
         buildKeySpace: async () => ({
             rootMap: '',
             keys,
             buildTime: Date.now(),
             mapHierarchy: [],
+            subjectSchemePaths: [],
+            duplicateKeys: duplicateKeys ?? new Map(),
         }),
+        getSubjectSchemePaths: async () => [],
         findRootMap: async () => '/test/root.ditamap',
         invalidateForFile: () => {},
         updateWorkspaceFolders: () => {},
@@ -296,6 +301,91 @@ suite('validateCrossReferences', () => {
         });
     });
 
+    suite('conref compatibility', () => {
+        test('same element type produces no error', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const targetFile = path.join(tmpDir, 'target.dita');
+            fs.writeFileSync(targetFile, '<topic id="t1"><body><p id="p1">reusable text</p></body></topic>');
+
+            try {
+                const text = '<topic id="src"><body><p conref="target.dita#t1/p1">fallback</p></body></topic>';
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                assert.strictEqual(compat.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('incompatible element types produces error', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const targetFile = path.join(tmpDir, 'target.dita');
+            fs.writeFileSync(targetFile, '<topic id="t1"><body><note id="n1">a note</note></body></topic>');
+
+            try {
+                // <p> conref pointing to a <note> target — incompatible
+                const text = '<topic id="src"><body><p conref="target.dita#t1/n1">fallback</p></body></topic>';
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                assert.strictEqual(compat.length, 1);
+                assert.ok(compat[0].message.includes('<p>'));
+                assert.ok(compat[0].message.includes('<note>'));
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('body and conbody are compatible (same specialization group)', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const targetFile = path.join(tmpDir, 'target.dita');
+            fs.writeFileSync(targetFile, '<concept id="c1"><title>C</title><conbody id="cb1"><p>text</p></conbody></concept>');
+
+            try {
+                const text = '<topic id="src"><title>T</title><body conref="target.dita#c1/cb1">fallback</body></topic>';
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                assert.strictEqual(compat.length, 0, 'body and conbody should be compatible');
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('same-file conref compatibility check works', async () => {
+            // <note> conref pointing to a <p> in the same file
+            const text = '<topic id="t1"><body><p id="p1">text</p><note conref="#t1/p1">fallback</note></body></topic>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                assert.strictEqual(compat.length, 1, 'note and p are not compatible');
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('href does not trigger compatibility check', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const targetFile = path.join(tmpDir, 'target.dita');
+            fs.writeFileSync(targetFile, '<topic id="t1"><body><note id="n1">a note</note></body></topic>');
+
+            try {
+                // href (not conref) pointing to a different element type — should NOT produce compatibility error
+                const text = '<topic id="src"><body><p><xref href="target.dita#t1/n1">link</xref></p></body></topic>';
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                assert.strictEqual(compat.length, 0, 'href should not trigger compatibility check');
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+    });
+
     suite('conkeyref validation', () => {
         test('conkeyref with missing element ID in target produces warning', async () => {
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
@@ -347,6 +437,59 @@ suite('validateCrossReferences', () => {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
         });
+
+        test('conkeyref with incompatible element types produces error', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const targetFile = path.join(tmpDir, 'snippet.dita');
+            fs.writeFileSync(targetFile, '<topic id="t1"><body><note id="n1">a note</note></body></topic>');
+
+            const keys = new Map<string, KeyDefinition>([
+                ['snippet', {
+                    keyName: 'snippet',
+                    sourceMap: '/maps/root.ditamap',
+                    targetFile,
+                }],
+            ]);
+            const keySpaceService = createMockKeySpaceService(keys);
+
+            try {
+                // <p> conkeyref pointing to a <note> — incompatible
+                const text = '<p conkeyref="snippet/n1">fallback</p>';
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+                const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
+                const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                assert.strictEqual(compat.length, 1);
+                assert.ok(compat[0].message.includes('<p>'));
+                assert.ok(compat[0].message.includes('<note>'));
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('conkeyref with compatible element types produces no error', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const targetFile = path.join(tmpDir, 'snippet.dita');
+            fs.writeFileSync(targetFile, '<topic id="t1"><body><p id="p1">reusable</p></body></topic>');
+
+            const keys = new Map<string, KeyDefinition>([
+                ['snippet', {
+                    keyName: 'snippet',
+                    sourceMap: '/maps/root.ditamap',
+                    targetFile,
+                }],
+            ]);
+            const keySpaceService = createMockKeySpaceService(keys);
+
+            try {
+                const text = '<p conkeyref="snippet/p1">fallback</p>';
+                const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+                const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
+                const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                assert.strictEqual(compat.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
     });
 
     suite('edge cases', () => {
@@ -389,6 +532,95 @@ suite('validateCrossReferences', () => {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
                 assert.strictEqual(missing.length, 2);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+    });
+
+    suite('Duplicate key definitions', () => {
+        test('DITA-KEY-004: warns when map defines key already in another map', async () => {
+            const keys = new Map<string, KeyDefinition>();
+            keys.set('product-name', {
+                keyName: 'product-name',
+                targetFile: '/docs/product.dita',
+                sourceMap: '/docs/root.ditamap',
+            });
+            const dups = new Map<string, KeyDefinition[]>();
+            dups.set('product-name', [
+                { keyName: 'product-name', targetFile: '/docs/product.dita', sourceMap: '/docs/root.ditamap' },
+                { keyName: 'product-name', targetFile: '/docs/other.dita', sourceMap: '/docs/sub.ditamap' },
+            ]);
+            const keyService = createMockKeySpaceService(keys, dups);
+
+            // Simulate validating sub.ditamap which has the duplicate keydef
+            const text = '<map><keydef keys="product-name" href="other.dita"/></map>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapFile = path.join(tmpDir, 'sub.ditamap');
+            fs.writeFileSync(mapFile, text);
+            const testUri = URI.file(mapFile).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, keyService, 100);
+                const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
+                assert.strictEqual(dupDiags.length, 1);
+                assert.ok(dupDiags[0].message.includes('product-name'));
+                assert.ok(dupDiags[0].message.includes('root.ditamap'));
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('DITA-KEY-004: no warning on the effective (first) definition', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapFile = path.join(tmpDir, 'root.ditamap');
+
+            const keys = new Map<string, KeyDefinition>();
+            keys.set('mykey', {
+                keyName: 'mykey',
+                targetFile: path.join(tmpDir, 'target.dita'),
+                sourceMap: mapFile,
+            });
+            const dups = new Map<string, KeyDefinition[]>();
+            dups.set('mykey', [
+                { keyName: 'mykey', targetFile: path.join(tmpDir, 'target.dita'), sourceMap: mapFile },
+                { keyName: 'mykey', targetFile: path.join(tmpDir, 'other.dita'), sourceMap: path.join(tmpDir, 'other.ditamap') },
+            ]);
+            const keyService = createMockKeySpaceService(keys, dups);
+
+            // Validate root.ditamap (has the effective definition)
+            const text = '<map><keydef keys="mykey" href="target.dita"/></map>';
+            fs.writeFileSync(mapFile, text);
+            const testUri = URI.file(mapFile).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, keyService, 100);
+                const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
+                assert.strictEqual(dupDiags.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('no duplicate key check on .dita files', async () => {
+            const keys = new Map<string, KeyDefinition>();
+            const dups = new Map<string, KeyDefinition[]>();
+            dups.set('mykey', [
+                { keyName: 'mykey', sourceMap: '/docs/root.ditamap' },
+                { keyName: 'mykey', sourceMap: '/docs/other.ditamap' },
+            ]);
+            const keyService = createMockKeySpaceService(keys, dups);
+
+            const text = '<topic id="t1"><title>T</title></topic>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const topicFile = path.join(tmpDir, 'test.dita');
+            fs.writeFileSync(topicFile, text);
+            const testUri = URI.file(topicFile).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, keyService, 100);
+                const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
+                assert.strictEqual(dupDiags.length, 0);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }

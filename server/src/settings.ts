@@ -31,6 +31,12 @@ export interface DitaCraftSettings {
     rngSchemaPath: string;
     /** Path to an external OASIS XML catalog file for custom DTD resolution. */
     xmlCatalogPath: string;
+    /** Per-rule severity overrides. Maps diagnostic code → severity name. */
+    validationSeverityOverrides: Record<string, 'error' | 'warning' | 'information' | 'hint' | 'off'>;
+    /** Path to a JSON file containing custom validation rules. */
+    customRulesFile: string;
+    /** File size threshold (KB) above which heavy validation phases are skipped. */
+    largeFileThresholdKB: number;
 }
 
 const defaultSettings: DitaCraftSettings = {
@@ -49,6 +55,9 @@ const defaultSettings: DitaCraftSettings = {
     schemaFormat: 'dtd',
     rngSchemaPath: '',
     xmlCatalogPath: '',
+    validationSeverityOverrides: {},
+    customRulesFile: '',
+    largeFileThresholdKB: 500,
 };
 
 // Cache of settings per document URI

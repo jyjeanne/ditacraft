@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="guide-validation">
+    <title>Guide Validation (DITA-OT)</title>
+    <shortdesc>DitaCraft can validate your entire guide by running DITA-OT against the root map, producing a detailed WebView report with filtering, search, and export.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The <uicontrol>DITA: Validate Entire Guide Using DITA-OT</uicontrol> command performs
+                end-to-end validation of your documentation project by invoking DITA-OT against the
+                configured root map. Unlike file-level validation (which checks XML syntax and DITA
+                rules), guide validation runs the full DITA-OT processing pipeline to detect
+                cross-file issues such as broken references, missing images, unresolved keys, and
+                build errors that only surface during publishing.</p>
+        </section>
+
+        <section id="prerequisites">
+            <title>Prerequisites</title>
+            <p>Guide validation requires:</p>
+            <ul>
+                <li><b>DITA-OT installed and configured</b> — Set the path via
+                    <codeph>ditacraft.ditaOtPath</codeph> or the <uicontrol>DITA: Configure
+                    DITA-OT Path</uicontrol> command.</li>
+                <li><b>Root map configured</b> — Set via <uicontrol>DITA: Set Root Map</uicontrol>
+                    or the <codeph>ditacraft.rootMap</codeph> setting. The root map must exist in
+                    the workspace.</li>
+            </ul>
+            <p>If either prerequisite is missing, the command displays an error with a quick action
+                to configure the missing item.</p>
+        </section>
+
+        <section id="how-to-run">
+            <title>How to Run</title>
+            <ol>
+                <li>Open the Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>).</li>
+                <li>Type <userinput>DITA: Validate Entire Guide</userinput> and select the
+                    command.</li>
+                <li>A progress notification appears while DITA-OT runs.</li>
+                <li>When complete, a WebView report panel opens beside the editor.</li>
+            </ol>
+            <p>Only one guide validation can run at a time. If you trigger the command while
+                validation is in progress, a notification informs you to wait.</p>
+        </section>
+
+        <section id="transtype-selection">
+            <title>Transtype Selection</title>
+            <p>DitaCraft automatically selects the best transtype for validation:</p>
+            <ul>
+                <li><b>dita</b> (preferred) — An identity transform available in DITA-OT 3.6+ that
+                    runs the full preprocessing pipeline without generating output files. This is the
+                    fastest option for pure validation.</li>
+                <li><b>html5</b> (fallback) — Used when the <codeph>dita</codeph> transtype is not
+                    available. Generates HTML5 output in a temporary directory that is automatically
+                    cleaned up.</li>
+            </ul>
+        </section>
+
+        <section id="validation-report">
+            <title>Validation Report</title>
+            <p>The report WebView provides a rich interface for reviewing issues:</p>
+            <dl>
+                <dlentry>
+                    <dt>Summary Cards</dt>
+                    <dd>Shows error, warning, info counts, and number of affected files at a
+                        glance.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Severity Filtering</dt>
+                    <dd>Click filter buttons to show only errors, warnings, or info messages.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Search</dt>
+                    <dd>Type in the search box to filter issues by message, error code, file name,
+                        description, or module.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Grouping</dt>
+                    <dd>Group issues by file (default), severity, or DITA-OT module (Core,
+                        Processing, Transform, Indexing, PDF, XEP).</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>File Navigation</dt>
+                    <dd>Click any file link to open the file at the exact line and column in the
+                        editor.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Error Code Tooltips</dt>
+                    <dd>Hover over an error code badge to see the human-readable description from
+                        the DITA-OT error catalog (160+ codes).</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Export</dt>
+                    <dd>Export the full report as a JSON file for archiving or CI integration.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Rerun</dt>
+                    <dd>Click the <uicontrol>Rerun Validation</uicontrol> button to re-execute
+                        without leaving the report panel.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="problems-panel">
+            <title>Problems Panel Integration</title>
+            <p>In addition to the WebView report, guide validation populates the VS Code Problems
+                panel with all errors and warnings. Issues appear with the source label
+                <codeph>DITA-OT</codeph> and include the DITA-OT error code (e.g.,
+                <codeph>DOTX010E</codeph>). Click any diagnostic to navigate to the source
+                location.</p>
+        </section>
+
+        <section id="error-catalog">
+            <title>DITA-OT Error Code Catalog</title>
+            <p>DitaCraft includes a built-in catalog of 160+ DITA-OT error codes with
+                human-readable descriptions and module categorization. Error codes follow the format
+                <codeph>[PREFIX][NUMBER][SEVERITY]</codeph> where:</p>
+            <ul>
+                <li><b>DOTA</b> — Core transformation errors</li>
+                <li><b>DOTJ</b> — Processing pipeline (Java) errors</li>
+                <li><b>DOTX</b> — XSLT transform errors</li>
+                <li><b>INDX</b> — Index processing errors</li>
+                <li><b>PDFJ/PDFX</b> — PDF generation errors</li>
+                <li><b>XEPJ</b> — XEP FO processor errors</li>
+            </ul>
+            <p>The severity suffix indicates: <b>E</b> = Error, <b>W</b> = Warning, <b>F</b> =
+                Fatal, <b>I</b> = Info.</p>
+        </section>
+    </conbody>
+</concept>

@@ -24,6 +24,8 @@
     "xref.missingFile": "Target file not found: {0}",
     "xref.missingTopicId": "Topic ID \"{0}\" not found in {1}",
     "xref.missingElementId": "Element ID \"{0}\" not found in topic \"{1}\" of {2}",
+    "xref.incompatibleConref": "Conref source <{0}> is not compatible with target <{1}>. Source and target elements must be the same type or in the same specialization group.",
+    "key.duplicate": "Key \"{0}\" is already defined in {1}. Only the first definition takes effect.",
     "key.undefined": "Key \"{0}\" is not defined in any map",
     "key.noTarget": "Key \"{0}\" has no target (no href on keydef)",
     "key.missingElement": "Element ID \"{0}\" not found in target of key \"{1}\"",
@@ -77,5 +79,20 @@
 
     "orphan.unusedTopic": "Topic is not referenced by any map in the workspace",
 
-    "dtd.validationError": "DTD validation error"
+    "ditaval.propMissingAtt": "<prop> element requires an att attribute to specify which profiling attribute to filter.",
+    "ditaval.invalidAction": "Invalid action value \"{0}\". Must be include, exclude, passthrough, or flag.",
+    "ditaval.revpropMissingVal": "<revprop> element requires a val attribute to specify which revision value to filter.",
+    "ditaval.duplicateProp": "Duplicate <prop> for att=\"{0}\" val=\"{1}\". Only the first occurrence takes effect.",
+    "ditaval.flagMissingContent": "<{0}> should have an imageref attribute or contain an <alt-text> element.",
+
+    "attr.invalidValue": "Invalid value \"{0}\" for @{1}. Valid values: {2}",
+
+    "table.colsMismatch": "Row has {0} entries but <tgroup> declares cols=\"{1}\".",
+    "table.invalidColRef": "The {0} attribute references column \"{1}\" which is not defined in any <colspec>.",
+    "table.stentryMismatch": "Row has {0} entries but expected {1} (based on the first row).",
+    "table.emptyTable": "Table has no data rows.",
+
+    "dtd.validationError": "DTD validation error",
+
+    "largeFile.skipped": "Some validation checks were skipped for performance (file size: {0} KB, threshold: {1} KB)."
 }

@@ -16,7 +16,10 @@ const CODES = {
     MISSING_ID: 'DITA-STRUCT-003',
     MISSING_TITLE: 'DITA-STRUCT-004',
     EMPTY_ELEMENT: 'DITA-STRUCT-005',
+    MISSING_BOOKTITLE: 'DITA-STRUCT-006',
+    MISSING_MAINBOOKTITLE: 'DITA-STRUCT-007',
     DUPLICATE_ID: 'DITA-ID-001',
+    INVALID_ID_FORMAT: 'DITA-ID-002',
 };
 
 // Diagnostic codes from ditaRulesValidator.ts (Phase 6)
@@ -75,8 +78,14 @@ function getFixesForDiagnostic(
             return fixMissingTitle(text, document);
         case CODES.EMPTY_ELEMENT:
             return fixEmptyElement(diagnostic, text, document);
+        case CODES.MISSING_BOOKTITLE:
+            return fixMissingBooktitle(text, document);
+        case CODES.MISSING_MAINBOOKTITLE:
+            return fixMissingMainbooktitle(text, document);
         case CODES.DUPLICATE_ID:
             return fixDuplicateId(diagnostic, text, document);
+        case CODES.INVALID_ID_FORMAT:
+            return fixInvalidIdFormat(diagnostic, text, document);
         case RULE_CODES.ROLE_OTHER_MISSING_OTHERROLE:
             return fixMissingOtherrole(diagnostic, text, document);
         case RULE_CODES.DEPRECATED_INDEXTERMREF:
@@ -491,6 +500,101 @@ function fixMissingAlt(
                 [document.uri]: [{
                     range: Range.create(insertPos, insertPos),
                     newText: '<alt></alt>',
+                }],
+            },
+        },
+    }];
+}
+
+/**
+ * Fix DITA-ID-002: Replace invalid ID characters with hyphens.
+ * XML IDs must start with a letter or underscore, followed by letters, digits, hyphens, underscores, periods.
+ */
+function fixInvalidIdFormat(
+    diagnostic: Diagnostic,
+    text: string,
+    document: TextDocument
+): CodeAction[] {
+    const startOffset = document.offsetAt(diagnostic.range.start);
+    const textAtPos = text.slice(startOffset);
+
+    const idMatch = textAtPos.match(/\bid=(["'])([^"']*)\1/);
+    if (!idMatch) return [];
+
+    const oldId = idMatch[2];
+    if (!oldId) return [];
+
+    // Sanitize: replace invalid chars with hyphens, ensure valid start char
+    let newId = oldId.replace(/[^a-zA-Z0-9._-]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+    if (!/^[a-zA-Z_]/.test(newId)) {
+        newId = '_' + newId;
+    }
+    if (newId === oldId || !newId) return [];
+
+    const quote = idMatch[1];
+    const idValueStart = startOffset + idMatch.index! + `id=${quote}`.length;
+    const idValueEnd = idValueStart + oldId.length;
+
+    return [{
+        title: `Fix ID: "${oldId}" → "${newId}"`,
+        kind: CodeActionKind.QuickFix,
+        edit: {
+            changes: {
+                [document.uri]: [{
+                    range: Range.create(
+                        document.positionAt(idValueStart),
+                        document.positionAt(idValueEnd)
+                    ),
+                    newText: newId,
+                }],
+            },
+        },
+    }];
+}
+
+/**
+ * Fix DITA-STRUCT-006: Insert <booktitle><mainbooktitle>Title</mainbooktitle></booktitle>
+ * after the opening <bookmap> tag.
+ */
+function fixMissingBooktitle(text: string, document: TextDocument): CodeAction[] {
+    const bookmapMatch = text.match(/<bookmap\b[^>]*>/);
+    if (!bookmapMatch) return [];
+
+    const insertOffset = bookmapMatch.index! + bookmapMatch[0].length;
+    const insertPos = document.positionAt(insertOffset);
+
+    return [{
+        title: 'Add <booktitle> with <mainbooktitle>',
+        kind: CodeActionKind.QuickFix,
+        edit: {
+            changes: {
+                [document.uri]: [{
+                    range: Range.create(insertPos, insertPos),
+                    newText: '\n  <booktitle>\n    <mainbooktitle>Title</mainbooktitle>\n  </booktitle>',
+                }],
+            },
+        },
+    }];
+}
+
+/**
+ * Fix DITA-STRUCT-007: Insert <mainbooktitle>Title</mainbooktitle> inside existing <booktitle>.
+ */
+function fixMissingMainbooktitle(text: string, document: TextDocument): CodeAction[] {
+    const booktitleMatch = text.match(/<booktitle\b[^>]*>/);
+    if (!booktitleMatch) return [];
+
+    const insertOffset = booktitleMatch.index! + booktitleMatch[0].length;
+    const insertPos = document.positionAt(insertOffset);
+
+    return [{
+        title: 'Add <mainbooktitle>',
+        kind: CodeActionKind.QuickFix,
+        edit: {
+            changes: {
+                [document.uri]: [{
+                    range: Range.create(insertPos, insertPos),
+                    newText: '\n    <mainbooktitle>Title</mainbooktitle>',
                 }],
             },
         },

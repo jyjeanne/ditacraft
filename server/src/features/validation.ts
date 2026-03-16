@@ -332,6 +332,108 @@ function validateDitavalStructure(
             source: SOURCE,
             code: CODES.INVALID_ROOT,
         });
+        return;
+    }
+
+    // DITAVAL-001: <prop> requires att attribute
+    const propRegex = /<prop\s([^>]*?)\/?>/g;
+    let propMatch;
+    while ((propMatch = propRegex.exec(text)) !== null) {
+        const attrs = propMatch[1];
+        if (!/\batt\s*=/.test(attrs)) {
+            const pos = findLineAndColumn(text, propMatch.index);
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range: createRange(pos.line, pos.col, propMatch[0].length),
+                message: t('ditaval.propMissingAtt'),
+                source: SOURCE,
+                code: 'DITA-DITAVAL-001',
+            });
+        }
+    }
+
+    // DITAVAL-002: <prop> action must be a valid value
+    const VALID_ACTIONS = new Set(['include', 'exclude', 'passthrough', 'flag']);
+    const actionRegex = /<prop\s[^>]*\baction\s*=\s*["']([^"']*)["']/g;
+    let actionMatch;
+    while ((actionMatch = actionRegex.exec(text)) !== null) {
+        const actionValue = actionMatch[1];
+        if (!VALID_ACTIONS.has(actionValue)) {
+            const valueStart = actionMatch.index + actionMatch[0].lastIndexOf(actionValue);
+            const pos = findLineAndColumn(text, valueStart);
+            diagnostics.push({
+                severity: DiagnosticSeverity.Error,
+                range: createRange(pos.line, pos.col, actionValue.length),
+                message: t('ditaval.invalidAction', actionValue),
+                source: SOURCE,
+                code: 'DITA-DITAVAL-002',
+            });
+        }
+    }
+
+    // DITAVAL-003: <revprop> requires val attribute
+    const revpropRegex = /<revprop\s([^>]*?)\/?>/g;
+    let revpropMatch;
+    while ((revpropMatch = revpropRegex.exec(text)) !== null) {
+        const attrs = revpropMatch[1];
+        if (!/\bval\s*=/.test(attrs)) {
+            const pos = findLineAndColumn(text, revpropMatch.index);
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range: createRange(pos.line, pos.col, revpropMatch[0].length),
+                message: t('ditaval.revpropMissingVal'),
+                source: SOURCE,
+                code: 'DITA-DITAVAL-003',
+            });
+        }
+    }
+
+    // DITAVAL-004: Duplicate <prop> with same att+val combination
+    // Parse each <prop> to extract att and val independently (handles any attribute order,
+    // and also <prop att="x"> without val which means "all values")
+    const propDupRegex = /<prop\s([^>]*?)\/?>/g;
+    const seenPropPairs = new Map<string, number>();
+    let dupMatch;
+    while ((dupMatch = propDupRegex.exec(text)) !== null) {
+        const attrs = dupMatch[1];
+        const attMatch = attrs.match(/\batt\s*=\s*["']([^"']*?)["']/);
+        if (!attMatch) continue; // No att attribute — skip
+        const att = attMatch[1];
+        const valMatch = attrs.match(/\bval\s*=\s*["']([^"']*?)["']/);
+        const val = valMatch ? valMatch[1] : '*'; // No val = all values
+        const pairKey = `${att}|${val}`;
+        if (seenPropPairs.has(pairKey)) {
+            const pos = findLineAndColumn(text, dupMatch.index);
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range: createRange(pos.line, pos.col, dupMatch[0].length),
+                message: t('ditaval.duplicateProp', att, val === '*' ? '(all)' : val),
+                source: SOURCE,
+                code: 'DITA-DITAVAL-004',
+            });
+        } else {
+            seenPropPairs.set(pairKey, dupMatch.index);
+        }
+    }
+
+    // DITAVAL-005: <startflag>/<endflag> should have imageref or contain <alt-text>
+    const flagRegex = /<(startflag|endflag)\s*([^>]*?)>([\s\S]*?)<\/\1>/g;
+    let flagMatch;
+    while ((flagMatch = flagRegex.exec(text)) !== null) {
+        const attrs = flagMatch[2];
+        const innerContent = flagMatch[3];
+        const hasImageref = /\bimageref\s*=/.test(attrs);
+        const hasAltText = /<alt-text[\s>]/.test(innerContent);
+        if (!hasImageref && !hasAltText) {
+            const pos = findLineAndColumn(text, flagMatch.index);
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range: createRange(pos.line, pos.col, flagMatch[0].length),
+                message: t('ditaval.flagMissingContent', flagMatch[1]),
+                source: SOURCE,
+                code: 'DITA-DITAVAL-005',
+            });
+        }
     }
 }
 

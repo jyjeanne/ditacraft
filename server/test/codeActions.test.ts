@@ -305,4 +305,55 @@ suite('handleCodeActions', () => {
             assert.strictEqual(result.length, 0);
         });
     });
+
+    suite('Fix invalid ID format (DITA-ID-002)', () => {
+        test('replaces invalid chars with hyphens', () => {
+            const content = '<topic id="hello world!"><title>T</title></topic>';
+            const diag = makeDiag('DITA-ID-002', 0, 7, 0, 24);
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0, 'should offer a fix');
+            const edit = result[0].edit!.changes![TEST_URI][0];
+            assert.strictEqual(edit.newText, 'hello-world');
+        });
+
+        test('prepends underscore when ID starts with digit', () => {
+            const content = '<topic id="123abc"><title>T</title></topic>';
+            const diag = makeDiag('DITA-ID-002', 0, 7, 0, 18);
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            const edit = result[0].edit!.changes![TEST_URI][0];
+            assert.strictEqual(edit.newText, '_123abc');
+        });
+
+        test('no fix when ID is already valid', () => {
+            const content = '<topic id="valid-id"><title>T</title></topic>';
+            const diag = makeDiag('DITA-ID-002', 0, 7, 0, 20);
+            const result = actions(content, [diag]);
+            assert.strictEqual(result.length, 0, 'should not offer fix for already-valid ID');
+        });
+    });
+
+    suite('Fix missing booktitle (DITA-STRUCT-006)', () => {
+        test('inserts booktitle after bookmap opening tag', () => {
+            const content = '<bookmap id="b1"></bookmap>';
+            const diag = makeDiag('DITA-STRUCT-006', 0, 0, 0, 0);
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            assert.ok(result[0].title.includes('booktitle'));
+            const edit = result[0].edit!.changes![TEST_URI][0];
+            assert.ok(edit.newText.includes('<mainbooktitle>'));
+        });
+    });
+
+    suite('Fix missing mainbooktitle (DITA-STRUCT-007)', () => {
+        test('inserts mainbooktitle inside existing booktitle', () => {
+            const content = '<bookmap id="b1"><booktitle></booktitle></bookmap>';
+            const diag = makeDiag('DITA-STRUCT-007', 0, 0, 0, 0);
+            const result = actions(content, [diag]);
+            assert.ok(result.length > 0);
+            assert.ok(result[0].title.includes('mainbooktitle'));
+            const edit = result[0].edit!.changes![TEST_URI][0];
+            assert.ok(edit.newText.includes('<mainbooktitle>'));
+        });
+    });
 });
