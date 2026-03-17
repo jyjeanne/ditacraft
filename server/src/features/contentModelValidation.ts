@@ -46,7 +46,8 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
         allowedChildren: [
             'topicmeta', 'topicref', 'mapref', 'keydef', 'topicgroup',
             'topichead', 'topicset', 'topicsetref', 'anchorref',
-            'ditavalref', 'navref', 'data', 'data-about',
+            'ditavalref', 'navref', 'data', 'data-about', 'glossref',
+            'anchor',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -57,7 +58,9 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'keydef': {
         allowedChildren: [
             'topicmeta', 'topicref', 'mapref', 'keydef', 'topicgroup',
-            'topichead', 'anchorref', 'data', 'data-about',
+            'topichead', 'topicset', 'topicsetref', 'anchorref',
+            'ditavalref', 'navref', 'data', 'data-about', 'glossref',
+            'anchor',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -82,7 +85,8 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'chapter': {
         allowedChildren: [
             'topicmeta', 'topicref', 'mapref', 'keydef', 'topicgroup',
-            'topichead', 'anchorref', 'ditavalref',
+            'topichead', 'topicset', 'topicsetref', 'anchorref',
+            'ditavalref', 'navref', 'glossref', 'anchor',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -93,7 +97,8 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'appendix': {
         allowedChildren: [
             'topicmeta', 'topicref', 'mapref', 'keydef', 'topicgroup',
-            'topichead', 'anchorref', 'ditavalref',
+            'topichead', 'topicset', 'topicsetref', 'anchorref',
+            'ditavalref', 'navref', 'glossref', 'anchor',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -104,7 +109,8 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'part': {
         allowedChildren: [
             'topicmeta', 'chapter', 'topicref', 'mapref', 'keydef',
-            'topicgroup', 'topichead', 'anchorref', 'ditavalref',
+            'topicgroup', 'topichead', 'topicset', 'topicsetref', 'anchorref',
+            'ditavalref', 'navref', 'glossref', 'anchor',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -115,7 +121,7 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'frontmatter': {
         allowedChildren: [
             'booklists', 'notices', 'dedication', 'colophon', 'bookabstract',
-            'draftintro', 'preface', 'topicref', 'mapref', 'keydef', 'ditavalref',
+            'draftintro', 'preface', 'topicref', 'mapref', 'keydef', 'ditavalref', 'glossref',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -126,7 +132,7 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'backmatter': {
         allowedChildren: [
             'booklists', 'notices', 'dedication', 'colophon', 'amendments',
-            'topicref', 'mapref', 'keydef', 'ditavalref',
+            'topicref', 'mapref', 'keydef', 'ditavalref', 'glossref',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -187,10 +193,17 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     // Body elements
     'body': {
         allowedChildren: [
-            'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'msgblock',
+            // basic.block
+            'p', 'ul', 'ol', 'sl', 'dl', 'pre', 'codeblock', 'msgblock',
             'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
-            'fig', 'table', 'simpletable', 'section', 'example',
-            'div', 'sectiondiv', 'bodydiv', 'draft-comment', 'required-cleanup',
+            'fig', 'table', 'simpletable', 'div',
+            // body-specific
+            'section', 'example', 'bodydiv', 'sectiondiv',
+            // txt.incl (text inclusions)
+            'draft-comment', 'required-cleanup', 'fn', 'indexterm', 'indextermref',
+            // basic.ph (inline)
+            'xref', 'ph', 'keyword', 'term', 'cite', 'q', 'boolean', 'state', 'tm', 'text',
+            // data + foreign
             'data', 'data-about', 'foreign', 'unknown',
         ],
         disallowedChildren: ['topicref', 'map', 'chapter', 'bookmap', 'title', 'topic', 'concept', 'task', 'reference'],
@@ -198,10 +211,17 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     },
     'conbody': {
         allowedChildren: [
-            'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'msgblock',
+            // basic.block
+            'p', 'ul', 'ol', 'sl', 'dl', 'pre', 'codeblock', 'msgblock',
             'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
-            'fig', 'table', 'simpletable', 'section', 'example',
-            'div', 'sectiondiv', 'bodydiv', 'draft-comment', 'required-cleanup',
+            'fig', 'table', 'simpletable', 'div',
+            // conbody-specific
+            'section', 'example', 'bodydiv', 'sectiondiv', 'conbodydiv',
+            // txt.incl
+            'draft-comment', 'required-cleanup', 'fn', 'indexterm', 'indextermref',
+            // basic.ph
+            'xref', 'ph', 'keyword', 'term', 'cite', 'q', 'boolean', 'state', 'tm', 'text',
+            // data + foreign
             'data', 'data-about', 'foreign', 'unknown',
         ],
         disallowedChildren: ['topicref', 'map', 'chapter', 'bookmap', 'title', 'steps', 'steps-unordered'],
@@ -213,6 +233,7 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
             'result', 'tasktroubleshooting', 'example', 'postreq',
             'section', 'div', 'draft-comment', 'required-cleanup',
             'data', 'data-about', 'foreign', 'unknown',
+            'indexterm', 'fn',
         ],
         disallowedChildren: ['topicref', 'map', 'chapter', 'bookmap', 'title', 'p', 'ul', 'ol'],
         description: 'Taskbody contains task-specific elements (prereq, context, steps, result, postreq)',
@@ -220,7 +241,8 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'refbody': {
         allowedChildren: [
             'section', 'refsyn', 'example', 'table', 'simpletable',
-            'properties', 'div', 'draft-comment', 'required-cleanup',
+            'properties', 'refbodydiv', 'div',
+            'draft-comment', 'required-cleanup', 'fn', 'indexterm', 'indextermref',
             'data', 'data-about', 'foreign', 'unknown',
         ],
         disallowedChildren: ['topicref', 'map', 'chapter', 'bookmap', 'title', 'p', 'steps'],
@@ -230,11 +252,18 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     // Section element
     'section': {
         allowedChildren: [
-            'title', 'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'msgblock',
+            // section.cnt = basic.block + basic.ph + title + sectiondiv + txt.incl + data + foreign
+            'title',
+            // basic.block
+            'p', 'ul', 'ol', 'sl', 'dl', 'pre', 'codeblock', 'msgblock',
             'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
             'fig', 'table', 'simpletable', 'div', 'sectiondiv',
-            'draft-comment', 'required-cleanup', 'data', 'data-about',
-            'foreign', 'unknown',
+            // txt.incl
+            'draft-comment', 'required-cleanup', 'fn', 'indexterm', 'indextermref',
+            // basic.ph
+            'xref', 'ph', 'keyword', 'term', 'cite', 'q', 'boolean', 'state', 'tm', 'text',
+            // data + foreign
+            'data', 'data-about', 'foreign', 'unknown',
         ],
         disallowedChildren: ['topicref', 'map', 'chapter', 'bookmap', 'topic', 'concept', 'task', 'reference', 'section', 'example'],
         description: 'Section cannot nest sections or examples',
@@ -247,7 +276,7 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
             'author', 'source', 'publisher', 'copyright', 'critdates',
             'permissions', 'metadata', 'audience', 'category', 'keywords',
             'prodinfo', 'othermeta', 'resourceid', 'data', 'data-about',
-            'foreign', 'unknown', 'ux-window',
+            'foreign', 'unknown', 'ux-window', 'indexterm',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',
@@ -259,7 +288,7 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
         allowedChildren: [
             'author', 'source', 'publisher', 'copyright', 'critdates',
             'permissions', 'metadata', 'resourceid', 'data', 'data-about',
-            'foreign', 'unknown',
+            'foreign', 'unknown', 'indexterm',
         ],
         disallowedChildren: [
             'p', 'ul', 'ol', 'dl', 'pre', 'codeblock', 'section', 'example',

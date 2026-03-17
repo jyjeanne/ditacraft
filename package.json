@@ -572,7 +572,13 @@
           "description": "Override the severity of specific diagnostic rules. Keys are diagnostic codes (e.g. 'DITA-SCH-016'), values are 'error', 'warning', 'information', 'hint', or 'off' to suppress.",
           "additionalProperties": {
             "type": "string",
-            "enum": ["error", "warning", "information", "hint", "off"]
+            "enum": [
+              "error",
+              "warning",
+              "information",
+              "hint",
+              "off"
+            ]
           },
           "order": 24
         },
@@ -603,14 +609,24 @@
         },
         "ditacraft.ditaVersion": {
           "type": "string",
-          "enum": ["auto", "1.0", "1.1", "1.2", "1.3", "2.0"],
+          "enum": [
+            "auto",
+            "1.0",
+            "1.1",
+            "1.2",
+            "1.3",
+            "2.0"
+          ],
           "default": "auto",
           "description": "Override auto-detected DITA version. Set to 'auto' to detect from @DITAArchVersion attribute or DOCTYPE declaration.",
           "order": 26
         },
         "ditacraft.schemaFormat": {
           "type": "string",
-          "enum": ["dtd", "rng"],
+          "enum": [
+            "dtd",
+            "rng"
+          ],
           "default": "dtd",
           "description": "Schema format for validation. 'dtd' uses TypesXML with OASIS catalog (recommended). 'rng' uses RelaxNG validation via salve-annos (requires rngSchemaPath).",
           "order": 27
