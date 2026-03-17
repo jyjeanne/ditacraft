@@ -79,7 +79,7 @@
             <title>ditacraft.ditaRulesEnabled</title>
             <p><b>Type:</b> Boolean</p>
             <p><b>Default:</b> <codeph>true</codeph></p>
-            <p>Enable or disable the DITA Rules Engine. When enabled, DitaCraft validates your content against 35 Schematron-equivalent rules covering specification compliance, best practices, and accessibility (including 10 DITA 2.0-specific rules). Set to <codeph>false</codeph> to disable all DITA rules validation.</p>
+            <p>Enable or disable the DITA Rules Engine. When enabled, DitaCraft validates your content against 43 Schematron-equivalent rules covering specification compliance, best practices, and accessibility (including 10 DITA 2.0-specific rules). Set to <codeph>false</codeph> to disable all DITA rules validation.</p>
         </section>
 
         <section id="dita-rules-categories">

@@ -47,7 +47,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>DITA Rules Engine</dt>
-                    <dd>35 Schematron-equivalent rules organized in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA best practices and specification requirements. Includes 10 DITA 2.0-specific rules for removed elements and attributes, with automatic version detection.</dd>
+                    <dd>43 Schematron-equivalent rules organized in four categories (mandatory, recommendation, authoring, accessibility) enforce DITA best practices and specification requirements. Includes 10 DITA 2.0-specific rules for removed elements and attributes, with automatic version detection.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Profiling and Subject Scheme Validation</dt>
@@ -95,7 +95,7 @@
                 <li><b>Detailed Diagnostics:</b> Line-precise error messages with fix suggestions, localized in English and French</li>
                 <li><b>Code Actions:</b> Quick fixes for common issues (missing DOCTYPE, IDs, titles) and DITA rules violations</li>
                 <li><b>Cross-Reference Validation:</b> Validates href, conref, keyref, and conkeyref targets across files</li>
-                <li><b>DITA Rules Engine:</b> 35 Schematron-equivalent rules including 10 DITA 2.0-specific rules</li>
+                <li><b>DITA Rules Engine:</b> 43 Schematron-equivalent rules including 10 DITA 2.0-specific rules</li>
                 <li><b>Profiling Validation:</b> Subject scheme-based validation with hierarchy grouping and default value preselection</li>
                 <li><b>Rate Limiting:</b> Protection against excessive validation requests</li>
             </ul>

@@ -165,7 +165,7 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `features/hover.ts` | Element docs, key metadata, href/conref preview |
 | `features/codeActions.ts` | 12 quick fixes for diagnostics |
 | `features/crossRefValidation.ts` | Cross-file reference validation (Layer 6a) |
-| `features/ditaRulesValidator.ts` | 35 Schematron-equivalent DITA rules (Layer 5) |
+| `features/ditaRulesValidator.ts` | 43 Schematron-equivalent DITA rules (Layer 5) |
 | `features/customRulesValidator.ts` | User-defined regex validation rules from JSON file |
 | `features/profilingValidation.ts` | Subject scheme profiling validation (Layer 6b) |
 | `features/circularRefDetection.ts` | Circular reference detection via DFS traversal |
@@ -178,7 +178,7 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `utils/xmlTokenizer.ts` | Error-tolerant state-machine XML tokenizer |
 | `utils/textUtils.ts` | Shared text utilities (comment stripping, offsetToRange, escapeRegex) |
 | `utils/patterns.ts` | Shared regex patterns (TAG_ATTRS) |
-| `utils/i18n.ts` | Localization with 70 messages in EN+FR |
+| `utils/i18n.ts` | Localization with 80+ messages in EN+FR |
 
 ### Utils (`src/utils/`)
 
@@ -240,7 +240,7 @@ Pull diagnostics handler → ValidationPipeline.validate()
          │         └── Subject scheme controlled values
          │
          ├──► Phase 8: validateDitaRules()
-         │         └── 35 rules (5 categories, version-filtered)
+         │         └── 43 rules (5 categories, version-filtered)
          │
          ├──► Phase 9: detectCircularReferences()
          │         └── DFS traversal to detect href/conref/mapref cycles
@@ -521,7 +521,7 @@ ditacraft/
 │   │   ├── features/              # 17 LSP feature handlers
 │   │   │   ├── validation.ts      #   XML + structure + IDs
 │   │   │   ├── crossRefValidation.ts # Cross-file references
-│   │   │   ├── ditaRulesValidator.ts # 35 DITA rules
+│   │   │   ├── ditaRulesValidator.ts # 43 DITA rules
 │   │   │   ├── profilingValidation.ts# Profiling/subject scheme
 │   │   │   ├── circularRefDetection.ts # Circular ref DFS
 │   │   │   ├── workspaceValidation.ts  # Duplicate IDs + orphans
@@ -543,8 +543,8 @@ ditacraft/
 │   │   │   ├── i18n.ts
 │   │   │   └── ...
 │   │   ├── messages/              # Localized diagnostic messages
-│   │   │   ├── en.json            #   76+ messages (English)
-│   │   │   └── fr.json            #   76+ messages (French)
+│   │   │   ├── en.json            #   80+ messages (English)
+│   │   │   └── fr.json            #   80+ messages (French)
 │   │   └── data/                  # Static schema data
 │   │       ├── ditaSchema.ts
 │   │       └── ditaSpecialization.ts

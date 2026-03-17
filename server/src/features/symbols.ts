@@ -12,7 +12,8 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 
-import { collectDitaFiles, offsetToPosition } from '../utils/workspaceScanner';
+import { collectDitaFiles } from '../utils/workspaceScanner';
+import { offsetToPosition } from '../utils/textUtils';
 
 /** Map DITA element names to LSP SymbolKind */
 const SYMBOL_KIND_MAP: Record<string, SymbolKind> = {

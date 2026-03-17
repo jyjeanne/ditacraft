@@ -35,7 +35,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>DITA Rules Engine</dt>
-                    <dd>35 Schematron-equivalent rules in five categories (mandatory, recommendation, authoring, accessibility, DITA 2.0 removal) enforce DITA specification requirements and best practices. Includes 10 DITA 2.0-specific rules for removed elements and attributes. Rules are version-aware and include 12 quick fixes. Supports user-defined custom regex rules, per-rule severity overrides, and comment-based rule suppression. See <xref keyref="dita-rules"/> for details.</dd>
+                    <dd>43 Schematron-equivalent rules in five categories (mandatory, recommendation, authoring, accessibility, DITA 2.0 removal) enforce DITA specification requirements and best practices. Includes 10 DITA 2.0-specific rules for removed elements and attributes. Rules are version-aware and include 12 quick fixes. Supports user-defined custom regex rules, per-rule severity overrides, and comment-based rule suppression. See <xref keyref="dita-rules"/> for details.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Profiling Validation</dt>

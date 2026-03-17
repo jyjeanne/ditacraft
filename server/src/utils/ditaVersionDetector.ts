@@ -4,7 +4,7 @@
  * validation rules can be applied automatically.
  */
 
-import { DitaVersion } from '../features/ditaRulesValidator';
+import { DitaVersion } from './types';
 
 /**
  * Detect DITA version from document content.

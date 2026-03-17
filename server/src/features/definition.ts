@@ -16,7 +16,7 @@ import {
     findElementByIdOffset,
 } from '../utils/referenceParser';
 
-import { offsetToPosition } from '../utils/workspaceScanner';
+import { offsetToPosition } from '../utils/textUtils';
 
 import { KeySpaceService } from '../services/keySpaceService';
 

@@ -167,7 +167,8 @@ async function dfsDetectAnyCycle(
     } else {
         try {
             content = await fsp.readFile(currentFile, 'utf-8');
-        } catch {
+        } catch (e) {
+            // File unreadable (deleted, permissions, etc.) — skip silently in cycle detection
             content = null;
         }
         fileCache.set(normalized, content);

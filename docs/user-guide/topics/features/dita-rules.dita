@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="dita-rules">
     <title>DITA Rules Engine</title>
-    <shortdesc>DitaCraft includes 35 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules.</shortdesc>
+    <shortdesc>DitaCraft includes 43 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules.</shortdesc>
 
     <conbody>
         <section id="overview">

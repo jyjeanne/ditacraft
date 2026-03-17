@@ -72,6 +72,38 @@ export function offsetToRange(text: string, start: number, end: number): Range {
 }
 
 /**
+ * Convert a byte offset in `text` to a zero-based { line, character } position.
+ * Handles `\r\n`, standalone `\r`, and `\n` line endings.
+ *
+ * This is the single canonical implementation — use it instead of local copies
+ * in feature files (e.g., `findLineAndColumn` in validation.ts, `offsetToPosition`
+ * in workspaceScanner.ts).
+ */
+export function offsetToPosition(
+    text: string,
+    offset: number,
+): { line: number; character: number } {
+    let line = 0;
+    let lastLineStart = 0;
+    const safeOffset = Math.min(Math.max(0, offset), text.length);
+
+    for (let i = 0; i < safeOffset; i++) {
+        if (text[i] === '\r') {
+            line++;
+            if (i + 1 < text.length && text[i + 1] === '\n') {
+                i++;
+            }
+            lastLineStart = i + 1;
+        } else if (text[i] === '\n') {
+            line++;
+            lastLineStart = i + 1;
+        }
+    }
+
+    return { line, character: safeOffset - lastLineStart };
+}
+
+/**
  * Normalize a file system path for comparison.
  * On Windows (case-insensitive), lowercases the path.
  * On Linux/macOS (case-sensitive), preserves case.

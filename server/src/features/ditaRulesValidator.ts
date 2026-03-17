@@ -7,14 +7,12 @@ import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { t } from '../utils/i18n';
 import { stripCommentsAndCDATA, offsetToRange } from '../utils/textUtils';
 import { TAG_ATTRS } from '../utils/patterns';
+import { DitaVersion, RuleCategory } from '../utils/types';
+
+// Re-export shared types for backward compatibility
+export type { DitaVersion, RuleCategory } from '../utils/types';
 
 const SOURCE = 'dita-rules';
-
-/** DITA version type. */
-export type DitaVersion = '1.0' | '1.1' | '1.2' | '1.3' | '2.0' | 'unknown';
-
-/** Rule category for configuration filtering. */
-export type RuleCategory = 'mandatory' | 'recommendation' | 'authoring' | 'accessibility';
 
 /** A single DITA validation rule. */
 interface DitaRule {

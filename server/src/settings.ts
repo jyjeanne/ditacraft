@@ -1,5 +1,5 @@
 import { Connection } from 'vscode-languageserver/node';
-import { RuleCategory } from './features/ditaRulesValidator';
+import { RuleCategory } from './utils/types';
 
 /**
  * DitaCraft LSP server settings

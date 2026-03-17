@@ -11,6 +11,7 @@ import { promises as fsPromises } from 'fs';
 
 import { TAG_ATTRS } from '../utils/patterns';
 import { stripCommentsAndCDATA } from '../utils/textUtils';
+import { IKeySpaceService } from './interfaces';
 
 // --- Interfaces ---
 
@@ -64,7 +65,7 @@ const CACHE_CLEANUP_RATIO = 3;
 
 // --- Service ---
 
-export class KeySpaceService {
+export class KeySpaceService implements IKeySpaceService {
     private workspaceFolders: string[];
     private getSettings: () => Promise<KeySpaceSettings>;
     private log: (msg: string) => void;

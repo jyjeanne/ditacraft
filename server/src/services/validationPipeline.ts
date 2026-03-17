@@ -30,6 +30,7 @@ import { CatalogValidationService } from './catalogValidationService';
 import { RngValidationService } from './rngValidationService';
 import { KeySpaceService } from './keySpaceService';
 import { SubjectSchemeService } from './subjectSchemeService';
+import { applySuppressions } from './suppressionEngine';
 
 /** External state passed from the server for workspace-level checks. */
 export interface WorkspaceContext {
@@ -100,125 +101,6 @@ const SEVERITY_MAP: Record<string, DiagnosticSeverity> = {
     information: DiagnosticSeverity.Information,
     hint: DiagnosticSeverity.Hint,
 };
-
-// ---------------------------------------------------------------------------
-// Comment-based suppression (Phase 5.2)
-// ---------------------------------------------------------------------------
-
-/** Regex matching ditacraft suppression comments. */
-const SUPPRESS_COMMENT_RE = /<!--\s*ditacraft-(disable|enable|disable-file)\s+([\w-]+(?:\s+[\w-]+)*)\s*-->/g;
-
-interface SuppressionRange {
-    code: string;
-    startLine: number;
-    endLine: number; // Infinity if never re-enabled
-}
-
-interface SuppressionState {
-    fileSuppressed: Set<string>;
-    ranges: SuppressionRange[];
-}
-
-/**
- * Parse suppression comments from document text and build a structure
- * that can quickly test whether a diagnostic at a given line is suppressed.
- *
- * Supported forms:
- *   <!-- ditacraft-disable CODE1 CODE2 -->   starts suppression for CODE(s)
- *   <!-- ditacraft-enable CODE1 CODE2 -->    ends suppression for CODE(s)
- *   <!-- ditacraft-disable-file CODE1 -->    suppresses CODE(s) for entire file
- */
-function parseSuppressions(text: string): SuppressionState {
-    const fileSuppressed = new Set<string>();
-    const ranges: SuppressionRange[] = [];
-
-    // Pre-compute line start offsets for binary-search offset→line mapping
-    // Handles \n, \r\n, and standalone \r (matching LSP line counting)
-    const lineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i++) {
-        if (text[i] === '\r') {
-            if (i + 1 < text.length && text[i + 1] === '\n') {
-                i++; // Skip \n in \r\n pair
-            }
-            lineStarts.push(i + 1);
-        } else if (text[i] === '\n') {
-            lineStarts.push(i + 1);
-        }
-    }
-
-    function offsetToLine(offset: number): number {
-        let lo = 0, hi = lineStarts.length - 1;
-        while (lo < hi) {
-            const mid = (lo + hi + 1) >> 1;
-            if (lineStarts[mid] <= offset) lo = mid; else hi = mid - 1;
-        }
-        return lo;
-    }
-
-    // Collect all suppression comments
-    let match: RegExpExecArray | null;
-    SUPPRESS_COMMENT_RE.lastIndex = 0; // Reset global regex state
-    // Track open disable directives: code → startLine
-    const openDisables = new Map<string, number>();
-
-    while ((match = SUPPRESS_COMMENT_RE.exec(text)) !== null) {
-        const action = match[1]; // 'disable' | 'enable' | 'disable-file'
-        const codes = match[2].split(/\s+/).filter(Boolean);
-        const line = offsetToLine(match.index);
-
-        if (action === 'disable-file') {
-            for (const code of codes) fileSuppressed.add(code);
-        } else if (action === 'disable') {
-            for (const code of codes) {
-                if (!openDisables.has(code)) {
-                    openDisables.set(code, line);
-                }
-            }
-        } else { // enable
-            for (const code of codes) {
-                const startLine = openDisables.get(code);
-                if (startLine !== undefined) {
-                    ranges.push({ code, startLine, endLine: line });
-                    openDisables.delete(code);
-                }
-            }
-        }
-    }
-
-    // Close any unclosed disable directives (suppress to end of file)
-    for (const [code, startLine] of openDisables) {
-        ranges.push({ code, startLine, endLine: Infinity });
-    }
-
-    return { fileSuppressed, ranges };
-}
-
-/**
- * Filter diagnostics based on comment-based suppression directives.
- */
-function applySuppressions(diagnostics: Diagnostic[], text: string): Diagnostic[] {
-    const state = parseSuppressions(text);
-    if (state.fileSuppressed.size === 0 && state.ranges.length === 0) {
-        return diagnostics;
-    }
-
-    return diagnostics.filter(d => {
-        const code = typeof d.code === 'string' ? d.code : String(d.code ?? '');
-        if (!code) return true;
-
-        // File-level suppression
-        if (state.fileSuppressed.has(code)) return false;
-
-        // Range-based suppression — check if diagnostic start line falls in any range
-        // startLine is inclusive (disable comment line), endLine is exclusive (enable comment line)
-        const line = d.range.start.line;
-        for (const r of state.ranges) {
-            if (r.code === code && line >= r.startLine && line < r.endLine) return false;
-        }
-
-        return true;
-    });
-}
 
 /** Default timeout per async validation phase (ms). */
 const DEFAULT_PHASE_TIMEOUT_MS = 5000;

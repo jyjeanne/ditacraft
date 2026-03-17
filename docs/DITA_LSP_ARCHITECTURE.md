@@ -51,11 +51,11 @@ server/
 │   │   ├── ditaVersionDetector.ts       #   Detect DITA version from content
 │   │   ├── textUtils.ts                 #   Shared: comment stripping, offsetToRange, escapeRegex
 │   │   ├── patterns.ts                  #   Shared: TAG_ATTRS regex pattern
-│   │   └── i18n.ts                      #   Localization (70 messages, EN+FR)
+│   │   └── i18n.ts                      #   Localization (80+ messages, EN+FR)
 │   │
 │   ├── messages/                        # Localized diagnostic messages
-│   │   ├── en.json                      #   70 messages (English)
-│   │   └── fr.json                      #   70 messages (French)
+│   │   ├── en.json                      #   80+ messages (English)
+│   │   └── fr.json                      #   80+ messages (French)
 │   │
 │   └── data/                            # Static schema data
 │       ├── ditaSchema.ts                #   Element hierarchy, attributes, documentation
@@ -145,7 +145,7 @@ Document change (typing)
               │     └── Subject scheme controlled values
               │
               ├─> Phase 8: validateDitaRules()
-              │     └── 35 rules (5 categories, version-filtered)
+              │     └── 43 rules (5 categories, version-filtered)
               │
               ├─> Phase 9: detectCircularReferences()
               │     └── DFS traversal to detect href/conref/mapref cycles
@@ -329,7 +329,7 @@ Optional RelaxNG schema validation via salve-annos + saxes. Grammar cache (max 2
 
 ### Schematron-Equivalent Rules (ditaRulesValidator.ts)
 
-35 rules organized into 5 categories, filtered by DITA version (auto-detected from `@DITAArchVersion` or DOCTYPE):
+43 rules organized into 5 categories, filtered by DITA version (auto-detected from `@DITAArchVersion` or DOCTYPE):
 
 | Category | Count | Examples | Severity |
 |----------|-------|---------|----------|

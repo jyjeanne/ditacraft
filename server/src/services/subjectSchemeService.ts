@@ -4,6 +4,7 @@
  */
 
 import * as fs from 'fs';
+import { ISubjectSchemeService } from './interfaces';
 
 // --- Interfaces ---
 
@@ -26,7 +27,7 @@ const ANY_ELEMENT = '*';
 
 // --- Service ---
 
-export class SubjectSchemeService {
+export class SubjectSchemeService implements ISubjectSchemeService {
     private cache: Map<string, { data: SubjectSchemeData; timestamp: number }> = new Map();
     private cacheTtlMs = 5 * 60 * 1000;
 
@@ -46,6 +47,7 @@ export class SubjectSchemeService {
         if (changed) {
             this.registeredSchemes = [...schemePaths];
             this.mergedData = null; // force re-merge
+            this.cache.clear(); // clear per-file cache to avoid stale data from old scheme paths
         }
     }
 

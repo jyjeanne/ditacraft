@@ -18,7 +18,8 @@ import {
     parseReference,
 } from '../utils/referenceParser';
 
-import { collectDitaFiles, offsetToPosition } from '../utils/workspaceScanner';
+import { collectDitaFiles } from '../utils/workspaceScanner';
+import { offsetToPosition } from '../utils/textUtils';
 
 /**
  * Handle Prepare Rename request.

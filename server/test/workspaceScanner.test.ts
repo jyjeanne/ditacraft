@@ -3,7 +3,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { URI } from 'vscode-uri';
-import { offsetToPosition, collectDitaFiles, findCrossFileReferences } from '../src/utils/workspaceScanner';
+import { collectDitaFiles, findCrossFileReferences } from '../src/utils/workspaceScanner';
+import { offsetToPosition } from '../src/utils/textUtils';
 
 suite('offsetToPosition', () => {
     test('offset 0 is line 0 character 0', () => {
@@ -56,6 +57,26 @@ suite('offsetToPosition', () => {
         const text = 'a\nb\nc';
         const pos = offsetToPosition(text, 4); // "c"
         assert.strictEqual(pos.line, 2);
+        assert.strictEqual(pos.character, 0);
+    });
+
+    test('standalone CR line endings', () => {
+        const text = 'line1\rline2\rline3';
+        const pos = offsetToPosition(text, 8); // "ne2" -> line 1, char 2
+        assert.strictEqual(pos.line, 1);
+        assert.strictEqual(pos.character, 2);
+    });
+
+    test('offset beyond text length is clamped', () => {
+        const text = 'ab\ncd';
+        const pos = offsetToPosition(text, 100);
+        assert.strictEqual(pos.line, 1);
+        assert.strictEqual(pos.character, 2);
+    });
+
+    test('negative offset is clamped to 0', () => {
+        const pos = offsetToPosition('hello', -5);
+        assert.strictEqual(pos.line, 0);
         assert.strictEqual(pos.character, 0);
     });
 });

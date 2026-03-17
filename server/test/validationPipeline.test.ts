@@ -806,6 +806,63 @@ suite('ValidationPipeline', () => {
             const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
             assert.ok(sch003.length > 0, 'DITA-SCH-003 should still be present');
         });
+        test('unclosed disable suppresses to end of file', async () => {
+            const xml = `<topic id="t1"><title>T</title><body>
+<!-- ditacraft-disable DITA-SCH-003 -->
+<indextermref/>
+<indextermref/>
+</body></topic>`;
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA-SCH-003 should be suppressed to end of file');
+        });
+
+        test('suppression works with CRLF line endings', async () => {
+            const xml = '<!-- ditacraft-disable-file DITA-SCH-003 -->\r\n<topic id="t1"><title>T</title><body><indextermref/></body></topic>';
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA-SCH-003 should be suppressed with CRLF');
+        });
+
+        test('suppression works with standalone CR line endings', async () => {
+            const xml = '<!-- ditacraft-disable-file DITA-SCH-003 -->\r<topic id="t1"><title>T</title><body><indextermref/></body></topic>';
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                validationSeverityOverrides: {},
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.strictEqual(sch003.length, 0, 'DITA-SCH-003 should be suppressed with standalone CR');
+        });
     });
 
     // -----------------------------------------------------------------------

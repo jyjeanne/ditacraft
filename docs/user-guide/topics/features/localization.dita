@@ -48,7 +48,7 @@
                 <li><b>XML validation:</b> Syntax errors, well-formedness issues</li>
                 <li><b>DITA structure validation:</b> Missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs</li>
                 <li><b>Cross-reference validation:</b> Broken links, missing files, undefined keys</li>
-                <li><b>DITA Rules Engine:</b> All 35 rules (mandatory, recommendation, authoring, accessibility)</li>
+                <li><b>DITA Rules Engine:</b> All 43 rules (mandatory, recommendation, authoring, accessibility)</li>
                 <li><b>Profiling validation:</b> Invalid attribute values</li>
                 <li><b>DTD validation:</b> Catalog-based DTD conformance messages</li>
             </ul>

@@ -11,6 +11,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
 import { t } from '../utils/i18n';
+import { ICatalogValidationService } from './interfaces';
 
 const SOURCE = 'dita-dtd';
 
@@ -40,7 +41,7 @@ const PARSER_POOL_SIZE = 3;
  * Reuses the catalog instance across validations for grammar caching.
  * Maintains a small pool of parser instances to reduce allocation overhead.
  */
-export class CatalogValidationService {
+export class CatalogValidationService implements ICatalogValidationService {
     private typesxml: TypesXMLModule | null = null;
     private catalog: TypesXMLCatalog | null = null;
     private available = false;

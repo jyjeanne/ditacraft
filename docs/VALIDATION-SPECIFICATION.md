@@ -11,7 +11,7 @@
 
 This document describes the validation architecture implemented in DitaCraft v0.7.2. The system uses a **12-phase LSP-based validation pipeline** (`ValidationPipeline` class) running in a dedicated Language Server process, providing real-time diagnostics as the user types. Each phase is error-isolated so a failure in one doesn't discard results from others.
 
-The original spec (v1.0, January 2025) explored different validation approaches. The chosen architecture combines a custom DITA Language Server with TypesXML DTD validation, optional RelaxNG validation, a 35-rule Schematron-equivalent engine, cross-reference validation, profiling/subject scheme validation, circular reference detection, workspace-level checks, per-rule severity overrides, comment-based rule suppression, and user-defined custom regex rules — all running in real-time with smart debouncing.
+The original spec (v1.0, January 2025) explored different validation approaches. The chosen architecture combines a custom DITA Language Server with TypesXML DTD validation, optional RelaxNG validation, a 43-rule Schematron-equivalent engine, cross-reference validation, profiling/subject scheme validation, circular reference detection, workspace-level checks, per-rule severity overrides, comment-based rule suppression, and user-defined custom regex rules — all running in real-time with smart debouncing.
 
 This document was originally prompted by feedback from Stan Doherty (OASIS DITA TC member, ACM SIGDOC) who noted that the built-in validation engine was insufficient and suggested exploring DITA-OT-based validation. The implemented solution goes beyond that suggestion by providing real-time, zero-dependency validation with bundled DTDs.
 
@@ -72,7 +72,7 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 │  │  Phase 5:   Cross-references         (crossRefValidation)  │  │
 │  │  Phase 6:   Subject scheme registration                    │  │
 │  │  Phase 7:   Profiling validation     (profilingValidation) │  │
-│  │  Phase 8:   35 DITA rules            (ditaRulesValidator)  │  │
+│  │  Phase 8:   43 DITA rules            (ditaRulesValidator)  │  │
 │  │  Phase 9:   Circular ref detection   (circularRefDetection)│  │
 │  │  Phase 10:  Workspace checks         (workspaceValidation) │  │
 │  │  Phase 11:  Severity overrides + comment suppression       │  │
@@ -104,7 +104,7 @@ DitaCraft uses a **client-server architecture** with the LSP server as the sole 
 | DTD Validation | TypesXML + OASIS Catalog | Layer 2: full DTD validation with public ID resolution |
 | RNG Validation | salve-annos + saxes | Layer 3: optional RelaxNG schema validation |
 | Regex Engine | Built-in RegExp | Layers 4-6: structure, rules, cross-refs |
-| i18n | Custom t() with JSON bundles | 76+ diagnostic messages in English + French |
+| i18n | Custom t() with JSON bundles | 80+ diagnostic messages in English + French |
 
 ### 1.4 Validation Engines (Legacy Client-Side)
 
@@ -159,7 +159,7 @@ if (keySpaceService) { ... }
 // Phase 7: Profiling attribute validation
 if (settings.subjectSchemeValidationEnabled !== false) { ... }
 
-// Phase 8: 35 DITA rules (Schematron-equivalent, version-filtered)
+// Phase 8: 43 DITA rules (Schematron-equivalent, version-filtered)
 if (settings.ditaRulesEnabled !== false && !isLargeFile) { ... }
 
 // Phase 9: Circular reference detection
@@ -274,7 +274,7 @@ The DOCTYPE declaration is stripped before parsing (fast-xml-parser doesn't hand
 
 ### Phase 8: DITA Rules Engine (`ditaRulesValidator.ts`)
 
-**Engine:** 35 Schematron-equivalent rules implemented in TypeScript
+**Engine:** 43 Schematron-equivalent rules implemented in TypeScript
 **Trigger:** Every document change (debounced)
 **Purpose:** DITA best practices, deprecated elements, accessibility
 
@@ -429,7 +429,7 @@ Files exceeding `ditacraft.largeFileThresholdKB` (default 500 KB, 0 = disabled) 
 | DITA-XREF-001..003 | 5 | Warning | Cross-reference target issues |
 | DITA-KEY-001..003 | 5 | Warning | Key resolution issues |
 | DITA-PROF-001 | 7 | Warning | Profiling value not allowed |
-| DITA-SCH-001..046 | 8 | Various | DITA rules (35 codes) |
+| DITA-SCH-001..046 | 8 | Various | DITA rules (43 codes) |
 | DITA-SCH-050..059 | 8 | Various | DITA 2.0 removal rules (10 codes) |
 | DITA-CYCLE-001 | 9 | Warning | Circular reference detected |
 | DITA-ID-003 | 10 | Warning | Cross-file duplicate root ID |
@@ -451,7 +451,7 @@ Diagnostics use two range strategies:
 
 ### 5.2 Localization
 
-All 76+ diagnostic messages are localized via the `t()` function with parameterized message keys:
+All 80+ diagnostic messages are localized via the `t()` function with parameterized message keys:
 
 - English: `server/src/messages/en.json`
 - French: `server/src/messages/fr.json`
@@ -531,7 +531,7 @@ Via salve-annos + saxes. More expressive than DTDs. Grammar caching for performa
 
 **Status:** Implemented as Layer 5
 
-35 rules in TypeScript instead of XML Schematron format. No external processor needed. Version-filtered. Covers deprecated elements, accessibility, authoring best practices.
+43 rules in TypeScript instead of XML Schematron format. No external processor needed. Version-filtered. Covers deprecated elements, accessibility, authoring best practices.
 
 ### 7.7 Custom DITA Language Server
 
@@ -548,7 +548,7 @@ Full LSP with 14 language features. The original estimate of "3-6 months" proved
 | Phase 1 | v0.4.1 | TypesXML DTD validation with bundled DITA 1.3 DTDs |
 | Phase 2 | v0.5.0 | Full LSP server with 14 features, Layer 1+4 validation |
 | Phase 3 | v0.6.0 | Layers 5+6: DITA rules (22), cross-refs, profiling, subject scheme |
-| Phase 4 | v0.6.1 | Layer 2+3: Catalog + RNG services, i18n, 35 rules, DITA 2.0 |
+| Phase 4 | v0.6.1 | Layer 2+3: Catalog + RNG services, i18n, 43 rules, DITA 2.0 |
 | Phase 5 | v0.6.2 | Validation dedup, bookmap/topicref checks, improved error ranges, single-quote IDs |
 | Phase 6 | v0.7.0 | ValidationPipeline extraction, shared utilities (textUtils, patterns), error isolation, circular ref + workspace checks, 461 server tests |
 | Phase 7 | v0.7.1 | Guide validation, DITA-OT error catalog (160+ codes), validation report WebView, 559 server tests |

@@ -14,7 +14,7 @@
                 <li>Smart navigation with Ctrl+Click on href, conref, keyref, and conkeyref</li>
                 <li>Cross-file Go to Definition, Find References, and Rename</li>
                 <li>Key space resolution for keyref and conkeyref with key scope support</li>
-                <li>35 DITA validation rules with DITA 2.0 awareness</li>
+                <li>43 DITA validation rules with DITA 2.0 awareness</li>
                 <li>Localized diagnostics (English, French)</li>
                 <li>Explicit root map selection with status bar indicator</li>
                 <li>DITAVAL conditional processing support</li>
@@ -93,7 +93,7 @@
             <ul>
                 <li>LSP server with IntelliSense, diagnostics, and navigation</li>
                 <li>Cross-reference validation for href, conref, keyref, and conkeyref</li>
-                <li>DITA Rules Engine with 35 Schematron-equivalent rules (including 10 DITA 2.0-specific rules)</li>
+                <li>DITA Rules Engine with 43 Schematron-equivalent rules (including 10 DITA 2.0-specific rules)</li>
                 <li>Profiling validation with subject scheme support and hierarchy grouping</li>
                 <li>Activity Bar views: DITA Explorer, Key Space, and Diagnostics</li>
                 <li>Explicit root map selection with status bar indicator</li>

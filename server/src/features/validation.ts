@@ -13,7 +13,7 @@ import { URI } from 'vscode-uri';
 import { DitaCraftSettings } from '../settings';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { t } from '../utils/i18n';
-import { stripCommentsAndCodeContent, offsetToRange } from '../utils/textUtils';
+import { stripCommentsAndCodeContent, offsetToRange, offsetToPosition } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -341,10 +341,10 @@ function validateDitavalStructure(
     while ((propMatch = propRegex.exec(text)) !== null) {
         const attrs = propMatch[1];
         if (!/\batt\s*=/.test(attrs)) {
-            const pos = findLineAndColumn(text, propMatch.index);
+            const pos = offsetToPosition(text, propMatch.index);
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
-                range: createRange(pos.line, pos.col, propMatch[0].length),
+                range: createRange(pos.line, pos.character, propMatch[0].length),
                 message: t('ditaval.propMissingAtt'),
                 source: SOURCE,
                 code: 'DITA-DITAVAL-001',
@@ -360,10 +360,10 @@ function validateDitavalStructure(
         const actionValue = actionMatch[1];
         if (!VALID_ACTIONS.has(actionValue)) {
             const valueStart = actionMatch.index + actionMatch[0].lastIndexOf(actionValue);
-            const pos = findLineAndColumn(text, valueStart);
+            const pos = offsetToPosition(text, valueStart);
             diagnostics.push({
                 severity: DiagnosticSeverity.Error,
-                range: createRange(pos.line, pos.col, actionValue.length),
+                range: createRange(pos.line, pos.character, actionValue.length),
                 message: t('ditaval.invalidAction', actionValue),
                 source: SOURCE,
                 code: 'DITA-DITAVAL-002',
@@ -377,10 +377,10 @@ function validateDitavalStructure(
     while ((revpropMatch = revpropRegex.exec(text)) !== null) {
         const attrs = revpropMatch[1];
         if (!/\bval\s*=/.test(attrs)) {
-            const pos = findLineAndColumn(text, revpropMatch.index);
+            const pos = offsetToPosition(text, revpropMatch.index);
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
-                range: createRange(pos.line, pos.col, revpropMatch[0].length),
+                range: createRange(pos.line, pos.character, revpropMatch[0].length),
                 message: t('ditaval.revpropMissingVal'),
                 source: SOURCE,
                 code: 'DITA-DITAVAL-003',
@@ -403,10 +403,10 @@ function validateDitavalStructure(
         const val = valMatch ? valMatch[1] : '*'; // No val = all values
         const pairKey = `${att}|${val}`;
         if (seenPropPairs.has(pairKey)) {
-            const pos = findLineAndColumn(text, dupMatch.index);
+            const pos = offsetToPosition(text, dupMatch.index);
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
-                range: createRange(pos.line, pos.col, dupMatch[0].length),
+                range: createRange(pos.line, pos.character, dupMatch[0].length),
                 message: t('ditaval.duplicateProp', att, val === '*' ? '(all)' : val),
                 source: SOURCE,
                 code: 'DITA-DITAVAL-004',
@@ -425,10 +425,10 @@ function validateDitavalStructure(
         const hasImageref = /\bimageref\s*=/.test(attrs);
         const hasAltText = /<alt-text[\s>]/.test(innerContent);
         if (!hasImageref && !hasAltText) {
-            const pos = findLineAndColumn(text, flagMatch.index);
+            const pos = offsetToPosition(text, flagMatch.index);
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
-                range: createRange(pos.line, pos.col, flagMatch[0].length),
+                range: createRange(pos.line, pos.character, flagMatch[0].length),
                 message: t('ditaval.flagMissingContent', flagMatch[1]),
                 source: SOURCE,
                 code: 'DITA-DITAVAL-005',
@@ -455,10 +455,10 @@ function checkTopicrefsWithoutHref(text: string, diagnostics: Diagnostic[]): voi
         if (/\b(?:href|keyref|keys|conref|conkeyref)\s*=/.test(attrs)) {
             continue;
         }
-        const pos = findLineAndColumn(text, match.index);
+        const pos = offsetToPosition(text, match.index);
         diagnostics.push({
             severity: DiagnosticSeverity.Information,
-            range: createRange(pos.line, pos.col, match[0].length),
+            range: createRange(pos.line, pos.character, match[0].length),
             message: t('struct.topicrefMissingHref'),
             source: SOURCE,
             code: CODES.TOPICREF_NO_HREF,
@@ -476,14 +476,14 @@ function checkEmptyElements(text: string, diagnostics: Diagnostic[]): void {
     for (const { pattern, name } of emptyPatterns) {
         let match;
         while ((match = pattern.exec(text)) !== null) {
-            const pos = findLineAndColumn(text, match.index);
+            const pos = offsetToPosition(text, match.index);
             diagnostics.push({
                 severity: DiagnosticSeverity.Warning,
                 range: {
-                    start: { line: pos.line, character: pos.col },
+                    start: { line: pos.line, character: pos.character },
                     end: {
                         line: pos.line,
-                        character: pos.col + match[0].length,
+                        character: pos.character + match[0].length,
                     },
                 },
                 message: t('struct.emptyElement', name),
@@ -531,14 +531,14 @@ function validateIDs(
     const idPattern = /\bid=(["'])([^"']*)\1/g;
     const idLocations = new Map<
         string,
-        { line: number; col: number; index: number; element: string }[]
+        { line: number; character: number; index: number; element: string }[]
     >();
 
     let match;
     while ((match = idPattern.exec(cleanText)) !== null) {
         const idValue = match[2];
         // Use original text for line/col since we preserved line structure
-        const pos = findLineAndColumn(text, match.index);
+        const pos = offsetToPosition(text, match.index);
         const element = getEnclosingElement(cleanText, match.index);
         const locations = idLocations.get(idValue) || [];
         locations.push({ ...pos, index: match.index, element });
@@ -558,7 +558,7 @@ function validateIDs(
                     const pos = locations[0];
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
-                        range: Range.create(pos.line, pos.col, pos.line, pos.col + idAttrLen),
+                        range: Range.create(pos.line, pos.character, pos.line, pos.character + idAttrLen),
                         message: t('id.invalidXmlId', idValue),
                         source: SOURCE,
                         code: CODES.INVALID_ID_FORMAT,
@@ -570,7 +570,7 @@ function validateIDs(
                     const pos = locations[0];
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
-                        range: Range.create(pos.line, pos.col, pos.line, pos.col + idAttrLen),
+                        range: Range.create(pos.line, pos.character, pos.line, pos.character + idAttrLen),
                         message: t('id.invalidNmtoken', idValue),
                         source: SOURCE,
                         code: CODES.INVALID_ID_FORMAT,
@@ -590,9 +590,9 @@ function validateIDs(
                             textDocument.uri,
                             Range.create(
                                 other.line,
-                                other.col,
+                                other.character,
                                 other.line,
-                                other.col + idAttrLen
+                                other.character + idAttrLen
                             )
                         ),
                         message: t('id.duplicateRelated', idValue),
@@ -600,7 +600,7 @@ function validateIDs(
 
                 diagnostics.push({
                     severity: DiagnosticSeverity.Error,
-                    range: Range.create(pos.line, pos.col, pos.line, pos.col + idAttrLen),
+                    range: Range.create(pos.line, pos.character, pos.line, pos.character + idAttrLen),
                     message: t('id.duplicate', idValue),
                     source: SOURCE,
                     code: CODES.DUPLICATE_ID,
@@ -619,28 +619,7 @@ function getFileExtension(uri: string): string {
     return dot >= 0 ? fsPath.slice(dot).toLowerCase() : '';
 }
 
-function findLineAndColumn(
-    text: string,
-    index: number
-): { line: number; col: number } {
-    let line = 0;
-    let lastNewline = -1;
-    for (let i = 0; i < index; i++) {
-        if (text[i] === '\n') {
-            line++;
-            lastNewline = i;
-        } else if (text[i] === '\r') {
-            line++;
-            lastNewline = i;
-            // Skip \n in \r\n pair
-            if (i + 1 < index && text[i + 1] === '\n') {
-                i++;
-                lastNewline = i;
-            }
-        }
-    }
-    return { line, col: index - lastNewline - 1 };
-}
+// findLineAndColumn — replaced by shared offsetToPosition() from utils/textUtils.ts
 
 /**
  * Create a range spanning from (line, col) to the end of the line.

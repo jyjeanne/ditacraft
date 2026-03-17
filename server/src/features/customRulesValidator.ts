@@ -62,8 +62,9 @@ function loadRules(filePath: string): CompiledRule[] {
     let stat: fs.Stats;
     try {
         stat = fs.statSync(resolved);
-    } catch {
-        // File doesn't exist or not accessible
+    } catch (e) {
+        // File doesn't exist or not accessible — log for debugging
+        console.warn(`[custom-rules] Cannot access rules file "${resolved}": ${e instanceof Error ? e.message : e}`);
         cachedFilePath = null;
         cachedRules = [];
         return [];
@@ -77,7 +78,8 @@ function loadRules(filePath: string): CompiledRule[] {
     let content: string;
     try {
         content = fs.readFileSync(resolved, 'utf-8');
-    } catch {
+    } catch (e) {
+        console.warn(`[custom-rules] Cannot read rules file "${resolved}": ${e instanceof Error ? e.message : e}`);
         cachedFilePath = null;
         cachedRules = [];
         return [];
@@ -86,7 +88,8 @@ function loadRules(filePath: string): CompiledRule[] {
     let parsed: CustomRulesFile;
     try {
         parsed = JSON.parse(content);
-    } catch {
+    } catch (e) {
+        console.warn(`[custom-rules] Invalid JSON in rules file "${resolved}": ${e instanceof Error ? e.message : e}`);
         cachedFilePath = null;
         cachedRules = [];
         return [];

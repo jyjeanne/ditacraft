@@ -367,33 +367,44 @@ function sendInitialRootMapSetting(): void {
  * Called when the extension is deactivated
  */
 export async function deactivate(): Promise<void> {
-    logger.info('DitaCraft extension deactivation started');
+    try {
+        logger.info('DitaCraft extension deactivation started');
+    } catch {
+        // Logger may not be initialized if activation failed early
+    }
 
     // Stop Language Server
-    await stopLanguageClient();
+    try {
+        await stopLanguageClient();
+    } catch (e) {
+        // Language client may not have been started
+        console.error('Error stopping language client:', e);
+    }
 
     // Dispose of DITA-OT publishing diagnostics
-    disposeDitaOtDiagnostics();
+    try { disposeDitaOtDiagnostics(); } catch { /* may not be initialized */ }
 
     // Dispose of DITA-OT output channel
-    disposeDitaOtOutputChannel();
+    try { disposeDitaOtOutputChannel(); } catch { /* may not be initialized */ }
 
     // Dispose of Map Visualizer panel
     if (MapVisualizerPanel.currentPanel) {
-        MapVisualizerPanel.currentPanel.dispose();
+        try { MapVisualizerPanel.currentPanel.dispose(); } catch { /* already disposed */ }
     }
 
     // Dispose of Validation Report panel
     if (ValidationReportPanel.currentPanel) {
-        ValidationReportPanel.currentPanel.dispose();
+        try { ValidationReportPanel.currentPanel.dispose(); } catch { /* already disposed */ }
     }
 
     if (outputChannel) {
-        outputChannel.appendLine('DitaCraft extension deactivated');
-        outputChannel.dispose();
+        try {
+            outputChannel.appendLine('DitaCraft extension deactivated');
+            outputChannel.dispose();
+        } catch { /* already disposed */ }
     }
 
-    logger.dispose();
+    try { logger.dispose(); } catch { /* may not be initialized */ }
 }
 
 /**

@@ -98,7 +98,7 @@
                 <strow>
                     <stentry><codeph>ditacraft.ditaRulesEnabled</codeph></stentry>
                     <stentry><codeph>true</codeph></stentry>
-                    <stentry>Enable DITA Rules Engine (35 rules)</stentry>
+                    <stentry>Enable DITA Rules Engine (43 rules)</stentry>
                 </strow>
                 <strow>
                     <stentry><codeph>ditacraft.crossRefValidationEnabled</codeph></stentry>

@@ -5,39 +5,13 @@ import { Location, TextDocuments } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { findReferencesToId, parseReference } from './referenceParser';
+import { offsetToPosition } from './textUtils';
 
 /** File extensions considered DITA files. */
 const DITA_EXTENSIONS = new Set(['.dita', '.ditamap', '.bookmap']);
 
 /** Directories to skip during recursive scanning. */
 const SKIP_DIRS = new Set(['node_modules', '.git', 'out', '.vscode', '.vscode-test']);
-
-/**
- * Convert a byte offset to { line, character } position.
- * Shared utility for files read from disk (not in TextDocuments).
- */
-export function offsetToPosition(
-    text: string,
-    offset: number
-): { line: number; character: number } {
-    let line = 0;
-    let lastLineStart = 0;
-
-    for (let i = 0; i < offset && i < text.length; i++) {
-        if (text[i] === '\n') {
-            line++;
-            lastLineStart = i + 1;
-        } else if (text[i] === '\r') {
-            line++;
-            if (i + 1 < text.length && text[i + 1] === '\n') {
-                i++;
-            }
-            lastLineStart = i + 1;
-        }
-    }
-
-    return { line, character: offset - lastLineStart };
-}
 
 /**
  * Collect all DITA files in the given workspace folders.
