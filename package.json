@@ -735,7 +735,7 @@
     "nyc": "^18.0.0",
     "sinon": "^21.0.3",
     "typescript": "^5.2.2",
-    "typescript-eslint": "^8.57.2"
+    "typescript-eslint": "^8.58.0"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.11",
