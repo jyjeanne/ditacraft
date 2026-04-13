@@ -23,6 +23,7 @@ import {
     DocumentLinkParams,
     DocumentLink,
     LinkedEditingRangeParams,
+    Diagnostic,
     TextDocumentChangeEvent,
     DidChangeConfigurationParams,
     DidChangeWatchedFilesParams,
@@ -73,8 +74,9 @@ import {
 /** Response type for the ditacraft/validateFile custom request. */
 interface ValidateFileResult {
     summary: ValidationSummary;
-    /** Number of diagnostics (already pushed to the client via pull diagnostics). */
     diagnosticCount: number;
+    /** Full diagnostics list — applied directly by the client for immediate getDiagnostics() visibility. */
+    diagnostics: Diagnostic[];
 }
 
 // Create LSP connection using IPC transport
@@ -244,7 +246,7 @@ connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, t
             const langId = ext === 'ditamap' ? 'ditamap' : ext === 'bookmap' ? 'bookmap' : 'dita';
             document = TextDocument.create(params.uri, langId, 0, content);
         } catch {
-            return { summary: { errors: 0, warnings: 0, infos: 0 }, diagnosticCount: 0 };
+            return { summary: { errors: 0, warnings: 0, infos: 0 }, diagnosticCount: 0, diagnostics: [] };
         }
     }
 
@@ -265,6 +267,7 @@ connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, t
     return {
         summary: ValidationPipeline.summarize(diagnostics),
         diagnosticCount: diagnostics.length,
+        diagnostics,
     };
 });
 

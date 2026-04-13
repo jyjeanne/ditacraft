@@ -5,6 +5,7 @@ import {
     LanguageClientOptions,
     ServerOptions,
     TransportKind,
+    State,
 } from 'vscode-languageclient/node';
 import { logger } from './utils/logger';
 
@@ -67,6 +68,21 @@ export async function startLanguageClient(
  */
 export function getLanguageClient(): LanguageClient | undefined {
     return client;
+}
+
+/**
+ * Wait until the language client reaches Running state (for test setup).
+ * Returns true if ready within `timeout` ms, false if timed out.
+ */
+export async function waitForLanguageClientReady(timeout = 10000): Promise<boolean> {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+        if (client && client.state === State.Running) {
+            return true;
+        }
+        await new Promise(r => setTimeout(r, 100));
+    }
+    return false;
 }
 
 /**

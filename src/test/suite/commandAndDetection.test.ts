@@ -7,6 +7,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { getValidationRateLimiter, resetValidationRateLimiter } from '../../commands';
+import { waitForLanguageClientReady } from '../../languageClient';
 
 /** Poll for error diagnostics up to `timeout` ms (default 3000). */
 async function waitForErrors(uri: vscode.Uri, timeout = 3000): Promise<vscode.Diagnostic[]> {
@@ -34,6 +35,9 @@ suite('Command and Auto-Detection Test Suite', () => {
         if (!extension.isActive) {
             await extension.activate();
         }
+
+        // Wait for the language client to be fully started before running tests
+        await waitForLanguageClientReady(15000);
 
         // Configure validation engine
         const config = vscode.workspace.getConfiguration('ditacraft');

@@ -22,10 +22,24 @@ import { createRateLimiter, RateLimiter } from '../utils/rateLimiter';
 interface ValidateFileResult {
     summary: { errors: number; warnings: number; infos: number };
     diagnosticCount: number;
+    /** Full diagnostics list for direct application — avoids pull-diagnostic timing races. */
+    diagnostics?: Array<{
+        range: {
+            start: { line: number; character: number };
+            end: { line: number; character: number };
+        };
+        severity?: number;
+        message: string;
+        source?: string;
+        code?: string | number;
+    }>;
 }
 
 // Rate limiter for manual validation requests (DoS protection)
 let validationRateLimiter: RateLimiter | undefined;
+
+/** DiagnosticCollection for results from the manual validate command. */
+let manualDiagnostics: vscode.DiagnosticCollection | undefined;
 
 const DITA_EXTENSIONS = ['.dita', '.ditamap', '.bookmap'];
 
@@ -36,6 +50,12 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
     // Initialize rate limiter (DoS protection)
     validationRateLimiter = createRateLimiter('VALIDATION');
     context.subscriptions.push(validationRateLimiter);
+
+    // DiagnosticCollection for direct application of manual-validation results.
+    // This makes results visible via getDiagnostics() immediately after the
+    // command resolves, without depending on the async push/pull LSP round-trip.
+    manualDiagnostics = vscode.languages.createDiagnosticCollection('ditacraft-manual');
+    context.subscriptions.push(manualDiagnostics);
 }
 
 /**
@@ -111,6 +131,27 @@ async function validateViaLsp(
             { uri: client.code2ProtocolConverter.asUri(fileUri) },
             cancellationToken,
         );
+
+        // Apply diagnostics directly from the response so they are immediately
+        // visible via vscode.languages.getDiagnostics() — no async pull round-trip.
+        if (result?.diagnostics && manualDiagnostics) {
+            const vsDiags = result.diagnostics.map(d => {
+                const range = new vscode.Range(
+                    d.range.start.line, d.range.start.character,
+                    d.range.end.line,   d.range.end.character,
+                );
+                const sev = d.severity === 1 ? vscode.DiagnosticSeverity.Error
+                          : d.severity === 2 ? vscode.DiagnosticSeverity.Warning
+                          : d.severity === 3 ? vscode.DiagnosticSeverity.Information
+                          : vscode.DiagnosticSeverity.Hint;
+                const diag = new vscode.Diagnostic(range, d.message, sev);
+                if (d.source)            diag.source = d.source;
+                if (d.code !== undefined) diag.code   = d.code;
+                return diag;
+            });
+            manualDiagnostics.set(fileUri, vsDiags);
+        }
+
         return result;
     } catch (err: unknown) {
         // If request was cancelled by the user, that's fine
