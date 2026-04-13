@@ -4,7 +4,6 @@ import {
     ProposedFeatures,
     InitializeParams,
     InitializeResult,
-    TextDocumentSyncKind,
     DidChangeConfigurationNotification,
     DocumentDiagnosticReportKind,
     type DocumentDiagnosticReport,
@@ -62,6 +61,13 @@ import { RngValidationService } from './services/rngValidationService';
 import { ValidationPipeline, ValidationSummary } from './services/validationPipeline';
 import { URI } from 'vscode-uri';
 import { setLocale } from './utils/i18n';
+import {
+    detectClientCapabilities,
+    extractWorkspaceFolderPaths,
+    buildInitializeResult,
+    isMapFile,
+    classifyWatchedFileChanges,
+} from './serverHandlers';
 
 /** Response type for the ditacraft/validateFile custom request. */
 interface ValidateFileResult {
@@ -93,14 +99,9 @@ const workspaceIndex = new WorkspaceIndex();
 let unusedTopicPaths: Set<string> = new Set();
 
 connection.onInitialize((params: InitializeParams): InitializeResult => {
-    const capabilities = params.capabilities;
-
-    hasConfigurationCapability = !!(
-        capabilities.workspace && capabilities.workspace.configuration
-    );
-    hasWorkspaceFolderCapability = !!(
-        capabilities.workspace && capabilities.workspace.workspaceFolders
-    );
+    const clientCaps = detectClientCapabilities(params);
+    hasConfigurationCapability = clientCaps.hasConfigurationCapability;
+    hasWorkspaceFolderCapability = clientCaps.hasWorkspaceFolderCapability;
 
     // Set locale from client for localized diagnostic messages
     setLocale(params.locale);
@@ -108,8 +109,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
     initSettings(connection, hasConfigurationCapability);
 
     // Create key space service for key resolution
-    const workspaceFolders = (params.workspaceFolders ?? [])
-        .map((folder: WorkspaceFolder) => URI.parse(folder.uri).fsPath);
+    const workspaceFolders = extractWorkspaceFolderPaths(params);
 
     keySpaceService = new KeySpaceService(
         workspaceFolders,
@@ -146,43 +146,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
         connection.console.log(`RNG validation not available: ${rngValidationService.error}`);
     }
 
-    const result: InitializeResult = {
-        capabilities: {
-            textDocumentSync: TextDocumentSyncKind.Incremental,
-            diagnosticProvider: {
-                interFileDependencies: false,
-                workspaceDiagnostics: false,
-            },
-            completionProvider: {
-                resolveProvider: false,
-                triggerCharacters: ['<', ' ', '"', '=', '/', '#'],
-            },
-            hoverProvider: true,
-            documentSymbolProvider: true,
-            workspaceSymbolProvider: true,
-            definitionProvider: true,
-            referencesProvider: true,
-            documentFormattingProvider: true,
-            documentRangeFormattingProvider: true,
-            codeActionProvider: true,
-            renameProvider: {
-                prepareProvider: true,
-            },
-            foldingRangeProvider: true,
-            documentLinkProvider: {
-                resolveProvider: true,
-            },
-            linkedEditingRangeProvider: true,
-        },
-    };
-
-    if (hasWorkspaceFolderCapability) {
-        result.capabilities.workspace = {
-            workspaceFolders: {
-                supported: true,
-            },
-        };
-    }
+    const result = buildInitializeResult(hasWorkspaceFolderCapability);
 
     connection.console.log('DITA Language Server initialized');
     return result;
@@ -289,41 +253,35 @@ connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, t
 
 // File watcher — invalidate key space cache on map changes
 connection.onDidChangeWatchedFiles(async (params: DidChangeWatchedFilesParams) => {
-    let mapChanged = false;
-    let ditaFileChanged = false;
-    for (const change of params.changes) {
-        const filePath = URI.parse(change.uri).fsPath;
-        if (filePath.endsWith('.ditamap') || filePath.endsWith('.bookmap')) {
-            keySpaceService?.invalidateForFile(filePath);
-            subjectSchemeService.invalidate(filePath);
-            mapChanged = true;
-        }
-        if (filePath.endsWith('.dita') || filePath.endsWith('.ditamap') || filePath.endsWith('.bookmap')) {
-            ditaFileChanged = true;
+    const classification = classifyWatchedFileChanges(params);
+
+    for (const change of classification.changes) {
+        if (change.isMap) {
+            keySpaceService?.invalidateForFile(change.fsPath);
+            subjectSchemeService.invalidate(change.fsPath);
         }
     }
     // Incrementally update workspace index for changed .dita files
-    if (ditaFileChanged && workspaceIndex.initialized) {
-        for (const change of params.changes) {
-            const fp = URI.parse(change.uri).fsPath;
-            if (!fp.endsWith('.dita')) continue;
+    if (classification.ditaFileChanged && workspaceIndex.initialized) {
+        for (const change of classification.changes) {
+            if (!change.fsPath.endsWith('.dita')) continue;
             if (change.type === 3 /* Deleted */) {
-                workspaceIndex.removeFile(fp);
+                workspaceIndex.removeFile(change.fsPath);
             } else {
                 // Created (1) or Changed (2) — re-index
-                await workspaceIndex.updateFile(fp);
+                await workspaceIndex.updateFile(change.fsPath);
             }
         }
         // Unused topics must be fully rebuilt when maps or topics change
         unusedTopicPaths = new Set();
     }
     // Invalidate save-dependent phases for changed files
-    for (const change of params.changes) {
+    for (const change of classification.changes) {
         validationPipeline.invalidateForFileSave(change.uri);
     }
     // When external map files change, revalidate all open documents
     // (key space and cross-references may have changed)
-    if (mapChanged) {
+    if (classification.mapChanged) {
         validationPipeline.invalidateForMapChange();
         debouncedRefresh('__map_external__', MAP_DEBOUNCE_MS);
     }
@@ -440,10 +398,6 @@ connection.languages.onLinkedEditingRange((params: LinkedEditingRangeParams) => 
 const TOPIC_DEBOUNCE_MS = 300;
 const MAP_DEBOUNCE_MS = 1000;
 const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
-
-function isMapFile(uri: string): boolean {
-    return uri.endsWith('.ditamap') || uri.endsWith('.bookmap');
-}
 
 /**
  * Debounced diagnostics refresh, keyed by document URI.
