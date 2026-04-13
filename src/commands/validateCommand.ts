@@ -8,9 +8,9 @@
  * Since v0.7.0, manual validation uses the same pipeline as real-time
  * auto-validation — no more separate client-side engines.
  *
- * Graceful fallback: if the LSP server is unavailable, a minimal XML
- * well-formedness check runs client-side so the user isn't left with
- * no feedback at all.
+ * If the LSP server is unavailable, a warning is shown and the command
+ * completes without diagnostics (real-time auto-validation resumes once
+ * the server reconnects).
  */
 
 import * as vscode from 'vscode';
@@ -172,6 +172,13 @@ async function validateViaLsp(
                 return diag;
             });
             manualDiagnostics.set(fileUri, vsDiags);
+
+            // The manual collection is a short-lived bridge so getDiagnostics()
+            // returns results immediately (needed by test polling). The pull-
+            // diagnostic collection already covers the same file, so clear the
+            // manual entries after a short delay to avoid permanent duplicates.
+            const targetUri = fileUri;
+            setTimeout(() => manualDiagnostics?.delete(targetUri), 1500);
         }
 
         return result;
