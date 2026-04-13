@@ -193,4 +193,19 @@ suite('handleRangeFormatting', () => {
             );
         }
     });
+
+    test('returns full-document edit when line count changes', () => {
+        // Single-line input → multi-line formatted output
+        const input = '<topic><body><p>Hello</p></body></topic>';
+        const edits = rangeFormat(input, Range.create(0, 0, 0, input.length));
+
+        // Must not lose content — should contain all elements
+        assert.ok(edits.length > 0, 'Should produce edits');
+        const combined = edits.map(e => e.newText).join('');
+        assert.ok(combined.includes('<topic>'), 'Must contain <topic>');
+        assert.ok(combined.includes('<body>'), 'Must contain <body>');
+        assert.ok(combined.includes('<p>Hello</p>'), 'Must contain <p>Hello</p>');
+        assert.ok(combined.includes('</body>'), 'Must contain </body>');
+        assert.ok(combined.includes('</topic>'), 'Must contain </topic>');
+    });
 });

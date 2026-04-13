@@ -62,6 +62,11 @@ export function handleFormatting(
 /**
  * Handle range formatting request.
  * Formats only the requested range per LSP spec §textDocument/rangeFormatting.
+ *
+ * When formatting preserves line count (indentation-only changes), edits are
+ * filtered to the requested range. When line count changes (structural reflow),
+ * a full-document edit is returned because per-line diffs cannot be safely
+ * mapped between the original and reformatted text.
  */
 export function handleRangeFormatting(
     params: DocumentRangeFormattingParams,
@@ -75,60 +80,42 @@ export function handleRangeFormatting(
 
     if (formatted === text) return [];
 
-    // Compute per-line diffs and return only those overlapping the requested range.
-    const requestedRange = params.range;
     const originalLines = text.split(/\r?\n/);
     const formattedLines = formatted.split(/\r?\n/);
 
+    // Ignore trailing empty-line difference (formatXML may add/remove a
+    // trailing newline without changing the document structure).
+    let origLen = originalLines.length;
+    let fmtLen = formattedLines.length;
+    while (origLen > 0 && originalLines[origLen - 1] === '') origLen--;
+    while (fmtLen > 0 && formattedLines[fmtLen - 1] === '') fmtLen--;
+
+    // When formatting changes line count beyond trailing newlines, per-line
+    // correspondence is lost. Return a full-document replacement — this is
+    // safe and what many LSP formatters do.
+    if (origLen !== fmtLen) {
+        const lastLine = document.lineCount - 1;
+        const lastChar = document.getText(Range.create(lastLine, 0, lastLine + 1, 0)).length;
+        return [{
+            range: Range.create(0, 0, lastLine, lastChar),
+            newText: formatted,
+        }];
+    }
+
+    // Line counts match — safe to do per-line diff filtered to the range.
+    const requestedRange = params.range;
     const edits: TextEdit[] = [];
-    const maxLine = Math.max(originalLines.length, formattedLines.length);
 
-    for (let i = 0; i < maxLine; i++) {
-        const origLine = i < originalLines.length ? originalLines[i] : undefined;
-        const fmtLine = i < formattedLines.length ? formattedLines[i] : undefined;
+    for (let i = 0; i < originalLines.length; i++) {
+        if (originalLines[i] === formattedLines[i]) continue;
 
-        if (origLine === fmtLine) continue;
-
-        // This line differs — check overlap with requested range.
         if (i > requestedRange.end.line) break;
         if (i < requestedRange.start.line) continue;
 
-        if (origLine !== undefined && fmtLine !== undefined) {
-            // Replace line
-            edits.push({
-                range: Range.create(i, 0, i, origLine.length),
-                newText: fmtLine,
-            });
-        } else if (origLine === undefined && fmtLine !== undefined) {
-            // Line added (formatted is longer)
-            edits.push({
-                range: Range.create(i, 0, i, 0),
-                newText: fmtLine + '\n',
-            });
-        } else if (origLine !== undefined && fmtLine === undefined) {
-            // Line removed (formatted is shorter)
-            const endLine = i + 1 < originalLines.length ? i + 1 : i;
-            const endChar = i + 1 < originalLines.length ? 0 : origLine.length;
-            edits.push({
-                range: Range.create(i, 0, endLine, endChar),
-                newText: '',
-            });
-        }
-    }
-
-    // If per-line diffing didn't produce edits (e.g., structural reflow across
-    // lines), fall back to a replacement scoped to the requested range.
-    if (edits.length === 0 && formatted !== text) {
-        const startOffset = document.offsetAt(requestedRange.start);
-        const endOffset = document.offsetAt(requestedRange.end);
-        const rangeText = text.substring(startOffset, endOffset);
-        const rangeFormatted = formatted.substring(startOffset, Math.min(endOffset, formatted.length));
-        if (rangeText !== rangeFormatted) {
-            return [{
-                range: requestedRange,
-                newText: rangeFormatted,
-            }];
-        }
+        edits.push({
+            range: Range.create(i, 0, i, originalLines[i].length),
+            newText: formattedLines[i],
+        });
     }
 
     return edits;

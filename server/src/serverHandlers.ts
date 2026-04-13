@@ -13,6 +13,18 @@ import {
 } from 'vscode-languageserver/node';
 
 import { URI } from 'vscode-uri';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+/** Server version read from package.json at module load time. */
+const SERVER_VERSION: string = (() => {
+    try {
+        const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
+        return pkg.version ?? '0.0.0';
+    } catch {
+        return '0.0.0';
+    }
+})();
 
 // ── Initialization ──────────────────────────────────────────────
 
@@ -81,7 +93,7 @@ export function buildInitializeResult(hasWorkspaceFolderCapability: boolean): In
         },
         serverInfo: {
             name: 'DitaCraft DITA Language Server',
-            version: '0.7.2',
+            version: SERVER_VERSION,
         },
     };
 
