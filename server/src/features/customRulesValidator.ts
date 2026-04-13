@@ -99,6 +99,20 @@ function loadRules(filePath: string): CompiledRule[] {
 
     const resolved = path.resolve(filePath);
 
+    // Defense-in-depth: only allow .json files and reject suspicious paths
+    if (path.extname(resolved).toLowerCase() !== '.json') {
+        console.warn(`[custom-rules] Rejected rules file — must have .json extension: "${resolved}"`);
+        cachedFilePath = null;
+        cachedRules = [];
+        return [];
+    }
+    if (resolved.includes('\0')) {
+        console.warn('[custom-rules] Rejected rules file — path contains null bytes');
+        cachedFilePath = null;
+        cachedRules = [];
+        return [];
+    }
+
     // Check mtime for cache validity
     let stat: fs.Stats;
     try {

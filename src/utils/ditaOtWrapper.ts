@@ -88,16 +88,22 @@ export class DitaOtWrapper {
             outputDir = workspaceFolder ? path.join(workspaceFolder, 'out') : './out';
         }
 
-        // Validate DITA-OT path
-        const ditaOtPath = configManager.get('ditaOtPath');
-        if (ditaOtPath && !this.isValidPath(ditaOtPath)) {
-            logger.warn('Invalid DITA-OT path in configuration');
-        }
-
         // Validate transtype
         const defaultTranstype = configManager.get('defaultTranstype');
         const validTranstypes = ['html5', 'pdf', 'xhtml', 'epub', 'htmlhelp', 'markdown'];
         const safeTranstype = validTranstypes.includes(defaultTranstype) ? defaultTranstype : 'html5';
+
+        // Validate DITA-OT path
+        const ditaOtPath = configManager.get('ditaOtPath');
+        if (ditaOtPath && !this.isValidPath(ditaOtPath)) {
+            logger.warn('Invalid DITA-OT path rejected — contains unsafe characters');
+            return {
+                ditaOtPath: '',
+                defaultTranstype: safeTranstype,
+                outputDirectory: outputDir,
+                additionalArgs: configManager.get('ditaOtArgs')
+            };
+        }
 
         return {
             ditaOtPath: ditaOtPath,
@@ -117,19 +123,24 @@ export class DitaOtWrapper {
     }
 
     /**
-     * Validate that a path doesn't contain dangerous characters
+     * Validate that a path is safe for use as DITA-OT installation or output directory.
+     * Rejects null bytes, shell metacharacters, and non-absolute paths.
      */
     private isValidPath(pathStr: string): boolean {
-        // Check for null bytes (security risk)
+        // Check for null bytes
         if (pathStr.includes('\0')) {
             return false;
         }
 
-        // Check for reserved characters that could cause issues
-        const invalidChars = /[<>:"|?*]/;
-        if (process.platform === 'win32' && invalidChars.test(pathStr)) {
-            // On Windows, these characters are invalid in paths
-            // But we allow : for drive letters (e.g., C:\)
+        // Reject shell metacharacters on all platforms
+        // These could be dangerous in cmd.exe /c or if paths are ever logged/interpolated
+        // eslint-disable-next-line no-control-regex
+        if (/[`$|;&<>(){}!\x00-\x1f]/.test(pathStr)) {
+            return false;
+        }
+
+        // Platform-specific invalid characters
+        if (process.platform === 'win32') {
             const withoutDrive = pathStr.replace(/^[a-zA-Z]:/, '');
             if (/[<>"|?*]/.test(withoutDrive)) {
                 return false;

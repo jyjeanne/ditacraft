@@ -294,4 +294,30 @@ suite('Custom Rules Validator', () => {
             assert.ok(diags.length <= 10_001, `match count should be capped, got ${diags.length}`);
         });
     });
+
+    suite('Path Security', () => {
+        test('rejects rules file without .json extension', () => {
+            // Write a valid rules file but with wrong extension
+            const rulesPath = path.join(tmpDir, 'rules.txt');
+            fs.writeFileSync(rulesPath, JSON.stringify({ rules: [{ id: 'X-001', pattern: 'foo', severity: 'warning', message: 'msg' }] }));
+            const diags = validateCustomRules('<topic id="t"><title>foo</title><body><p>foo</p></body></topic>', '/test.dita', rulesPath, 100);
+            assert.strictEqual(diags.length, 0, 'should reject non-.json file');
+        });
+
+        test('rejects path with null bytes', () => {
+            const diags = validateCustomRules('<topic id="t"><title>T</title></topic>', '/test.dita', '/tmp/rules\0.json', 100);
+            assert.strictEqual(diags.length, 0, 'should reject null-byte path');
+        });
+
+        test('accepts valid .json rules file', () => {
+            const rulesFile = writeRulesFile([{
+                id: 'SEC-001',
+                pattern: 'testword',
+                severity: 'warning',
+                message: 'found it',
+            }]);
+            const diags = validateCustomRules('<topic id="t"><title>testword</title><body><p>ok</p></body></topic>', '/test.dita', rulesFile, 100);
+            assert.ok(diags.length > 0, 'should accept valid .json rules file');
+        });
+    });
 });
