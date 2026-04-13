@@ -146,7 +146,7 @@
     <xsl:attribute name="end-indent">6pt + from-parent(end-indent)</xsl:attribute>
     <xsl:attribute name="wrap-option">wrap</xsl:attribute>
     <xsl:attribute name="white-space-collapse">false</xsl:attribute>
-    <xsl:attribute name="linefeed-treatment">preserve</xsl:parameter>
+    <xsl:attribute name="linefeed-treatment">preserve</xsl:attribute>
     <xsl:attribute name="white-space-treatment">preserve</xsl:attribute>
     <xsl:attribute name="keep-with-previous.within-page">always</xsl:attribute>
     <xsl:attribute name="space-before">10pt</xsl:attribute>
@@ -154,7 +154,6 @@
     <xsl:attribute name="border-style">solid</xsl:attribute>
     <xsl:attribute name="border-width">0.5pt</xsl:attribute>
     <xsl:attribute name="border-color">#334155</xsl:attribute>
-    <xsl:attribute name="border-radius">4pt</xsl:attribute>
   </xsl:attribute-set>
 
   <!-- Pre: same treatment as codeblock but lighter background -->

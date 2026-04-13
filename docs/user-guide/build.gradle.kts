@@ -137,7 +137,10 @@ val html by tasks.registering {
             "--processing-mode=lax",
             "-Dnav-toc=partial",
             "-Dargs.gen.task.lbl=YES",
-            "-Dargs.copycss=yes"
+            "-Dargs.css=custom.css",
+            "-Dargs.cssroot=${file("css").absolutePath}",
+            "-Dargs.copycss=yes",
+            "-Dargs.hdr=${file("cfg/html/header.xml").absolutePath}"
         )
     }
 }
