@@ -11,7 +11,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 
 import {
     DITA_ELEMENTS,
@@ -392,15 +392,19 @@ async function getKeyrefCompletions(
         // "keyname/elementId" — complete element IDs in the key's target
         const keyName = currentValue.substring(0, currentValue.indexOf('/'));
         const keyDef = await keySpaceService.resolveKey(keyName, filePath);
-        if (keyDef?.targetFile && fs.existsSync(keyDef.targetFile)) {
-            const targetContent = fs.readFileSync(keyDef.targetFile, 'utf-8');
-            const elementIds = extractAllIds(targetContent);
-            return elementIds.map((id, index) => ({
-                label: id,
-                kind: CompletionItemKind.Reference,
-                detail: `Element ID in ${path.basename(keyDef.targetFile!)}`,
-                sortText: String(index).padStart(4, '0'),
-            }));
+        if (keyDef?.targetFile) {
+            try {
+                const targetContent = await fs.readFile(keyDef.targetFile, 'utf-8');
+                const elementIds = extractAllIds(targetContent);
+                return elementIds.map((id, index) => ({
+                    label: id,
+                    kind: CompletionItemKind.Reference,
+                    detail: `Element ID in ${path.basename(keyDef.targetFile!)}`,
+                    sortText: String(index).padStart(4, '0'),
+                }));
+            } catch {
+                return [];
+            }
         }
         return [];
     }
@@ -454,10 +458,10 @@ async function getKeyrefCompletions(
  * - "#topicid/" → complete element IDs in current file
  *
  */
-function getHrefFragmentCompletions(
+async function getHrefFragmentCompletions(
     ctx: CompletionContext,
     documentUri: string
-): CompletionItem[] {
+): Promise<CompletionItem[]> {
     const currentValue = ctx.prefix;
     const hashPos = currentValue.indexOf('#');
     const filePart = currentValue.substring(0, hashPos);
@@ -469,13 +473,9 @@ function getHrefFragmentCompletions(
         ? path.resolve(currentDir, filePart)
         : currentFilePath; // same-file reference
 
-    if (!fs.existsSync(targetPath)) {
-        return [];
-    }
-
     let targetContent: string;
     try {
-        targetContent = fs.readFileSync(targetPath, 'utf-8');
+        targetContent = await fs.readFile(targetPath, 'utf-8');
     } catch {
         return [];
     }
@@ -504,16 +504,19 @@ function getHrefFragmentCompletions(
     }));
 }
 
+/** Maximum directory entries returned for href file completions. */
+const MAX_DIR_ENTRIES = 200;
+
 /**
  * Complete file paths for href/conref attributes.
  * Lists .dita, .ditamap, .xml files (and subdirectories) relative to the current document.
  * Supports partial path input (e.g., "topics/" lists files in the topics/ subdirectory).
  *
  */
-function getHrefFileCompletions(
+async function getHrefFileCompletions(
     ctx: CompletionContext,
     documentUri: string
-): CompletionItem[] {
+): Promise<CompletionItem[]> {
     const currentFilePath = uriToPath(documentUri);
     const currentDir = path.dirname(currentFilePath);
     const currentValue = ctx.prefix;
@@ -531,9 +534,9 @@ function getHrefFileCompletions(
         searchDir = currentDir;
     }
 
-    let entries: fs.Dirent[];
+    let entries: import('fs').Dirent[];
     try {
-        entries = fs.readdirSync(searchDir, { withFileTypes: true });
+        entries = await fs.readdir(searchDir, { withFileTypes: true });
     } catch {
         return [];
     }
@@ -542,6 +545,8 @@ function getHrefFileCompletions(
     let index = 0;
 
     for (const entry of entries) {
+        if (index >= MAX_DIR_ENTRIES) break;
+
         const name = entry.name;
 
         // Skip hidden files/dirs
