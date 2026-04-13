@@ -5,7 +5,7 @@
  * the full 11-phase validation pipeline (XML, structure, content model,
  * DTD/RNG, cross-refs, profiling, DITA rules, circular refs, workspace).
  *
- * Since v0.8.0, manual validation uses the same pipeline as real-time
+ * Since v0.7.0, manual validation uses the same pipeline as real-time
  * auto-validation — no more separate client-side engines.
  *
  * Graceful fallback: if the LSP server is unavailable, a minimal XML
@@ -63,6 +63,17 @@ export function initializeValidator(context: vscode.ExtensionContext): void {
     // command resolves, without depending on the async push/pull LSP round-trip.
     manualDiagnostics = vscode.languages.createDiagnosticCollection('ditacraft-manual');
     context.subscriptions.push(manualDiagnostics);
+
+    // Clear stale manual diagnostics when a file is saved (auto-validation via
+    // the LSP pull-diagnostics path takes over) or when a document is closed.
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(doc => {
+            manualDiagnostics?.delete(doc.uri);
+        }),
+        vscode.workspace.onDidCloseTextDocument(doc => {
+            manualDiagnostics?.delete(doc.uri);
+        }),
+    );
 }
 
 /**

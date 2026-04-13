@@ -231,9 +231,9 @@ connection.onExecuteCommand(async (params) => {
 
 // Custom request: ditacraft/validateFile
 // Used by the manual validate command (Ctrl+Shift+V) to run the full pipeline
-// and return a summary. Diagnostics are pushed directly for immediate VS Code
-// update, so the test harness and the Problems panel don't depend on the async
-// pull-diagnostics round-trip.
+// and return a summary with the full diagnostics list. The client applies
+// diagnostics directly from the response into a dedicated DiagnosticCollection,
+// so getDiagnostics() returns results immediately without relying on push/pull.
 connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, token): Promise<ValidateFileResult> => {
     // Try the already-synced document; fall back to reading from disk when the
     // language client hasn't completed textDocument/didOpen yet (race condition).
@@ -257,12 +257,12 @@ connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, t
         token,
     );
 
-    // Push diagnostics via the standard notification so the Problems panel
-    // updates immediately. The full diagnostics list is also returned in the
-    // response for direct client-side application (avoids pull-timing races).
-    // Do NOT call diagnostics.refresh() here — that would trigger a redundant
-    // third validation run, creating duplicate entries in the Problems panel.
-    connection.sendDiagnostics({ uri: params.uri, diagnostics });
+    // Do NOT call connection.sendDiagnostics() or diagnostics.refresh() here.
+    // The client applies diagnostics directly from the response into its own
+    // 'ditacraft-manual' DiagnosticCollection for immediate getDiagnostics()
+    // visibility. Pushing via sendDiagnostics would create a SECOND set in the
+    // LSP collection, duplicating every entry in the Problems panel.
+    // Auto-validation (on open/change) still uses the pull-diagnostics path.
 
     return {
         summary: ValidationPipeline.summarize(diagnostics),
