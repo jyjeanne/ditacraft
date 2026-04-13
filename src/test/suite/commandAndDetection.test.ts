@@ -8,6 +8,19 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { getValidationRateLimiter, resetValidationRateLimiter } from '../../commands';
 
+/** Poll for error diagnostics up to `timeout` ms (default 3000). */
+async function waitForErrors(uri: vscode.Uri, timeout = 3000): Promise<vscode.Diagnostic[]> {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+        const errors = vscode.languages.getDiagnostics(uri)
+            .filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+        if (errors.length > 0) return errors;
+        await new Promise(r => setTimeout(r, 100));
+    }
+    return vscode.languages.getDiagnostics(uri)
+        .filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+}
+
 suite('Command and Auto-Detection Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
 
@@ -59,7 +72,7 @@ suite('Command and Auto-Detection Test Suite', () => {
         });
 
         test('Should execute validation command on invalid file', async function() {
-            this.timeout(5000);
+            this.timeout(8000);
 
             const fileUri = vscode.Uri.file(path.join(fixturesPath, 'invalid-xml.dita'));
             const document = await vscode.workspace.openTextDocument(fileUri);
@@ -68,12 +81,8 @@ suite('Command and Auto-Detection Test Suite', () => {
             // Execute validation command
             await vscode.commands.executeCommand('ditacraft.validate');
 
-            // Wait for validation to complete
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Check diagnostics
-            const diagnostics = vscode.languages.getDiagnostics(fileUri);
-            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+            // Poll for diagnostics — pull-diagnostic refresh is async on Windows CI
+            const errors = await waitForErrors(fileUri, 3000);
 
             assert.ok(errors.length > 0, 'Invalid file should have errors after manual validation');
         });

@@ -9,6 +9,19 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { initializeValidator } from '../../commands/validateCommand';
 
+/** Poll for error diagnostics up to `timeout` ms (default 3000). */
+async function waitForErrors(uri: vscode.Uri, timeout = 3000): Promise<vscode.Diagnostic[]> {
+    const deadline = Date.now() + timeout;
+    while (Date.now() < deadline) {
+        const errors = vscode.languages.getDiagnostics(uri)
+            .filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+        if (errors.length > 0) return errors;
+        await new Promise(r => setTimeout(r, 100));
+    }
+    return vscode.languages.getDiagnostics(uri)
+        .filter(d => d.severity === vscode.DiagnosticSeverity.Error);
+}
+
 suite('Real-time Validation Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
     let tempFile: string;
@@ -138,7 +151,7 @@ suite('Real-time Validation Test Suite', () => {
         });
 
         test('Should still detect errors via manual validation after save', async function() {
-            this.timeout(5000);
+            this.timeout(8000);
 
             // Create a file with an error
             const invalidContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -159,12 +172,11 @@ suite('Real-time Validation Test Suite', () => {
 
             // Manual validate should still detect errors
             await vscode.commands.executeCommand('ditacraft.validate', fileUri);
-            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            const diagnostics = vscode.languages.getDiagnostics(fileUri);
-            console.log('Diagnostics after manual validate:', diagnostics.length);
+            // Poll for diagnostics — pull-diagnostic refresh is async on Windows CI
+            const errors = await waitForErrors(fileUri, 3000);
+            console.log('Diagnostics after manual validate:', errors.length);
 
-            const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
             assert.ok(errors.length > 0, 'Manual validation should detect errors in invalid content');
         });
     });
