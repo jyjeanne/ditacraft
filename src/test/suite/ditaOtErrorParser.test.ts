@@ -267,4 +267,75 @@ ERROR: Another real error`;
             assert.strictEqual(result.infos[0].severity, 'info');
         });
     });
+
+    suite('Modern DITA-OT format ([SEVERITY] [CODE])', () => {
+
+        test('Should parse modern error format with severity first', () => {
+            const output = '[ERROR] [DOTJ013E] Failed to parse the referenced resource "topic.dita".';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'DOTJ013E');
+            assert.strictEqual(result.errors[0].severity, 'error');
+            assert.ok(result.errors[0].message.includes('Failed to parse'));
+        });
+
+        test('Should parse modern warning format with severity first', () => {
+            const output = '[WARN] [DOTJ007W] Duplicate condition in filter file for rule "audience:expert".';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.warnings.length, 1);
+            assert.strictEqual(result.warnings[0].code, 'DOTJ007W');
+            assert.strictEqual(result.warnings[0].severity, 'warning');
+        });
+
+        test('Should parse modern info format with severity first', () => {
+            const output = '[INFO] [DOTJ045I] The key "product-name" is defined more than once.';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.infos.length, 1);
+            assert.strictEqual(result.infos[0].code, 'DOTJ045I');
+            assert.strictEqual(result.infos[0].severity, 'info');
+        });
+
+        test('Should parse modern FATAL as error', () => {
+            const output = '[ERROR] [DOTJ012F] Failed to parse the input resource "bad.dita".';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'DOTJ012F');
+            assert.strictEqual(result.errors[0].severity, 'error');
+        });
+
+        test('Should parse modern DOTA codes', () => {
+            const output = '[ERROR] [DOTA069F] The input resource cannot be located or read.';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'DOTA069F');
+        });
+
+        test('Should parse mixed modern and legacy formats in same output', () => {
+            const output = `[ERROR] [DOTJ013E] Modern format error
+[DOTX050W][WARN] Legacy format warning
+[WARN] [DOTJ049W] Modern format warning`;
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'DOTJ013E');
+            assert.strictEqual(result.warnings.length, 2);
+            assert.strictEqual(result.warnings[0].code, 'DOTX050W');
+            assert.strictEqual(result.warnings[1].code, 'DOTJ049W');
+        });
+
+        test('Should extract error code in modern format with file reference', () => {
+            const output = '[ERROR] [DOTJ013E] Failed to parse referenced resource at topic.dita:15:4';
+            const result = parseDitaOtOutput(output);
+
+            assert.strictEqual(result.errors.length, 1);
+            assert.strictEqual(result.errors[0].code, 'DOTJ013E');
+            assert.strictEqual(result.errors[0].line, 15);
+            assert.strictEqual(result.errors[0].column, 4);
+        });
+    });
 });

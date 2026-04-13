@@ -55,21 +55,46 @@ const ERROR_CODE_PATTERN = /\[(?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI]\]/;
  * Patterns for extracting file paths and line numbers from DITA-OT output
  */
 const ERROR_PATTERNS = [
+    // ── Modern DITA-OT format: [SEVERITY] [CODE] message ─────
+    // DITA-OT 3.x/4.x outputs severity BEFORE the error code.
+
+    // Pattern: [ERROR] [DOTX001E] message at file:line:column
+    {
+        regex: /\[(ERROR|WARN|WARNING|INFO|FATAL)\]\s*\[((?:DOT[A-Z]|DOTA|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*(.+?)\s+at\s+(.+?):(\d+)(?::(\d+))?/i,
+        groups: { severity: 1, code: 2, message: 3, file: 4, line: 5, column: 6 }
+    },
+    // Pattern: [ERROR] [DOTX001E] File "path" message
+    {
+        regex: /\[(ERROR|WARN|WARNING|INFO|FATAL)\]\s*\[((?:DOT[A-Z]|DOTA|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*(?:File\s+)?["']?([^"'\n]+?\.(dita|ditamap|xml|ditaval))["']?\s*[:-]?\s*(.+)/i,
+        groups: { severity: 1, code: 2, file: 3, message: 5 }
+    },
+    // Pattern: [ERROR] [DOTX001E] message (no file)
+    {
+        regex: /\[(ERROR|WARN|WARNING|INFO|FATAL)\]\s*\[((?:DOT[A-Z]|DOTA|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*(.+)/i,
+        groups: { severity: 1, code: 2, message: 3 }
+    },
+
+    // ── Legacy format: [CODE][SEVERITY] message ──────────────
+    // Older DITA-OT versions and some plugins output code first.
+
     // Pattern: [DOTX001E][ERROR] message at file:line:column
     {
-        regex: /\[((?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(.+?)\s+at\s+(.+?):(\d+)(?::(\d+))?/i,
+        regex: /\[((?:DOT[A-Z]|DOTA|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|WARNING|INFO|FATAL)\]\s*(.+?)\s+at\s+(.+?):(\d+)(?::(\d+))?/i,
         groups: { code: 1, severity: 2, message: 3, file: 4, line: 5, column: 6 }
     },
     // Pattern: [DOTX001E][ERROR] File "path" message
     {
-        regex: /\[((?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(?:File\s+)?["']?([^"'\n]+?\.(dita|ditamap|xml|ditaval))["']?\s*[:-]?\s*(.+)/i,
+        regex: /\[((?:DOT[A-Z]|DOTA|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|WARNING|INFO|FATAL)\]\s*(?:File\s+)?["']?([^"'\n]+?\.(dita|ditamap|xml|ditaval))["']?\s*[:-]?\s*(.+)/i,
         groups: { code: 1, severity: 2, file: 3, message: 5 }
     },
     // Pattern: [DOTX001E][ERROR] message (no file)
     {
-        regex: /\[((?:DOT[A-Z]|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|INFO|FATAL)\]\s*(.+)/i,
+        regex: /\[((?:DOT[A-Z]|DOTA|PDFJ|PDFX|INDX|XEPJ)\d{3}[EWFI])\]\s*\[(ERROR|WARN|WARNING|INFO|FATAL)\]\s*(.+)/i,
         groups: { code: 1, severity: 2, message: 3 }
     },
+
+    // ── Generic fallback patterns (no DITA-OT code) ─────────
+
     // Pattern: Error at line X, column Y: message (common XML parser format)
     {
         regex: /(?:Error|Warning)\s+at\s+line\s+(\d+)(?:,?\s*column\s+(\d+))?[:\s]+(.+)/i,
