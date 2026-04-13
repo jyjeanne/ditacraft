@@ -138,16 +138,23 @@
     <xsl:attribute name="line-height">13pt</xsl:attribute>
     <xsl:attribute name="background-color">#1e293b</xsl:attribute>
     <xsl:attribute name="color">#e2e8f0</xsl:attribute>
-    <xsl:attribute name="padding">10pt</xsl:attribute>
+    <xsl:attribute name="padding-start">10pt</xsl:attribute>
+    <xsl:attribute name="padding-end">10pt</xsl:attribute>
+    <xsl:attribute name="padding-top">10pt</xsl:attribute>
+    <xsl:attribute name="padding-bottom">10pt</xsl:attribute>
     <xsl:attribute name="start-indent">6pt + from-parent(start-indent)</xsl:attribute>
     <xsl:attribute name="end-indent">6pt + from-parent(end-indent)</xsl:attribute>
     <xsl:attribute name="wrap-option">wrap</xsl:attribute>
     <xsl:attribute name="white-space-collapse">false</xsl:attribute>
-    <xsl:attribute name="linefeed-treatment">preserve</xsl:attribute>
+    <xsl:attribute name="linefeed-treatment">preserve</xsl:parameter>
     <xsl:attribute name="white-space-treatment">preserve</xsl:attribute>
     <xsl:attribute name="keep-with-previous.within-page">always</xsl:attribute>
-    <xsl:attribute name="space-before">8pt</xsl:attribute>
-    <xsl:attribute name="space-after">8pt</xsl:attribute>
+    <xsl:attribute name="space-before">10pt</xsl:attribute>
+    <xsl:attribute name="space-after">10pt</xsl:attribute>
+    <xsl:attribute name="border-style">solid</xsl:attribute>
+    <xsl:attribute name="border-width">0.5pt</xsl:attribute>
+    <xsl:attribute name="border-color">#334155</xsl:attribute>
+    <xsl:attribute name="border-radius">4pt</xsl:attribute>
   </xsl:attribute-set>
 
   <!-- Pre: same treatment as codeblock but lighter background -->
@@ -171,22 +178,31 @@
 
   <!-- Table header cells: blue background, white text -->
   <xsl:attribute-set name="thead.row.entry">
-    <xsl:attribute name="background-color">#2563eb</xsl:attribute>
-    <xsl:attribute name="color">#ffffff</xsl:attribute>
+    <xsl:attribute name="background-color">#e0f2fe</xsl:attribute>
+    <xsl:attribute name="color">#1e3a5f</xsl:attribute>
     <xsl:attribute name="font-weight">bold</xsl:attribute>
-    <xsl:attribute name="padding">6pt</xsl:attribute>
+    <xsl:attribute name="padding">8pt</xsl:attribute>
+    <xsl:attribute name="border-style">solid</xsl:attribute>
+    <xsl:attribute name="border-width">1.5pt</xsl:attribute>
+    <xsl:attribute name="border-color">#2563eb</xsl:attribute>
   </xsl:attribute-set>
 
-  <!-- Table body cells: proper padding -->
+  <!-- Table body cells: proper padding, subtle striping -->
   <xsl:attribute-set name="tbody.row.entry">
-    <xsl:attribute name="padding">5pt</xsl:attribute>
+    <xsl:attribute name="padding">6pt</xsl:attribute>
+    <xsl:attribute name="border-style">solid</xsl:attribute>
+    <xsl:attribute name="border-width">0.5pt</xsl:attribute>
+    <xsl:attribute name="border-color">#e2e8f0</xsl:attribute>
   </xsl:attribute-set>
 
   <!-- Alternating row colors handled via XSL template (see custom.xsl) -->
   <xsl:attribute-set name="table" use-attribute-sets="base-font">
-    <xsl:attribute name="space-after">12pt</xsl:attribute>
+    <xsl:attribute name="space-after">14pt</xsl:attribute>
     <xsl:attribute name="start-indent">0pt</xsl:attribute>
     <xsl:attribute name="font-size">10pt</xsl:attribute>
+    <xsl:attribute name="border-style">solid</xsl:attribute>
+    <xsl:attribute name="border-width">0.5pt</xsl:attribute>
+    <xsl:attribute name="border-color">#e2e8f0</xsl:attribute>
   </xsl:attribute-set>
 
   <!-- Simple table styling -->

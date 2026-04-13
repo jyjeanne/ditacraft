@@ -101,6 +101,8 @@ pre, .codeblock {
   overflow-x: auto;
   margin: 1.5rem 0;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  line-height: 1.6;
+  border: 1px solid #334155;
 }
 
 pre code, .codeblock code {
@@ -109,24 +111,53 @@ pre code, .codeblock code {
   padding: 0;
 }
 
+/* Code block language label */
+.codeblock[data-lang]::before {
+  content: attr(data-lang);
+  display: block;
+  background: #0f172a;
+  color: #94a3b8;
+  padding: 0.5rem 1.25rem;
+  margin: -1.25rem -1.25rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-bottom: 1px solid #334155;
+  border-radius: 8px 8px 0 0;
+  text-transform: uppercase;
+}
+
+/* Line numbers for code blocks (optional) */
+.codeblock .line-number {
+  display: inline-block;
+  width: 2em;
+  text-align: right;
+  color: #64748b;
+  padding-right: 1rem;
+  user-select: none;
+}
+
 /* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
   font-size: 0.95rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 th, td {
   padding: 0.75rem 1rem;
   text-align: left;
-  border: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 th {
-  background-color: var(--bg-secondary);
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   font-weight: 600;
   color: var(--text-color);
+  border-bottom: 2px solid var(--primary-color);
 }
 
 tr:nth-child(even) {
@@ -135,6 +166,11 @@ tr:nth-child(even) {
 
 tr:hover {
   background-color: #f1f5f9;
+  transition: background-color 0.15s ease;
+}
+
+table code, table .codeph {
+  font-size: 0.85rem;
 }
 
 /* Lists */
@@ -157,6 +193,8 @@ li > ul, li > ol {
   border-radius: 8px;
   margin: 1.5rem 0;
   border-left: 4px solid;
+  display: block;
+  position: relative;
 }
 
 .note {
@@ -164,9 +202,28 @@ li > ul, li > ol {
   border-color: var(--primary-color);
 }
 
+.note::before {
+  content: "ℹ";
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.2;
+}
+
 .tip {
   background-color: #f0fdf4;
   border-color: var(--success-color);
+}
+
+.tip::before {
+  content: "✓";
+  position: absolute;
+  right: 1rem;
+  top: 0.8rem;
+  font-size: 1.5rem;
+  opacity: 0.2;
+  color: var(--success-color);
 }
 
 .important {
@@ -174,14 +231,44 @@ li > ul, li > ol {
   border-color: var(--warning-color);
 }
 
+.important::before {
+  content: "⚠";
+  position: absolute;
+  right: 1rem;
+  top: 0.8rem;
+  font-size: 1.5rem;
+  opacity: 0.2;
+  color: var(--warning-color);
+}
+
 .warning, .caution {
   background-color: #fff7ed;
   border-color: #f97316;
 }
 
+.warning::before, .caution::before {
+  content: "⚠";
+  position: absolute;
+  right: 1rem;
+  top: 0.8rem;
+  font-size: 1.5rem;
+  opacity: 0.2;
+  color: #f97316;
+}
+
 .danger {
   background-color: #fef2f2;
   border-color: var(--error-color);
+}
+
+.danger::before {
+  content: "✕";
+  position: absolute;
+  right: 1rem;
+  top: 0.8rem;
+  font-size: 1.5rem;
+  opacity: 0.2;
+  color: var(--error-color);
 }
 
 .note .note__title, .tip .note__title,
@@ -190,6 +277,7 @@ li > ul, li > ol {
   font-weight: 600;
   margin-bottom: 0.5rem;
   display: block;
+  margin-right: 2rem;
 }
 
 /* Navigation */
