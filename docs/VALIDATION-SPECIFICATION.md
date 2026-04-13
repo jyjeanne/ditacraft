@@ -128,7 +128,7 @@ Document change (typing)
         └─> Smart debounce (300ms topic / 1000ms map)
               └─> connection.languages.diagnostics.refresh()
                     └─> Pull diagnostics handler
-                          └─> 6-layer pipeline
+                          └─> 12-phase pipeline
                                 └─> Return Diagnostic[]
                                       └─> VS Code Problems Panel
 ```
@@ -513,7 +513,7 @@ Full DTD/XSD validation but requires external installation. Superseded by TypesX
 
 **Status:** Not implemented for validation (used for publishing only)
 
-Too slow for real-time validation (2-10 seconds). Would provide the most comprehensive checks but the LSP 6-layer approach covers most use cases without external dependencies.
+Too slow for real-time validation (2-10 seconds). Would provide the most comprehensive checks but the LSP 12-phase approach covers most use cases without external dependencies.
 
 ### 7.4 TypesXML DTD Validation
 

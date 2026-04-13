@@ -64,7 +64,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
   - Builds and caches key space from map hierarchies
   - Resolves `@keyref`, `@conkeyref`, and key-based references
   - Handles submaps, nested maps, and complex key definitions
-  - 1-minute cache TTL with intelligent invalidation
+  - Tiered caching (1-minute root map discovery, 5-minute key space TTL) with intelligent invalidation
 - Navigate seamlessly between maps and topics in your documentation structure
 - **How to use:**
   1. Open a `.ditamap`, `.bookmap`, or `.dita` file
@@ -659,7 +659,7 @@ The current implementation provides comprehensive navigation support. Minor limi
 - ✅ `keyref="key-name"` - Key references resolved via key space
 - ✅ `conkeyref="key-name/element"` - Content key references
 - ✅ Automatic root map discovery and key space building
-- ✅ Intelligent caching with 1-minute TTL
+- ✅ Intelligent caching with tiered TTLs (1-minute root map, 5-minute key space)
 - ✅ File watcher debouncing (300ms) for performance
 
 ### Contributing

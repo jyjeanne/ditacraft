@@ -4,9 +4,9 @@
 
 DitaCraft is a VS Code extension providing a full-featured Language Server Protocol (LSP) implementation for DITA XML authoring. The server is written in TypeScript and runs as a Node.js process communicating with the VS Code client via IPC.
 
-**Version:** 0.6.2 | **Last Updated:** March 2026
+**Version:** 0.7.2 | **Last Updated:** April 2026
 
-**Stack:** TypeScript · vscode-languageserver 9.x · Node.js IPC transport · Mocha (TDD) · 461 tests
+**Stack:** TypeScript · vscode-languageserver 9.x · Node.js IPC transport · Mocha (TDD) · 703 tests
 
 ---
 
@@ -22,7 +22,7 @@ server/
 │   │   ├── validation.ts                #   XML well-formedness + DITA structure + ID checks
 │   │   ├── completion.ts                #   Element, attribute, value, keyref, href completions
 │   │   ├── hover.ts                     #   Element docs, key metadata, href resolution
-│   │   ├── codeActions.ts               #   Quick fixes for diagnostics
+│   │   ├── codeActions.ts               #   Quick fixes for diagnostics (12 code actions)
 │   │   ├── symbols.ts                   #   Document outline + workspace symbol search
 │   │   ├── definition.ts                #   Go-to-definition for href/conref/keyref
 │   │   ├── references.ts               #   Find all references to an ID
@@ -35,14 +35,18 @@ server/
 │   │   ├── ditaRulesValidator.ts       #   Schematron-equivalent DITA rules engine
 │   │   ├── profilingValidation.ts      #   Subject scheme controlled value validation
 │   │   ├── circularRefDetection.ts     #   Circular reference detection (DFS traversal)
-│   │   └── workspaceValidation.ts      #   Cross-file duplicate IDs + unused topics
+│   │   ├── workspaceValidation.ts      #   Cross-file duplicate IDs + unused topics
+│   │   ├── contentModelValidation.ts   #   XML content model validation
+│   │   └── customRulesValidator.ts     #   User-defined regex validation rules
 │   │
 │   ├── services/                        # Domain services with caching
-│   │   ├── validationPipeline.ts        #   10-phase validation orchestrator with error isolation
+│   │   ├── validationPipeline.ts        #   12-phase validation orchestrator with error isolation
 │   │   ├── keySpaceService.ts           #   DITA key space resolution (BFS map traversal)
 │   │   ├── subjectSchemeService.ts      #   Subject scheme parsing and value constraints
 │   │   ├── catalogValidationService.ts  #   TypesXML DTD + OASIS catalog
-│   │   └── rngValidationService.ts      #   salve-annos RelaxNG validation
+│   │   ├── rngValidationService.ts      #   salve-annos RelaxNG validation
+│   │   ├── suppressionEngine.ts         #   Comment-based rule suppression engine
+│   │   └── interfaces.ts               #   Shared service interfaces
 │   │
 │   ├── utils/                           # Shared utilities
 │   │   ├── xmlTokenizer.ts              #   Error-tolerant state-machine XML tokenizer
@@ -51,7 +55,9 @@ server/
 │   │   ├── ditaVersionDetector.ts       #   Detect DITA version from content
 │   │   ├── textUtils.ts                 #   Shared: comment stripping, offsetToRange, escapeRegex
 │   │   ├── patterns.ts                  #   Shared: TAG_ATTRS regex pattern
-│   │   └── i18n.ts                      #   Localization (80+ messages, EN+FR)
+│   │   ├── i18n.ts                      #   Localization (80+ messages, EN+FR)
+│   │   ├── diagnosticCodes.ts           #   Central diagnostic code registry (DITA-xxx-nnn)
+│   │   └── types.ts                     #   Shared TypeScript type definitions
 │   │
 │   ├── messages/                        # Localized diagnostic messages
 │   │   ├── en.json                      #   80+ messages (English)
@@ -61,7 +67,7 @@ server/
 │       ├── ditaSchema.ts                #   Element hierarchy, attributes, documentation
 │       └── ditaSpecialization.ts        #   DITA @class attribute matching
 │
-└── test/                                # Mocha TDD tests (461 tests)
+└── test/                                # Mocha TDD tests (703 tests)
     ├── helper.ts                        #   Test utilities (mock documents)
     ├── validation.test.ts
     ├── completion.test.ts
@@ -82,7 +88,13 @@ server/
     ├── ditaSpecialization.test.ts
     ├── ditaVersionDetector.test.ts
     ├── workspaceScanner.test.ts
-    └── xmlTokenizer.test.ts
+    ├── xmlTokenizer.test.ts
+    ├── contentModelValidation.test.ts
+    ├── customRulesValidator.test.ts
+    ├── i18n.test.ts
+    ├── textUtils.test.ts
+    ├── validationPipeline.test.ts
+    └── workspaceValidation.test.ts
 ```
 
 ---
@@ -96,7 +108,7 @@ server/
 ```
 Client (VS Code)  ──IPC──>  server.ts  ──delegates──>  features/*
                                 │
-                                ├── ValidationPipeline  (10-phase validation orchestrator)
+                                ├── ValidationPipeline  (12-phase validation orchestrator)
                                 ├── KeySpaceService     (key resolution, map traversal)
                                 ├── SubjectSchemeService (controlled values)
                                 └── TextDocuments        (open document cache)
@@ -114,7 +126,7 @@ On initialization, the server:
 
 ### Document Validation Pipeline
 
-Diagnostics are pull-based (LSP 3.17 — the client requests them). The `ValidationPipeline` class (`services/validationPipeline.ts`) orchestrates all 10 validation phases, triggered by a smart debounce mechanism (300ms for topics, 1000ms for maps) with per-document cancellation.
+Diagnostics are pull-based (LSP 3.17 — the client requests them). The `ValidationPipeline` class (`services/validationPipeline.ts`) orchestrates all 12 validation phases, triggered by a smart debounce mechanism (300ms for topics, 1000ms for maps) with per-document cancellation.
 
 Each phase is wrapped in error isolation (try/catch with logging) so a failure in one phase doesn't discard results from others.
 
@@ -131,28 +143,38 @@ Document change (typing)
               │     ├── Topicref check (missing href/keyref/keys/conref/conkeyref)
               │     └── ID validation (duplicates, format, single+double quotes)
               │
-              ├─> Phase 4: Schema validation (DTD or RNG, mutually exclusive)
+              ├─> Phase 4: Content model validation
+              │     └── XML content model checks (skip when DTD covers it)
+              │
+              ├─> Phase 5: Schema validation (DTD or RNG, mutually exclusive)
               │     ├── catalogValidationService.validate() — DTD (TypesXML + catalog)
               │     └── rngValidationService.validate() — RNG (salve-annos, optional)
               │
-              ├─> Phase 5: validateCrossReferences()
-              │     └── href/conref/keyref/conkeyref target validation
+              ├─> Phases 6, 9, 10 run in parallel:
+              │     │
+              │     ├─> Phase 6: validateCrossReferences()
+              │     │     └── href/conref/keyref/conkeyref target validation
+              │     │
+              │     ├─> Phase 9: validateDitaRules()
+              │     │     └── 43 rules (5 categories, version-filtered)
+              │     │
+              │     └─> Phase 10: detectCircularReferences()
+              │           └── DFS traversal to detect href/conref/mapref cycles
               │
-              ├─> Phase 6: Subject scheme registration
+              ├─> Phase 7: Subject scheme registration
               │     └── Discover and register subject schemes from key space
               │
-              ├─> Phase 7: validateProfilingAttributes()
+              ├─> Phase 8: validateProfilingAttributes() (depends on phase 7)
               │     └── Subject scheme controlled values
               │
-              ├─> Phase 8: validateDitaRules()
-              │     └── 43 rules (5 categories, version-filtered)
+              ├─> Phase 11: Workspace-level checks
+              │     ├── Cross-file duplicate root ID detection
+              │     └── Unused topic detection (orphaned .dita files)
               │
-              ├─> Phase 9: detectCircularReferences()
-              │     └── DFS traversal to detect href/conref/mapref cycles
+              ├─> Phase 12: Custom rules validation
+              │     └── User-defined regex rules from settings
               │
-              └─> Phase 10: Workspace-level checks
-                    ├── Cross-file duplicate root ID detection
-                    └── Unused topic detection (orphaned .dita files)
+              ├─> Comment-based suppression engine (post-processing)
               │
               └─> cap at maxNumberOfProblems → return Diagnostic[]
 ```
@@ -487,7 +509,7 @@ Leaf modules (`formatting`, `folding`, `linkedEditing`, `codeActions`, `xmlToken
 ## Test Strategy
 
 **Framework:** Mocha with TDD interface (`suite` / `test`)
-**Total:** 461 tests, all passing
+**Total:** 703 tests, all passing (26 test files)
 
 Tests use a `helper.ts` module providing:
 - `createDoc(content, uri?)` — creates a mock `TextDocument`

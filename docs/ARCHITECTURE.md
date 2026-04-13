@@ -40,7 +40,7 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | XML Tokenizer | Custom state-machine (8 states, 22 token types) |
 | Publishing | DITA-OT (external) |
 | Testing | Mocha + VS Code Extension Test API |
-| Test Count | 1380 tests (683 client + 697 server) |
+| Test Count | 1386 tests (683 client + 703 server) |
 
 ---
 
@@ -548,7 +548,7 @@ ditacraft/
 │   │   └── data/                  # Static schema data
 │   │       ├── ditaSchema.ts
 │   │       └── ditaSpecialization.ts
-│   └── test/                      # Server tests (697)
+│   └── test/                      # Server tests (703)
 │
 ├── dtds/                          # Bundled DITA 1.3 DTDs + catalog.xml
 ├── docs/                          # Architecture documentation
