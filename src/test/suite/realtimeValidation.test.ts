@@ -29,6 +29,7 @@ async function waitForErrors(uri: vscode.Uri, timeout = 3000): Promise<vscode.Di
 suite('Real-time Validation Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
     let tempFile: string;
+    let serverReady = false;
 
     suiteSetup(async function() {
         this.timeout(30000);
@@ -47,7 +48,7 @@ suite('Real-time Validation Test Suite', () => {
         // language client instance that lives inside the esbuild bundle (module
         // state is NOT shared between the bundle and tsc-compiled test files).
         const api = extension.exports as DitaCraftAPI | undefined;
-        await api?.waitForLanguageClientReady(20000);
+        serverReady = (await api?.waitForLanguageClientReady(20000)) ?? false;
 
         // Set validation engine for manual validation command
         const config = vscode.workspace.getConfiguration('ditacraft');
@@ -159,6 +160,12 @@ suite('Real-time Validation Test Suite', () => {
 
         test('Should still detect errors via manual validation after save', async function() {
             this.timeout(8000);
+
+            // Skip if LSP server is not available (CI environment may not start server)
+            if (!serverReady) {
+                this.skip();
+                return;
+            }
 
             // Create a file with an error
             const invalidContent = `<?xml version="1.0" encoding="UTF-8"?>

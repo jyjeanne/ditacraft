@@ -72,15 +72,21 @@ export function getLanguageClient(): LanguageClient | undefined {
 
 /**
  * Wait until the language client reaches Running state (for test setup).
- * Returns true if ready within `timeout` ms, false if timed out.
+ * Returns true if ready within `timeout` ms, false if timed out or stopped.
  */
 export async function waitForLanguageClientReady(timeout = 10000): Promise<boolean> {
     const start = performance.now();
     while (performance.now() - start < timeout) {
-        if (client && client.state === State.Running) {
-            return true;
+        if (client) {
+            if (client.state === State.Running) {
+                return true;
+            }
+            // No point waiting if the server already stopped/failed
+            if (client.state === State.Stopped) {
+                return false;
+            }
         }
-        await new Promise(r => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 200));
     }
     return false;
 }
