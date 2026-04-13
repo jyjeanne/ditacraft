@@ -98,7 +98,19 @@ jobs:
       run: npm run esbuild-base -- --sourcemap
 
     - name: Run server tests
+      if: runner.os != 'Linux'
       run: cd server && npm test
+
+    - name: Run server tests with coverage (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        set -o pipefail
+        cd server && npm run coverage 2>&1 | tee server-test-output.log
+
+    - name: Check server coverage threshold (Linux)
+      if: runner.os == 'Linux'
+      run: cd server && npm run coverage:check
 
     - name: Compile client tests
       run: npm run compile-tests
@@ -132,41 +144,71 @@ jobs:
         echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Check if test output log exists
+        # Server test results
+        if [ -f server/server-test-output.log ]; then
+          SERVER_PASSING=$(grep -o '[0-9]* passing' server/server-test-output.log | tail -1 | grep -o '[0-9]*' || echo "0")
+          SERVER_FAILING=$(grep -o '[0-9]* failing' server/server-test-output.log | tail -1 | grep -o '[0-9]*' || echo "")
+
+          if [ -n "$SERVER_PASSING" ] && [ "$SERVER_PASSING" != "0" ]; then
+            echo "✅ **Server: $SERVER_PASSING tests passing**" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "$SERVER_FAILING" ]; then
+            echo "❌ **Server: $SERVER_FAILING tests failing**" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+
+        # Client test results
         if [ -f test-output.log ]; then
-          # Extract test count from log using portable grep
           PASSING=$(grep -o '[0-9]* passing' test-output.log | tail -1 | grep -o '[0-9]*' || echo "0")
           FAILING=$(grep -o '[0-9]* failing' test-output.log | tail -1 | grep -o '[0-9]*' || echo "")
 
           if [ -n "$PASSING" ] && [ "$PASSING" != "0" ]; then
-            echo "✅ **$PASSING tests passing**" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Client: $PASSING tests passing**" >> $GITHUB_STEP_SUMMARY
           fi
-
           if [ -n "$FAILING" ]; then
-            echo "❌ **$FAILING tests failing**" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Client: $FAILING tests failing**" >> $GITHUB_STEP_SUMMARY
           fi
         else
-          echo "⚠️ Test output log not found" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Client test output log not found" >> $GITHUB_STEP_SUMMARY
         fi
 
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Thresholds:** Lines: 62% | Statements: 62% | Functions: 65% | Branches: 73%" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Server Coverage" >> $GITHUB_STEP_SUMMARY
+        echo "**Thresholds:** Lines: 90% | Statements: 90% | Functions: 90% | Branches: 80%" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        cd server && npx c8 report --reporter=text-summary 2>/dev/null | tail -n 6 >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
+        cd ..
+        echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Client Coverage" >> $GITHUB_STEP_SUMMARY
+        echo "**Thresholds:** Lines: 62% | Statements: 62% | Functions: 65% | Branches: 73%" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         npx c8 report --reporter=text-summary 2>/dev/null | tail -n 6 >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "📥 Download the full HTML report from Artifacts below." >> $GITHUB_STEP_SUMMARY
+        echo "📥 Download the full HTML reports from Artifacts below." >> $GITHUB_STEP_SUMMARY
 
-    - name: Upload coverage report
+    - name: Upload client coverage report
       uses: actions/upload-artifact@v7
       if: runner.os == 'Linux' && always()
       continue-on-error: true
       with:
-        name: coverage-report-${{ github.sha }}
+        name: client-coverage-report-${{ github.sha }}
         path: coverage/
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Upload server coverage report
+      uses: actions/upload-artifact@v7
+      if: runner.os == 'Linux' && always()
+      continue-on-error: true
+      with:
+        name: server-coverage-report-${{ github.sha }}
+        path: server/coverage/
         retention-days: 30
         if-no-files-found: ignore
 
