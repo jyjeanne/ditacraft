@@ -58,10 +58,13 @@ let cachedRules: CompiledRule[] = [];
 /**
  * Detect regex patterns vulnerable to catastrophic backtracking (ReDoS).
  *
- * Checks for the most common ReDoS antipatterns:
- * 1. Nested quantifiers: a quantifier applied to a group that itself contains
- *    a quantifier (e.g. `(a+)+`, `(.*)*`, `(\w+)+`)
- * 2. Overlapping alternation with quantifiers: `(a|a)+`, `(\d|\d)+`
+ * Checks for the most common ReDoS antipattern: nested quantifiers — a
+ * quantifier applied to a group that itself contains a quantifier
+ * (e.g. `(a+)+`, `(.*)*`, `(\w+)+`).
+ *
+ * Note: does not detect overlapping alternation (`(a|ab)+`) which can also
+ * cause backtracking in some engines. V8 has built-in mitigations for many
+ * of those cases, and accurate detection requires full regex parsing.
  *
  * Returns `true` when the pattern appears safe, `false` when it looks vulnerable.
  */

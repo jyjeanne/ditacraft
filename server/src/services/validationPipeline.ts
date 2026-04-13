@@ -351,7 +351,7 @@ export class ValidationPipeline {
 
         /** Check whether the total pipeline budget has been exceeded. */
         const budgetExceeded = (): boolean => {
-            if (Date.now() - startTime > pipelineBudgetMs) {
+            if (Date.now() - startTime >= pipelineBudgetMs) {
                 this.log(`[validation] Pipeline budget (${pipelineBudgetMs}ms) exceeded — skipping remaining phases`);
                 return true;
             }
@@ -513,21 +513,20 @@ export class ValidationPipeline {
                     return;
                 }
                 try {
-                    const rulesDiags = await timePhaseAsync('DitaRules', () =>
-                        withTimeout(
-                            Promise.resolve((() => {
-                                const ditaVersion = settings.ditaVersion && settings.ditaVersion !== 'auto'
-                                    ? settings.ditaVersion
-                                    : detectDitaVersion(text);
-                                return validateDitaRules(text, {
-                                    enabled: true,
-                                    categories: settings.ditaRulesCategories ?? ['mandatory', 'recommendation', 'authoring', 'accessibility'],
-                                    ditaVersion,
-                                });
-                            })()),
-                            phaseTimeoutMs, 'DitaRules', [] as Diagnostic[], this.log, token,
-                        )
-                    );
+                    // Phase 9 is synchronous with bounded complexity — no user-supplied
+                    // regex, so ReDoS is not a risk. The pipeline budget check above
+                    // guards against cumulative time; per-phase timeout is not possible
+                    // for synchronous code without worker threads.
+                    const rulesDiags = timePhase('DitaRules', () => {
+                        const ditaVersion = settings.ditaVersion && settings.ditaVersion !== 'auto'
+                            ? settings.ditaVersion
+                            : detectDitaVersion(text);
+                        return validateDitaRules(text, {
+                            enabled: true,
+                            categories: settings.ditaRulesCategories ?? ['mandatory', 'recommendation', 'authoring', 'accessibility'],
+                            ditaVersion,
+                        });
+                    });
                     diagnostics.push(...rulesDiags);
                     this.setCache(uri, ValidationPhase.DitaRules, docVersion, settingsHash, rulesDiags);
                 } catch (e) { this.log(`[validation] DITA rules failed: ${e}`); }
@@ -610,15 +609,15 @@ export class ValidationPipeline {
         } catch (e) { this.log(`[validation] workspace checks failed: ${e}`); }
 
         // Phase 12: Custom rules (skip for large files)
+        // Custom rules run synchronously but have built-in per-rule guards:
+        // isSafeRegex() rejects ReDoS patterns, 10k match cap, and 2s per-rule timeout.
+        // The pipeline budget check above provides the macro-level guard.
         try {
             if (settings.customRulesFile && !isLargeFile) {
                 const customMax = (settings.maxNumberOfProblems ?? 100) - diagnostics.length;
-                const customDiags = await timePhaseAsync('CustomRules', () =>
-                    withTimeout(
-                        Promise.resolve(validateCustomRules(
-                            text, filePath, settings.customRulesFile, Math.max(0, customMax),
-                        )),
-                        phaseTimeoutMs, 'CustomRules', [] as Diagnostic[], this.log, token,
+                const customDiags = timePhase('CustomRules', () =>
+                    validateCustomRules(
+                        text, filePath, settings.customRulesFile, Math.max(0, customMax),
                     )
                 );
                 diagnostics.push(...customDiags);
