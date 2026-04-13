@@ -32,6 +32,7 @@ import {
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import * as path from 'path';
+import * as fs from 'fs';
 
 import {
     initSettings,
@@ -228,11 +229,23 @@ connection.onExecuteCommand(async (params) => {
 
 // Custom request: ditacraft/validateFile
 // Used by the manual validate command (Ctrl+Shift+V) to run the full pipeline
-// and return a summary. Diagnostics are refreshed via pull diagnostics.
+// and return a summary. Diagnostics are pushed directly for immediate VS Code
+// update, so the test harness and the Problems panel don't depend on the async
+// pull-diagnostics round-trip.
 connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, token): Promise<ValidateFileResult> => {
-    const document = documents.get(params.uri);
+    // Try the already-synced document; fall back to reading from disk when the
+    // language client hasn't completed textDocument/didOpen yet (race condition).
+    let document = documents.get(params.uri);
     if (!document) {
-        return { summary: { errors: 0, warnings: 0, infos: 0 }, diagnosticCount: 0 };
+        try {
+            const filePath = uriToPath(params.uri);
+            const content = fs.readFileSync(filePath, 'utf-8');
+            const ext = filePath.split('.').pop()?.toLowerCase() ?? 'dita';
+            const langId = ext === 'ditamap' ? 'ditamap' : ext === 'bookmap' ? 'bookmap' : 'dita';
+            document = TextDocument.create(params.uri, langId, 0, content);
+        } catch {
+            return { summary: { errors: 0, warnings: 0, infos: 0 }, diagnosticCount: 0 };
+        }
     }
 
     const settings = await getDocumentSettings(document.uri);
@@ -242,7 +255,11 @@ connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, t
         token,
     );
 
-    // Refresh pull diagnostics so the Problems panel updates immediately
+    // Push diagnostics directly — guarantees immediate VS Code update without
+    // relying on the async pull-diagnostics round-trip (workspace/diagnostic/refresh).
+    connection.sendDiagnostics({ uri: params.uri, diagnostics });
+
+    // Also refresh pull diagnostics so the Problems panel stays in sync.
     connection.languages.diagnostics.refresh();
 
     return {
