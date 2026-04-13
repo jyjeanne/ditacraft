@@ -179,25 +179,30 @@ function getHrefHover(
     const contents: string[] = [];
     contents.push(`**${ref.type}:** \`${ref.value}\``);
 
-    if (parsed.filePath) {
-        contents.push(`**Resolved:** ${resolvedPath}`);
-        if (!fs.existsSync(resolvedPath)) {
-            contents.push('**Warning:** Target file not found');
+    try {
+        if (parsed.filePath) {
+            contents.push(`**Resolved:** ${resolvedPath}`);
+            if (!fs.existsSync(resolvedPath)) {
+                contents.push('**Warning:** Target file not found');
+            }
+        } else {
+            contents.push('**Same-file reference**');
         }
-    } else {
-        contents.push('**Same-file reference**');
-    }
 
-    if (parsed.fragment) {
-        contents.push(`**Fragment:** \`${parsed.fragment}\``);
-    }
-
-    // Conref content preview — show the referenced element's content
-    if (ref.type === 'conref' && parsed.fragment) {
-        const preview = getConrefPreview(resolvedPath, parsed.fragment);
-        if (preview) {
-            contents.push(`---\n\n**Preview:**\n\n\`\`\`xml\n${preview}\n\`\`\``);
+        if (parsed.fragment) {
+            contents.push(`**Fragment:** \`${parsed.fragment}\``);
         }
+
+        // Conref content preview — show the referenced element's content
+        if (ref.type === 'conref' && parsed.fragment) {
+            const preview = getConrefPreview(resolvedPath, parsed.fragment);
+            if (preview) {
+                contents.push(`---\n\n**Preview:**\n\n\`\`\`xml\n${preview}\n\`\`\``);
+            }
+        }
+    } catch {
+        // File I/O failure (malformed path, permission error, etc.)
+        contents.push('**Warning:** Could not access target file');
     }
 
     return {
