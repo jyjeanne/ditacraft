@@ -86,14 +86,16 @@ suite('Edge cases (Manual Plan §12)', () => {
             const xml = '<topic id="主题_1"><title>中文标题</title><body><p>内容</p></body></topic>';
             const diags = validate(xml);
             // CJK in IDs may trigger DITA-ID-002 (invalid XML Name) — that's expected.
-            // Key point: no crash, no uncaught exception.
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            // Key point: no crash, no uncaught exception, and no XML parse errors.
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'no XML parse errors for CJK content');
         });
 
         test('Arabic text content validates without crash', () => {
             const xml = '<topic id="t1"><title>موضوع</title><body><p>هذا نص عربي</p></body></topic>';
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'no XML parse errors for Arabic content');
         });
 
         test('emoji in content validates without crash', () => {
@@ -109,7 +111,8 @@ suite('Edge cases (Manual Plan §12)', () => {
         test('mixed scripts (Latin + CJK + Arabic) in content', () => {
             const xml = '<topic id="t1"><title>Hello 世界 مرحبا</title><body><p>Mixed</p></body></topic>';
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'no XML parse errors for mixed-script content');
         });
 
         test('Unicode in attribute values validates correctly', () => {
@@ -133,12 +136,12 @@ suite('Edge cases (Manual Plan §12)', () => {
 
         test('whitespace-only file produces diagnostics', () => {
             const diags = validate('   \n  \n  ');
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            assert.ok(diags.length > 0, 'whitespace-only file should produce diagnostics');
         });
 
         test('XML declaration only (no content) produces diagnostics', () => {
             const diags = validate('<?xml version="1.0"?>');
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            assert.ok(diags.length > 0, 'declaration-only file should produce diagnostics');
         });
     });
 
@@ -149,14 +152,16 @@ suite('Edge cases (Manual Plan §12)', () => {
             const longText = 'x'.repeat(15000);
             const xml = `<topic id="t1"><title>T</title><body><p>${longText}</p></body></topic>`;
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'long line should not cause XML parse errors');
         });
 
         test('very long attribute value validates', () => {
             const longId = 'a' + '_segment'.repeat(500);
             const xml = `<topic id="${longId}"><title>T</title><body><p>text</p></body></topic>`;
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'long attribute should not cause XML parse errors');
         });
     });
 
@@ -192,28 +197,30 @@ suite('Edge cases (Manual Plan §12)', () => {
         test('CRLF line endings validate correctly', () => {
             const xml = '<topic id="t1">\r\n<title>T</title>\r\n<body><p>text</p></body>\r\n</topic>';
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'CRLF should not cause XML parse errors');
         });
 
         test('mixed LF and CRLF in same file', () => {
             const xml = '<topic id="t1">\n<title>T</title>\r\n<body>\n<p>text</p>\r\n</body>\n</topic>';
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'mixed line endings should not cause XML parse errors');
         });
 
         test('standalone CR line endings', () => {
             const xml = '<topic id="t1">\r<title>T</title>\r<body><p>text</p></body>\r</topic>';
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'standalone CR should not cause XML parse errors');
         });
 
         test('diagnostic line numbers are correct with CRLF', () => {
             const xml = '<topic id="t1">\r\n<body><p>no title</p></body>\r\n</topic>';
             const diags = validate(xml);
             const titleDiag = diags.find(d => d.code === 'DITA-STRUCT-004');
-            if (titleDiag) {
-                assert.ok(titleDiag.range.start.line >= 0, 'line number should be non-negative');
-            }
+            assert.ok(titleDiag, 'missing-title diagnostic should be emitted');
+            assert.strictEqual(titleDiag.range.start.line, 0, 'diagnostic should reference line 0 (topic element)');
         });
     });
 
@@ -224,7 +231,8 @@ suite('Edge cases (Manual Plan §12)', () => {
             const bom = '\uFEFF';
             const xml = bom + '<topic id="t1"><title>T</title><body><p>text</p></body></topic>';
             const diags = validate(xml);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
+            assert.strictEqual(xmlParseErrors.length, 0, 'BOM should not cause XML parse errors');
         });
     });
 
@@ -234,7 +242,7 @@ suite('Edge cases (Manual Plan §12)', () => {
         test('binary-like content produces XML error, no crash', () => {
             const binary = '\x00\x01\x02\x03\xFF\xFE';
             const diags = validate(binary);
-            assert.ok(Array.isArray(diags), 'should return diagnostics array');
+            assert.ok(diags.length > 0, 'binary content should produce diagnostics');
         });
     });
 

@@ -166,7 +166,7 @@ suite('Custom Rules Validator', () => {
         const now = new Date();
         fs.utimesSync(rulesFile, now, now);
 
-        clearCustomRulesCache(); // Force reload for test reliability
+        // No clearCustomRulesCache() here — validate that mtime change triggers reload
         const diags3 = validateCustomRules(text, '/test.dita', rulesFile, 100);
         assert.strictEqual(diags3.length, 1);
         assert.strictEqual(diags3[0].code, 'CACHE-002');

@@ -538,12 +538,9 @@ suite('xmlTokenizer', () => {
 
         test('findContextAtOffset works on partially-valid document', () => {
             const input = '<topic id="t1"><title>Test<body><p >';
-            const result = findContextAtOffset(input, 33); // inside <p >
+            const result = findContextAtOffset(input, 33); // offset 33 = 'p' in <p >
             assert.ok(result, 'should return a context object');
-            assert.ok(
-                ['attribute-name', 'element-name', 'content'].includes(result.context),
-                'should return a valid context type'
-            );
+            assert.strictEqual(result.context, 'element-name', 'offset inside tag name should be element-name');
         });
     });
 });

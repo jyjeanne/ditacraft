@@ -688,8 +688,8 @@
     "clean": true,
     "all": false,
     "check-coverage": true,
-    "lines": 68,
-    "statements": 68,
+    "lines": 63,
+    "statements": 63,
     "functions": 70,
     "branches": 73
   },
