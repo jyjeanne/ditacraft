@@ -179,8 +179,7 @@ jobs:
         echo "### Server Coverage" >> $GITHUB_STEP_SUMMARY
         echo "**Thresholds:** Lines: 90% | Statements: 90% | Functions: 90% | Branches: 80%" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
-        cd server && npx c8 report --reporter=text-summary 2>/dev/null | tail -n 6 >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
-        cd ..
+        (cd server && npx c8 report --reporter=text-summary 2>/dev/null | tail -n 6 >> $GITHUB_STEP_SUMMARY) || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 

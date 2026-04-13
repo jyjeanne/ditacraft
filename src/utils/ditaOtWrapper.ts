@@ -124,7 +124,7 @@ export class DitaOtWrapper {
 
     /**
      * Validate that a path is safe for use as DITA-OT installation or output directory.
-     * Rejects null bytes, shell metacharacters, and non-absolute paths.
+     * Rejects null bytes, shell metacharacters, and control characters.
      */
     private isValidPath(pathStr: string): boolean {
         // Check for null bytes
