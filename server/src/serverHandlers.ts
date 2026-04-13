@@ -12,9 +12,9 @@ import {
     FileChangeType,
 } from 'vscode-languageserver/node';
 
-import { URI } from 'vscode-uri';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { uriToPath } from './utils/textUtils';
 
 /** Server version read from package.json at module load time. */
 const SERVER_VERSION: string = (() => {
@@ -56,7 +56,7 @@ export function detectClientCapabilities(params: InitializeParams): ClientCapabi
  */
 export function extractWorkspaceFolderPaths(params: InitializeParams): string[] {
     return (params.workspaceFolders ?? [])
-        .map(folder => URI.parse(folder.uri).fsPath);
+        .map(folder => uriToPath(folder.uri));
 }
 
 /**
@@ -148,7 +148,7 @@ export function classifyWatchedFileChanges(params: DidChangeWatchedFilesParams):
     const changes: ClassifiedFileChange[] = [];
 
     for (const change of params.changes) {
-        const fsPath = URI.parse(change.uri).fsPath;
+        const fsPath = uriToPath(change.uri);
         const isMap = fsPath.endsWith('.ditamap') || fsPath.endsWith('.bookmap');
         const isDita = fsPath.endsWith('.dita') || isMap;
 

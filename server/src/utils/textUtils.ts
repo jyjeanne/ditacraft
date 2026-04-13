@@ -5,6 +5,7 @@
 
 import * as path from 'path';
 import { Range } from 'vscode-languageserver/node';
+import { URI } from 'vscode-uri';
 
 /**
  * Strip XML comments and CDATA sections, preserving line structure
@@ -118,4 +119,16 @@ export function normalizeFsPath(filePath: string): string {
  */
 export function escapeRegex(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Convert a `file://` URI to a file system path with forward slashes.
+ *
+ * `vscode-uri`'s `URI.fsPath` returns OS-native separators (backslashes on
+ * Windows). Normalising to forward slashes produces consistent paths across
+ * platforms, which is required for string comparisons inside the LSP server
+ * and for Node.js `fs` calls (Node accepts `/` on all platforms).
+ */
+export function uriToPath(uri: string): string {
+    return URI.parse(uri).fsPath.replace(/\\/g, '/');
 }
