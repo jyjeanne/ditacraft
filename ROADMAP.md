@@ -95,7 +95,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Workspace Validation Command** | Complete | 100% |
 | **Cross-File Duplicate ID Detection (DITA-ID-003)** | Complete | 100% |
 | **Unused Topic Detection (DITA-ORPHAN-001)** | Complete | 100% |
-| **ValidationPipeline (12-phase orchestrator)** | Complete | 100% |
+| **ValidationPipeline (13-phase orchestrator)** | Complete | 100% |
 | **Shared Utilities (textUtils, patterns)** | Complete | 100% |
 | **DITA-OT Guide Validation** | Complete | 100% |
 | **DITA-OT Error Code Catalog (160+ codes)** | Complete | 100% |
@@ -118,7 +118,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **Per-Rule Severity Override** — `ditacraft.validationSeverityOverrides` setting: map any diagnostic code to error/warning/information/hint/off; applied as post-processing in the validation pipeline
 - **Comment-Based Rule Suppression** — `<!-- ditacraft-disable CODE -->` / `<!-- ditacraft-enable CODE -->` for range-based suppression; `<!-- ditacraft-disable-file CODE -->` for whole-file suppression; CRLF-aware line counting with exclusive endLine semantics
 - **Custom Regex Rules** — `ditacraft.customRulesFile` points to a JSON file defining regex patterns with fileType filtering (topic, concept, task, reference, glossentry, troubleshooting, map, bookmap), severity mapping, and mtime-based cache invalidation
-- **Large File Optimization** — `ditacraft.largeFileThresholdKB` (default 500): files exceeding threshold skip phases 6–12 for performance; shows DITA-PERF-001 informational diagnostic
+- **Large File Optimization** — `ditacraft.largeFileThresholdKB` (default 500): files exceeding threshold skip phases 7–13 for performance; shows DITA-PERF-001 informational diagnostic
 - **3 New Quick Fixes** — Sanitize invalid ID (DITA-ID-002), insert missing `<booktitle>` (DITA-STRUCT-006), insert missing `<mainbooktitle>` (DITA-STRUCT-007); total now 12 code actions
 - **43 DITA Rules** — Corrected rule count from 35 to 43 (29 SCH + 4 ATTR + 4 TABLE + 6 additional authoring rules)
 - **DITA 2.0 Test Coverage** — 25 new tests for all 10 DITA 2.0 rules (SCH-050 through SCH-059) including self-closing audio/video element handling
@@ -434,7 +434,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] OASIS XML Catalog support for DITA public identifier resolution
 - [x] 100% W3C XML Conformance Test Suite compliance
 - [x] Three validation engines: TypesXML (default), built-in, xmllint
-- [x] 12-phase LSP validation pipeline with per-phase error isolation (XML → Structure → DTD → RNG → DITA Rules → Cross-refs → Profiling → Circular Refs → Workspace → Severity Overrides → Suppression → Custom Rules)
+- [x] 13-phase LSP validation pipeline with per-phase error isolation (XML → Structure → IDs → Content Model → DTD/RNG → Cross-refs → Subject Scheme → Profiling → DITA Rules → Circular Refs → Workspace → Severity Overrides/Suppression → Custom Rules)
 - [x] Validation architecture documented (`docs/VALIDATION-SPECIFICATION.md` v2.0)
 - [x] Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
 

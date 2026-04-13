@@ -40,7 +40,7 @@ server/
 │   │   └── customRulesValidator.ts     #   User-defined regex validation rules
 │   │
 │   ├── services/                        # Domain services with caching
-│   │   ├── validationPipeline.ts        #   12-phase validation orchestrator with error isolation
+│   │   ├── validationPipeline.ts        #   13-phase validation orchestrator with error isolation
 │   │   ├── keySpaceService.ts           #   DITA key space resolution (BFS map traversal)
 │   │   ├── subjectSchemeService.ts      #   Subject scheme parsing and value constraints
 │   │   ├── catalogValidationService.ts  #   TypesXML DTD + OASIS catalog
@@ -108,7 +108,7 @@ server/
 ```
 Client (VS Code)  ──IPC──>  server.ts  ──delegates──>  features/*
                                 │
-                                ├── ValidationPipeline  (12-phase validation orchestrator)
+                                ├── ValidationPipeline  (13-phase validation orchestrator)
                                 ├── KeySpaceService     (key resolution, map traversal)
                                 ├── SubjectSchemeService (controlled values)
                                 └── TextDocuments        (open document cache)
@@ -126,7 +126,7 @@ On initialization, the server:
 
 ### Document Validation Pipeline
 
-Diagnostics are pull-based (LSP 3.17 — the client requests them). The `ValidationPipeline` class (`services/validationPipeline.ts`) orchestrates all 12 validation phases, triggered by a smart debounce mechanism (300ms for topics, 1000ms for maps) with per-document cancellation.
+Diagnostics are pull-based (LSP 3.17 — the client requests them). The `ValidationPipeline` class (`services/validationPipeline.ts`) orchestrates all 13 validation phases, triggered by a smart debounce mechanism (300ms for topics, 1000ms for maps) with per-document cancellation.
 
 Each phase is wrapped in error isolation (try/catch with logging) so a failure in one phase doesn't discard results from others.
 

@@ -12,7 +12,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 
 🔗 **Smart Navigation** - Ctrl+Click on `href`, `conref`, `keyref`, and `conkeyref` attributes with full key space resolution
 🔑 **Key Space Resolution** - Automatic or explicit root map selection with key scope support
-✅ **12-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG (salve-annos) + 43 DITA rules + custom rules with DITA 1.2/1.3/2.0 support, per-phase error isolation, severity overrides, and comment-based suppression
+✅ **13-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG (salve-annos) + 43 DITA rules + custom rules with DITA 1.2/1.3/2.0 support, per-phase error isolation, severity overrides, and comment-based suppression
 🌍 **Localized Diagnostics** - All 76+ diagnostic messages translatable (English + French included)
 ⚡ **Real-time Validation** - Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
 🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, and command injection prevention
@@ -561,7 +561,7 @@ ditacraft/
 │   │   │   ├── profilingValidation.ts   # Subject scheme controlled values
 │   │   │   └── customRulesValidator.ts  # User-defined regex validation rules
 │   │   ├── services/            # Domain services with caching
-│   │   │   ├── validationPipeline.ts       # 12-phase orchestration
+│   │   │   ├── validationPipeline.ts       # 13-phase orchestration
 │   │   │   ├── suppressionEngine.ts        # Comment-based rule suppression
 │   │   │   ├── interfaces.ts               # Service interfaces (IKeySpaceService, etc.)
 │   │   │   ├── catalogValidationService.ts # DTD validation (TypesXML)

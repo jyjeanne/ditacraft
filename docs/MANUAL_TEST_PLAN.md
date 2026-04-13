@@ -13,7 +13,7 @@ This document provides a comprehensive manual test plan covering all validation 
 1. [Prerequisites](#1-prerequisites)
 2. [Test Environment Setup](#2-test-environment-setup)
 3. [Command Palette Commands](#3-command-palette-commands)
-4. [Validation Pipeline (12 Phases)](#4-validation-pipeline-12-phases) — Phases 1-12, DITAVAL, 43 DITA rules, table/attr rules, key scopes, custom rules
+4. [Validation Pipeline (13 Phases)](#4-validation-pipeline-13-phases) — Phases 1-13, DITAVAL, 43 DITA rules, table/attr rules, key scopes, custom rules
 5. [LSP Server Features](#5-lsp-server-features) — Completion, hover, definition, references, rename, symbols, formatting, folding, linked editing, links, localization
 6. [Code Actions (12 Quick Fixes)](#6-code-actions-12-quick-fixes)
 7. [Activity Bar Views](#7-activity-bar-views) — DITA Explorer, Key Space, Diagnostics
@@ -119,7 +119,7 @@ Open Command Palette (`Ctrl+Shift+P`) and test each command.
 
 ---
 
-## 4. Validation Pipeline (12 Phases)
+## 4. Validation Pipeline (13 Phases)
 
 ### Phase 1-3: XML Well-formedness + Structure + IDs
 
@@ -330,7 +330,7 @@ Open Command Palette (`Ctrl+Shift+P`) and test each command.
 
 | # | Test | Steps | Expected | Pass |
 |---|------|-------|----------|------|
-| 4.10.1 | Large file skips phases | Open file >500 KB | `DITA-PERF-001` Info; phases 6-12 skipped; basic XML/structure/DTD still checked | [ ] |
+| 4.10.1 | Large file skips phases | Open file >500 KB | `DITA-PERF-001` Info; phases 7-13 skipped; basic XML/structure/DTD still checked | [ ] |
 | 4.10.2 | Custom threshold | Set `largeFileThresholdKB: 100` | File >100 KB triggers optimization | [ ] |
 | 4.10.3 | Disabled optimization | Set `largeFileThresholdKB: 0` | All phases run regardless of file size | [ ] |
 | 4.10.4 | Boundary file | File exactly at threshold size | Optimization triggered (uses `>=`) | [ ] |

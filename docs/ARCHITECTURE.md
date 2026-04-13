@@ -170,7 +170,7 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `features/profilingValidation.ts` | Subject scheme profiling validation (Layer 6b) |
 | `features/circularRefDetection.ts` | Circular reference detection via DFS traversal |
 | `features/workspaceValidation.ts` | Cross-file duplicate IDs + unused topic detection |
-| `services/validationPipeline.ts` | Orchestrates all 12 validation phases with error isolation, severity overrides, comment suppression |
+| `services/validationPipeline.ts` | Orchestrates all 13 validation phases with error isolation, severity overrides, comment suppression |
 | `services/catalogValidationService.ts` | TypesXML DTD + OASIS catalog (Layer 2) |
 | `services/rngValidationService.ts` | salve-annos RelaxNG validation (Layer 3) |
 | `services/keySpaceService.ts` | DITA key space resolution (BFS map traversal) |
@@ -435,7 +435,7 @@ previewCommand.ts
 | **Factory** | `ProviderFactory` | Centralized provider creation |
 | **Adapter** | `DitaOtWrapper` | Adapt CLI to TypeScript API |
 | **Object Pool** | DTD parser pool, RNG grammar cache | Reuse expensive resources |
-| **Pipeline** | `ValidationPipeline` (12-phase validation) | Sequential processing with error isolation per phase |
+| **Pipeline** | `ValidationPipeline` (13-phase validation) | Sequential processing with error isolation per phase |
 
 ---
 
@@ -531,7 +531,7 @@ ditacraft/
 │   │   │   ├── codeActions.ts
 │   │   │   └── ...
 │   │   ├── services/              # Domain services with caching
-│   │   │   ├── validationPipeline.ts       # 12-phase orchestration
+│   │   │   ├── validationPipeline.ts       # 13-phase orchestration
 │   │   │   ├── catalogValidationService.ts # DTD (TypesXML)
 │   │   │   ├── rngValidationService.ts     # RNG (salve-annos)
 │   │   │   ├── keySpaceService.ts

@@ -45,7 +45,7 @@ This is a **client-server VS Code extension** using the Language Server Protocol
 | Directory | Purpose |
 |-----------|---------|
 | `features/` | One file per LSP capability (completion, hover, validation, codeActions, etc.). Each exports a handler function like `handleCompletion(params, documents, ...)`. |
-| `services/` | Domain services: `validationPipeline.ts` orchestrates a 10-phase validation pipeline; `keySpaceService.ts` resolves DITA key spaces via BFS map traversal; `catalogValidationService.ts` handles DTD validation with OASIS catalogs. |
+| `services/` | Domain services: `validationPipeline.ts` orchestrates a 13-phase validation pipeline; `keySpaceService.ts` resolves DITA key spaces via BFS map traversal; `catalogValidationService.ts` handles DTD validation with OASIS catalogs. |
 | `utils/` | Shared utilities: `xmlTokenizer.ts` (state-machine XML tokenizer), `i18n.ts` (localization), `diagnosticCodes.ts` (central code registry), `patterns.ts` (regex constants). |
 | `data/` | Static schema data: `ditaSchema.ts` defines DITA element hierarchy, attributes, and documentation. |
 | `messages/` | Localization JSON files (`en.json`, `fr.json`). |
