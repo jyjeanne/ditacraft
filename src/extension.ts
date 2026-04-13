@@ -36,7 +36,7 @@ import { DitaExplorerProvider, DitaExplorerItem } from './providers/ditaExplorer
 import { DitaFileDecorationProvider } from './providers/ditaFileDecorationProvider';
 import { KeySpaceViewProvider } from './providers/keySpaceViewProvider';
 import { DiagnosticsViewProvider } from './providers/diagnosticsViewProvider';
-import { startLanguageClient, stopLanguageClient, getLanguageClient } from './languageClient';
+import { startLanguageClient, stopLanguageClient, getLanguageClient, waitForLanguageClientReady } from './languageClient';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
@@ -186,6 +186,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         logger.info('DitaCraft extension activated successfully');
         outputChannel.appendLine('=== DitaCraft Activation Complete ===');
+
+        // Expose API for tests — functions must come from THIS bundle so they
+        // share the same module-level state (e.g. the language client reference).
+        return { context, waitForLanguageClientReady };
     } catch (error) {
         const errorMsg = `Failed to activate DitaCraft: ${error instanceof Error ? error.message : 'Unknown error'}`;
         vscode.window.showErrorMessage(errorMsg);

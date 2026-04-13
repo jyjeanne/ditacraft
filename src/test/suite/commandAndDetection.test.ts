@@ -7,7 +7,11 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { getValidationRateLimiter, resetValidationRateLimiter } from '../../commands';
-import { waitForLanguageClientReady } from '../../languageClient';
+
+type DitaCraftAPI = {
+    context: vscode.ExtensionContext;
+    waitForLanguageClientReady: (timeout?: number) => Promise<boolean>;
+};
 
 /** Poll for error diagnostics up to `timeout` ms (default 3000). */
 async function waitForErrors(uri: vscode.Uri, timeout = 3000): Promise<vscode.Diagnostic[]> {
@@ -38,8 +42,11 @@ suite('Command and Auto-Detection Test Suite', () => {
             await extension.activate();
         }
 
-        // Wait for the language client to be fully started before running tests
-        await waitForLanguageClientReady(20000);
+        // Use the extension's own waitForLanguageClientReady so we poll the same
+        // language client instance that lives inside the esbuild bundle (module
+        // state is NOT shared between the bundle and tsc-compiled test files).
+        const api = extension.exports as DitaCraftAPI | undefined;
+        await api?.waitForLanguageClientReady(20000);
 
         // Configure validation engine
         const config = vscode.workspace.getConfiguration('ditacraft');
