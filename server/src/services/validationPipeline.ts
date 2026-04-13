@@ -11,11 +11,11 @@
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { URI } from 'vscode-uri';
+
 import { CancellationToken } from 'vscode-languageserver';
 
 import { DitaCraftSettings } from '../settings';
-import { normalizeFsPath } from '../utils/textUtils';
+import { normalizeFsPath, uriToPath } from '../utils/textUtils';
 import { t } from '../utils/i18n';
 import { validateDITADocument } from '../features/validation';
 import { validateContentModel } from '../features/contentModelValidation';
@@ -343,7 +343,7 @@ export class ValidationPipeline {
         const text = document.getText();
         const uri = document.uri;
         const docVersion = document.version;
-        const filePath = URI.parse(uri).fsPath;
+        const filePath = uriToPath(uri);
         const diagnostics: Diagnostic[] = [];
         const timings: Record<string, number> = {};
         const settingsHash = ValidationPipeline.hashSettings(settings);

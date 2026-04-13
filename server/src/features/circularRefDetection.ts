@@ -6,11 +6,11 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
-import { URI } from 'vscode-uri';
+
 import * as path from 'path';
 import { promises as fsp } from 'fs';
 import { t } from '../utils/i18n';
-import { normalizeFsPath, offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
+import { normalizeFsPath, offsetToRange, stripCommentsAndCDATA, uriToPath } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -43,7 +43,7 @@ export async function detectCircularReferences(
     text: string,
     documentUri: string,
 ): Promise<Diagnostic[]> {
-    const filePath = URI.parse(documentUri).fsPath;
+    const filePath = uriToPath(documentUri);
     const currentDir = path.dirname(filePath);
     const diagnostics: Diagnostic[] = [];
 

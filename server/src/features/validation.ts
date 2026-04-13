@@ -8,12 +8,12 @@ import {
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { XMLValidator } from 'fast-xml-parser';
-import { URI } from 'vscode-uri';
+
 
 import { DitaCraftSettings } from '../settings';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { t } from '../utils/i18n';
-import { stripCommentsAndCodeContent, offsetToRange, offsetToPosition } from '../utils/textUtils';
+import { stripCommentsAndCodeContent, offsetToRange, offsetToPosition, uriToPath } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -614,7 +614,7 @@ function validateIDs(
 // --- Helpers ---
 
 function getFileExtension(uri: string): string {
-    const fsPath = URI.parse(uri).fsPath;
+    const fsPath = uriToPath(uri);
     const dot = fsPath.lastIndexOf('.');
     return dot >= 0 ? fsPath.slice(dot).toLowerCase() : '';
 }

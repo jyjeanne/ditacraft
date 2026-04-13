@@ -9,6 +9,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { KeySpaceService } from '../services/keySpaceService';
+import { uriToPath } from '../utils/textUtils';
 
 // --- Types ---
 
@@ -33,8 +34,8 @@ export async function handleDocumentLinks(
 
     const text = document.getText();
     const documentUri = params.textDocument.uri;
-    const documentDir = path.dirname(URI.parse(documentUri).fsPath);
-    const contextFilePath = URI.parse(documentUri).fsPath;
+    const documentDir = path.dirname(uriToPath(documentUri));
+    const contextFilePath = uriToPath(documentUri);
     const links: DocumentLink[] = [];
 
     // Regex patterns (created per-call to avoid shared stateful /g flag)

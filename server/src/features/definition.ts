@@ -16,7 +16,7 @@ import {
     findElementByIdOffset,
 } from '../utils/referenceParser';
 
-import { offsetToPosition } from '../utils/textUtils';
+import { offsetToPosition, uriToPath } from '../utils/textUtils';
 
 import { KeySpaceService } from '../services/keySpaceService';
 
@@ -47,7 +47,7 @@ export async function handleDefinition(
     if (ref.type === 'keyref') {
         if (!keySpaceService) return null;
 
-        const currentFilePath = URI.parse(params.textDocument.uri).fsPath;
+        const currentFilePath = uriToPath(params.textDocument.uri);
         const keyDef = await keySpaceService.resolveKey(ref.value, currentFilePath);
         if (!keyDef) return null;
 
@@ -73,7 +73,7 @@ export async function handleDefinition(
         const elementId = slashIdx >= 0 ? ref.value.slice(slashIdx + 1) : '';
 
         if (keySpaceService) {
-            const currentFilePath = URI.parse(params.textDocument.uri).fsPath;
+            const currentFilePath = uriToPath(params.textDocument.uri);
             const keyDef = await keySpaceService.resolveKey(keyName, currentFilePath);
             if (keyDef?.targetFile) {
                 return resolveElementInFile(
@@ -101,7 +101,7 @@ export async function handleDefinition(
     }
 
     // Cross-file reference
-    const currentDir = path.dirname(URI.parse(document.uri).fsPath);
+    const currentDir = path.dirname(uriToPath(document.uri));
     const targetPath = path.resolve(currentDir, parsed.filePath);
     return resolveElementInFile(targetPath, URI.file(targetPath).toString(), targetId || undefined);
 }

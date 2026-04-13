@@ -9,7 +9,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { URI } from 'vscode-uri';
+
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -24,6 +24,7 @@ import {
 import { KeySpaceService } from '../services/keySpaceService';
 import { SubjectSchemeService } from '../services/subjectSchemeService';
 import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
+import { uriToPath } from '../utils/textUtils';
 
 const enum Context {
     ElementName,
@@ -384,7 +385,7 @@ async function getKeyrefCompletions(
     documentUri: string,
     keySpaceService: KeySpaceService
 ): Promise<CompletionItem[]> {
-    const filePath = URI.parse(documentUri).fsPath;
+    const filePath = uriToPath(documentUri);
     const currentValue = ctx.prefix;
 
     if (currentValue.includes('/')) {
@@ -462,8 +463,7 @@ function getHrefFragmentCompletions(
     const filePart = currentValue.substring(0, hashPos);
     const fragment = currentValue.substring(hashPos + 1);
 
-    // Resolve the target file path
-    const currentFilePath = URI.parse(documentUri).fsPath;
+    const currentFilePath = uriToPath(documentUri);
     const currentDir = path.dirname(currentFilePath);
     const targetPath = filePart
         ? path.resolve(currentDir, filePart)
@@ -514,7 +514,7 @@ function getHrefFileCompletions(
     ctx: CompletionContext,
     documentUri: string
 ): CompletionItem[] {
-    const currentFilePath = URI.parse(documentUri).fsPath;
+    const currentFilePath = uriToPath(documentUri);
     const currentDir = path.dirname(currentFilePath);
     const currentValue = ctx.prefix;
 

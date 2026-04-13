@@ -6,7 +6,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { URI } from 'vscode-uri';
+
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -14,6 +14,7 @@ import { ELEMENT_DOCS, DITA_ELEMENTS } from '../data/ditaSchema';
 import { findReferenceAtOffset, parseReference } from '../utils/referenceParser';
 import { KeySpaceService } from '../services/keySpaceService';
 import { TAG_ATTRS } from '../utils/patterns';
+import { uriToPath } from '../utils/textUtils';
 
 /**
  * Handle hover requests.
@@ -88,7 +89,7 @@ async function getKeyrefHover(
     documentUri: string,
     keySpaceService: KeySpaceService
 ): Promise<Hover | null> {
-    const filePath = URI.parse(documentUri).fsPath;
+    const filePath = uriToPath(documentUri);
 
     // Strip "/elementId" suffix for conkeyref
     let keyName = ref.value;
@@ -158,7 +159,7 @@ function getHrefHover(
 ): Hover | null {
     if (!ref.value) return null;
 
-    const currentDir = path.dirname(URI.parse(documentUri).fsPath);
+    const currentDir = path.dirname(uriToPath(documentUri));
     const parsed = parseReference(ref.value);
 
     // External URLs — show as-is
@@ -173,7 +174,7 @@ function getHrefHover(
 
     const resolvedPath = parsed.filePath
         ? path.resolve(currentDir, parsed.filePath)
-        : URI.parse(documentUri).fsPath; // same-file ref
+        : uriToPath(documentUri); // same-file ref
 
     const contents: string[] = [];
     contents.push(`**${ref.type}:** \`${ref.value}\``);

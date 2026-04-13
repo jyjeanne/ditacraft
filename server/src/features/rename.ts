@@ -19,7 +19,7 @@ import {
 } from '../utils/referenceParser';
 
 import { collectDitaFiles } from '../utils/workspaceScanner';
-import { offsetToPosition } from '../utils/textUtils';
+import { offsetToPosition, uriToPath } from '../utils/textUtils';
 
 /**
  * Handle Prepare Rename request.
@@ -92,7 +92,7 @@ export function handleRename(
 
     // 3. Cross-file: update references in other workspace files
     if (workspaceFolders && workspaceFolders.length > 0) {
-        const targetFilePath = URI.parse(document.uri).fsPath;
+        const targetFilePath = uriToPath(document.uri);
         const normalizedTargetPath = path.normalize(targetFilePath);
         const ditaFiles = collectDitaFiles(workspaceFolders);
 

@@ -5,7 +5,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { URI } from 'vscode-uri';
+
 
 import {
     findIdAtOffset,
@@ -14,6 +14,7 @@ import {
 } from '../utils/referenceParser';
 
 import { findCrossFileReferences } from '../utils/workspaceScanner';
+import { uriToPath } from '../utils/textUtils';
 
 /**
  * Handle Find References requests.
@@ -60,7 +61,7 @@ export function handleReferences(
 
     // Find references across all workspace files
     if (workspaceFolders && workspaceFolders.length > 0) {
-        const targetFilePath = URI.parse(document.uri).fsPath;
+        const targetFilePath = uriToPath(document.uri);
         const crossFileRefs = findCrossFileReferences(
             idResult.id,
             targetFilePath,

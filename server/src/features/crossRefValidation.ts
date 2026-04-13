@@ -4,7 +4,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
-import { URI } from 'vscode-uri';
+
 import * as path from 'path';
 import { promises as fsp } from 'fs';
 
@@ -12,7 +12,7 @@ import { KeySpaceService } from '../services/keySpaceService';
 import { parseReference } from '../utils/referenceParser';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { t } from '../utils/i18n';
-import { stripCommentsAndCodeContent, offsetToRange, escapeRegex, normalizeFsPath } from '../utils/textUtils';
+import { stripCommentsAndCodeContent, offsetToRange, escapeRegex, normalizeFsPath, uriToPath } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -46,7 +46,7 @@ export async function validateCrossReferences(
     maxProblems: number
 ): Promise<Diagnostic[]> {
     const diagnostics: Diagnostic[] = [];
-    const filePath = URI.parse(documentUri).fsPath;
+    const filePath = uriToPath(documentUri);
     const currentDir = path.dirname(filePath);
 
     // Strip comments/CDATA to avoid matching inside them

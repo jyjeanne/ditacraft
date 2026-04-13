@@ -59,8 +59,8 @@ import { collectDitaFilesAsync } from './utils/workspaceScanner';
 import { CatalogValidationService } from './services/catalogValidationService';
 import { RngValidationService } from './services/rngValidationService';
 import { ValidationPipeline, ValidationSummary } from './services/validationPipeline';
-import { URI } from 'vscode-uri';
 import { setLocale } from './utils/i18n';
+import { uriToPath } from './utils/textUtils';
 import {
     detectClientCapabilities,
     extractWorkspaceFolderPaths,
@@ -164,8 +164,8 @@ connection.onInitialized(() => {
         connection.workspace.onDidChangeWorkspaceFolders((event: WorkspaceFoldersChangeEvent) => {
             connection.console.log('Workspace folder change event received');
             if (keySpaceService) {
-                const added = event.added.map((f: WorkspaceFolder) => URI.parse(f.uri).fsPath);
-                const removed = event.removed.map((f: WorkspaceFolder) => URI.parse(f.uri).fsPath);
+                const added = event.added.map((f: WorkspaceFolder) => uriToPath(f.uri));
+                const removed = event.removed.map((f: WorkspaceFolder) => uriToPath(f.uri));
                 keySpaceService.updateWorkspaceFolders(added, removed);
             }
         });
@@ -422,7 +422,7 @@ documents.onDidChangeContent((change: TextDocumentChangeEvent<TextDocument>) => 
     validationPipeline.invalidateForTextEdit(uri);
     if (isMapFile(uri)) {
         // Map changes affect key space for all documents — use longer delay
-        keySpaceService?.invalidateForFile(URI.parse(uri).fsPath);
+        keySpaceService?.invalidateForFile(uriToPath(uri));
         validationPipeline.invalidateForMapChange();
         debouncedRefresh(uri, MAP_DEBOUNCE_MS);
     } else {
