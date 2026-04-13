@@ -1,5 +1,7 @@
 import * as assert from 'assert';
-import { formatXML } from '../src/features/formatting';
+import { formatXML, handleRangeFormatting } from '../src/features/formatting';
+import { Range } from 'vscode-languageserver/node';
+import { createDocsFromContent, TEST_URI } from './helper';
 
 suite('formatXML', () => {
     const fmt = (text: string) => formatXML(text, 2, true);
@@ -123,5 +125,72 @@ suite('formatXML', () => {
             const result = fmt('<title>My Title</title>');
             assert.ok(result.trimEnd().includes('<title>My Title</title>'));
         });
+    });
+});
+
+suite('handleRangeFormatting', () => {
+    function rangeFormat(content: string, range: Range) {
+        const { documents } = createDocsFromContent(content);
+        return handleRangeFormatting(
+            {
+                textDocument: { uri: TEST_URI },
+                range,
+                options: { tabSize: 2, insertSpaces: true },
+            },
+            documents
+        );
+    }
+
+    test('returns empty for missing document', () => {
+        const { documents } = createDocsFromContent('');
+        const edits = handleRangeFormatting(
+            {
+                textDocument: { uri: 'file:///nonexistent.dita' },
+                range: Range.create(0, 0, 0, 0),
+                options: { tabSize: 2, insertSpaces: true },
+            },
+            documents
+        );
+        assert.deepStrictEqual(edits, []);
+    });
+
+    test('returns empty when no changes needed', () => {
+        const input = '<topic>\n  <body>\n    <p>Hello</p>\n  </body>\n</topic>\n';
+        const edits = rangeFormat(input, Range.create(0, 0, 4, 8));
+        assert.deepStrictEqual(edits, []);
+    });
+
+    test('only returns edits within requested range', () => {
+        // Line 0: <topic>  (fine)
+        // Line 1: <body>   (needs indent)
+        // Line 2: <p>Hello</p> (needs indent)
+        // Line 3: </body>  (needs indent)
+        // Line 4: </topic> (fine)
+        const input = '<topic>\n<body>\n<p>Hello</p>\n</body>\n</topic>';
+        // Request formatting only lines 1–2
+        const edits = rangeFormat(input, Range.create(1, 0, 2, 13));
+
+        // Should not contain edits for line 3 (</body>)
+        for (const edit of edits) {
+            assert.ok(
+                edit.range.start.line >= 1 && edit.range.start.line <= 2,
+                `Edit at line ${edit.range.start.line} should be within requested range 1-2`
+            );
+        }
+        // Should have at least one edit (lines 1-2 need indenting)
+        assert.ok(edits.length > 0, 'Should produce edits for malformatted lines');
+    });
+
+    test('does not return edits outside the range', () => {
+        const input = '<topic>\n<body>\n<p>A</p>\n<p>B</p>\n</body>\n</topic>';
+        // Only format line 2
+        const edits = rangeFormat(input, Range.create(2, 0, 2, 6));
+
+        for (const edit of edits) {
+            assert.ok(
+                edit.range.start.line >= 2 && edit.range.end.line <= 2,
+                `Edit should be on line 2, got lines ${edit.range.start.line}-${edit.range.end.line}`
+            );
+        }
     });
 });

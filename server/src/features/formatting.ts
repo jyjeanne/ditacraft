@@ -61,21 +61,77 @@ export function handleFormatting(
 
 /**
  * Handle range formatting request.
- * Formats the selected range (re-formats the full document and returns the edit).
+ * Formats only the requested range per LSP spec §textDocument/rangeFormatting.
  */
 export function handleRangeFormatting(
     params: DocumentRangeFormattingParams,
     documents: TextDocuments<TextDocument>
 ): TextEdit[] {
-    // For simplicity, format the full document.
-    // The LSP client applies minimal diffs.
-    return handleFormatting(
-        {
-            textDocument: params.textDocument,
-            options: params.options,
-        },
-        documents
-    );
+    const document = documents.get(params.textDocument.uri);
+    if (!document) return [];
+
+    const text = document.getText();
+    const formatted = formatXML(text, params.options.tabSize, params.options.insertSpaces);
+
+    if (formatted === text) return [];
+
+    // Compute per-line diffs and return only those overlapping the requested range.
+    const requestedRange = params.range;
+    const originalLines = text.split(/\r?\n/);
+    const formattedLines = formatted.split(/\r?\n/);
+
+    const edits: TextEdit[] = [];
+    const maxLine = Math.max(originalLines.length, formattedLines.length);
+
+    for (let i = 0; i < maxLine; i++) {
+        const origLine = i < originalLines.length ? originalLines[i] : undefined;
+        const fmtLine = i < formattedLines.length ? formattedLines[i] : undefined;
+
+        if (origLine === fmtLine) continue;
+
+        // This line differs — check overlap with requested range.
+        if (i > requestedRange.end.line) break;
+        if (i < requestedRange.start.line) continue;
+
+        if (origLine !== undefined && fmtLine !== undefined) {
+            // Replace line
+            edits.push({
+                range: Range.create(i, 0, i, origLine.length),
+                newText: fmtLine,
+            });
+        } else if (origLine === undefined && fmtLine !== undefined) {
+            // Line added (formatted is longer)
+            edits.push({
+                range: Range.create(i, 0, i, 0),
+                newText: fmtLine + '\n',
+            });
+        } else if (origLine !== undefined && fmtLine === undefined) {
+            // Line removed (formatted is shorter)
+            const endLine = i + 1 < originalLines.length ? i + 1 : i;
+            const endChar = i + 1 < originalLines.length ? 0 : origLine.length;
+            edits.push({
+                range: Range.create(i, 0, endLine, endChar),
+                newText: '',
+            });
+        }
+    }
+
+    // If per-line diffing didn't produce edits (e.g., structural reflow across
+    // lines), fall back to a replacement scoped to the requested range.
+    if (edits.length === 0 && formatted !== text) {
+        const startOffset = document.offsetAt(requestedRange.start);
+        const endOffset = document.offsetAt(requestedRange.end);
+        const rangeText = text.substring(startOffset, endOffset);
+        const rangeFormatted = formatted.substring(startOffset, Math.min(endOffset, formatted.length));
+        if (rangeText !== rangeFormatted) {
+            return [{
+                range: requestedRange,
+                newText: rangeFormatted,
+            }];
+        }
+    }
+
+    return edits;
 }
 
 // --- Core formatting logic ---

@@ -48,7 +48,7 @@ export function buildInitializeResult(hasWorkspaceFolderCapability: boolean): In
         capabilities: {
             textDocumentSync: TextDocumentSyncKind.Incremental,
             diagnosticProvider: {
-                interFileDependencies: false,
+                interFileDependencies: true,
                 workspaceDiagnostics: false,
             },
             completionProvider: {
@@ -71,6 +71,17 @@ export function buildInitializeResult(hasWorkspaceFolderCapability: boolean): In
                 resolveProvider: true,
             },
             linkedEditingRangeProvider: true,
+            executeCommandProvider: {
+                commands: [
+                    'ditacraft.setRootMap',
+                    'ditacraft.clearRootMap',
+                    'ditacraft.validateWorkspace',
+                ],
+            },
+        },
+        serverInfo: {
+            name: 'DitaCraft DITA Language Server',
+            version: '0.7.2',
         },
     };
 

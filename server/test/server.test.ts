@@ -144,14 +144,14 @@ suite('serverHandlers', () => {
             assert.strictEqual(rename.prepareProvider, true);
         });
 
-        test('includes diagnostic provider', () => {
+        test('includes diagnostic provider with inter-file dependencies', () => {
             const result = buildInitializeResult(false);
             const diag = result.capabilities.diagnosticProvider as {
                 interFileDependencies: boolean;
                 workspaceDiagnostics: boolean;
             };
             assert.ok(diag, 'diagnosticProvider should exist');
-            assert.strictEqual(diag.interFileDependencies, false);
+            assert.strictEqual(diag.interFileDependencies, true);
             assert.strictEqual(diag.workspaceDiagnostics, false);
         });
 
@@ -194,6 +194,24 @@ suite('serverHandlers', () => {
                 result.capabilities.workspace!.workspaceFolders!.supported,
                 true
             );
+        });
+
+        test('includes executeCommandProvider with all commands', () => {
+            const result = buildInitializeResult(false);
+            const exec = result.capabilities.executeCommandProvider as { commands: string[] };
+            assert.ok(exec, 'executeCommandProvider should exist');
+            assert.deepStrictEqual(exec.commands, [
+                'ditacraft.setRootMap',
+                'ditacraft.clearRootMap',
+                'ditacraft.validateWorkspace',
+            ]);
+        });
+
+        test('includes serverInfo with name and version', () => {
+            const result = buildInitializeResult(false);
+            assert.ok(result.serverInfo, 'serverInfo should exist');
+            assert.strictEqual(result.serverInfo!.name, 'DitaCraft DITA Language Server');
+            assert.ok(result.serverInfo!.version, 'version should be set');
         });
     });
 
