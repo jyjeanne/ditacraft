@@ -474,4 +474,76 @@ suite('xmlTokenizer', () => {
             assert.strictEqual(result.context, 'cdata');
         });
     });
+
+    // -----------------------------------------------------------------------
+    // Error-tolerant tokenizer (Manual Test Plan §12.4)
+    // -----------------------------------------------------------------------
+    suite('error-tolerant tokenizer (§12.4)', () => {
+
+        test('unclosed tag: tokens still produced for valid parts (§12.4.1)', () => {
+            const input = '<topic id="t1"><title>text';
+            const tokens = allTokens(input);
+            const types = tokens.filter(t => t.type !== TokenType.EOF).map(t => t.type);
+            assert.ok(types.includes(TokenType.ELEMENT_START), 'should find opening tags');
+            assert.ok(types.includes(TokenType.CHAR_DATA), 'should find text content');
+            assert.ok(tokens.length >= 3, 'should produce multiple tokens despite unclosed tag');
+        });
+
+        test('unquoted attribute: tokenizer recovers (§12.4.2)', () => {
+            const input = '<p class=foo>text</p>';
+            const tokens = allTokens(input);
+            const types = tokens.filter(t => t.type !== TokenType.EOF).map(t => t.type);
+            assert.ok(types.includes(TokenType.ELEMENT_START), 'should find opening tag');
+            assert.ok(types.includes(TokenType.CHAR_DATA), 'should find text content');
+        });
+
+        test('malformed attribute (empty value): tokenizer continues (§12.4.3)', () => {
+            const input = '<p attr=>text</p>';
+            const tokens = allTokens(input);
+            const types = tokens.filter(t => t.type !== TokenType.EOF).map(t => t.type);
+            assert.ok(types.includes(TokenType.CHAR_DATA), 'should find text content after malformed attribute');
+        });
+
+        test('multiple unclosed tags: produces tokens for each', () => {
+            const input = '<topic><title>T<body><p>text';
+            const tokens = allTokens(input);
+            const openTags = tokens.filter(t => t.type === TokenType.ELEMENT_START);
+            assert.ok(openTags.length >= 3, 'should find multiple opening tags');
+        });
+
+        test('truncated closing tag does not hang', () => {
+            const input = '<p>text</';
+            const tokens = allTokens(input);
+            assert.ok(tokens.length > 0, 'should produce tokens');
+            const eof = tokens.find(t => t.type === TokenType.EOF);
+            assert.ok(eof, 'should have EOF token');
+        });
+
+        test('angle bracket in text content', () => {
+            const input = '<p>x > y and a < b</p>';
+            const tokens = allTokens(input);
+            assert.ok(tokens.length > 0, 'should produce tokens despite bare angle brackets');
+        });
+
+        test('deeply nested unclosed tags still produce tokens', () => {
+            let input = '';
+            for (let i = 0; i < 20; i++) {
+                input += '<div>';
+            }
+            input += 'content';
+            const tokens = allTokens(input);
+            const openTags = tokens.filter(t => t.type === TokenType.ELEMENT_START);
+            assert.ok(openTags.length >= 10, 'should find many opening tags');
+        });
+
+        test('findContextAtOffset works on partially-valid document', () => {
+            const input = '<topic id="t1"><title>Test<body><p >';
+            const result = findContextAtOffset(input, 33); // inside <p >
+            assert.ok(result, 'should return a context object');
+            assert.ok(
+                ['attribute-name', 'element-name', 'content'].includes(result.context),
+                'should return a valid context type'
+            );
+        });
+    });
 });

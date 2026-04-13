@@ -729,7 +729,7 @@ Quick pass/fail checklist for smoke testing after any code change.
 | 13.15 | Custom rules | Set customRulesFile, verify diagnostics | [ ] |
 | 13.16 | Large file | Open >500KB file, verify DITA-PERF-001 | [ ] |
 | 13.17 | Publishing | Publish to HTML5, output generated | [ ] |
-| 13.18 | Server tests | `cd server && npm test` → 697 passing | [ ] |
+| 13.18 | Server tests | `cd server && npm test` → 793 passing | [ ] |
 | 13.19 | Client tests | `npm test` → 678 passing, 10 pending | [ ] |
 | 13.20 | No regressions | No new errors in Problems panel for valid files | [ ] |
 

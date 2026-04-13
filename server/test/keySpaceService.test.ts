@@ -250,4 +250,167 @@ suite('KeySpaceService', () => {
             }
         });
     });
+
+    suite('keyscope nesting', () => {
+
+        test('root map keyscope produces scope-qualified key names', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map keyscope="product">
+  <keydef keys="version" href="v1.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                assert.ok(keySpace.keys.has('version'), 'unqualified key should exist');
+                assert.ok(keySpace.keys.has('product.version'), 'scope-qualified key should exist');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('submap keyscope produces scope-qualified key names', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <mapref href="sub.ditamap" keyscope="lib"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'sub.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="api" href="api.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.ok(keySpace.keys.has('api'), 'unqualified key should exist');
+                assert.ok(keySpace.keys.has('lib.api'), 'scope-qualified key should exist');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('nested keyscopes produce dot-separated qualified names', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map keyscope="product">
+  <mapref href="sub.ditamap" keyscope="module"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'sub.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="config" href="config.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.ok(keySpace.keys.has('config'), 'unqualified key should exist');
+                assert.ok(keySpace.keys.has('product.module.config'),
+                    'nested scope-qualified key should exist');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('multiple keyscopes on single element produce multiple qualified names', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map keyscope="scopeA scopeB">
+  <keydef keys="item" href="item.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                assert.ok(keySpace.keys.has('item'), 'unqualified key should exist');
+                assert.ok(keySpace.keys.has('scopeA.item'), 'first scope-qualified key should exist');
+                assert.ok(keySpace.keys.has('scopeB.item'), 'second scope-qualified key should exist');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('keyscope on submap root element is applied', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <mapref href="scoped.ditamap"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'scoped.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map keyscope="inner">
+  <keydef keys="detail" href="detail.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.ok(keySpace.keys.has('detail'), 'unqualified key should exist');
+                assert.ok(keySpace.keys.has('inner.detail'),
+                    'root-level keyscope on submap should produce qualified key');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('first definition wins within same scope', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map keyscope="scope">
+  <keydef keys="dup" href="first.dita"/>
+  <keydef keys="dup" href="second.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                const qualified = keySpace.keys.get('scope.dup');
+                assert.ok(qualified, 'scope-qualified key should exist');
+                assert.ok(qualified!.targetFile?.endsWith('first.dita'),
+                    'first definition should win for scope-qualified key');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('no keyscope means no qualified keys added', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="plain" href="plain.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                assert.ok(keySpace.keys.has('plain'), 'unqualified key should exist');
+                // No scope-qualified keys should be generated
+                const allKeys = Array.from(keySpace.keys.keys());
+                const dotKeys = allKeys.filter(k => k.includes('.'));
+                assert.strictEqual(dotKeys.length, 0, 'no dot-qualified keys without keyscope');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
 });

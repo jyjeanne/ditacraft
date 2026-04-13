@@ -171,4 +171,62 @@ suite('Custom Rules Validator', () => {
         assert.strictEqual(diags3.length, 1);
         assert.strictEqual(diags3[0].code, 'CACHE-002');
     });
+
+    // -----------------------------------------------------------------------
+    // Additional edge cases from Manual Test Plan §4.9
+    // -----------------------------------------------------------------------
+
+    test('invalid JSON in rules file returns empty, no crash', () => {
+        const rulesFile = path.join(tmpDir, 'bad.json');
+        fs.writeFileSync(rulesFile, '{ this is not valid json }', 'utf-8');
+        const text = '<topic id="t1"><title>T</title><body><p>text</p></body></topic>';
+        const diags = validateCustomRules(text, '/test.dita', rulesFile, 100);
+        assert.strictEqual(diags.length, 0, 'invalid JSON should return empty array');
+    });
+
+    test('rules file with empty rules array returns empty', () => {
+        const rulesFile = path.join(tmpDir, 'empty-rules.json');
+        fs.writeFileSync(rulesFile, JSON.stringify({ rules: [] }), 'utf-8');
+        const text = '<topic id="t1"><title>FooBar</title><body><p>text</p></body></topic>';
+        const diags = validateCustomRules(text, '/test.dita', rulesFile, 100);
+        assert.strictEqual(diags.length, 0);
+    });
+
+    test('complex regex with character class matches correctly', () => {
+        const rulesFile = writeRulesFile([{
+            id: 'REGEX-001',
+            pattern: '[A-Z]{3,}',
+            severity: 'warning',
+            message: 'Avoid all-caps words',
+        }]);
+        const text = '<topic id="t1"><title>THIS IS LOUD</title><body><p>normal text</p></body></topic>';
+        const diags = validateCustomRules(text, '/test.dita', rulesFile, 100);
+        assert.ok(diags.length > 0, 'character class regex should match');
+        assert.strictEqual(diags[0].code, 'REGEX-001');
+    });
+
+    test('regex with alternation matches correctly', () => {
+        const rulesFile = writeRulesFile([{
+            id: 'ALT-001',
+            pattern: '(TODO|FIXME|HACK)',
+            severity: 'information',
+            message: 'Found work-in-progress marker',
+        }]);
+        const text = '<topic id="t1"><title>T</title><body><p>TODO fix this HACK</p></body></topic>';
+        const diags = validateCustomRules(text, '/test.dita', rulesFile, 100);
+        assert.strictEqual(diags.length, 2, 'should find both TODO and HACK');
+    });
+
+    test('rule with missing required fields is gracefully skipped', () => {
+        const rulesFile = path.join(tmpDir, 'incomplete.json');
+        fs.writeFileSync(rulesFile, JSON.stringify({
+            rules: [
+                { id: 'INCOMPLETE', message: 'missing pattern field' },
+                { id: 'GOOD-001', pattern: 'Match', severity: 'warning', message: 'found' },
+            ],
+        }), 'utf-8');
+        const text = '<topic id="t1"><title>Match this</title><body><p>text</p></body></topic>';
+        const diags = validateCustomRules(text, '/test.dita', rulesFile, 100);
+        assert.ok(diags.some(d => d.code === 'GOOD-001'), 'valid rule should still match');
+    });
 });
