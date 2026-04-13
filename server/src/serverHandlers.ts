@@ -18,12 +18,19 @@ import { join } from 'path';
 
 /** Server version read from package.json at module load time. */
 const SERVER_VERSION: string = (() => {
-    try {
-        const pkg = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8'));
-        return pkg.version ?? '0.0.0';
-    } catch {
-        return '0.0.0';
+    // Walk up from __dirname to find package.json — handles both bundled
+    // (server/out/server.js) and tsc-compiled (server/out/src/*.js) contexts.
+    let dir = __dirname;
+    for (let i = 0; i < 5; i++) {
+        try {
+            const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+            if (pkg.version) return pkg.version;
+        } catch { /* not found at this level */ }
+        const parent = join(dir, '..');
+        if (parent === dir) break;
+        dir = parent;
     }
+    return '0.0.0';
 })();
 
 // ── Initialization ──────────────────────────────────────────────

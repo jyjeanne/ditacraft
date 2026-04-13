@@ -213,6 +213,7 @@ suite('serverHandlers', () => {
             assert.strictEqual(result.serverInfo!.name, 'DitaCraft DITA Language Server');
             assert.ok(result.serverInfo!.version, 'version should be set');
             assert.match(result.serverInfo!.version!, /^\d+\.\d+\.\d+/, 'version should be semver');
+            assert.notStrictEqual(result.serverInfo!.version, '0.0.0', 'version must not be fallback');
         });
     });
 
