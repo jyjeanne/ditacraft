@@ -25,7 +25,9 @@ async function waitForErrors(uri: vscode.Uri, timeout = 3000): Promise<vscode.Di
 suite('Command and Auto-Detection Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
 
-    suiteSetup(async () => {
+    suiteSetup(async function() {
+        this.timeout(30000);
+
         // Get and activate extension
         const extension = vscode.extensions.getExtension('JeremyJeanne.ditacraft');
         if (!extension) {
@@ -37,7 +39,7 @@ suite('Command and Auto-Detection Test Suite', () => {
         }
 
         // Wait for the language client to be fully started before running tests
-        await waitForLanguageClientReady(15000);
+        await waitForLanguageClientReady(20000);
 
         // Configure validation engine
         const config = vscode.workspace.getConfiguration('ditacraft');

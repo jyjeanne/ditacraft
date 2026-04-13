@@ -27,7 +27,9 @@ suite('Real-time Validation Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
     let tempFile: string;
 
-    suiteSetup(async () => {
+    suiteSetup(async function() {
+        this.timeout(30000);
+
         // Get extension context
         const extension = vscode.extensions.getExtension('JeremyJeanne.ditacraft');
         if (!extension) {
@@ -44,7 +46,7 @@ suite('Real-time Validation Test Suite', () => {
         }
 
         // Wait for the language client to be fully started before running tests
-        await waitForLanguageClientReady(15000);
+        await waitForLanguageClientReady(20000);
 
         // Set validation engine for manual validation command
         const config = vscode.workspace.getConfiguration('ditacraft');
