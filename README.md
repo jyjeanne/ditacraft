@@ -22,7 +22,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **1375+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **1500+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (~80 files, bookmap structure)
 
 ## Features
@@ -540,6 +540,7 @@ ditacraft/
 ├── server/                      # LSP Language Server (separate process)
 │   ├── src/
 │   │   ├── server.ts            # Server entry point & capability registration
+│   │   ├── serverHandlers.ts    # Extracted LSP handler wiring & capabilities
 │   │   ├── features/            # LSP feature handlers
 │   │   │   ├── validation.ts    # Diagnostics (XML, DITA structure, IDs)
 │   │   │   ├── completion.ts    # IntelliSense completions
@@ -576,7 +577,7 @@ ditacraft/
 │   │   │   └── ...
 │   │   ├── messages/            # Localization bundles (en.json, fr.json — 80+ message keys)
 │   │   └── data/                # DITA schema & specialization data (@class matching)
-│   └── test/                    # Server test suites (697 tests)
+│   └── test/                    # Server test suites (810+ tests)
 ├── dtds/                        # DITA 1.2, 1.3, and 2.0 DTD files (master catalog)
 ├── docs/                        # Documentation
 │   ├── architecture.puml        # Architecture diagram (PlantUML)
@@ -600,10 +601,10 @@ DitaCraft includes comprehensive test coverage across client and server:
 - Activity bar views: DITA Explorer, Key Space, Diagnostics, file decorations
 - Map hierarchy parser (25 tests)
 
-**LSP Server Tests (697 tests):**
+**LSP Server Tests (810+ tests):**
 - Reference parser (40 tests) - all 6 exported parsing functions
-- XML tokenizer (18 tests) - state machine, error recovery, CRLF, context detection
-- XML formatting (20 tests) - indentation, inline, preformatted, edge cases
+- XML tokenizer (26 tests) - state machine, error recovery, CRLF, context detection, Unicode/CJK
+- XML formatting (25 tests) - indentation, inline, preformatted, edge cases, range formatting
 - Folding ranges (10 tests) - elements, comments, CDATA, CRLF
 - Workspace scanner (8 tests) - offset-to-position conversion
 - Validation diagnostics (30 tests) - XML, DITA structure, IDs, maps, DITAVAL
@@ -615,12 +616,15 @@ DitaCraft includes comprehensive test coverage across client and server:
 - Linked editing (15 tests) - tag pairing, nesting, boundaries
 - Cross-reference validation - href, conref, keyref target validation
 - DITA rules validator - 43 Schematron-equivalent rules (5 categories incl. DITA 2.0) + 25 DITA 2.0 tests
-- Custom rules validator - 10 tests (regex matching, fileTypes, caching, severity mapping)
+- Custom rules validator - 23 tests (regex matching, fileTypes, caching, severity mapping, ReDoS protection)
 - Profiling validation - subject scheme controlled value checks
-- Validation pipeline - severity overrides, comment-based suppression, large file optimization
+- Validation pipeline - severity overrides, comment-based suppression, large file optimization, pipeline budget
 - Subject scheme service - parsing, caching, hierarchy, value constraints
 - DITA specialization - @class matching, topic/map type names, utility functions
 - DITA version detector - version detection from content (1.0-2.0)
+- Key space service - 7 keyscope nesting tests
+- Server handlers - 31 wiring tests + 19 settings tests
+- Edge cases - empty files, long lines, mixed CRLF, Unicode/CJK content
 
 **Running Tests:**
 ```bash

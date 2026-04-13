@@ -195,6 +195,11 @@
                 <li><b>fileTypes:</b> (Optional) Array of DITA file types to restrict the rule to (topic, concept, task, reference, glossentry, troubleshooting, map, bookmap)</li>
             </ul>
             <p>Rules are matched against content with comments and CDATA stripped to avoid false positives. The rules file is automatically reloaded when it changes.</p>
+            <p><b>Safety:</b> Custom regex patterns are screened for ReDoS (Regular Expression
+                Denial of Service) vulnerabilities such as nested quantifiers. Patterns that fail
+                the safety check are skipped with a warning diagnostic. Additionally, each rule
+                is limited to 10,000 match iterations and a 2-second timeout to prevent any
+                single rule from blocking the validation pipeline.</p>
         </section>
 
         <section id="suppression">

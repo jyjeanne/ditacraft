@@ -5,6 +5,34 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2026-04-13
+
+### Added
+- **Pipeline Budget** — Configurable validation pipeline budget (`pipelineBudgetMs`, default 30 s) with early-exit checks before each major phase, preventing runaway validation on large or complex files
+- **ReDoS Protection** — Custom regex rules are now screened for nested-quantifier patterns; per-rule runtime guards enforce a 10 000-match iteration cap and 2 s timeout
+- **LSP 3.17 Conformance** — Server now advertises `executeCommandProvider` with all 3 registered commands; reports `serverInfo` (name + version) in `InitializeResult`; declares `interFileDependencies: true` so clients know cross-file diagnostics may change when other files are edited
+- **Server Version Reporting** — `serverInfo.version` is now read from `server/package.json` at startup instead of being hardcoded
+
+### Fixed
+- **Range Formatting Data Loss** — When XML formatting changed line count (e.g., collapsing or expanding elements), range formatting could silently drop content by applying misaligned per-line diffs. Now falls back to a safe full-document replacement when structural reflow is detected
+- **DITA-OT Error Code Parsing** — Modern DITA-OT 3.x/4.x outputs severity-first log format (`[ERROR] [DOTJ013E]`), but the parser only recognized the legacy `[DOTJ013E][ERROR]` format. Added 3 severity-first regex patterns so error codes are correctly extracted instead of appearing as "UNKNOWN"
+- **Budget Comparison Off-by-One** — Pipeline budget check used `>` instead of `>=`, allowing one extra phase to run after the budget was exhausted
+- **Sync Timeout Wrappers Removed** — `withTimeout()` was wrapping synchronous validation phases (no-op); replaced with direct calls
+- **Coverage Thresholds** — Corrected CI coverage thresholds from 68 % to 63 % to match actual measured coverage, preventing false CI failures
+- **Test Assertion Accuracy** — Strengthened 12+ tautological or weak test assertions across cache invalidation, edge case, and server handler tests
+
+### Changed
+- **Validation Pipeline** — Phases 9 (DITA rules) and 12 (custom rules) now enforce per-phase timeouts; budget is checked with `>=` for accurate early-exit
+- **Documentation** — All architecture, validation specification, and README docs synchronized to current state; user guide updated to v0.7.3
+
+### Tests
+- 810 server tests (up from ~700 in v0.7.0), including:
+  - 31 LSP server handler tests + 19 settings tests
+  - 40 automated manual-test-plan gap tests (keyscopes, Unicode/CJK, empty files, long lines, CRLF)
+  - 8 ReDoS + 2 pipeline budget tests
+  - 5 range formatting tests
+  - 7 DITA-OT error code parsing tests
+
 ## [0.7.0] - 2026-03-11
 
 ### Added

@@ -19,7 +19,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>DTD Conformance</dt>
-                    <dd>Validates elements and attributes against DITA 1.3 DTDs. Ensures elements appear in allowed contexts with required attributes.</dd>
+                    <dd>Validates elements and attributes against DITA 1.2, 1.3, and 2.0 DTDs. Ensures elements appear in allowed contexts with required attributes.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Content Model</dt>
@@ -140,6 +140,22 @@
                 <li>Manual validation shows a warning if rate limited</li>
             </ul>
             <p>This protects against excessive CPU usage when making rapid edits.</p>
+        </section>
+
+        <section id="pipeline-budget">
+            <title>Pipeline Budget</title>
+            <p>The validation pipeline enforces a configurable time budget (default 30 seconds)
+                to prevent runaway validation on very large or complex files. Before each major
+                validation phase, the elapsed time is checked; if the budget is exhausted, remaining
+                phases are skipped and the diagnostics collected so far are returned.</p>
+            <p>The budget protects against:</p>
+            <ul>
+                <li>Extremely large DITA files that would block the LSP server</li>
+                <li>Complex custom regex rules that consume excessive CPU</li>
+                <li>Pathological input that triggers worst-case behavior in any validation phase</li>
+            </ul>
+            <p>Individual phases (DITA Rules and Custom Rules) also enforce per-phase timeouts
+                to isolate slow rules from blocking the entire pipeline.</p>
         </section>
     </conbody>
 </concept>

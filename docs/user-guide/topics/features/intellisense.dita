@@ -91,6 +91,10 @@
                 <li><b>Preformatted Content:</b> <codeph>&lt;codeblock&gt;</codeph> and <codeph>&lt;pre&gt;</codeph> content is preserved as-is</li>
             </ul>
             <p>Format a document with <uicontrol>Shift+Alt+F</uicontrol> or format a selection with <uicontrol>Ctrl+K Ctrl+F</uicontrol>.</p>
+            <p>Range formatting (<uicontrol>Ctrl+K Ctrl+F</uicontrol>) correctly scopes edits to
+                the selected lines. When formatting changes the document structure (e.g., collapsing
+                or expanding elements changes line count), DitaCraft safely falls back to replacing
+                the affected range as a whole to prevent data loss.</p>
         </section>
     </conbody>
 </concept>

@@ -125,6 +125,10 @@
             </ul>
             <p>The severity suffix indicates: <b>E</b> = Error, <b>W</b> = Warning, <b>F</b> =
                 Fatal, <b>I</b> = Info.</p>
+            <p>DitaCraft recognizes both the legacy format (<codeph>[DOTJ013E][ERROR]</codeph>) and
+                the modern severity-first format used by DITA-OT 3.x and 4.x
+                (<codeph>[ERROR] [DOTJ013E]</codeph>), ensuring error codes are correctly extracted
+                regardless of your DITA-OT version.</p>
         </section>
     </conbody>
 </concept>
