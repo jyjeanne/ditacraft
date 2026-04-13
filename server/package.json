@@ -17,8 +17,7 @@
     "typesxml": "^1.17.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11",
-    "vscode-uri": "^3.0.8",
-    "xregexp": "^4.4.1"
+    "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
