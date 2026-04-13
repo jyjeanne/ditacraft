@@ -600,6 +600,34 @@ suite('validateDITADocument', () => {
             assert.strictEqual(secDiags.length, 0);
         });
 
+        test('no false positive for XML predefined entity references (&amp; etc.)', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY copyright "Copyright &amp; Trademark">',
+                '  <!ENTITY arrow "&lt;=&gt;">',
+                '  <!ENTITY quoted "&quot;hello&quot;">',
+                '  <!ENTITY apo "&apos;test&apos;">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d => d.code === 'DITA-SEC-001');
+            assert.strictEqual(secDiags.length, 0, 'predefined XML entities should not trigger entity expansion warning');
+        });
+
+        test('no false positive for numeric character references (&#x20; etc.)', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY nbsp "&#160;">',
+                '  <!ENTITY mdash "&#x2014;">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d => d.code === 'DITA-SEC-001');
+            assert.strictEqual(secDiags.length, 0, 'numeric character refs should not trigger entity expansion warning');
+        });
+
         test('no false positive on DOCTYPE without internal subset', () => {
             const xml = '<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">\n<topic id="t1"><title>T</title></topic>';
             const diags = validate(xml);
@@ -638,6 +666,19 @@ suite('validateDITADocument', () => {
             const expansionDiags = diags.filter(d => d.code === 'DITA-SEC-001');
             // lol2 and lol3 both reference other entities
             assert.strictEqual(expansionDiags.length, 2);
+        });
+
+        test('external entities count toward excessive-entities limit', () => {
+            const entities = Array.from({ length: 51 }, (_, i) =>
+                `  <!ENTITY e${i} SYSTEM "file:///data${i}.xml">`
+            ).join('\n');
+            const xml = [
+                `<!DOCTYPE topic [\n${entities}\n]>`,
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const excessDiags = diags.filter(d => d.code === 'DITA-SEC-003');
+            assert.strictEqual(excessDiags.length, 1, 'external entities should be counted toward the limit');
         });
     });
 });

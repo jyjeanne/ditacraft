@@ -55,10 +55,10 @@ export function validateDITADocument(
     // 2. XML well-formedness
     validateXML(text, diagnostics);
 
-    // 2. DITA structure
+    // 3. DITA structure
     validateDITAStructure(text, uri, diagnostics);
 
-    // 3. ID validation
+    // 4. ID validation
     validateIDs(text, textDocument, diagnostics);
 
     // Cap diagnostics
@@ -72,14 +72,51 @@ export function validateDITADocument(
 // Regex to extract the DOCTYPE internal subset (content between [ and ])
 const DOCTYPE_INTERNAL_SUBSET_RE = /<!DOCTYPE\s[\s\S]*?\[([\s\S]*?)\]\s*>/i;
 
-// Regex to match individual ENTITY declarations and capture name + value
-const ENTITY_DECL_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+(["'])([\s\S]*?)\3\s*>/gi;
+// Regex to match ALL ENTITY declarations (both internal and external) for counting.
+// Captures: (1) optional % for parameter entities, (2) entity name.
+const ENTITY_ANY_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+[\s\S]*?>/gi;
 
-// Regex to detect SYSTEM or PUBLIC keywords in an ENTITY declaration
-const EXTERNAL_ENTITY_RE = /<!ENTITY\s+(%\s+)?\S+\s+(SYSTEM|PUBLIC)\s/gi;
+// Regex to match internal ENTITY declarations with a quoted value.
+// Captures: (1) optional %, (2) name, (3) quote char, (4) value.
+const ENTITY_INTERNAL_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+(["'])([\s\S]*?)\3\s*>/gi;
+
+// Regex to detect SYSTEM or PUBLIC keywords in an ENTITY declaration.
+// Captures: (1) optional %, (2) entity name, (3) SYSTEM|PUBLIC.
+const EXTERNAL_ENTITY_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+(SYSTEM|PUBLIC)\s/gi;
+
+// XML pre-defined entities that are safe and should not trigger false positives
+const XML_PREDEFINED_ENTITIES = new Set(['amp', 'lt', 'gt', 'quot', 'apos']);
 
 // Regex to detect entity references (&name; or %name;) inside an entity value
-const ENTITY_REF_IN_VALUE_RE = /[&%][a-zA-Z_][\w.-]*;/;
+const ENTITY_REF_IN_VALUE_RE = /[&%]([a-zA-Z_][\w.-]*);/g;
+
+/**
+ * Returns a range covering the first line of the match (safe for multi-line declarations).
+ */
+function entityRange(textDocument: TextDocument, offset: number, matchText: string): Range {
+    const pos = textDocument.positionAt(offset);
+    const firstNewline = matchText.indexOf('\n');
+    const endChar = firstNewline >= 0
+        ? pos.character + firstNewline
+        : pos.character + matchText.length;
+    return {
+        start: pos,
+        end: { line: pos.line, character: endChar },
+    };
+}
+
+/**
+ * Returns true if an entity value contains references to non-predefined entities.
+ */
+function hasNonPredefinedEntityRef(value: string): boolean {
+    const re = new RegExp(ENTITY_REF_IN_VALUE_RE.source, ENTITY_REF_IN_VALUE_RE.flags);
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(value)) !== null) {
+        if (m[1].startsWith('#')) continue;       // numeric ref like &#x20;
+        if (!XML_PREDEFINED_ENTITIES.has(m[1])) return true;
+    }
+    return false;
+}
 
 /**
  * Defense-in-depth pre-check for dangerous entity patterns in DOCTYPE.
@@ -99,26 +136,26 @@ function checkEntityExpansion(
     const subset = subsetMatch[1];
     const subsetOffset = subsetMatch.index + subsetMatch[0].indexOf('[') + 1;
 
-    // Collect all ENTITY declarations
+    // Count ALL entity declarations (internal + external)
+    const countRegex = new RegExp(ENTITY_ANY_RE.source, ENTITY_ANY_RE.flags);
+    let totalEntityCount = 0;
+    while (countRegex.exec(subset) !== null) {
+        totalEntityCount++;
+    }
+
+    // Check internal entities for recursive references
+    const entityDeclRegex = new RegExp(ENTITY_INTERNAL_RE.source, ENTITY_INTERNAL_RE.flags);
     let entityMatch: RegExpExecArray | null;
-    let entityCount = 0;
-    const entityDeclRegex = new RegExp(ENTITY_DECL_RE.source, ENTITY_DECL_RE.flags);
 
     while ((entityMatch = entityDeclRegex.exec(subset)) !== null) {
-        entityCount++;
         const entityName = entityMatch[2];
         const entityValue = entityMatch[4];
         const entityOffset = subsetOffset + entityMatch.index;
 
-        // Check for recursive entity references in the value
-        if (ENTITY_REF_IN_VALUE_RE.test(entityValue)) {
-            const pos = textDocument.positionAt(entityOffset);
+        if (hasNonPredefinedEntityRef(entityValue)) {
             diagnostics.push({
                 severity: DiagnosticSeverity.Error,
-                range: {
-                    start: pos,
-                    end: { line: pos.line, character: pos.character + entityMatch[0].length },
-                },
+                range: entityRange(textDocument, entityOffset, entityMatch[0]),
                 message: t('security.entityExpansion', entityName),
                 source: SOURCE,
                 code: DIAGNOSTIC_CODES.security.ENTITY_EXPANSION,
@@ -131,24 +168,18 @@ function checkEntityExpansion(
     let extMatch: RegExpExecArray | null;
     while ((extMatch = externalRegex.exec(subset)) !== null) {
         const extOffset = subsetOffset + extMatch.index;
-        const pos = textDocument.positionAt(extOffset);
-        // Extract entity name from the match
-        const nameMatch = extMatch[0].match(/<!ENTITY\s+(%\s+)?(\S+)/);
-        const entityName = nameMatch ? nameMatch[2] : 'unknown';
+        const entityName = extMatch[2];
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
-            range: {
-                start: pos,
-                end: { line: pos.line, character: pos.character + extMatch[0].length },
-            },
+            range: entityRange(textDocument, extOffset, extMatch[0]),
             message: t('security.externalEntity', entityName),
             source: SOURCE,
             code: DIAGNOSTIC_CODES.security.EXTERNAL_ENTITY,
         });
     }
 
-    // Check for excessive entity count
-    if (entityCount > MAX_ENTITY_COUNT) {
+    // Check for excessive entity count (includes both internal and external)
+    if (totalEntityCount > MAX_ENTITY_COUNT) {
         const doctypeOffset = subsetMatch.index;
         const pos = textDocument.positionAt(doctypeOffset);
         diagnostics.push({
@@ -157,7 +188,7 @@ function checkEntityExpansion(
                 start: pos,
                 end: { line: pos.line, character: pos.character + 9 }, // "<!DOCTYPE"
             },
-            message: t('security.excessiveEntities', String(entityCount), String(MAX_ENTITY_COUNT)),
+            message: t('security.excessiveEntities', String(totalEntityCount), String(MAX_ENTITY_COUNT)),
             source: SOURCE,
             code: DIAGNOSTIC_CODES.security.EXCESSIVE_ENTITIES,
         });
