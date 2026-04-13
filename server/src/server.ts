@@ -257,12 +257,12 @@ connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, t
         token,
     );
 
-    // Push diagnostics directly — guarantees immediate VS Code update without
-    // relying on the async pull-diagnostics round-trip (workspace/diagnostic/refresh).
+    // Push diagnostics via the standard notification so the Problems panel
+    // updates immediately. The full diagnostics list is also returned in the
+    // response for direct client-side application (avoids pull-timing races).
+    // Do NOT call diagnostics.refresh() here — that would trigger a redundant
+    // third validation run, creating duplicate entries in the Problems panel.
     connection.sendDiagnostics({ uri: params.uri, diagnostics });
-
-    // Also refresh pull diagnostics so the Problems panel stays in sync.
-    connection.languages.diagnostics.refresh();
 
     return {
         summary: ValidationPipeline.summarize(diagnostics),

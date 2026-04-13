@@ -47,6 +47,13 @@ const DITA_EXTENSIONS = ['.dita', '.ditamap', '.bookmap'];
  * Initialize the validation command infrastructure.
  */
 export function initializeValidator(context: vscode.ExtensionContext): void {
+    // Guard against double-initialization (extension.ts always calls this; some
+    // test suiteSetup functions call it again — a second call would create a
+    // duplicate DiagnosticCollection, causing duplicate entries in the Problems panel).
+    if (validationRateLimiter) {
+        return;
+    }
+
     // Initialize rate limiter (DoS protection)
     validationRateLimiter = createRateLimiter('VALIDATION');
     context.subscriptions.push(validationRateLimiter);
@@ -124,6 +131,10 @@ async function validateViaLsp(
         vscode.window.showWarningMessage('Language server is not available. Diagnostics may be incomplete.');
         return null;
     }
+
+    // Clear stale manual diagnostics before the new request so the collection
+    // is never left in an inconsistent state if the request is cancelled or fails.
+    manualDiagnostics?.delete(fileUri);
 
     try {
         const result = await client.sendRequest<ValidateFileResult>(

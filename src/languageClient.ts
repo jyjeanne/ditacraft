@@ -75,8 +75,8 @@ export function getLanguageClient(): LanguageClient | undefined {
  * Returns true if ready within `timeout` ms, false if timed out.
  */
 export async function waitForLanguageClientReady(timeout = 10000): Promise<boolean> {
-    const deadline = Date.now() + timeout;
-    while (Date.now() < deadline) {
+    const start = performance.now();
+    while (performance.now() - start < timeout) {
         if (client && client.state === State.Running) {
             return true;
         }
