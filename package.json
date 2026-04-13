@@ -721,9 +721,9 @@
     "@eslint/js": "^9.39.2",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/mocha": "^10.0.1",
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "@types/sinon": "^21.0.1",
-    "@types/vscode": "^1.82.0",
+    "@types/vscode": "^1.115.0",
     "@vscode/test-electron": "^2.3.4",
     "@vscode/vsce": "^3.7.1",
     "c8": "^11.0.0",
@@ -733,9 +733,9 @@
     "mocha": "^11.7.5",
     "npm-run-all": "^4.1.5",
     "nyc": "^18.0.0",
-    "sinon": "^21.0.3",
+    "sinon": "^21.1.2",
     "typescript": "^5.2.2",
-    "typescript-eslint": "^8.58.0"
+    "typescript-eslint": "^8.58.2"
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.9",
