@@ -1,0 +1,146 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft can validate your entire guide by running DITA-OT against the root map, producing a detailed WebView report with filtering, search, and export."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Guide Validation (DITA-OT)</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="guide-validation"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li class="active"><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Guide Validation (DITA-OT)</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft can validate your entire guide by running DITA-OT against the root map, producing a detailed WebView report with filtering, search, and export.</p>
+        <section class="section" id="guide-validation__overview"><h2 class="title sectiontitle">Overview</h2>
+            
+            <p class="p">The <span class="ph uicontrol">DITA: Validate Entire Guide Using DITA-OT</span> command performs
+                end-to-end validation of your documentation project by invoking DITA-OT against the
+                configured root map. Unlike file-level validation (which checks XML syntax and DITA
+                rules), guide validation runs the full DITA-OT processing pipeline to detect
+                cross-file issues such as broken references, missing images, unresolved keys, and
+                build errors that only surface during publishing.</p>
+        </section>
+
+        <section class="section" id="guide-validation__prerequisites"><h2 class="title sectiontitle">Prerequisites</h2>
+            
+            <p class="p">Guide validation requires:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">DITA-OT installed and configured</strong> — Set the path via
+                    <code class="ph codeph">ditacraft.ditaOtPath</code> or the <span class="ph uicontrol">DITA: Configure
+                    DITA-OT Path</span> command.</li>
+                <li class="li"><strong class="ph b">Root map configured</strong> — Set via <span class="ph uicontrol">DITA: Set Root Map</span>
+                    or the <code class="ph codeph">ditacraft.rootMap</code> setting. The root map must exist in
+                    the workspace.</li>
+            </ul>
+            <p class="p">If either prerequisite is missing, the command displays an error with a quick action
+                to configure the missing item.</p>
+        </section>
+
+        <section class="section" id="guide-validation__how-to-run"><h2 class="title sectiontitle">How to Run</h2>
+            
+            <ol class="ol">
+                <li class="li">Open the Command Palette (<span class="ph uicontrol">Ctrl+Shift+P</span>).</li>
+                <li class="li">Type <kbd class="ph userinput">DITA: Validate Entire Guide</kbd> and select the
+                    command.</li>
+                <li class="li">A progress notification appears while DITA-OT runs.</li>
+                <li class="li">When complete, a WebView report panel opens beside the editor.</li>
+            </ol>
+            <p class="p">Only one guide validation can run at a time. If you trigger the command while
+                validation is in progress, a notification informs you to wait.</p>
+        </section>
+
+        <section class="section" id="guide-validation__transtype-selection"><h2 class="title sectiontitle">Transtype Selection</h2>
+            
+            <p class="p">DitaCraft automatically selects the best transtype for validation:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">dita</strong> (preferred) — An identity transform available in DITA-OT 3.6+ that
+                    runs the full preprocessing pipeline without generating output files. This is the
+                    fastest option for pure validation.</li>
+                <li class="li"><strong class="ph b">html5</strong> (fallback) — Used when the <code class="ph codeph">dita</code> transtype is not
+                    available. Generates HTML5 output in a temporary directory that is automatically
+                    cleaned up.</li>
+            </ul>
+        </section>
+
+        <section class="section" id="guide-validation__validation-report"><h2 class="title sectiontitle">Validation Report</h2>
+            
+            <p class="p">The report WebView provides a rich interface for reviewing issues:</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Summary Cards</dt>
+                    <dd class="dd">Shows error, warning, info counts, and number of affected files at a
+                        glance.</dd>
+                
+                
+                    <dt class="dt dlterm">Severity Filtering</dt>
+                    <dd class="dd">Click filter buttons to show only errors, warnings, or info messages.</dd>
+                
+                
+                    <dt class="dt dlterm">Search</dt>
+                    <dd class="dd">Type in the search box to filter issues by message, error code, file name,
+                        description, or module.</dd>
+                
+                
+                    <dt class="dt dlterm">Grouping</dt>
+                    <dd class="dd">Group issues by file (default), severity, or DITA-OT module (Core,
+                        Processing, Transform, Indexing, PDF, XEP).</dd>
+                
+                
+                    <dt class="dt dlterm">File Navigation</dt>
+                    <dd class="dd">Click any file link to open the file at the exact line and column in the
+                        editor.</dd>
+                
+                
+                    <dt class="dt dlterm">Error Code Tooltips</dt>
+                    <dd class="dd">Hover over an error code badge to see the human-readable description from
+                        the DITA-OT error catalog (160+ codes).</dd>
+                
+                
+                    <dt class="dt dlterm">Export</dt>
+                    <dd class="dd">Export the full report as a JSON file for archiving or CI integration.</dd>
+                
+                
+                    <dt class="dt dlterm">Rerun</dt>
+                    <dd class="dd">Click the <span class="ph uicontrol">Rerun Validation</span> button to re-execute
+                        without leaving the report panel.</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="guide-validation__problems-panel"><h2 class="title sectiontitle">Problems Panel Integration</h2>
+            
+            <p class="p">In addition to the WebView report, guide validation populates the VS Code Problems
+                panel with all errors and warnings. Issues appear with the source label
+                <code class="ph codeph">DITA-OT</code> and include the DITA-OT error code (e.g.,
+                <code class="ph codeph">DOTX010E</code>). Click any diagnostic to navigate to the source
+                location.</p>
+        </section>
+
+        <section class="section" id="guide-validation__error-catalog"><h2 class="title sectiontitle">DITA-OT Error Code Catalog</h2>
+            
+            <p class="p">DitaCraft includes a built-in catalog of 160+ DITA-OT error codes with
+                human-readable descriptions and module categorization. Error codes follow the format
+                <code class="ph codeph">[PREFIX][NUMBER][SEVERITY]</code> where:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">DOTA</strong> — Core transformation errors</li>
+                <li class="li"><strong class="ph b">DOTJ</strong> — Processing pipeline (Java) errors</li>
+                <li class="li"><strong class="ph b">DOTX</strong> — XSLT transform errors</li>
+                <li class="li"><strong class="ph b">INDX</strong> — Index processing errors</li>
+                <li class="li"><strong class="ph b">PDFJ/PDFX</strong> — PDF generation errors</li>
+                <li class="li"><strong class="ph b">XEPJ</strong> — XEP FO processor errors</li>
+            </ul>
+            <p class="p">The severity suffix indicates: <strong class="ph b">E</strong> = Error, <strong class="ph b">W</strong> = Warning, <strong class="ph b">F</strong> =
+                Fatal, <strong class="ph b">I</strong> = Info.</p>
+            <p class="p">DitaCraft recognizes both the legacy format (<code class="ph codeph">[DOTJ013E][ERROR]</code>) and
+                the modern severity-first format used by DITA-OT 3.x and 4.x
+                (<code class="ph codeph">[ERROR] [DOTJ013E]</code>), ensuring error codes are correctly extracted
+                regardless of your DITA-OT version.</p>
+        </section>
+    </div>
+</article></main></body></html>

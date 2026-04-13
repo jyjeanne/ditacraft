@@ -1,0 +1,132 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="Configure DitaCraft to match your workflow and preferences."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Settings Overview</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="settings-overview"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li><span>Using DitaCraft</span></li><li>Configuration<ul><li class="active"><a href="../../topics/settings/settings-overview.html">Settings Overview</a></li><li><a href="../../topics/settings/general-settings.html">General Settings</a></li><li><a href="../../topics/settings/validation-settings.html">Validation Settings</a></li><li><a href="../../topics/settings/publishing-settings.html">Publishing Settings</a></li><li><a href="../../topics/settings/preview-settings.html">Preview Settings</a></li></ul></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Settings Overview</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">Configure DitaCraft to match your workflow and preferences.</p>
+        <section class="section" id="settings-overview__accessing-settings"><h2 class="title sectiontitle">Accessing Settings</h2>
+            
+            <p class="p">DitaCraft settings can be accessed in several ways:</p>
+            <ol class="ol">
+                <li class="li">Open VS Code Settings (<span class="ph uicontrol">Ctrl+,</span> or <span class="ph uicontrol">Cmd+,</span>)</li>
+                <li class="li">Search for <kbd class="ph userinput">ditacraft</kbd></li>
+                <li class="li">Or edit <span class="ph filepath">settings.json</span> directly</li>
+            </ol>
+        </section>
+
+        <section class="section" id="settings-overview__settings-levels"><h2 class="title sectiontitle">Settings Levels</h2>
+            
+            <p class="p">VS Code supports multiple settings levels:</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">User Settings</dt>
+                    <dd class="dd">Apply to all VS Code instances. Stored in your user profile.</dd>
+                
+                
+                    <dt class="dt dlterm">Workspace Settings</dt>
+                    <dd class="dd">Apply only to the current workspace. Stored in <span class="ph filepath">.vscode/settings.json</span>.</dd>
+                
+                
+                    <dt class="dt dlterm">Folder Settings</dt>
+                    <dd class="dd">Apply to a specific folder in a multi-root workspace.</dd>
+                
+            </dl>
+            <p class="p">Workspace settings override user settings, allowing project-specific configuration.</p>
+        </section>
+
+        <section class="section" id="settings-overview__settings-categories"><h2 class="title sectiontitle">Settings Categories</h2>
+            
+            <p class="p">DitaCraft settings are organized into these categories:</p>
+            <table class="simpletable"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="settings-overview__settings-categories__stentry__1">Category</th>
+                    <th class="stentry" scope="col" id="settings-overview__settings-categories__stentry__2">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__1">General</td>
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__2">DITA-OT path and basic configuration</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__1">Validation</td>
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__2">Validation engine and auto-validation settings</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__1">Publishing</td>
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__2">Output directory and publishing options</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__1">Preview</td>
+                    <td class="stentry" headers="settings-overview__settings-categories__stentry__2">Live preview behavior and styling</td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="settings-overview__quick-reference"><h2 class="title sectiontitle">Quick Settings Reference</h2>
+            
+            <table class="simpletable"><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="settings-overview__quick-reference__stentry__1">Setting</th>
+                    <th class="stentry" scope="col" id="settings-overview__quick-reference__stentry__2">Default</th>
+                    <th class="stentry" scope="col" id="settings-overview__quick-reference__stentry__3">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.ditaOtPath</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">""</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Path to DITA-OT installation</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.validationEngine</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">"typesxml"</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Validation engine to use</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.autoValidate</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">true</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Enable automatic validation</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.outputDirectory</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">"out"</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Output directory for publishing</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.previewScrollSync</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">true</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Enable preview scroll sync</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.ditaRulesEnabled</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">true</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Enable DITA Rules Engine (43 rules)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.crossRefValidationEnabled</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">true</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Enable cross-reference validation</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.ditaVersion</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">"auto"</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Override DITA version detection</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__1"><code class="ph codeph">ditacraft.rootMap</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__2"><code class="ph codeph">""</code></td>
+                    <td class="stentry" headers="settings-overview__quick-reference__stentry__3">Explicit root map path</td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="settings-overview__json-example"><h2 class="title sectiontitle">Example settings.json</h2>
+            
+            <pre class="pre codeblock"><code>{
+    "ditacraft.ditaOtPath": "C:/DITA-OT-4.2.1",
+    "ditacraft.validationEngine": "typesxml",
+    "ditacraft.autoValidate": true,
+    "ditacraft.outputDirectory": "out",
+    "ditacraft.previewScrollSync": true,
+    "ditacraft.ditaRulesEnabled": true,
+    "ditacraft.ditaRulesCategories": ["mandatory", "recommendation", "authoring", "accessibility"],
+    "ditacraft.crossRefValidationEnabled": true,
+    "ditacraft.ditaVersion": "auto",
+    "ditacraft.rootMap": ""
+}</code></pre>
+        </section>
+    </div>
+</article></main></body></html>

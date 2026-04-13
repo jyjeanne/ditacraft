@@ -1,0 +1,110 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft provides commands for validation, publishing, file creation, and navigation."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Commands Overview</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="commands-overview"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li class="active"><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Commands Overview</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft provides commands for validation, publishing, file creation, and navigation.</p>
+        <section class="section" id="commands-overview__accessing-commands"><h2 class="title sectiontitle">Accessing Commands</h2>
+            
+            <p class="p">All DitaCraft commands are accessible via the Command Palette:</p>
+            <ol class="ol">
+                <li class="li">Press <span class="ph uicontrol">Ctrl+Shift+P</span> (or <span class="ph uicontrol">Cmd+Shift+P</span> on Mac)</li>
+                <li class="li">Type <kbd class="ph userinput">DITA:</kbd> to see all available commands</li>
+                <li class="li">Select the desired command</li>
+            </ol>
+        </section>
+
+        <section class="section" id="commands-overview__command-categories"><h2 class="title sectiontitle">Command Categories</h2>
+            
+            <p class="p">DitaCraft commands are organized into the following categories:</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Validation Commands</dt>
+                    <dd class="dd">Validate DITA files for XML syntax and DTD conformance</dd>
+                
+                
+                    <dt class="dt dlterm">Publishing Commands</dt>
+                    <dd class="dd">Publish DITA content to HTML5, PDF, and other formats</dd>
+                
+                
+                    <dt class="dt dlterm">File Creation Commands</dt>
+                    <dd class="dd">Create new DITA topics, maps, and bookmaps</dd>
+                
+                
+                    <dt class="dt dlterm">Navigation Commands</dt>
+                    <dd class="dd">Navigate and visualize DITA content structure</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="commands-overview__command-reference"><h2 class="title sectiontitle">Quick Command Reference</h2>
+            
+            <table class="simpletable"><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="commands-overview__command-reference__stentry__1">Command</th>
+                    <th class="stentry" scope="col" id="commands-overview__command-reference__stentry__2">Shortcut</th>
+                    <th class="stentry" scope="col" id="commands-overview__command-reference__stentry__3">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Validate Current File</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">Ctrl+Shift+V</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Validate the active DITA file</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Publish (Select Format)</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">Ctrl+Shift+B</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Publish with format selection</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Publish to HTML5</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Quick publish to HTML5</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Preview HTML5</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">Ctrl+Shift+H</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Show live HTML5 preview</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Show Map Visualizer</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Display interactive map hierarchy</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Create New Topic</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Create a new DITA topic</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Create New Map</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Create a new DITA map</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Create New Bookmap</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Create a new bookmap</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Configure DITA-OT Path</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Set DITA-OT installation path</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Set Root Map</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Set an explicit root map for key resolution</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Clear Root Map (Auto-Discover)</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Return to automatic root map discovery</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__1">DITA: Open File</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__2">-</td>
+                    <td class="stentry" headers="commands-overview__command-reference__stentry__3">Open a file from the DITA Explorer tree</td>
+                </tr></tbody></table>
+        </section>
+    </div>
+</article></main></body></html>

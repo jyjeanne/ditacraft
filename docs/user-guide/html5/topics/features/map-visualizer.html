@@ -1,0 +1,101 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="View your DITA map structure as an interactive tree diagram."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Map Visualizer</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="map-visualizer"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li class="active"><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Map Visualizer</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">View your DITA map structure as an interactive tree diagram.</p>
+        <section class="section" id="map-visualizer__overview"><h2 class="title sectiontitle">Overview</h2>
+            
+            <p class="p">The Map Visualizer provides a graphical representation of your DITA map hierarchy. It displays the relationship between maps, chapters, and topics in an easy-to-navigate tree view.</p>
+            <p class="p"><strong class="ph b">Command:</strong> <span class="ph uicontrol">DITA: Show Map Visualizer</span></p>
+        </section>
+
+        <section class="section" id="map-visualizer__opening-visualizer"><h2 class="title sectiontitle">Opening the Visualizer</h2>
+            
+            <ol class="ol">
+                <li class="li">Open a <span class="ph filepath">.ditamap</span> or <span class="ph filepath">.bookmap</span> file</li>
+                <li class="li">Open Command Palette (<span class="ph uicontrol">Ctrl+Shift+P</span>)</li>
+                <li class="li">Type <kbd class="ph userinput">DITA: Show Map Visualizer</kbd></li>
+                <li class="li">The visualizer opens in a side panel</li>
+            </ol>
+        </section>
+
+        <section class="section" id="map-visualizer__tree-structure"><h2 class="title sectiontitle">Tree Structure</h2>
+            
+            <p class="p">The visualizer displays your map hierarchy with different node types:</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Map Node</dt>
+                    <dd class="dd">The root of the tree, representing the ditamap or bookmap file.</dd>
+                
+                
+                    <dt class="dt dlterm">Chapter/Part Nodes</dt>
+                    <dd class="dd">Major divisions in bookmaps, shown as expandable folders.</dd>
+                
+                
+                    <dt class="dt dlterm">Topic References</dt>
+                    <dd class="dd">Individual topic files referenced by the map.</dd>
+                
+                
+                    <dt class="dt dlterm">Nested Maps</dt>
+                    <dd class="dd">Submaps referenced via <code class="ph codeph">&lt;mapref&gt;</code> appear as expandable subtrees.</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="map-visualizer__navigation"><h2 class="title sectiontitle">Navigating the Tree</h2>
+            
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Click:</strong> Select a node and open the corresponding file in the editor</li>
+                <li class="li"><strong class="ph b">Double-click:</strong> Open the file and close the visualizer panel</li>
+                <li class="li"><strong class="ph b">Expand/Collapse:</strong> Click the arrow icons to show or hide child nodes</li>
+                <li class="li"><strong class="ph b">Right-click:</strong> Access context menu with additional options</li>
+            </ul>
+        </section>
+
+        <section class="section" id="map-visualizer__visual-indicators"><h2 class="title sectiontitle">Visual Indicators</h2>
+            
+            <p class="p">The visualizer uses icons and colors to convey information:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">File Icons:</strong> Different icons for maps, topics, and other file types</li>
+                <li class="li"><strong class="ph b">Validation Status:</strong> Red indicators show files with errors</li>
+                <li class="li"><strong class="ph b">Missing Files:</strong> Broken references are highlighted</li>
+                <li class="li"><strong class="ph b">Current File:</strong> The currently edited file is highlighted</li>
+            </ul>
+        </section>
+
+        <section class="section" id="map-visualizer__real-time-updates"><h2 class="title sectiontitle">Real-time Updates</h2>
+            
+            <p class="p">The visualizer updates automatically when:</p>
+            <ul class="ul">
+                <li class="li">You add or remove topicref elements from the map</li>
+                <li class="li">You create or delete topic files</li>
+                <li class="li">Validation status changes for any file</li>
+                <li class="li">You switch between maps</li>
+            </ul>
+        </section>
+
+        <section class="section" id="map-visualizer__use-cases"><h2 class="title sectiontitle">Use Cases</h2>
+            
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Content Audit:</strong> Review your document structure at a glance</li>
+                <li class="li"><strong class="ph b">Navigation:</strong> Quickly jump to any topic in a large documentation set</li>
+                <li class="li"><strong class="ph b">Validation Review:</strong> Identify which files have errors</li>
+                <li class="li"><strong class="ph b">Structure Planning:</strong> Visualize how content is organized</li>
+            </ul>
+        </section>
+    </div>
+</article></main></body></html>

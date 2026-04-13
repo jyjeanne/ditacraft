@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft provides LSP-powered IntelliSense for DITA authoring with auto-completion, hover documentation, and symbol navigation."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>IntelliSense</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="intellisense"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li class="active"><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">IntelliSense</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft provides LSP-powered IntelliSense for DITA authoring with auto-completion, hover documentation, and symbol navigation.</p>
+        <section class="section" id="intellisense__overview"><h2 class="title sectiontitle">Overview</h2>
+            
+            <p class="p">DitaCraft includes a built-in Language Server Protocol (LSP) implementation that provides rich editing features for DITA files. The LSP server runs in the background and provides real-time feedback as you type, including auto-completion suggestions, hover documentation, and document symbols.</p>
+        </section>
+
+        <section class="section" id="intellisense__auto-completion"><h2 class="title sectiontitle">Auto-Completion</h2>
+            
+            <p class="p">DitaCraft offers context-aware auto-completion for DITA content:</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Element Completion</dt>
+                    <dd class="dd">Type <code class="ph codeph">&lt;</code> to see a list of valid child elements for the current context. The suggestions are filtered based on the parent element's content model, showing only elements that are allowed at the current position. Supports 364+ DITA elements.</dd>
+                
+                
+                    <dt class="dt dlterm">Attribute Completion</dt>
+                    <dd class="dd">Inside an opening tag, type a space to see available attributes for the current element. Common attributes like <code class="ph codeph">id</code>, <code class="ph codeph">href</code>, and <code class="ph codeph">class</code> are suggested based on the element type.</dd>
+                
+                
+                    <dt class="dt dlterm">Attribute Value Completion</dt>
+                    <dd class="dd">When typing an attribute value (after <code class="ph codeph">=</code>), DitaCraft suggests valid values from predefined enumerations. For example, the <code class="ph codeph">type</code> attribute on <code class="ph codeph">&lt;note&gt;</code> suggests values like <code class="ph codeph">attention</code>, <code class="ph codeph">caution</code>, <code class="ph codeph">danger</code>, etc.</dd>
+                
+                
+                    <dt class="dt dlterm">Subject Scheme Completions</dt>
+                    <dd class="dd">When a subject scheme map constrains profiling attributes, auto-completion shows only allowed values with hierarchy grouping (e.g., <code class="ph codeph">Platform &gt; Linux &gt; Ubuntu</code>). Default values from the scheme are preselected in the completion list.</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="intellisense__hover-documentation"><h2 class="title sectiontitle">Hover Documentation</h2>
+            
+            <p class="p">Hover over any DITA element name to see its documentation, including:</p>
+            <ul class="ul">
+                <li class="li">A description of the element's purpose</li>
+                <li class="li">Common attributes and their usage</li>
+                <li class="li">The element's content model (what children are allowed)</li>
+            </ul>
+            <p class="p">Documentation is available for 142+ DITA elements covering all commonly used topic types, structural elements, and inline elements.</p>
+            <p class="p"><strong class="ph b">Reference Preview on Hover:</strong> Hover over key references and content references to see resolved content inline:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">keyref hover:</strong> Shows the key's target file, navtitle, short description, and inline content</li>
+                <li class="li"><strong class="ph b">conkeyref hover:</strong> Resolves the key, then extracts and displays a preview of the referenced element content as XML</li>
+                <li class="li"><strong class="ph b">href/conref hover:</strong> Shows target file information and navigation path</li>
+            </ul>
+        </section>
+
+        <section class="section" id="intellisense__document-symbols"><h2 class="title sectiontitle">Document Symbols</h2>
+            
+            <p class="p">DitaCraft provides document symbols for navigating your DITA content:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Outline View:</strong> The VS Code Outline panel shows the structure of your DITA document with sections, steps, tables, and other structural elements.</li>
+                <li class="li"><strong class="ph b">Go to Symbol:</strong> Press <span class="ph uicontrol">Ctrl+Shift+O</span> to quickly navigate to any element in the current document.</li>
+                <li class="li"><strong class="ph b">Workspace Symbols:</strong> Press <span class="ph uicontrol">Ctrl+T</span> to search for elements across all DITA files in your workspace.</li>
+            </ul>
+        </section>
+
+        <section class="section" id="intellisense__code-actions"><h2 class="title sectiontitle">Code Actions and Quick Fixes</h2>
+            
+            <p class="p">DitaCraft provides code actions (quick fixes) for common issues. When the lightbulb icon appears, click it or press <span class="ph uicontrol">Ctrl+.</span> to see available fixes:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Add Missing DOCTYPE:</strong> Automatically adds the correct DOCTYPE declaration for your topic type</li>
+                <li class="li"><strong class="ph b">Add Missing ID:</strong> Generates a unique ID attribute for the root element</li>
+                <li class="li"><strong class="ph b">Add Missing Title:</strong> Inserts a <code class="ph codeph">&lt;title&gt;</code> element where required</li>
+                <li class="li"><strong class="ph b">Remove Empty Element:</strong> Cleans up empty elements that have no content</li>
+                <li class="li"><strong class="ph b">Fix Duplicate ID:</strong> Offers to rename a duplicate ID to a unique value</li>
+                <li class="li"><strong class="ph b">Add <code class="ph codeph">@otherrole</code>:</strong> Inserts the missing <code class="ph codeph">otherrole</code> attribute when <code class="ph codeph">role="other"</code> is detected</li>
+                <li class="li"><strong class="ph b">Remove Deprecated <code class="ph codeph">&lt;indextermref&gt;</code>:</strong> Removes the deprecated element flagged by the DITA Rules Engine</li>
+                <li class="li"><strong class="ph b">Convert <code class="ph codeph">alt</code> Attribute to <code class="ph codeph">&lt;alt&gt;</code> Element:</strong> Migrates the deprecated <code class="ph codeph">alt</code> attribute syntax on <code class="ph codeph">&lt;image&gt;</code> to the modern <code class="ph codeph">&lt;alt&gt;</code> child element</li>
+                <li class="li"><strong class="ph b">Add Missing <code class="ph codeph">&lt;alt&gt;</code>:</strong> Inserts an empty <code class="ph codeph">&lt;alt&gt;</code> child element inside <code class="ph codeph">&lt;image&gt;</code> for accessibility compliance</li>
+            </ul>
+        </section>
+
+        <section class="section" id="intellisense__linked-editing"><h2 class="title sectiontitle">Linked Editing</h2>
+            
+            <p class="p">When you edit an XML tag name, DitaCraft automatically updates the matching opening or closing tag. This feature uses linked editing ranges to keep tag pairs synchronized.</p>
+            <p class="p">For example, if you change <code class="ph codeph">&lt;section&gt;</code> to <code class="ph codeph">&lt;example&gt;</code>, the corresponding <code class="ph codeph">&lt;/section&gt;</code> is automatically updated to <code class="ph codeph">&lt;/example&gt;</code>.</p>
+        </section>
+
+        <section class="section" id="intellisense__formatting"><h2 class="title sectiontitle">XML Formatting</h2>
+            
+            <p class="p">DitaCraft formats DITA XML documents with proper indentation and element handling:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Block Elements:</strong> Structural elements like <code class="ph codeph">&lt;section&gt;</code>, <code class="ph codeph">&lt;p&gt;</code>, <code class="ph codeph">&lt;ul&gt;</code> are formatted with newlines and indentation</li>
+                <li class="li"><strong class="ph b">Inline Elements:</strong> Elements like <code class="ph codeph">&lt;b&gt;</code>, <code class="ph codeph">&lt;codeph&gt;</code>, <code class="ph codeph">&lt;xref&gt;</code> are kept inline with surrounding text</li>
+                <li class="li"><strong class="ph b">Preformatted Content:</strong> <code class="ph codeph">&lt;codeblock&gt;</code> and <code class="ph codeph">&lt;pre&gt;</code> content is preserved as-is</li>
+            </ul>
+            <p class="p">Format a document with <span class="ph uicontrol">Shift+Alt+F</span> or format a selection with <span class="ph uicontrol">Ctrl+K Ctrl+F</span>.</p>
+            <p class="p">Range formatting (<span class="ph uicontrol">Ctrl+K Ctrl+F</span>) correctly scopes edits to
+                the selected lines. When formatting changes the document structure (e.g., collapsing
+                or expanding elements changes line count), DitaCraft safely falls back to replacing
+                the affected range as a whole to prevent data loss.</p>
+        </section>
+    </div>
+</article></main></body></html>

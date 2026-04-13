@@ -1,0 +1,168 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft validates DITA files against XML syntax, DTD specifications, cross-references, DITA rules, and profiling constraints in real-time."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Validation</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="validation"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li class="active"><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Validation</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft validates DITA files against XML syntax, DTD specifications, cross-references, DITA rules, and profiling constraints in real-time.</p>
+        <section class="section" id="validation__validation-overview"><h2 class="title sectiontitle">Validation Overview</h2>
+            
+            <p class="p">DitaCraft provides comprehensive validation to ensure your DITA content is well-formed, conforms to DITA specifications, uses valid cross-references, follows DITA best practices, and respects profiling constraints. Validation runs automatically as you edit and can also be triggered manually.</p>
+        </section>
+
+        <section class="section" id="validation__what-is-validated"><h2 class="title sectiontitle">What Gets Validated</h2>
+            
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">XML Well-formedness</dt>
+                    <dd class="dd">Checks for proper XML syntax: matching tags, valid attribute values, proper encoding, and correct entity references.</dd>
+                
+                
+                    <dt class="dt dlterm">DTD Conformance</dt>
+                    <dd class="dd">Validates elements and attributes against DITA 1.2, 1.3, and 2.0 DTDs. Ensures elements appear in allowed contexts with required attributes.</dd>
+                
+                
+                    <dt class="dt dlterm">Content Model</dt>
+                    <dd class="dd">Verifies child elements appear in the correct order and quantity according to the DTD content model.</dd>
+                
+                
+                    <dt class="dt dlterm">ID Uniqueness</dt>
+                    <dd class="dd">Checks that ID attributes are unique within a topic.</dd>
+                
+                
+                    <dt class="dt dlterm">Cross-Reference Validation</dt>
+                    <dd class="dd">Validates href, conref, keyref, and conkeyref attributes to ensure target files exist, topic and element IDs are present, and keys are defined in the key space. See <a class="xref" href="cross-ref-validation.html" title="DitaCraft validates cross-file references including href, conref, keyref, and conkeyref attributes to catch broken links before publishing.">Cross-Reference Validation</a> for details.</dd>
+                
+                
+                    <dt class="dt dlterm">DITA Rules Engine</dt>
+                    <dd class="dd">43 Schematron-equivalent rules in five categories (mandatory, recommendation, authoring, accessibility, DITA 2.0 removal) enforce DITA specification requirements and best practices. Includes 10 DITA 2.0-specific rules for removed elements and attributes. Rules are version-aware and include 12 quick fixes. Supports user-defined custom regex rules, per-rule severity overrides, and comment-based rule suppression. See <a class="xref" href="dita-rules.html" title="DitaCraft includes 43 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules.">DITA Rules Engine</a> for details.</dd>
+                
+                
+                    <dt class="dt dlterm">Profiling Validation</dt>
+                    <dd class="dd">When a subject scheme map is present, validates that profiling attribute values (audience, platform, product, etc.) use only the allowed values defined by the scheme. See <a class="xref" href="profiling-validation.html" title="DitaCraft validates profiling attribute values against subject scheme constraints, ensuring controlled vocabularies are respected.">Profiling and Subject Scheme Validation</a> for details.</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="validation__validation-engines"><h2 class="title sectiontitle">Validation Engines</h2>
+            
+            <p class="p">DitaCraft supports three validation engines, each with different capabilities:</p>
+            <table class="simpletable"><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="validation__validation-engines__stentry__1">Engine</th>
+                    <th class="stentry" scope="col" id="validation__validation-engines__stentry__2">Pros</th>
+                    <th class="stentry" scope="col" id="validation__validation-engines__stentry__3">Cons</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="validation__validation-engines__stentry__1"><code class="ph codeph">typesxml</code></td>
+                    <td class="stentry" headers="validation__validation-engines__stentry__2">Full DTD support, 100% W3C conformance, no external dependencies</td>
+                    <td class="stentry" headers="validation__validation-engines__stentry__3">Slightly slower for very large files</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="validation__validation-engines__stentry__1"><code class="ph codeph">built-in</code></td>
+                    <td class="stentry" headers="validation__validation-engines__stentry__2">Very fast, lightweight, basic content model checking</td>
+                    <td class="stentry" headers="validation__validation-engines__stentry__3">Limited DTD support, may miss some errors</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="validation__validation-engines__stentry__1"><code class="ph codeph">xmllint</code></td>
+                    <td class="stentry" headers="validation__validation-engines__stentry__2">Industry-standard libxml2, excellent performance</td>
+                    <td class="stentry" headers="validation__validation-engines__stentry__3">Requires external installation</td>
+                </tr></tbody></table>
+            <p class="p"><strong class="ph b">Recommendation:</strong> The <code class="ph codeph">built-in</code> engine (the default) provides a good balance of speed and accuracy for most users. Switch to <code class="ph codeph">typesxml</code> when you need strict DTD conformance checking.</p>
+            <p class="p"><strong class="ph b">Additional Validation:</strong></p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">OASIS Catalog Support:</strong> The <code class="ph codeph">typesxml</code> engine uses an OASIS XML Catalog to resolve PUBLIC identifiers to bundled DTDs, with a parser pool (3 instances) for efficient reuse.</li>
+                <li class="li"><strong class="ph b">RNG (RelaxNG) Validation:</strong> Optional RelaxNG schema validation via <code class="ph codeph">salve-annos</code> and <code class="ph codeph">saxes</code>. Enable by setting <code class="ph codeph">ditacraft.schemaFormat</code> to <code class="ph codeph">"rng"</code> and providing a schema path via <code class="ph codeph">ditacraft.rngSchemaPath</code>. RNG schemas are compiled to JSON and cached (up to 20 grammars).</li>
+            </ul>
+        </section>
+
+        <section class="section" id="validation__lsp-diagnostics"><h2 class="title sectiontitle">LSP-Powered Diagnostics</h2>
+            
+            <p class="p">DitaCraft uses a built-in Language Server Protocol (LSP) implementation to provide real-time diagnostics. The LSP server validates your documents in the background and reports issues instantly as you type, without waiting for a manual save or validation trigger.</p>
+            <p class="p">The LSP diagnostics cover:</p>
+            <ul class="ul">
+                <li class="li">XML well-formedness (mismatched tags, invalid syntax)</li>
+                <li class="li">DITA structure validation (element context, required attributes)</li>
+                <li class="li">ID uniqueness within documents</li>
+                <li class="li">Cross-reference validation (href, conref, keyref, conkeyref)</li>
+                <li class="li">DITA rules (specification compliance, best practices, accessibility)</li>
+                <li class="li">Profiling validation (subject scheme constraints)</li>
+            </ul>
+            <p class="p">LSP diagnostics appear with the source label <code class="ph codeph">dita-lsp</code> in the Problems panel, while client-side validations appear with the <code class="ph codeph">dita</code> source label. DITA rules diagnostics appear with the source label <code class="ph codeph">dita-rules</code>.</p>
+            <p class="p">All diagnostic messages are localized — see <a class="xref" href="localization.html" title="DitaCraft supports localized diagnostic messages, currently available in English and French.">Localization (i18n)</a> for supported languages.</p>
+        </section>
+
+        <section class="section" id="validation__diagnostic-levels"><h2 class="title sectiontitle">Diagnostic Levels</h2>
+            
+            <p class="p">Validation issues are reported at three severity levels:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Error (Red):</strong> Critical issues that must be fixed. The document is not valid DITA.</li>
+                <li class="li"><strong class="ph b">Warning (Yellow):</strong> Potential issues that should be reviewed. The document may be valid but has problems.</li>
+                <li class="li"><strong class="ph b">Information (Blue):</strong> Suggestions and notes. Not errors, but helpful for improvement.</li>
+            </ul>
+        </section>
+
+        <section class="section" id="validation__viewing-results"><h2 class="title sectiontitle">Viewing Validation Results</h2>
+            
+            <p class="p">Validation results appear in multiple places:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Editor Squiggles:</strong> Colored underlines appear on problematic content</li>
+                <li class="li"><strong class="ph b">Problems Panel:</strong> Full list of all diagnostics (<span class="ph uicontrol">Ctrl+Shift+M</span>)</li>
+                <li class="li"><strong class="ph b">Status Bar:</strong> Shows error/warning count for the current file</li>
+                <li class="li"><strong class="ph b">File Explorer:</strong> File icons show validation status</li>
+            </ul>
+        </section>
+
+        <section class="section" id="validation__automatic-validation"><h2 class="title sectiontitle">Automatic Validation</h2>
+            
+            <p class="p">By default, DitaCraft validates automatically:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">On Open:</strong> When you open a DITA file</li>
+                <li class="li"><strong class="ph b">On Save:</strong> When you save a file (configurable)</li>
+                <li class="li"><strong class="ph b">On Change:</strong> After you stop typing, with smart debouncing:
+                    <ul class="ul">
+                        <li class="li"><strong class="ph b">Topics:</strong> 300ms debounce for fast feedback</li>
+                        <li class="li"><strong class="ph b">Maps:</strong> 1000ms debounce (maps are more expensive to validate)</li>
+                    </ul>
+                    Per-document cancellation ensures only the latest edit triggers validation.
+                </li>
+            </ul>
+            <p class="p">To disable automatic validation, set <code class="ph codeph">ditacraft.autoValidate</code> to <code class="ph codeph">false</code> in settings.</p>
+        </section>
+
+        <section class="section" id="validation__rate-limiting"><h2 class="title sectiontitle">Rate Limiting</h2>
+            
+            <p class="p">To prevent performance issues, DitaCraft limits validation requests:</p>
+            <ul class="ul">
+                <li class="li">Maximum 10 requests per second per file</li>
+                <li class="li">Excess requests are silently skipped during auto-validation</li>
+                <li class="li">Manual validation shows a warning if rate limited</li>
+            </ul>
+            <p class="p">This protects against excessive CPU usage when making rapid edits.</p>
+        </section>
+
+        <section class="section" id="validation__pipeline-budget"><h2 class="title sectiontitle">Pipeline Budget</h2>
+            
+            <p class="p">The validation pipeline enforces a configurable time budget (default 30 seconds)
+                to prevent runaway validation on very large or complex files. Before each major
+                validation phase, the elapsed time is checked; if the budget is exhausted, remaining
+                phases are skipped and the diagnostics collected so far are returned.</p>
+            <p class="p">The budget protects against:</p>
+            <ul class="ul">
+                <li class="li">Extremely large DITA files that would block the LSP server</li>
+                <li class="li">Complex custom regex rules that consume excessive CPU</li>
+                <li class="li">Pathological input that triggers worst-case behavior in any validation phase</li>
+            </ul>
+            <p class="p">Individual phases (DITA Rules and Custom Rules) also enforce per-phase timeouts
+                to isolate slow rules from blocking the entire pipeline.</p>
+        </section>
+    </div>
+</article></main></body></html>

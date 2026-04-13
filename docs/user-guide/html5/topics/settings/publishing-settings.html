@@ -1,0 +1,115 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="Configure output directory and DITA-OT publishing options."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Publishing Settings</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="publishing-settings"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li><span>Using DitaCraft</span></li><li>Configuration<ul><li><a href="../../topics/settings/settings-overview.html">Settings Overview</a></li><li><a href="../../topics/settings/general-settings.html">General Settings</a></li><li><a href="../../topics/settings/validation-settings.html">Validation Settings</a></li><li class="active"><a href="../../topics/settings/publishing-settings.html">Publishing Settings</a></li><li><a href="../../topics/settings/preview-settings.html">Preview Settings</a></li></ul></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Publishing Settings</h1>
+    
+
+    <div class="body refbody"><p class="shortdesc">Configure output directory and DITA-OT publishing options.</p>
+        <section class="section" id="publishing-settings__output-directory"><h2 class="title sectiontitle">ditacraft.outputDirectory</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> String</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">"out"</code></p>
+            <p class="p">The directory where published output is generated. Can be an absolute path or relative to the workspace root.</p>
+            <p class="p"><strong class="ph b">Examples:</strong></p>
+            <ul class="ul">
+                <li class="li"><code class="ph codeph">"out"</code> - Creates <span class="ph filepath">{workspace}/out/</span></li>
+                <li class="li"><code class="ph codeph">"build/output"</code> - Creates <span class="ph filepath">{workspace}/build/output/</span></li>
+                <li class="li"><code class="ph codeph">"C:/Documentation/Output"</code> - Uses absolute path</li>
+            </ul>
+            <p class="p"><strong class="ph b">Output Structure:</strong></p>
+            <p class="p">Within the output directory, DitaCraft creates subdirectories for each format:</p>
+            <pre class="pre codeblock"><code>out/
+├── html5/
+│   ├── index.html
+│   └── topics/
+├── pdf/
+│   └── document.pdf
+└── xhtml/
+    └── ...</code></pre>
+        </section>
+
+        <section class="section" id="publishing-settings__default-format"><h2 class="title sectiontitle">Default Publishing Format</h2>
+            
+            <p class="p">DitaCraft supports publishing to multiple formats via DITA-OT:</p>
+            <table class="simpletable"><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="publishing-settings__default-format__stentry__1">Format</th>
+                    <th class="stentry" scope="col" id="publishing-settings__default-format__stentry__2">Description</th>
+                    <th class="stentry" scope="col" id="publishing-settings__default-format__stentry__3">Requirements</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__1">html5</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__2">Modern responsive HTML5</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__3">None (built-in)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__1">pdf</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__2">PDF via Apache FOP</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__3">FOP (included in DITA-OT)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__1">xhtml</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__2">XHTML 1.0 Transitional</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__3">None (built-in)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__1">eclipsehelp</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__2">Eclipse Help System</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__3">None (built-in)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__1">htmlhelp</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__2">Microsoft HTML Help</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__3">HTML Help Compiler</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__1">markdown</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__2">Markdown output</td>
+                    <td class="stentry" headers="publishing-settings__default-format__stentry__3">None (built-in)</td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="publishing-settings__build-parameters"><h2 class="title sectiontitle">DITA-OT Build Parameters</h2>
+            
+            <p class="p">DitaCraft passes the following parameters to DITA-OT during publishing:</p>
+            <table class="simpletable"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="publishing-settings__build-parameters__stentry__1">Parameter</th>
+                    <th class="stentry" scope="col" id="publishing-settings__build-parameters__stentry__2">Value</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__build-parameters__stentry__1"><code class="ph codeph">-i</code></td>
+                    <td class="stentry" headers="publishing-settings__build-parameters__stentry__2">Input file (current map or topic)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__build-parameters__stentry__1"><code class="ph codeph">-f</code></td>
+                    <td class="stentry" headers="publishing-settings__build-parameters__stentry__2">Output format (html5, pdf, etc.)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="publishing-settings__build-parameters__stentry__1"><code class="ph codeph">-o</code></td>
+                    <td class="stentry" headers="publishing-settings__build-parameters__stentry__2">Output directory</td>
+                </tr></tbody></table>
+            <p class="p">For advanced DITA-OT configuration, use a <span class="ph filepath">build.xml</span> or <span class="ph filepath">plugin.xml</span> file in your project.</p>
+        </section>
+
+        <section class="section" id="publishing-settings__clean-output"><h2 class="title sectiontitle">Clean Output</h2>
+            
+            <p class="p">By default, publishing overwrites existing output in the target directory. To ensure a clean build:</p>
+            <ol class="ol">
+                <li class="li">Delete the output directory manually, or</li>
+                <li class="li">Use a different output directory for each build</li>
+            </ol>
+        </section>
+
+        <section class="section" id="publishing-settings__viewing-output"><h2 class="title sectiontitle">Viewing Published Output</h2>
+            
+            <p class="p">After publishing completes:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">HTML5:</strong> Open <span class="ph filepath">out/html5/index.html</span> in a browser</li>
+                <li class="li"><strong class="ph b">PDF:</strong> Open the generated PDF file in a PDF reader</li>
+                <li class="li"><strong class="ph b">VS Code:</strong> Right-click HTML files and select "Open with Live Server"</li>
+            </ul>
+        </section>
+    </div>
+</article></main></body></html>

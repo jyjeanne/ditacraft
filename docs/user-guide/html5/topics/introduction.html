@@ -1,0 +1,118 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA content."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Introduction to DitaCraft</title><link rel="stylesheet" type="text/css" href="../commonltr.css"><link rel="stylesheet" type="text/css" href="../custom.css"></head><body id="introduction"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li>Getting Started<ul><li class="active"><a href="../topics/introduction.html">Introduction to DitaCraft</a></li><li><a href="../topics/getting-started.html">Getting Started</a></li></ul></li><li><span>Using DitaCraft</span></li><li><span>Configuration</span></li><li><a href="../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../topics/glossary/gloss-href.html">href</a></li><li><a href="../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../topics/glossary/gloss-task.html">Task</a></li><li><a href="../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Introduction to DitaCraft</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA content.</p>
+        <section class="section" id="introduction__what-is-ditacraft"><h2 class="title sectiontitle">What is DitaCraft?</h2>
+            
+            <p class="p">DitaCraft is the easiest way to edit and publish your DITA (Darwin Information Typing Architecture) files directly from Visual Studio Code. It provides a complete authoring environment with:</p>
+            <ul class="ul">
+                <li class="li">LSP-powered IntelliSense with auto-completion, hover docs, and document symbols</li>
+                <li class="li">Full DTD validation with three engine options</li>
+                <li class="li">Smart navigation with Ctrl+Click on href, conref, keyref, and conkeyref</li>
+                <li class="li">Cross-file Go to Definition, Find References, and Rename</li>
+                <li class="li">Key space resolution for keyref and conkeyref with key scope support</li>
+                <li class="li">43 DITA validation rules with DITA 2.0 awareness</li>
+                <li class="li">Localized diagnostics (English, French)</li>
+                <li class="li">Explicit root map selection with status bar indicator</li>
+                <li class="li">DITAVAL conditional processing support</li>
+                <li class="li">Live HTML5 preview with bidirectional scroll sync</li>
+                <li class="li">One-click publishing via DITA-OT</li>
+                <li class="li">Interactive map visualizer</li>
+                <li class="li">XML formatting with code actions and quick fixes</li>
+            </ul>
+        </section>
+
+        <section class="section" id="introduction__key-features"><h2 class="title sectiontitle">Key Features</h2>
+            
+            <p class="p">DitaCraft offers the following key features:</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">LSP-Powered IntelliSense</dt>
+                    <dd class="dd">Context-aware auto-completion for DITA elements, attributes, and values. Hover documentation for 364+ elements. Document outline and workspace symbol search.</dd>
+                
+                
+                    <dt class="dt dlterm">Smart Navigation</dt>
+                    <dd class="dd">Ctrl+Click on <code class="ph codeph">href</code>, <code class="ph codeph">conref</code>, <code class="ph codeph">keyref</code>, and <code class="ph codeph">conkeyref</code> attributes to navigate directly to referenced content. Cross-file Go to Definition, Find References, and Rename.</dd>
+                
+                
+                    <dt class="dt dlterm">Full DTD Validation</dt>
+                    <dd class="dd">Real-time validation with three engine options: built-in (default), TypesXML (full DTD), and xmllint. LSP-powered diagnostics for instant feedback as you type.</dd>
+                
+                
+                    <dt class="dt dlterm">Live Preview</dt>
+                    <dd class="dd">Side-by-side HTML5 preview with bidirectional scroll sync, theme support, and print mode.</dd>
+                
+                
+                    <dt class="dt dlterm">DITA-OT Integration</dt>
+                    <dd class="dd">Publish to HTML5, PDF, EPUB, and more with direct DITA Open Toolkit integration.</dd>
+                
+                
+                    <dt class="dt dlterm">DITAVAL Support</dt>
+                    <dd class="dd">Full IntelliSense for DITAVAL conditional processing files including element completion, attribute values, and action keywords.</dd>
+                
+                
+                    <dt class="dt dlterm">Map Visualizer</dt>
+                    <dd class="dd">Interactive tree view showing your DITA map hierarchy with navigation support.</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="introduction__supported-files"><h2 class="title sectiontitle">Supported File Types</h2>
+            
+            <p class="p">DitaCraft supports the following DITA file types:</p>
+            <table class="simpletable"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="introduction__supported-files__stentry__1">Extension</th>
+                    <th class="stentry" scope="col" id="introduction__supported-files__stentry__2">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="introduction__supported-files__stentry__1"><span class="ph filepath">.dita</span></td>
+                    <td class="stentry" headers="introduction__supported-files__stentry__2">DITA topics (concept, task, reference, topic)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="introduction__supported-files__stentry__1"><span class="ph filepath">.ditamap</span></td>
+                    <td class="stentry" headers="introduction__supported-files__stentry__2">DITA maps for organizing topics</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="introduction__supported-files__stentry__1"><span class="ph filepath">.bookmap</span></td>
+                    <td class="stentry" headers="introduction__supported-files__stentry__2">Book-oriented maps with chapters and parts</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="introduction__supported-files__stentry__1"><span class="ph filepath">.ditaval</span></td>
+                    <td class="stentry" headers="introduction__supported-files__stentry__2">DITAVAL conditional processing profiles</td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="introduction__version-info"><h2 class="title sectiontitle">Version Information</h2>
+            
+            <p class="p">This guide covers DitaCraft version 0.6.2, which includes:</p>
+            <ul class="ul">
+                <li class="li">LSP server with IntelliSense, diagnostics, and navigation</li>
+                <li class="li">Cross-reference validation for href, conref, keyref, and conkeyref</li>
+                <li class="li">DITA Rules Engine with 43 Schematron-equivalent rules (including 10 DITA 2.0-specific rules)</li>
+                <li class="li">Profiling validation with subject scheme support and hierarchy grouping</li>
+                <li class="li">Activity Bar views: DITA Explorer, Key Space, and Diagnostics</li>
+                <li class="li">Explicit root map selection with status bar indicator</li>
+                <li class="li">Localized diagnostics (English and French)</li>
+                <li class="li">RNG (RelaxNG) and OASIS Catalog validation services</li>
+                <li class="li">Conref/conkeyref content preview on hover</li>
+                <li class="li">9 code actions including accessibility quick fixes</li>
+                <li class="li">DITAVAL conditional processing support</li>
+                <li class="li">DITA version detection and error-tolerant XML tokenizer</li>
+                <li class="li">Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation</li>
+                <li class="li">Key scope support with <code class="ph codeph">@keyscope</code> attribute handling</li>
+                <li class="li">1040+ comprehensive tests (620 client + 419 server)</li>
+            </ul>
+        </section>
+    </div>
+</article></main></body></html>

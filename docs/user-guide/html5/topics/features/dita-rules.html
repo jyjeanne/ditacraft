@@ -1,0 +1,225 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft includes 43 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>DITA Rules Engine</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="dita-rules"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li class="active"><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">DITA Rules Engine</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft includes 43 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules.</p>
+        <section class="section" id="dita-rules__overview"><h2 class="title sectiontitle">Overview</h2>
+            
+            <p class="p">The DITA Rules Engine validates your content against a set of rules derived from the DITA specification and authoring best practices. These rules go beyond DTD validation to catch semantic issues such as missing accessibility attributes, deprecated elements, and incorrect attribute usage.</p>
+            <p class="p">Rules are version-aware: DitaCraft automatically detects your DITA version (from <code class="ph codeph">@DITAArchVersion</code> or DOCTYPE) and only applies rules relevant to that version.</p>
+        </section>
+
+        <section class="section" id="dita-rules__categories"><h2 class="title sectiontitle">Rule Categories</h2>
+            
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Mandatory</dt>
+                    <dd class="dd">Rules required by the DITA specification. These catch constraint violations that would cause processing errors. Examples: <code class="ph codeph">role="other"</code> requires <code class="ph codeph">@otherrole</code>, deprecated <code class="ph codeph">&lt;indextermref&gt;</code> element usage.</dd>
+                
+                
+                    <dt class="dt dlterm">Recommendation</dt>
+                    <dd class="dd">Best practice rules recommended by the DITA specification. Examples: adding short descriptions, using proper list structures, following naming conventions.</dd>
+                
+                
+                    <dt class="dt dlterm">Authoring</dt>
+                    <dd class="dd">Content quality rules for consistent and well-structured documentation. Examples: title length limits, nesting depth, content organization.</dd>
+                
+                
+                    <dt class="dt dlterm">Accessibility</dt>
+                    <dd class="dd">Rules ensuring your content is accessible to all users. Examples: <code class="ph codeph">&lt;image&gt;</code> elements should have <code class="ph codeph">&lt;alt&gt;</code> text, deprecated <code class="ph codeph">alt</code> attribute should be converted to an <code class="ph codeph">&lt;alt&gt;</code> element.</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="dita-rules__key-rules"><h2 class="title sectiontitle">Key Rules</h2>
+            
+            <p class="p">Some commonly encountered rules include:</p>
+            <table class="simpletable"><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="dita-rules__key-rules__stentry__1">Code</th>
+                    <th class="stentry" scope="col" id="dita-rules__key-rules__stentry__2">Category</th>
+                    <th class="stentry" scope="col" id="dita-rules__key-rules__stentry__3">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-001</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3"><code class="ph codeph">role="other"</code> requires <code class="ph codeph">@otherrole</code> attribute</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-002</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3"><code class="ph codeph">&lt;note type="other"&gt;</code> requires <code class="ph codeph">@othertype</code> attribute</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-003</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3"><code class="ph codeph">&lt;indextermref&gt;</code> is deprecated</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-004</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3"><code class="ph codeph">collection-type</code> not allowed on <code class="ph codeph">&lt;reltable&gt;</code> or <code class="ph codeph">&lt;relcolspec&gt;</code></td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-011</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Accessibility</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3">Deprecated <code class="ph codeph">alt</code> attribute on <code class="ph codeph">&lt;image&gt;</code> — use <code class="ph codeph">&lt;alt&gt;</code> element instead</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-030</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Accessibility</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3">Missing <code class="ph codeph">&lt;alt&gt;</code> element for <code class="ph codeph">&lt;image&gt;</code></td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-040</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3">Nested <code class="ph codeph">&lt;xref&gt;</code> not allowed</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-044</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Recommendation</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3">Deprecated role values (<code class="ph codeph">sample</code>, <code class="ph codeph">external</code>)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__1"><code class="ph codeph">DITA-SCH-046</code></td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__2">Recommendation</td>
+                    <td class="stentry" headers="dita-rules__key-rules__stentry__3">Elements with <code class="ph codeph">&lt;title&gt;</code> should have <code class="ph codeph">@id</code></td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="dita-rules__quick-fixes"><h2 class="title sectiontitle">Quick Fixes</h2>
+            
+            <p class="p">DitaCraft provides 12 automatic quick fixes via the lightbulb menu (<span class="ph uicontrol">Ctrl+.</span>):</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Add missing DOCTYPE:</strong> Inserts the appropriate DOCTYPE declaration based on root element</li>
+                <li class="li"><strong class="ph b">Add missing ID:</strong> Adds an ID attribute derived from the filename</li>
+                <li class="li"><strong class="ph b">Add missing title:</strong> Inserts a <code class="ph codeph">&lt;title&gt;</code> element</li>
+                <li class="li"><strong class="ph b">Remove empty element:</strong> Removes elements with no content</li>
+                <li class="li"><strong class="ph b">Rename duplicate ID:</strong> Makes duplicate IDs unique</li>
+                <li class="li"><strong class="ph b">Add <code class="ph codeph">@otherrole</code>:</strong> Inserts the missing attribute when <code class="ph codeph">role="other"</code> is detected</li>
+                <li class="li"><strong class="ph b">Remove deprecated <code class="ph codeph">&lt;indextermref&gt;</code>:</strong> Removes the deprecated element</li>
+                <li class="li"><strong class="ph b">Convert <code class="ph codeph">alt</code> attribute to <code class="ph codeph">&lt;alt&gt;</code> element:</strong> Migrates the deprecated attribute syntax to the modern element form</li>
+                <li class="li"><strong class="ph b">Add missing <code class="ph codeph">&lt;alt&gt;</code> to <code class="ph codeph">&lt;image&gt;</code>:</strong> Inserts an empty <code class="ph codeph">&lt;alt&gt;</code> child element for accessibility</li>
+                <li class="li"><strong class="ph b">Sanitize invalid ID:</strong> Fixes invalid ID format by replacing illegal characters and ensuring a valid starting character</li>
+                <li class="li"><strong class="ph b">Insert missing <code class="ph codeph">&lt;booktitle&gt;</code>:</strong> Adds the required booktitle structure to bookmaps</li>
+                <li class="li"><strong class="ph b">Insert missing <code class="ph codeph">&lt;mainbooktitle&gt;</code>:</strong> Adds the required mainbooktitle inside an existing booktitle</li>
+            </ul>
+        </section>
+
+        <section class="section" id="dita-rules__dita-2-rules"><h2 class="title sectiontitle">DITA 2.0 Rules</h2>
+            
+            <p class="p">DitaCraft includes 10 rules specific to DITA 2.0 that detect removed elements and attributes. These rules only apply when the DITA version is detected as 2.0 (via <code class="ph codeph">@DITAArchVersion</code> or DOCTYPE).</p>
+            <table class="simpletable"><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="dita-rules__dita-2-rules__stentry__1">Code</th>
+                    <th class="stentry" scope="col" id="dita-rules__dita-2-rules__stentry__2">Category</th>
+                    <th class="stentry" scope="col" id="dita-rules__dita-2-rules__stentry__3">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-050</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">&lt;boolean&gt;</code> element removed in DITA 2.0</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-051</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">&lt;indextermref&gt;</code> element removed in DITA 2.0</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-052</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">&lt;object&gt;</code> removed — use <code class="ph codeph">&lt;audio&gt;</code>, <code class="ph codeph">&lt;video&gt;</code>, or <code class="ph codeph">&lt;include&gt;</code></td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-053</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3">Learning specializations removed in DITA 2.0</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-054</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Accessibility</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">&lt;audio&gt;</code> should have <code class="ph codeph">&lt;fallback&gt;</code> element</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-055</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Accessibility</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">&lt;video&gt;</code> should have <code class="ph codeph">&lt;fallback&gt;</code> element</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-056</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">@print</code> attribute removed in DITA 2.0</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-057</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">@copy-to</code> attribute removed in DITA 2.0</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-058</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">@navtitle</code> attribute removed in DITA 2.0</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__1"><code class="ph codeph">DITA-SCH-059</code></td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__2">Mandatory</td>
+                    <td class="stentry" headers="dita-rules__dita-2-rules__stentry__3"><code class="ph codeph">@query</code> attribute removed in DITA 2.0</td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="dita-rules__version-detection"><h2 class="title sectiontitle">Version Detection</h2>
+            
+            <p class="p">DitaCraft automatically detects the DITA version of each document using these sources (in priority order):</p>
+            <ol class="ol">
+                <li class="li">The <code class="ph codeph">ditacraft.ditaVersion</code> setting (if not set to <code class="ph codeph">"auto"</code>)</li>
+                <li class="li">The <code class="ph codeph">@DITAArchVersion</code> attribute on the root element</li>
+                <li class="li">The DOCTYPE public identifier (e.g., <code class="ph codeph">-//OASIS//DTD DITA 2.0 Topic//EN</code>)</li>
+                <li class="li">Defaults to DITA 1.3 if no version indicator is found</li>
+            </ol>
+            <p class="p">Version-specific rules are only applied when the detected version matches their applicability range.</p>
+        </section>
+
+        <section class="section" id="dita-rules__custom-rules"><h2 class="title sectiontitle">Custom Regex Rules</h2>
+            
+            <p class="p">In addition to the built-in rules, you can define custom validation rules using regex patterns in a JSON file. Set the <code class="ph codeph">ditacraft.customRulesFile</code> setting to an absolute path pointing to your rules file.</p>
+            <p class="p">Each rule supports:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">id:</strong> A unique identifier (e.g., <code class="ph codeph">CUSTOM-001</code>)</li>
+                <li class="li"><strong class="ph b">pattern:</strong> A regular expression to match against document content</li>
+                <li class="li"><strong class="ph b">message:</strong> The diagnostic message displayed to the user</li>
+                <li class="li"><strong class="ph b">severity:</strong> One of <code class="ph codeph">error</code>, <code class="ph codeph">warning</code>, <code class="ph codeph">information</code>, <code class="ph codeph">hint</code></li>
+                <li class="li"><strong class="ph b">fileTypes:</strong> (Optional) Array of DITA file types to restrict the rule to (topic, concept, task, reference, glossentry, troubleshooting, map, bookmap)</li>
+            </ul>
+            <p class="p">Rules are matched against content with comments and CDATA stripped to avoid false positives. The rules file is automatically reloaded when it changes.</p>
+            <p class="p"><strong class="ph b">Safety:</strong> Custom regex patterns are screened for ReDoS (Regular Expression
+                Denial of Service) vulnerabilities such as nested quantifiers. Patterns that fail
+                the safety check are skipped with a warning diagnostic. Additionally, each rule
+                is limited to 10,000 match iterations and a 2-second timeout to prevent any
+                single rule from blocking the validation pipeline.</p>
+        </section>
+
+        <section class="section" id="dita-rules__suppression"><h2 class="title sectiontitle">Rule Suppression</h2>
+            
+            <p class="p">You can suppress specific rules using:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Settings:</strong> Use <code class="ph codeph">ditacraft.validationSeverityOverrides</code> to set any diagnostic code to <code class="ph codeph">"off"</code></li>
+                <li class="li"><strong class="ph b">Inline comments:</strong> Add <code class="ph codeph">&lt;!-- ditacraft-disable CODE --&gt;</code> to suppress a code from that line until a matching <code class="ph codeph">&lt;!-- ditacraft-enable CODE --&gt;</code></li>
+                <li class="li"><strong class="ph b">File-level:</strong> Add <code class="ph codeph">&lt;!-- ditacraft-disable-file CODE --&gt;</code> anywhere in the file to suppress the code for the entire file</li>
+            </ul>
+        </section>
+
+        <section class="section" id="dita-rules__configuration"><h2 class="title sectiontitle">Configuration</h2>
+            
+            <p class="p">Enable or disable the entire rules engine:</p>
+            <pre class="pre codeblock language-json"><code>{
+    "ditacraft.ditaRulesEnabled": true
+}</code></pre>
+            <p class="p">Select which rule categories to apply:</p>
+            <pre class="pre codeblock language-json"><code>{
+    "ditacraft.ditaRulesCategories": [
+        "mandatory",
+        "recommendation",
+        "authoring",
+        "accessibility"
+    ]
+}</code></pre>
+            <p class="p">For example, to run only mandatory and accessibility rules:</p>
+            <pre class="pre codeblock language-json"><code>{
+    "ditacraft.ditaRulesCategories": ["mandatory", "accessibility"]
+}</code></pre>
+        </section>
+    </div>
+</article></main></body></html>

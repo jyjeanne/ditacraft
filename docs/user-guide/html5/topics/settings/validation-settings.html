@@ -1,0 +1,230 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="Configure validation engine, automatic validation, cross-reference checking, DITA rules, profiling validation, severity overrides, custom rules, and large file optimization."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Validation Settings</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="validation-settings"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li><span>Using DitaCraft</span></li><li>Configuration<ul><li><a href="../../topics/settings/settings-overview.html">Settings Overview</a></li><li><a href="../../topics/settings/general-settings.html">General Settings</a></li><li class="active"><a href="../../topics/settings/validation-settings.html">Validation Settings</a></li><li><a href="../../topics/settings/publishing-settings.html">Publishing Settings</a></li><li><a href="../../topics/settings/preview-settings.html">Preview Settings</a></li></ul></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Validation Settings</h1>
+    
+
+    <div class="body refbody"><p class="shortdesc">Configure validation engine, automatic validation, cross-reference checking, DITA rules, profiling validation, severity overrides, custom rules, and large file optimization.</p>
+        <section class="section" id="validation-settings__validation-engine"><h2 class="title sectiontitle">ditacraft.validationEngine</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> String (enum)</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">"built-in"</code></p>
+            <p class="p"><strong class="ph b">Options:</strong></p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm"><code class="ph codeph">"built-in"</code></dt>
+                    <dd class="dd">Lightweight validation with content model checking. Fast and suitable for most DITA authoring workflows. The default engine.</dd>
+                
+                
+                    <dt class="dt dlterm"><code class="ph codeph">"typesxml"</code></dt>
+                    <dd class="dd">Full DTD validation using TypesXML parser. Provides 100% W3C conformance with complete DTD support. Best for strict compliance checking.</dd>
+                
+                
+                    <dt class="dt dlterm"><code class="ph codeph">"xmllint"</code></dt>
+                    <dd class="dd">External validation using libxml2's xmllint tool. Requires xmllint to be installed on your system. Provides excellent performance and accuracy.</dd>
+                
+            </dl>
+            <p class="p"><strong class="ph b">Choosing an Engine:</strong></p>
+            <table class="simpletable"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="validation-settings__validation-engine__stentry__1">Use Case</th>
+                    <th class="stentry" scope="col" id="validation-settings__validation-engine__stentry__2">Recommended Engine</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__1">General DITA authoring</td>
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__2"><code class="ph codeph">built-in</code> (default)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__1">Strict DTD conformance required</td>
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__2"><code class="ph codeph">typesxml</code> or <code class="ph codeph">xmllint</code></td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__1">Very large files (1000+ elements)</td>
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__2"><code class="ph codeph">built-in</code> or <code class="ph codeph">xmllint</code></td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__1">Quick syntax checking only</td>
+                    <td class="stentry" headers="validation-settings__validation-engine__stentry__2"><code class="ph codeph">built-in</code></td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="validation-settings__auto-validate"><h2 class="title sectiontitle">ditacraft.autoValidate</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Boolean</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">true</code></p>
+            <p class="p">When enabled, DitaCraft validates DITA files automatically:</p>
+            <ul class="ul">
+                <li class="li">When a file is opened</li>
+                <li class="li">When a file is saved</li>
+                <li class="li">After typing stops, with smart debouncing (300ms for topics, 1000ms for maps)</li>
+            </ul>
+            <p class="p">Set to <code class="ph codeph">false</code> to disable automatic validation. You can still validate manually using <span class="ph uicontrol">Ctrl+Shift+V</span>.</p>
+            <p class="p"><strong class="ph b">When to Disable:</strong></p>
+            <ul class="ul">
+                <li class="li">Working with very large files that cause performance issues</li>
+                <li class="li">Editing files that are intentionally incomplete</li>
+                <li class="li">When you prefer manual validation control</li>
+            </ul>
+        </section>
+
+        <section class="section" id="validation-settings__max-problems"><h2 class="title sectiontitle">ditacraft.maxNumberOfProblems</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Number</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">100</code></p>
+            <p class="p">The maximum number of diagnostic problems reported per file. Increase this value if you work with very large files and need to see all issues. Decrease it if the Problems panel becomes overwhelming.</p>
+        </section>
+
+        <section class="section" id="validation-settings__dita-rules-enabled"><h2 class="title sectiontitle">ditacraft.ditaRulesEnabled</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Boolean</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">true</code></p>
+            <p class="p">Enable or disable the DITA Rules Engine. When enabled, DitaCraft validates your content against 43 Schematron-equivalent rules covering specification compliance, best practices, and accessibility (including 10 DITA 2.0-specific rules). Set to <code class="ph codeph">false</code> to disable all DITA rules validation.</p>
+        </section>
+
+        <section class="section" id="validation-settings__dita-rules-categories"><h2 class="title sectiontitle">ditacraft.ditaRulesCategories</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Array of strings</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">["mandatory", "recommendation", "authoring", "accessibility"]</code></p>
+            <p class="p">Select which DITA rule categories to apply. Available categories:</p>
+            <ul class="ul">
+                <li class="li"><code class="ph codeph">"mandatory"</code> — Rules required by the DITA specification</li>
+                <li class="li"><code class="ph codeph">"recommendation"</code> — Best practices recommended by the DITA specification</li>
+                <li class="li"><code class="ph codeph">"authoring"</code> — Content quality and consistency rules</li>
+                <li class="li"><code class="ph codeph">"accessibility"</code> — Accessibility compliance rules</li>
+            </ul>
+            <p class="p">For example, to run only mandatory and accessibility rules:</p>
+            <pre class="pre codeblock language-json"><code>{
+    "ditacraft.ditaRulesCategories": ["mandatory", "accessibility"]
+}</code></pre>
+        </section>
+
+        <section class="section" id="validation-settings__cross-ref-validation-enabled"><h2 class="title sectiontitle">ditacraft.crossRefValidationEnabled</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Boolean</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">true</code></p>
+            <p class="p">Enable or disable cross-reference validation. When enabled, DitaCraft checks that href, conref, keyref, and conkeyref attributes point to valid targets. Set to <code class="ph codeph">false</code> if you are working with incomplete content where references are expected to be unresolved.</p>
+        </section>
+
+        <section class="section" id="validation-settings__subject-scheme-validation-enabled"><h2 class="title sectiontitle">ditacraft.subjectSchemeValidationEnabled</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Boolean</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">true</code></p>
+            <p class="p">Enable or disable subject scheme validation. When enabled and a subject scheme map is present in the workspace, DitaCraft validates that profiling attribute values (audience, platform, product, etc.) match the controlled vocabulary defined by the scheme. Set to <code class="ph codeph">false</code> to allow any profiling attribute values.</p>
+        </section>
+
+        <section class="section" id="validation-settings__dita-version"><h2 class="title sectiontitle">ditacraft.ditaVersion</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> String (enum)</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">"auto"</code></p>
+            <p class="p"><strong class="ph b">Options:</strong> <code class="ph codeph">"auto"</code>, <code class="ph codeph">"1.0"</code>, <code class="ph codeph">"1.1"</code>, <code class="ph codeph">"1.2"</code>, <code class="ph codeph">"1.3"</code>, <code class="ph codeph">"2.0"</code></p>
+            <p class="p">Override the auto-detected DITA version for validation. When set to <code class="ph codeph">"auto"</code> (default), DitaCraft detects the version from <code class="ph codeph">@DITAArchVersion</code> or DOCTYPE. Set an explicit version to force version-specific rules (e.g., <code class="ph codeph">"2.0"</code> to enable DITA 2.0 rules for all documents).</p>
+        </section>
+
+        <section class="section" id="validation-settings__schema-format"><h2 class="title sectiontitle">ditacraft.schemaFormat</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> String (enum)</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">"dtd"</code></p>
+            <p class="p"><strong class="ph b">Options:</strong> <code class="ph codeph">"dtd"</code>, <code class="ph codeph">"rng"</code></p>
+            <p class="p">Schema format for validation. The default <code class="ph codeph">"dtd"</code> uses standard DTD validation. Set to <code class="ph codeph">"rng"</code> to enable RelaxNG schema validation using <code class="ph codeph">salve-annos</code>. Requires <code class="ph codeph">ditacraft.rngSchemaPath</code> to be set.</p>
+        </section>
+
+        <section class="section" id="validation-settings__rng-schema-path"><h2 class="title sectiontitle">ditacraft.rngSchemaPath</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> String</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">""</code></p>
+            <p class="p">Path to the directory containing RNG schema files (e.g., a DITA-OT's schema directory). Required when <code class="ph codeph">ditacraft.schemaFormat</code> is set to <code class="ph codeph">"rng"</code>. RNG schemas are compiled to JSON and cached for performance (up to 20 grammars).</p>
+        </section>
+
+        <section class="section" id="validation-settings__root-map"><h2 class="title sectiontitle">ditacraft.rootMap</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> String</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">""</code></p>
+            <p class="p">Explicit root map path (relative to workspace root). Leave empty for automatic root map discovery. Set via the <span class="ph uicontrol">DITA: Set Root Map</span> command or directly in settings.</p>
+            <p class="p">The root map determines the key space for keyref/conkeyref resolution, cross-reference validation scope, and subject scheme discovery. See <a class="xref" href="../features/root-map.html" title="Explicitly set a root map for your project to control key resolution, cross-reference validation, and subject scheme discovery.">Root Map Management</a> for details.</p>
+        </section>
+
+        <section class="section" id="validation-settings__rate-limiting"><h2 class="title sectiontitle">Rate Limiting</h2>
+            
+            <p class="p">DitaCraft includes built-in rate limiting to prevent performance issues:</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Limit:</strong> 10 validation requests per second per file</li>
+                <li class="li"><strong class="ph b">Behavior:</strong> Excess requests are silently skipped during auto-validation</li>
+                <li class="li"><strong class="ph b">Manual Validation:</strong> Shows a warning if rate limited</li>
+            </ul>
+            <p class="p">Rate limiting cannot be configured but ensures stable performance during rapid editing.</p>
+        </section>
+
+        <section class="section" id="validation-settings__severity-overrides"><h2 class="title sectiontitle">ditacraft.validationSeverityOverrides</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Object</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">{}</code></p>
+            <p class="p">Override the severity of any diagnostic code. Map diagnostic codes to <code class="ph codeph">"error"</code>, <code class="ph codeph">"warning"</code>, <code class="ph codeph">"information"</code>, <code class="ph codeph">"hint"</code>, or <code class="ph codeph">"off"</code> (to suppress entirely).</p>
+            <pre class="pre codeblock language-json"><code>{
+    "ditacraft.validationSeverityOverrides": {
+        "DITA-SCH-001": "hint",
+        "DITA-ID-002": "off",
+        "DITA-STRUCT-005": "error"
+    }
+}</code></pre>
+        </section>
+
+        <section class="section" id="validation-settings__custom-rules-file"><h2 class="title sectiontitle">ditacraft.customRulesFile</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> String</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">""</code></p>
+            <p class="p">Absolute path to a JSON file defining custom regex validation rules. Each rule specifies a regex pattern, message, severity, and optional file type filter. Rules are re-loaded automatically when the file changes.</p>
+            <pre class="pre codeblock language-json"><code>{
+    "rules": [
+        {
+            "id": "CUSTOM-001",
+            "pattern": "&lt;draft-comment\\b",
+            "message": "Draft comments should be removed before publishing",
+            "severity": "warning",
+            "fileTypes": ["topic", "concept", "task"]
+        }
+    ]
+}</code></pre>
+        </section>
+
+        <section class="section" id="validation-settings__large-file-threshold"><h2 class="title sectiontitle">ditacraft.largeFileThresholdKB</h2>
+            
+            <p class="p"><strong class="ph b">Type:</strong> Number</p>
+            <p class="p"><strong class="ph b">Default:</strong> <code class="ph codeph">500</code></p>
+            <p class="p">Files larger than this threshold (in KB) skip heavy validation phases (cross-references, DITA rules, profiling, custom rules, etc.) for performance. Set to <code class="ph codeph">0</code> to disable the optimization and always run all phases. A <code class="ph codeph">DITA-PERF-001</code> informational diagnostic is shown when phases are skipped.</p>
+        </section>
+
+        <section class="section" id="validation-settings__comment-suppression"><h2 class="title sectiontitle">Comment-Based Rule Suppression</h2>
+            
+            <p class="p">You can suppress specific diagnostic codes inline using XML comments:</p>
+            <ul class="ul">
+                <li class="li"><code class="ph codeph">&lt;!-- ditacraft-disable CODE --&gt;</code> — Suppress a code from this point until re-enabled</li>
+                <li class="li"><code class="ph codeph">&lt;!-- ditacraft-enable CODE --&gt;</code> — Re-enable a previously suppressed code</li>
+                <li class="li"><code class="ph codeph">&lt;!-- ditacraft-disable-file CODE --&gt;</code> — Suppress a code for the entire file</li>
+            </ul>
+            <p class="p">Multiple codes can be specified, separated by spaces: <code class="ph codeph">&lt;!-- ditacraft-disable DITA-SCH-001 DITA-ID-002 --&gt;</code></p>
+        </section>
+
+        <section class="section" id="validation-settings__xmllint-setup"><h2 class="title sectiontitle">Setting Up xmllint</h2>
+            
+            <p class="p">To use the <code class="ph codeph">xmllint</code> engine, install libxml2:</p>
+            <p class="p"><strong class="ph b">Windows:</strong></p>
+            <ol class="ol">
+                <li class="li">Download from <a class="xref" href="https://www.zlatkovic.com/libxml.en.html" target="_blank" rel="external noopener">zlatkovic.com</a></li>
+                <li class="li">Add the bin directory to your PATH</li>
+            </ol>
+            <p class="p"><strong class="ph b">macOS:</strong></p>
+            <pre class="pre codeblock"><code>brew install libxml2</code></pre>
+            <p class="p"><strong class="ph b">Linux (Debian/Ubuntu):</strong></p>
+            <pre class="pre codeblock"><code>sudo apt-get install libxml2-utils</code></pre>
+            <p class="p"><strong class="ph b">Verification:</strong></p>
+            <pre class="pre codeblock"><code>xmllint --version</code></pre>
+        </section>
+    </div>
+</article></main></body></html>

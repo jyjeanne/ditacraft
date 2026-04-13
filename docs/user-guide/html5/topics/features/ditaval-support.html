@@ -1,0 +1,92 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft provides full editing support for DITAVAL conditional processing files."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>DITAVAL Support</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="ditaval-support"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li class="active"><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">DITAVAL Support</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft provides full editing support for DITAVAL conditional processing files.</p>
+        <section class="section" id="ditaval-support__overview"><h2 class="title sectiontitle">Overview</h2>
+            
+            <p class="p">DITAVAL files define conditional processing profiles that control which content is included, excluded, or flagged during DITA publishing. DitaCraft recognizes <span class="ph filepath">.ditaval</span> files and provides IntelliSense to help you author them efficiently.</p>
+        </section>
+
+        <section class="section" id="ditaval-support__what-is-ditaval"><h2 class="title sectiontitle">What is DITAVAL?</h2>
+            
+            <p class="p">A DITAVAL file is an XML file that specifies filtering and flagging rules for conditional DITA content. It uses attribute-value pairs to control which content appears in the output based on conditions like audience, platform, or product.</p>
+            <p class="p"><strong class="ph b">Basic DITAVAL Example:</strong></p>
+            <pre class="pre codeblock"><code>&lt;val&gt;
+    &lt;prop action="include" att="audience" val="admin"/&gt;
+    &lt;prop action="exclude" att="audience" val="novice"/&gt;
+    &lt;prop action="flag" att="platform" val="windows"&gt;
+        &lt;startflag imageref="icons/windows.png"&gt;
+            &lt;alt-text&gt;Windows&lt;/alt-text&gt;
+        &lt;/startflag&gt;
+    &lt;/prop&gt;
+&lt;/val&gt;</code></pre>
+        </section>
+
+        <section class="section" id="ditaval-support__intellisense"><h2 class="title sectiontitle">IntelliSense for DITAVAL</h2>
+            
+            <p class="p">DitaCraft provides the following IntelliSense features for DITAVAL files:</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Element Completion</dt>
+                    <dd class="dd">Auto-completion for DITAVAL elements: <code class="ph codeph">&lt;val&gt;</code>, <code class="ph codeph">&lt;prop&gt;</code>, <code class="ph codeph">&lt;revprop&gt;</code>, <code class="ph codeph">&lt;startflag&gt;</code>, <code class="ph codeph">&lt;endflag&gt;</code>, and <code class="ph codeph">&lt;alt-text&gt;</code>.</dd>
+                
+                
+                    <dt class="dt dlterm">Attribute Completion</dt>
+                    <dd class="dd">Suggestions for attributes on each element, including <code class="ph codeph">action</code>, <code class="ph codeph">att</code>, <code class="ph codeph">val</code>, and <code class="ph codeph">imageref</code>.</dd>
+                
+                
+                    <dt class="dt dlterm">Attribute Value Completion</dt>
+                    <dd class="dd">Predefined values for the <code class="ph codeph">action</code> attribute (<code class="ph codeph">include</code>, <code class="ph codeph">exclude</code>, <code class="ph codeph">passthrough</code>, <code class="ph codeph">flag</code>) and standard DITA conditional attributes for the <code class="ph codeph">att</code> attribute (<code class="ph codeph">audience</code>, <code class="ph codeph">platform</code>, <code class="ph codeph">product</code>, <code class="ph codeph">otherprops</code>, <code class="ph codeph">props</code>, <code class="ph codeph">rev</code>).</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="ditaval-support__ditaval-elements"><h2 class="title sectiontitle">DITAVAL Elements Reference</h2>
+            
+            <table class="simpletable"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="ditaval-support__ditaval-elements__stentry__1">Element</th>
+                    <th class="stentry" scope="col" id="ditaval-support__ditaval-elements__stentry__2">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__1"><code class="ph codeph">&lt;val&gt;</code></td>
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__2">Root element of a DITAVAL file</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__1"><code class="ph codeph">&lt;prop&gt;</code></td>
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__2">Defines a filtering or flagging rule based on an attribute-value pair</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__1"><code class="ph codeph">&lt;revprop&gt;</code></td>
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__2">Defines a rule for revision-based filtering or flagging</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__1"><code class="ph codeph">&lt;startflag&gt;</code></td>
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__2">Specifies a flag image or text inserted before flagged content</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__1"><code class="ph codeph">&lt;endflag&gt;</code></td>
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__2">Specifies a flag image or text inserted after flagged content</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__1"><code class="ph codeph">&lt;alt-text&gt;</code></td>
+                    <td class="stentry" headers="ditaval-support__ditaval-elements__stentry__2">Alternative text for a flag image</td>
+                </tr></tbody></table>
+        </section>
+
+        <section class="section" id="ditaval-support__using-ditaval"><h2 class="title sectiontitle">Using DITAVAL with DITA-OT</h2>
+            
+            <p class="p">To apply a DITAVAL profile when publishing, pass it as a filter argument to DITA-OT. In DitaCraft, you can add it to the <code class="ph codeph">ditacraft.ditaOtArgs</code> setting:</p>
+            <pre class="pre codeblock"><code>"ditacraft.ditaOtArgs": ["--filter=myprofile.ditaval"]</code></pre>
+            <p class="p">This applies the conditional processing rules from your DITAVAL file during publishing, filtering and flagging content as specified.</p>
+        </section>
+    </div>
+</article></main></body></html>

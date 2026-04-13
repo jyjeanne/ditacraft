@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="Learn how to install and configure DitaCraft for your first DITA project."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="7"><meta name="modification" content="3"><title>Getting Started</title><link rel="stylesheet" type="text/css" href="../commonltr.css"><link rel="stylesheet" type="text/css" href="../custom.css"></head><body id="getting-started"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li>Getting Started<ul><li><a href="../topics/introduction.html">Introduction to DitaCraft</a></li><li class="active"><a href="../topics/getting-started.html">Getting Started</a></li></ul></li><li><span>Using DitaCraft</span></li><li><span>Configuration</span></li><li><a href="../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../topics/glossary/gloss-href.html">href</a></li><li><a href="../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../topics/glossary/gloss-task.html">Task</a></li><li><a href="../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Getting Started</h1>
+    
+
+    <div class="body taskbody"><p class="shortdesc">Learn how to install and configure DitaCraft for your first DITA project.</p>
+        <section class="section prereq"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div>
+            <p class="p">Before installing DitaCraft, ensure you have:</p>
+            <ul class="ul">
+                <li class="li">Visual Studio Code 1.80 or higher</li>
+                <li class="li">DITA-OT 4.2.1 or higher (for publishing features)</li>
+            </ul>
+        </section>
+
+        <section class="section context"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div>
+            <p class="p">This guide walks you through installing DitaCraft and creating your first DITA file.</p>
+        </section>
+
+        <section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol class="ol steps"><li class="li step stepexpand">
+                <span class="ph cmd">Install DitaCraft from VS Code Marketplace</span>
+                <ol type="a" class="ol substeps">
+                    <li class="li substep">
+                        <span class="ph cmd">Open VS Code</span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Press <span class="ph uicontrol">Ctrl+P</span> (or <span class="ph uicontrol">Cmd+P</span> on Mac)</span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Type <kbd class="ph userinput">ext install ditacraft</kbd> and press Enter</span>
+                    </li>
+                </ol>
+            </li><li class="li step stepexpand">
+                <span class="ph cmd">Configure DITA-OT path (optional, required for publishing)</span>
+                <ol type="a" class="ol substeps">
+                    <li class="li substep">
+                        <span class="ph cmd">Download DITA-OT from <a class="xref" href="https://www.dita-ot.org/download" target="_blank" rel="external noopener">dita-ot.org</a></span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Extract to a location (e.g., <span class="ph filepath">C:\DITA-OT-4.2.1</span>)</span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Open Command Palette (<span class="ph uicontrol">Ctrl+Shift+P</span>)</span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Type <kbd class="ph userinput">DITA: Configure DITA-OT Path</kbd></span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Select your DITA-OT installation directory</span>
+                    </li>
+                </ol>
+            </li><li class="li step stepexpand">
+                <span class="ph cmd">Create your first DITA topic</span>
+                <ol type="a" class="ol substeps">
+                    <li class="li substep">
+                        <span class="ph cmd">Open Command Palette (<span class="ph uicontrol">Ctrl+Shift+P</span>)</span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Type <kbd class="ph userinput">DITA: Create New Topic</kbd></span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Select topic type (concept, task, or reference)</span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Enter a file name for your topic</span>
+                    </li>
+                </ol>
+                <div class="itemgroup stepresult">A new DITA topic file is created with proper DOCTYPE and structure.</div>
+            </li><li class="li step stepexpand">
+                <span class="ph cmd">Validate your DITA file</span>
+                <ol type="a" class="ol substeps">
+                    <li class="li substep">
+                        <span class="ph cmd">Open your DITA file</span>
+                    </li>
+                    <li class="li substep">
+                        <span class="ph cmd">Press <span class="ph uicontrol">Ctrl+Shift+V</span> to validate</span>
+                    </li>
+                </ol>
+                <div class="itemgroup stepresult">Validation results appear in the Problems panel. Errors and warnings are highlighted in the editor.</div>
+            </li><li class="li step stepexpand">
+                <span class="ph cmd">Preview your content (optional)</span>
+                <ol type="a" class="ol substeps">
+                    <li class="li substep">
+                        <span class="ph cmd">Press <span class="ph uicontrol">Ctrl+Shift+H</span> to open HTML5 preview</span>
+                    </li>
+                </ol>
+                <div class="itemgroup stepresult">A side-by-side preview panel opens showing your rendered DITA content.</div>
+            </li></ol></section>
+
+        <section class="section result"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div>
+            <p class="p">You now have DitaCraft installed and configured. You can:</p>
+            <ul class="ul">
+                <li class="li">Create DITA topics, maps, and bookmaps</li>
+                <li class="li">Validate your content in real-time</li>
+                <li class="li">Navigate between files using Ctrl+Click</li>
+                <li class="li">Preview and publish your documentation</li>
+            </ul>
+        </section>
+    </div>
+</article></main></body></html>
