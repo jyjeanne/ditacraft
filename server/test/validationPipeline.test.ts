@@ -63,6 +63,7 @@ const defaultSettings: DitaCraftSettings = {
     validationSeverityOverrides: {},
     customRulesFile: '',
     largeFileThresholdKB: 500,
+    pipelineBudgetMs: 30_000,
 };
 
 const emptyWorkspace: WorkspaceContext = {
@@ -954,6 +955,54 @@ suite('ValidationPipeline', () => {
             assert.strictEqual(summary.errors, 0);
             assert.strictEqual(summary.warnings, 0);
             assert.strictEqual(summary.infos, 0);
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Pipeline budget', () => {
+
+        test('budget of 0ms returns only early phases (partial results)', async () => {
+            const xml = '<topic id="t1"><title>T</title><body><indextermref/></body></topic>';
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                pipelineBudgetMs: 0, // expired immediately
+            };
+            const logMessages: string[] = [];
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+                (msg: string) => logMessages.push(msg),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            // Phase 1-3 should still run (before first budget check)
+            assert.ok(diags.length >= 0, 'should return partial results');
+            // Budget exceeded should be logged
+            assert.ok(
+                logMessages.some(m => m.includes('budget') || m.includes('Budget')),
+                'should log budget exceeded message',
+            );
+        });
+
+        test('normal budget allows all phases to run', async () => {
+            const xml = '<topic id="t1"><title>T</title><body><indextermref/></body></topic>';
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                crossRefValidationEnabled: false,
+                pipelineBudgetMs: 30_000,
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(xml);
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            // With 30s budget, DITA rules (SCH-003 for indextermref) should run
+            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
+            assert.ok(sch003.length > 0, 'all phases should run within normal budget');
         });
     });
 });

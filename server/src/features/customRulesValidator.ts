@@ -11,6 +11,12 @@ import { stripCommentsAndCDATA, offsetToRange } from '../utils/textUtils';
 
 const SOURCE = 'custom-rules';
 
+/** Maximum match iterations per regex rule (prevents infinite-loop patterns). */
+const MAX_MATCHES_PER_RULE = 10_000;
+
+/** Maximum milliseconds a single rule may spend matching before being aborted. */
+const RULE_TIMEOUT_MS = 2_000;
+
 /** Severity names accepted in custom rule definitions. */
 type SeverityName = 'error' | 'warning' | 'information' | 'hint';
 
@@ -48,6 +54,38 @@ interface CompiledRule {
 let cachedFilePath: string | null = null;
 let cachedMtime: number = 0;
 let cachedRules: CompiledRule[] = [];
+
+/**
+ * Detect regex patterns vulnerable to catastrophic backtracking (ReDoS).
+ *
+ * Checks for the most common ReDoS antipatterns:
+ * 1. Nested quantifiers: a quantifier applied to a group that itself contains
+ *    a quantifier (e.g. `(a+)+`, `(.*)*`, `(\w+)+`)
+ * 2. Overlapping alternation with quantifiers: `(a|a)+`, `(\d|\d)+`
+ *
+ * Returns `true` when the pattern appears safe, `false` when it looks vulnerable.
+ */
+export function isSafeRegex(pattern: string): boolean {
+    // Strip character classes [...] so their contents don't confuse the analysis.
+    // Character classes can contain + * etc. as literals.
+    const stripped = pattern.replace(/\[(?:[^\]\\]|\\.)*\]/g, 'X');
+
+    // Match groups that contain quantifiers and are themselves quantified.
+    // This catches (a+)+, (a+)*, (a+){2,}, (?:a+)+ etc.
+    const nestedQuantifier = /\((?:[^()]*[+*])[^()]*\)[+*{]/;
+    if (nestedQuantifier.test(stripped)) {
+        return false;
+    }
+
+    // Check for nested groups with inner quantifiers then outer quantifiers.
+    // e.g., ((?:a+)b)+ — inner group has a+, outer group is quantified
+    const deepNested = /\([^)]*\([^)]*[+*][^)]*\)[^)]*\)[+*{]/;
+    if (deepNested.test(stripped)) {
+        return false;
+    }
+
+    return true;
+}
 
 /**
  * Load and compile custom rules from the given file path.
@@ -107,6 +145,10 @@ function loadRules(filePath: string): CompiledRule[] {
 
         let regex: RegExp;
         try {
+            if (!isSafeRegex(def.pattern)) {
+                console.warn(`[custom-rules] Rule "${def.id}" has a potentially unsafe regex (ReDoS risk) — skipped`);
+                continue;
+            }
             regex = new RegExp(def.pattern, 'g');
         } catch {
             // Invalid regex — skip this rule
@@ -174,7 +216,18 @@ export function validateCustomRules(
         rule.regex.lastIndex = 0;
 
         let match: RegExpExecArray | null;
+        let matchCount = 0;
+        const ruleStart = Date.now();
         while ((match = rule.regex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
+            matchCount++;
+            if (matchCount > MAX_MATCHES_PER_RULE) {
+                console.warn(`[custom-rules] Rule "${rule.def.id}" exceeded ${MAX_MATCHES_PER_RULE} matches — aborting rule`);
+                break;
+            }
+            if (Date.now() - ruleStart > RULE_TIMEOUT_MS) {
+                console.warn(`[custom-rules] Rule "${rule.def.id}" exceeded ${RULE_TIMEOUT_MS}ms timeout — aborting rule`);
+                break;
+            }
             const range = offsetToRange(text, match.index, match.index + match[0].length);
             diagnostics.push({
                 severity: rule.severity,

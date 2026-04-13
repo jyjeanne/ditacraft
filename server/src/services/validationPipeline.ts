@@ -339,6 +339,7 @@ export class ValidationPipeline {
         phaseTimeoutMs: number,
     ): Promise<Diagnostic[]> {
         const startTime = Date.now();
+        const pipelineBudgetMs = settings.pipelineBudgetMs ?? 30_000;
         const text = document.getText();
         const uri = document.uri;
         const docVersion = document.version;
@@ -347,6 +348,15 @@ export class ValidationPipeline {
         const timings: Record<string, number> = {};
         const settingsHash = ValidationPipeline.hashSettings(settings);
         let cacheHits = 0;
+
+        /** Check whether the total pipeline budget has been exceeded. */
+        const budgetExceeded = (): boolean => {
+            if (Date.now() - startTime > pipelineBudgetMs) {
+                this.log(`[validation] Pipeline budget (${pipelineBudgetMs}ms) exceeded — skipping remaining phases`);
+                return true;
+            }
+            return false;
+        };
 
         const timePhase = <T>(name: string, fn: () => T): T => {
             const t0 = Date.now();
@@ -381,7 +391,7 @@ export class ValidationPipeline {
             } catch (e) { this.log(`[validation] base validation failed: ${e}`); }
         }
 
-        if (token?.isCancellationRequested) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
 
         // Phase 4: Content model validation (skip when TypesXML DTD covers it)
         const useRng = this.rngValidation.isAvailable && settings.schemaFormat === 'rng';
@@ -401,7 +411,7 @@ export class ValidationPipeline {
             }
         }
 
-        if (token?.isCancellationRequested) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
 
         // Phase 5: Schema validation — DTD or RNG (mutually exclusive)
         if (useTypesXml) {
@@ -453,7 +463,7 @@ export class ValidationPipeline {
             }
         }
 
-        if (token?.isCancellationRequested) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
 
         // Phases 6, 9, 10: Cross-refs, DITA rules, and circular refs are independent — run in parallel
         // Skip these heavy phases for large files
@@ -503,16 +513,21 @@ export class ValidationPipeline {
                     return;
                 }
                 try {
-                    const rulesDiags = timePhase('DitaRules', () => {
-                        const ditaVersion = settings.ditaVersion && settings.ditaVersion !== 'auto'
-                            ? settings.ditaVersion
-                            : detectDitaVersion(text);
-                        return validateDitaRules(text, {
-                            enabled: true,
-                            categories: settings.ditaRulesCategories ?? ['mandatory', 'recommendation', 'authoring', 'accessibility'],
-                            ditaVersion,
-                        });
-                    });
+                    const rulesDiags = await timePhaseAsync('DitaRules', () =>
+                        withTimeout(
+                            Promise.resolve((() => {
+                                const ditaVersion = settings.ditaVersion && settings.ditaVersion !== 'auto'
+                                    ? settings.ditaVersion
+                                    : detectDitaVersion(text);
+                                return validateDitaRules(text, {
+                                    enabled: true,
+                                    categories: settings.ditaRulesCategories ?? ['mandatory', 'recommendation', 'authoring', 'accessibility'],
+                                    ditaVersion,
+                                });
+                            })()),
+                            phaseTimeoutMs, 'DitaRules', [] as Diagnostic[], this.log, token,
+                        )
+                    );
                     diagnostics.push(...rulesDiags);
                     this.setCache(uri, ValidationPhase.DitaRules, docVersion, settingsHash, rulesDiags);
                 } catch (e) { this.log(`[validation] DITA rules failed: ${e}`); }
@@ -544,7 +559,7 @@ export class ValidationPipeline {
 
         await Promise.all(parallelPhases);
 
-        if (token?.isCancellationRequested) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
 
         // Phase 7: Register subject scheme maps (must run before profiling, skip for large files)
         // Not cached — has side effects (registerSchemes mutates service state)
@@ -577,7 +592,7 @@ export class ValidationPipeline {
             }
         }
 
-        if (token?.isCancellationRequested) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
 
         // Phase 11: Workspace-level checks (skip for large files)
         // Not cached — depends on external indices (rootIdIndex, unusedTopicPaths)
@@ -597,13 +612,16 @@ export class ValidationPipeline {
         // Phase 12: Custom rules (skip for large files)
         try {
             if (settings.customRulesFile && !isLargeFile) {
-                const t0 = Date.now();
                 const customMax = (settings.maxNumberOfProblems ?? 100) - diagnostics.length;
-                const customDiags = validateCustomRules(
-                    text, filePath, settings.customRulesFile, Math.max(0, customMax),
+                const customDiags = await timePhaseAsync('CustomRules', () =>
+                    withTimeout(
+                        Promise.resolve(validateCustomRules(
+                            text, filePath, settings.customRulesFile, Math.max(0, customMax),
+                        )),
+                        phaseTimeoutMs, 'CustomRules', [] as Diagnostic[], this.log, token,
+                    )
                 );
                 diagnostics.push(...customDiags);
-                timings['custom'] = Date.now() - t0;
             }
         } catch (e) { this.log(`[validation] custom rules failed: ${e}`); }
 

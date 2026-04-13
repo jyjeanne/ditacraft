@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { validateCustomRules, clearCustomRulesCache } from '../src/features/customRulesValidator';
+import { validateCustomRules, clearCustomRulesCache, isSafeRegex } from '../src/features/customRulesValidator';
 
 suite('Custom Rules Validator', () => {
 
@@ -228,5 +228,70 @@ suite('Custom Rules Validator', () => {
         const text = '<topic id="t1"><title>Match this</title><body><p>text</p></body></topic>';
         const diags = validateCustomRules(text, '/test.dita', rulesFile, 100);
         assert.ok(diags.some(d => d.code === 'GOOD-001'), 'valid rule should still match');
+    });
+
+    // -----------------------------------------------------------------------
+    // ReDoS protection and runtime guards
+    // -----------------------------------------------------------------------
+
+    suite('ReDoS protection', () => {
+
+        test('isSafeRegex accepts simple safe patterns', () => {
+            assert.strictEqual(isSafeRegex('TODO|FIXME'), true);
+            assert.strictEqual(isSafeRegex('[A-Z]{3,}'), true);
+            assert.strictEqual(isSafeRegex('\\bfoo\\b'), true);
+            assert.strictEqual(isSafeRegex('^(concept|task|topic)$'), true);
+        });
+
+        test('isSafeRegex rejects nested quantifiers (a+)+', () => {
+            assert.strictEqual(isSafeRegex('(a+)+'), false);
+            assert.strictEqual(isSafeRegex('(a+)+b'), false);
+        });
+
+        test('isSafeRegex rejects nested star (a*)*', () => {
+            assert.strictEqual(isSafeRegex('(a*)*'), false);
+        });
+
+        test('isSafeRegex rejects non-capturing group with nested quantifier', () => {
+            assert.strictEqual(isSafeRegex('(?:a+)+'), false);
+            assert.strictEqual(isSafeRegex('(?:.*)+'), false);
+        });
+
+        test('isSafeRegex rejects deep nested quantifiers', () => {
+            assert.strictEqual(isSafeRegex('((?:a+)b)+'), false);
+        });
+
+        test('isSafeRegex allows quantifiers inside character classes', () => {
+            // [+*] are literals inside character classes, not quantifiers
+            assert.strictEqual(isSafeRegex('[a+]+'), true);
+            assert.strictEqual(isSafeRegex('[*]+'), true);
+        });
+
+        test('unsafe regex patterns are skipped during rule loading', () => {
+            const rulesFile = writeRulesFile([
+                { id: 'BAD-REDOS', pattern: '(a+)+b', severity: 'warning', message: 'bad' },
+                { id: 'GOOD-001', pattern: 'SafeMatch', severity: 'warning', message: 'safe' },
+            ]);
+            const text = '<topic id="t1"><title>SafeMatch</title><body><p>aaaab</p></body></topic>';
+            const diags = validateCustomRules(text, '/test.dita', rulesFile, 100);
+            assert.ok(diags.every(d => d.code !== 'BAD-REDOS'), 'ReDoS-vulnerable rule should be skipped');
+            assert.ok(diags.some(d => d.code === 'GOOD-001'), 'safe rule should still run');
+        });
+
+        test('match count guard prevents excessive matches', () => {
+            // Create a pattern that matches every character — on large text this
+            // would produce thousands of matches, but the guard caps it.
+            const rulesFile = writeRulesFile([{
+                id: 'FLOOD-001',
+                pattern: '.',
+                severity: 'hint',
+                message: 'matched a char',
+            }]);
+            // 20_000 characters — more than MAX_MATCHES_PER_RULE (10_000)
+            const text = '<topic id="t1"><title>T</title><body><p>' + 'x'.repeat(20_000) + '</p></body></topic>';
+            const diags = validateCustomRules(text, '/test.dita', rulesFile, 50_000);
+            // Should be capped at MAX_MATCHES_PER_RULE (10_000) not 50_000
+            assert.ok(diags.length <= 10_001, `match count should be capped, got ${diags.length}`);
+        });
     });
 });

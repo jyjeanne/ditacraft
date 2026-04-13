@@ -37,6 +37,8 @@ export interface DitaCraftSettings {
     customRulesFile: string;
     /** File size threshold (KB) above which heavy validation phases are skipped. */
     largeFileThresholdKB: number;
+    /** Total pipeline execution budget (ms). Remaining phases are skipped when exceeded. */
+    pipelineBudgetMs: number;
 }
 
 const defaultSettings: DitaCraftSettings = {
@@ -58,6 +60,7 @@ const defaultSettings: DitaCraftSettings = {
     validationSeverityOverrides: {},
     customRulesFile: '',
     largeFileThresholdKB: 500,
+    pipelineBudgetMs: 30_000,
 };
 
 // Cache of settings per document URI

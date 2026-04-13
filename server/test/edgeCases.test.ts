@@ -61,6 +61,7 @@ const defaultSettings: DitaCraftSettings = {
     validationSeverityOverrides: {},
     customRulesFile: '',
     largeFileThresholdKB: 500,
+    pipelineBudgetMs: 30_000,
 };
 
 const emptyWorkspace: WorkspaceContext = {
