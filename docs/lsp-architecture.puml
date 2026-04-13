@@ -1,0 +1,621 @@
+@startuml DitaCraft LSP Architecture
+!theme plain
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam classFontSize 11
+skinparam packageFontSize 13
+skinparam packageStyle rectangle
+skinparam groupInheritance 2
+
+title DitaCraft LSP Server — Class Diagram\nv0.7.3
+
+' ==========================================================================
+' LEGEND
+' ==========================================================================
+legend bottom left
+  |= Symbol |= Meaning |
+  | <&cog> | Service (stateful) |
+  | <&wrench> | Feature handler (stateless) |
+  | <&layers> | Data / Schema |
+  | <&code> | Utility |
+endlegend
+
+' ==========================================================================
+' SETTINGS
+' ==========================================================================
+package "Settings" <<Rectangle>> #FAFAD2 {
+
+    interface DitaCraftSettings {
+        + autoValidate : boolean
+        + validationDebounceMs : number
+        + validationEngine : "built-in" | "typesxml" | "xmllint"
+        + maxNumberOfProblems : number
+        + ditaRulesEnabled : boolean
+        + ditaRulesCategories : RuleCategory[]
+        + crossRefValidationEnabled : boolean
+        + subjectSchemeValidationEnabled : boolean
+        + ditaVersion : "auto" | "1.0"..."2.0"
+        + schemaFormat : "dtd" | "rng"
+        + rngSchemaPath : string
+        + xmlCatalogPath : string
+        + validationSeverityOverrides : Record<string, string>
+        + customRulesFile : string
+        + largeFileThresholdKB : number
+        + pipelineBudgetMs : number
+    }
+
+    class "<<module>> settings" as SettingsMod {
+        + initSettings(conn, hasConfig) : void
+        + getGlobalSettings() : DitaCraftSettings
+        + updateGlobalSettings(settings) : void
+        + getDocumentSettings(uri) : Thenable<DitaCraftSettings>
+        + clearDocumentSettings(uri?) : void
+    }
+}
+
+' ==========================================================================
+' SERVER CORE
+' ==========================================================================
+package "Server Core" <<Rectangle>> #E8F4FD {
+
+    class "<<singleton>> DitaCraftServer" as Server << (S,#5599FF) server.ts >> {
+        - connection : Connection
+        - documents : TextDocuments<TextDocument>
+        - pipeline : ValidationPipeline
+        - keySpaceService : KeySpaceService
+        - subjectSchemeService : SubjectSchemeService
+        - catalogValidation : CatalogValidationService
+        - rngValidation : RngValidationService
+        - workspaceIndex : WorkspaceIndex
+        --
+        .. LSP Lifecycle ..
+        + onInitialize(params) : InitializeResult
+        + onInitialized() : void
+        + onShutdown() : void
+        .. Document Sync ..
+        + onDidChangeContent(change) : void
+        + onDidSave(change) : void
+        + onDidClose(change) : void
+        .. Diagnostics ..
+        + onPullDiagnostics(params) : DocumentDiagnosticReport
+        + onValidateFile(params) : ValidateFileResult
+        .. File Watching ..
+        + onDidChangeWatchedFiles(params) : void
+        + onDidChangeConfiguration(params) : void
+        + onWorkspaceFoldersChange(event) : void
+    }
+
+    interface ValidateFileResult {
+        + summary : ValidationSummary
+        + diagnosticCount : number
+        + diagnostics : Diagnostic[]
+    }
+
+    class "<<module>> serverHandlers" as ServerHandlers {
+        + detectClientCapabilities(params) : ClientCapabilities
+        + extractWorkspaceFolderPaths(params) : string[]
+        + buildInitializeResult(hasWSFolders) : InitializeResult
+        + isMapFile(uri) : boolean
+        + classifyWatchedFileChanges(params) : FileChangeClassification
+    }
+
+    interface ClientCapabilities {
+        + hasConfigurationCapability : boolean
+        + hasWorkspaceFolderCapability : boolean
+        + hasDiagnosticRelatedInfoCapability : boolean
+    }
+}
+
+' ==========================================================================
+' SERVICE INTERFACES
+' ==========================================================================
+package "Service Interfaces" <<Rectangle>> #F0F0F0 {
+
+    interface IKeySpaceService {
+        + getWorkspaceFolders() : readonly string[]
+        + setExplicitRootMap(path) : void
+        + getExplicitRootMap() : string | null
+        + resolveKey(name, contextPath) : Promise<KeyDefinition | null>
+        + getAllKeys(contextPath) : Promise<Map<string, KeyDefinition>>
+        + getSubjectSchemePaths(contextPath) : Promise<string[]>
+        + getDuplicateKeys(contextPath) : Promise<Map<string, KeyDefinition[]>>
+        + buildKeySpace(rootMapPath) : Promise<KeySpace>
+        + updateWorkspaceFolders(added, removed) : void
+        + invalidateForFile(changedFile) : void
+        + reloadCacheConfig() : Promise<void>
+        + shutdown() : void
+    }
+
+    interface ISubjectSchemeService {
+        + registerSchemes(paths) : void
+        + getValidValues(attr, element?) : Set<string> | null
+        + isControlledAttribute(attr) : boolean
+        + getHierarchyPath(key) : string | null
+        + getDefaultValue(attr, element?) : string | null
+        + hasSchemeData() : boolean
+        + invalidate(filePath) : void
+        + shutdown() : void
+    }
+
+    interface ICatalogValidationService {
+        + initialize(extensionPath, catalogPath?) : void
+        + reinitialize(catalogPath?) : void
+        + isAvailable : boolean
+        + error : string | null
+        + validate(text) : Diagnostic[]
+    }
+}
+
+' ==========================================================================
+' SERVICES
+' ==========================================================================
+package "Services" <<Rectangle>> #E8F8E8 {
+
+    class ValidationPipeline << <&cog> >> {
+        - log : (msg: string) => void
+        - semaphore : Semaphore
+        - phaseCache : Map<string, PhaseCacheEntry>
+        --
+        + validate(doc, settings, keySpaceSvc, workspace, token?, timeout?) : Promise<Diagnostic[]>
+        + invalidateForTextEdit(uri) : void
+        + invalidateForFileSave(uri) : void
+        + invalidateForMapChange() : void
+        + invalidateForDocument(uri) : void
+        + invalidateAll() : void
+        + {static} summarize(diagnostics) : ValidationSummary
+        - runPipeline(doc, settings, ...) : Promise<Diagnostic[]>
+        - getCached(uri, phase, version, hash, checkVersion?) : Diagnostic[] | null
+        - setCache(uri, phase, version, hash, diagnostics) : void
+        - evictOldest() : void
+        - {static} hashSettings(settings) : string
+    }
+
+    enum ValidationPhase {
+        XmlStructureId = 1
+        ContentModel = 4
+        Schema = 5
+        CrossRef = 6
+        SubjectScheme = 7
+        Profiling = 8
+        DitaRules = 9
+        CircularRef = 10
+        Workspace = 11
+    }
+
+    interface WorkspaceContext {
+        + rootIdIndex : Map<string, string[]>
+        + unusedTopicPaths : Set<string>
+    }
+
+    interface ValidationSummary {
+        + errors : number
+        + warnings : number
+        + infos : number
+    }
+
+    class Semaphore {
+        - current : number
+        - queue : Array<() => void>
+        - max : number
+        + acquire() : Promise<void>
+        + release() : void
+    }
+
+    class CatalogValidationService << <&cog> >> {
+        - catalog : XmlCatalog | null
+        - parserPool : TypesXmlParser[]
+        - initialized : boolean
+        - extensionPath : string
+        --
+        + initialize(extensionPath, catalogPath?) : void
+        + reinitialize(catalogPath?) : void
+        + validate(text) : Diagnostic[]
+        + isAvailable : boolean
+        + error : string | null
+    }
+
+    class RngValidationService << <&cog> >> {
+        - grammarCache : Map<string, CompiledGrammar>
+        - schemaBasePath : string
+        --
+        + validate(text) : Promise<Diagnostic[]>
+        + setSchemaBasePath(path) : void
+        + isAvailable : boolean
+    }
+
+    class KeySpaceService << <&cog> >> {
+        - workspaceFolders : string[]
+        - keySpaceCache : Map<string, KeySpace>
+        - rootMapCache : Map<string, {rootMap, timestamp}>
+        - pendingBuilds : Map<string, Promise<KeySpace>>
+        - explicitRootMapPath : string | null
+        --
+        + resolveKey(name, contextPath) : Promise<KeyDefinition | null>
+        + getAllKeys(contextPath) : Promise<Map<string, KeyDefinition>>
+        + getSubjectSchemePaths(contextPath) : Promise<string[]>
+        + getDuplicateKeys(contextPath) : Promise<Map<string, KeyDefinition[]>>
+        + buildKeySpace(rootMapPath) : Promise<KeySpace>
+        + findRootMap(filePath) : Promise<string | null>
+        + invalidateForFile(changedFile) : void
+        + updateWorkspaceFolders(added, removed) : void
+        + shutdown() : void
+    }
+
+    class SubjectSchemeService << <&cog> >> {
+        - schemeDataCache : Map<string, SubjectSchemeData>
+        - registeredPaths : string[]
+        - mergedCache : Map<string, Set<string>> | null
+        --
+        + registerSchemes(paths) : void
+        + getValidValues(attr, element?) : Set<string> | null
+        + isControlledAttribute(attr) : boolean
+        + getHierarchyPath(key) : string | null
+        + getDefaultValue(attr, element?) : string | null
+        + hasSchemeData() : boolean
+        + invalidate(filePath) : void
+        + shutdown() : void
+    }
+
+    class "<<module>> suppressionEngine" as SuppressionEngine {
+        + parseSuppressions(text) : SuppressionState
+        + applySuppressions(diagnostics, text) : Diagnostic[]
+    }
+
+    interface KeyDefinition {
+        + name : string
+        + href : string | null
+        + scope : string
+        + format : string
+        + processing_role : string
+        + metadata : KeyMetadata
+        + definedIn : string
+    }
+
+    interface KeySpace {
+        + keys : Map<string, KeyDefinition>
+        + rootMapPath : string
+        + schemePaths : string[]
+        + duplicateKeys : Map<string, KeyDefinition[]>
+        + buildTimestamp : number
+    }
+}
+
+' ==========================================================================
+' VALIDATION FEATURES (Phase handlers)
+' ==========================================================================
+package "Validation Features" <<Rectangle>> #FFF0E0 {
+
+    class "<<module>> validation" as ValidationMod << <&wrench> Phase 1-3 >> {
+        + validateDITADocument(doc, settings) : Diagnostic[]
+        --
+        XML well-formedness, DITA structure,
+        ID validation, bookmap/DITAVAL checks
+    }
+
+    class "<<module>> contentModelValidation" as ContentModelMod << <&wrench> Phase 4 >> {
+        + validateContentModel(text) : Diagnostic[]
+        --
+        Element nesting vs DITA content models
+        Skipped when TypesXML is active
+    }
+
+    class "<<module>> crossRefValidation" as CrossRefMod << <&wrench> Phase 6 >> {
+        + validateCrossReferences(text, uri, keySvc, max) : Promise<Diagnostic[]>
+        + isExternalScope(text, offset) : boolean
+        --
+        href, conref, keyref, conkeyref targets
+    }
+
+    class "<<module>> profilingValidation" as ProfilingMod << <&wrench> Phase 8 >> {
+        + validateProfilingAttributes(text, schemeSvc, max) : Diagnostic[]
+        --
+        Profiling values vs subject scheme
+    }
+
+    class "<<module>> ditaRulesValidator" as DitaRulesMod << <&wrench> Phase 9 >> {
+        + validateDitaRules(text, settings) : Diagnostic[]
+        --
+        43 Schematron-equivalent rules
+        Version-filtered (1.0–2.0)
+    }
+
+    class "<<module>> circularRefDetection" as CircularRefMod << <&wrench> Phase 10 >> {
+        + detectCircularReferences(text, uri) : Promise<Diagnostic[]>
+        --
+        DFS cycle detection on href/conref/mapref
+    }
+
+    class "<<module>> workspaceValidation" as WorkspaceMod << <&wrench> Phase 11 >> {
+        + detectCrossFileDuplicateIds(text, path, index) : Diagnostic[]
+        + detectUnusedTopics(files, maps) : Promise<Set<string>>
+        + createUnusedTopicDiagnostic() : Diagnostic
+    }
+
+    class WorkspaceIndex {
+        + rootIdIndex : Map<string, string[]>
+        + unusedTopicPaths : Set<string>
+        + ditaFiles : string[]
+        --
+        + build(workspaceFolders) : Promise<void>
+        + invalidateForFile(path) : void
+        + clear() : void
+    }
+
+    class "<<module>> customRulesValidator" as CustomRulesMod << <&wrench> Phase 13 >> {
+        + validateCustomRules(text, path, rulesFile, max) : Diagnostic[]
+        + isSafeRegex(pattern) : boolean
+        + clearCustomRulesCache() : void
+    }
+
+    interface DitaRulesSettings {
+        + enabled : boolean
+        + categories : RuleCategory[]
+        + ditaVersion : string
+    }
+
+    interface CustomRuleDefinition {
+        + id : string
+        + pattern : string
+        + message : string
+        + severity : string
+        + fileTypes? : string[]
+    }
+}
+
+' ==========================================================================
+' LSP FEATURES (Language capabilities)
+' ==========================================================================
+package "LSP Language Features" <<Rectangle>> #F0E8FF {
+
+    class "<<module>> completion" as CompletionMod << <&wrench> >> {
+        + handleCompletion(params, docs, keySvc, schemeSvc) : Promise<CompletionItem[]>
+    }
+
+    class "<<module>> hover" as HoverMod << <&wrench> >> {
+        + handleHover(params, docs, keySvc) : Promise<Hover | null>
+    }
+
+    class "<<module>> definition" as DefinitionMod << <&wrench> >> {
+        + handleDefinition(params, docs, keySvc) : Promise<Location[] | null>
+    }
+
+    class "<<module>> references" as ReferencesMod << <&wrench> >> {
+        + handleReferences(params, docs, keySvc) : Promise<Location[]>
+    }
+
+    class "<<module>> symbols" as SymbolsMod << <&wrench> >> {
+        + handleDocumentSymbol(params, docs) : DocumentSymbol[]
+        + handleWorkspaceSymbol(params, folders) : SymbolInformation[]
+    }
+
+    class "<<module>> codeActions" as CodeActionsMod << <&wrench> >> {
+        + handleCodeActions(params, docs) : CodeAction[]
+    }
+
+    class "<<module>> formatting" as FormattingMod << <&wrench> >> {
+        + handleFormatting(params, docs) : TextEdit[]
+        + handleRangeFormatting(params, docs) : TextEdit[]
+        + formatXML(text, options) : string
+    }
+
+    class "<<module>> rename" as RenameMod << <&wrench> >> {
+        + handlePrepareRename(params, docs) : Range | null
+        + handleRename(params, docs, keySvc) : WorkspaceEdit | null
+    }
+
+    class "<<module>> folding" as FoldingMod << <&wrench> >> {
+        + handleFoldingRanges(params, docs) : FoldingRange[]
+        + computeFoldingRanges(text) : FoldingRange[]
+    }
+
+    class "<<module>> documentLinks" as DocLinksMod << <&wrench> >> {
+        + handleDocumentLinks(params, docs) : Promise<DocumentLink[]>
+        + handleDocumentLinkResolve(link) : Promise<DocumentLink>
+    }
+
+    class "<<module>> linkedEditing" as LinkedEditMod << <&wrench> >> {
+        + handleLinkedEditingRange(params, docs) : LinkedEditingRanges | null
+    }
+}
+
+' ==========================================================================
+' UTILS
+' ==========================================================================
+package "Utilities" <<Rectangle>> #F8F8F8 {
+
+    class "<<module>> textUtils" as TextUtilsMod << <&code> >> {
+        + stripCommentsAndCDATA(text) : string
+        + stripCommentsAndCodeContent(text) : string
+        + offsetToRange(text, start, end) : Range
+        + offsetToPosition(text, offset) : Position
+        + normalizeFsPath(path) : string
+        + escapeRegex(str) : string
+        + uriToPath(uri) : string
+    }
+
+    class "<<module>> xmlTokenizer" as XmlTokenizerMod << <&code> >> {
+        + tokenize(input) : Generator<Token>
+        + findAttributeAtOffset(input, offset) : AttributeContext | null
+        + findContextAtOffset(input, offset) : EditContext
+    }
+
+    enum TokenType {
+        StartTag
+        EndTag
+        SelfClosingTag
+        AttributeName
+        AttributeValue
+        Text
+        Comment
+        CDATA
+        ProcessingInstruction
+        Doctype
+    }
+
+    interface Token {
+        + type : TokenType
+        + value : string
+        + offset : number
+        + length : number
+    }
+
+    class "<<module>> i18n" as I18nMod << <&code> >> {
+        + setLocale(locale) : void
+        + t(key, ...args) : string
+    }
+
+    class "<<module>> diagnosticCodes" as DiagCodesMod << <&code> >> {
+        + DIAGNOSTIC_CODES : Record<string, string>
+    }
+
+    class "<<module>> referenceParser" as RefParserMod << <&code> >> {
+        + parseReference(value) : ParsedReference
+        + getTargetId(fragment) : string
+        + findReferenceAtOffset(text, offset) : ReferenceAtOffset | null
+        + findIdAtOffset(text, offset) : {id, start, end} | null
+        + findReferencesToId(text, targetId) : ReferenceOccurrence[]
+    }
+
+    class "<<module>> ditaVersionDetector" as VersionDetMod << <&code> >> {
+        + detectDitaVersion(text) : DitaVersion
+    }
+
+    class "<<module>> workspaceScanner" as ScannerMod << <&code> >> {
+        + collectDitaFiles(folders) : string[]
+        + findCrossFileReferences(files) : Map<string, string[]>
+    }
+}
+
+' ==========================================================================
+' DATA / SCHEMA
+' ==========================================================================
+package "Data" <<Rectangle>> #FFF8F0 {
+
+    class "<<module>> ditaSchema" as DitaSchemaMod << <&layers> >> {
+        + DITA_ELEMENTS : Record<string, string[]>
+        + DITAVAL_ELEMENTS : Set<string>
+        + COMMON_ATTRIBUTES : string[]
+        + ELEMENT_ATTRIBUTES : Record<string, string[]>
+        + ATTRIBUTE_VALUES : Record<string, string[]>
+        + ELEMENT_DOCS : Record<string, string>
+    }
+
+    class "<<module>> ditaSpecialization" as DitaSpecMod << <&layers> >> {
+        + createClassMatcher(token) : DitaClassMatcher
+        + matchesDitaClass(element, matcher) : boolean
+        + TOPIC_TOPIC, TOPIC_TITLE, ... : DitaClassMatcher
+    }
+
+    interface DitaClassMatcher {
+        + classToken : string
+        + matches(classAttr: string) : boolean
+    }
+}
+
+' ==========================================================================
+' TYPES
+' ==========================================================================
+package "Types" <<Rectangle>> #F0F0F0 {
+    class "<<module>> types" as TypesMod {
+        + DitaVersion : "1.0" | "1.1" | "1.2" | "1.3" | "2.0" | "unknown"
+        + RuleCategory : "mandatory" | "recommendation" | "authoring" | "accessibility"
+    }
+
+    interface ParsedReference {
+        + filePath : string
+        + fragment : string
+    }
+
+    interface ReferenceAtOffset {
+        + attribute : string
+        + value : string
+        + valueStart : number
+        + valueEnd : number
+    }
+}
+
+' ==========================================================================
+' RELATIONSHIPS
+' ==========================================================================
+
+' -- Implements --
+CatalogValidationService ..|> ICatalogValidationService
+KeySpaceService ..|> IKeySpaceService
+SubjectSchemeService ..|> ISubjectSchemeService
+
+' -- Server owns services --
+Server *-- ValidationPipeline : creates
+Server *-- CatalogValidationService : creates
+Server *-- RngValidationService : creates
+Server *-- KeySpaceService : creates
+Server *-- SubjectSchemeService : creates
+Server *-- WorkspaceIndex : creates
+Server --> SettingsMod : configures
+
+' -- Pipeline owns --
+ValidationPipeline *-- Semaphore : concurrency control
+ValidationPipeline --> ValidationPhase : uses
+ValidationPipeline --> WorkspaceContext : receives
+ValidationPipeline --> ValidationSummary : produces
+
+' -- Pipeline depends on services --
+ValidationPipeline --> CatalogValidationService : Phase 5 (DTD)
+ValidationPipeline --> RngValidationService : Phase 5 (RNG)
+ValidationPipeline --> SubjectSchemeService : Phase 7-8
+ValidationPipeline --> KeySpaceService : Phase 6-7
+
+' -- Pipeline calls validation features --
+ValidationPipeline --> ValidationMod : Phase 1-3
+ValidationPipeline --> ContentModelMod : Phase 4
+ValidationPipeline --> CrossRefMod : Phase 6
+ValidationPipeline --> ProfilingMod : Phase 8
+ValidationPipeline --> DitaRulesMod : Phase 9
+ValidationPipeline --> CircularRefMod : Phase 10
+ValidationPipeline --> WorkspaceMod : Phase 11
+ValidationPipeline --> CustomRulesMod : Phase 13
+ValidationPipeline --> SuppressionEngine : Phase 12
+
+' -- Server wires LSP handlers --
+Server --> CompletionMod : textDocument/completion
+Server --> HoverMod : textDocument/hover
+Server --> DefinitionMod : textDocument/definition
+Server --> ReferencesMod : textDocument/references
+Server --> SymbolsMod : textDocument/documentSymbol
+Server --> CodeActionsMod : textDocument/codeAction
+Server --> FormattingMod : textDocument/formatting
+Server --> RenameMod : textDocument/rename
+Server --> FoldingMod : textDocument/foldingRange
+Server --> DocLinksMod : textDocument/documentLink
+Server --> LinkedEditMod : textDocument/linkedEditingRange
+Server --> ServerHandlers : init helpers
+
+' -- Features use services --
+CompletionMod --> KeySpaceService
+CompletionMod --> SubjectSchemeService
+CompletionMod --> DitaSchemaMod
+CompletionMod --> XmlTokenizerMod
+HoverMod --> KeySpaceService
+HoverMod --> DitaSchemaMod
+DefinitionMod --> KeySpaceService
+ReferencesMod --> KeySpaceService
+RenameMod --> KeySpaceService
+CrossRefMod --> KeySpaceService
+CrossRefMod --> RefParserMod
+
+' -- Features use utilities --
+ValidationMod --> TextUtilsMod
+ValidationMod --> DiagCodesMod
+ValidationMod --> I18nMod
+DitaRulesMod --> VersionDetMod
+DitaRulesMod --> TextUtilsMod
+
+' -- Server uses --
+Server --> DitaCraftSettings : reads
+ValidateFileResult --> ValidationSummary
+
+' -- Data relationships --
+KeySpaceService --> KeySpace : builds
+KeySpaceService --> KeyDefinition : resolves
+SubjectSchemeService ..> SubjectSchemeService : scheme data
+
+@enduml
