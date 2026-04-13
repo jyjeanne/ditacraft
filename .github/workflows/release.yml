@@ -9,7 +9,40 @@ on:
   workflow_dispatch:
 
 jobs:
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run security audit
+      run: |
+        echo "## 🔒 Release Security Audit" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if npm audit --audit-level=high 2>&1 | tee audit-output.txt; then
+          echo "✅ **No high or critical vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Security vulnerabilities detected — release blocked**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat audit-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
   build-and-test:
+    needs: security
     runs-on: ubuntu-latest
 
     steps:
@@ -37,8 +70,11 @@ jobs:
     - name: Build with esbuild
       run: npm run esbuild-base -- --sourcemap
 
-    - name: Run server tests
-      run: cd server && npm test
+    - name: Run server tests with coverage
+      run: cd server && npm run coverage
+
+    - name: Check server coverage threshold
+      run: cd server && npm run coverage:check
 
     - name: Compile client tests
       run: npm run compile-tests
