@@ -11,7 +11,7 @@
     "coverage:report": "npx c8 report --reporter=html --reporter=text --reporter=lcov"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.4.2",
+    "fast-xml-parser": "^5.5.12",
     "salve-annos": "^1.2.4",
     "saxes": "^6.0.0",
     "typesxml": "^1.17.0",
@@ -26,9 +26,16 @@
     "mocha": "^11.7.5"
   },
   "c8": {
-    "include": ["out/src/**/*.js"],
-    "exclude": ["out/test/**"],
-    "reporter": ["text", "lcov"],
+    "include": [
+      "out/src/**/*.js"
+    ],
+    "exclude": [
+      "out/test/**"
+    ],
+    "reporter": [
+      "text",
+      "lcov"
+    ],
     "report-dir": "coverage",
     "check-coverage": true,
     "lines": 90,

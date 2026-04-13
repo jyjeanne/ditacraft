@@ -67,4 +67,9 @@ export const DIAGNOSTIC_CODES = {
         DTD_ERROR: 'DITA-DTD-001',
         RNG_ERROR: 'DITA-RNG-001',
     },
+    security: {
+        ENTITY_EXPANSION: 'DITA-SEC-001',
+        EXTERNAL_ENTITY: 'DITA-SEC-002',
+        EXCESSIVE_ENTITIES: 'DITA-SEC-003',
+    },
 } as const;

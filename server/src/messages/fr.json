@@ -94,5 +94,9 @@
 
     "dtd.validationError": "Erreur de validation DTD",
 
-    "largeFile.skipped": "Certaines vérifications ont été ignorées pour des raisons de performance (taille du fichier : {0} Ko, seuil : {1} Ko)."
+    "largeFile.skipped": "Certaines vérifications ont été ignorées pour des raisons de performance (taille du fichier : {0} Ko, seuil : {1} Ko).",
+
+    "security.entityExpansion": "Définition d'entité récursive potentiellement dangereuse détectée dans le DOCTYPE. L'entité \"{0}\" référence une autre entité, ce qui peut provoquer une expansion exponentielle (attaque « billion laughs »).",
+    "security.externalEntity": "Déclaration d'entité externe détectée dans le DOCTYPE (SYSTEM ou PUBLIC). L'entité \"{0}\" référence une ressource externe, ce qui peut mener à des attaques XXE (XML External Entity).",
+    "security.excessiveEntities": "Le DOCTYPE déclare {0} entités, dépassant la limite sûre de {1}. Cela peut indiquer une attaque par expansion d'entités."
 }

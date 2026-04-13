@@ -12,6 +12,7 @@ import { XMLValidator } from 'fast-xml-parser';
 
 import { DitaCraftSettings } from '../settings';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
+import { DIAGNOSTIC_CODES } from '../utils/diagnosticCodes';
 import { t } from '../utils/i18n';
 import { stripCommentsAndCodeContent, offsetToRange, offsetToPosition, uriToPath } from '../utils/textUtils';
 
@@ -32,6 +33,9 @@ const CODES = {
     TOPICREF_NO_HREF: 'DITA-STRUCT-008',
 };
 
+/** Maximum number of ENTITY declarations allowed in a DOCTYPE internal subset. */
+const MAX_ENTITY_COUNT = 50;
+
 /**
  * Main validation entry point.
  * Returns LSP Diagnostic[] for a given document.
@@ -45,7 +49,10 @@ export function validateDITADocument(
     const maxProblems = settings.maxNumberOfProblems ?? 100;
     const diagnostics: Diagnostic[] = [];
 
-    // 1. XML well-formedness
+    // 1. Entity expansion pre-check (defense-in-depth against CVE-2026-26278)
+    checkEntityExpansion(text, textDocument, diagnostics);
+
+    // 2. XML well-formedness
     validateXML(text, diagnostics);
 
     // 2. DITA structure
@@ -60,6 +67,101 @@ export function validateDITADocument(
     }
 
     return diagnostics;
+}
+
+// Regex to extract the DOCTYPE internal subset (content between [ and ])
+const DOCTYPE_INTERNAL_SUBSET_RE = /<!DOCTYPE\s[\s\S]*?\[([\s\S]*?)\]\s*>/i;
+
+// Regex to match individual ENTITY declarations and capture name + value
+const ENTITY_DECL_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+(["'])([\s\S]*?)\3\s*>/gi;
+
+// Regex to detect SYSTEM or PUBLIC keywords in an ENTITY declaration
+const EXTERNAL_ENTITY_RE = /<!ENTITY\s+(%\s+)?\S+\s+(SYSTEM|PUBLIC)\s/gi;
+
+// Regex to detect entity references (&name; or %name;) inside an entity value
+const ENTITY_REF_IN_VALUE_RE = /[&%][a-zA-Z_][\w.-]*;/;
+
+/**
+ * Defense-in-depth pre-check for dangerous entity patterns in DOCTYPE.
+ * Detects: recursive entity expansion (billion laughs), XXE (external entities),
+ * and excessive entity counts — before content reaches the XML parser.
+ */
+function checkEntityExpansion(
+    text: string,
+    textDocument: TextDocument,
+    diagnostics: Diagnostic[]
+): void {
+    const subsetMatch = DOCTYPE_INTERNAL_SUBSET_RE.exec(text);
+    if (!subsetMatch) {
+        return;
+    }
+
+    const subset = subsetMatch[1];
+    const subsetOffset = subsetMatch.index + subsetMatch[0].indexOf('[') + 1;
+
+    // Collect all ENTITY declarations
+    let entityMatch: RegExpExecArray | null;
+    let entityCount = 0;
+    const entityDeclRegex = new RegExp(ENTITY_DECL_RE.source, ENTITY_DECL_RE.flags);
+
+    while ((entityMatch = entityDeclRegex.exec(subset)) !== null) {
+        entityCount++;
+        const entityName = entityMatch[2];
+        const entityValue = entityMatch[4];
+        const entityOffset = subsetOffset + entityMatch.index;
+
+        // Check for recursive entity references in the value
+        if (ENTITY_REF_IN_VALUE_RE.test(entityValue)) {
+            const pos = textDocument.positionAt(entityOffset);
+            diagnostics.push({
+                severity: DiagnosticSeverity.Error,
+                range: {
+                    start: pos,
+                    end: { line: pos.line, character: pos.character + entityMatch[0].length },
+                },
+                message: t('security.entityExpansion', entityName),
+                source: SOURCE,
+                code: DIAGNOSTIC_CODES.security.ENTITY_EXPANSION,
+            });
+        }
+    }
+
+    // Check for external entity declarations (SYSTEM/PUBLIC)
+    const externalRegex = new RegExp(EXTERNAL_ENTITY_RE.source, EXTERNAL_ENTITY_RE.flags);
+    let extMatch: RegExpExecArray | null;
+    while ((extMatch = externalRegex.exec(subset)) !== null) {
+        const extOffset = subsetOffset + extMatch.index;
+        const pos = textDocument.positionAt(extOffset);
+        // Extract entity name from the match
+        const nameMatch = extMatch[0].match(/<!ENTITY\s+(%\s+)?(\S+)/);
+        const entityName = nameMatch ? nameMatch[2] : 'unknown';
+        diagnostics.push({
+            severity: DiagnosticSeverity.Error,
+            range: {
+                start: pos,
+                end: { line: pos.line, character: pos.character + extMatch[0].length },
+            },
+            message: t('security.externalEntity', entityName),
+            source: SOURCE,
+            code: DIAGNOSTIC_CODES.security.EXTERNAL_ENTITY,
+        });
+    }
+
+    // Check for excessive entity count
+    if (entityCount > MAX_ENTITY_COUNT) {
+        const doctypeOffset = subsetMatch.index;
+        const pos = textDocument.positionAt(doctypeOffset);
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range: {
+                start: pos,
+                end: { line: pos.line, character: pos.character + 9 }, // "<!DOCTYPE"
+            },
+            message: t('security.excessiveEntities', String(entityCount), String(MAX_ENTITY_COUNT)),
+            source: SOURCE,
+            code: DIAGNOSTIC_CODES.security.EXCESSIVE_ENTITIES,
+        });
+    }
 }
 
 /**

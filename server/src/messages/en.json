@@ -94,5 +94,9 @@
 
     "dtd.validationError": "DTD validation error",
 
-    "largeFile.skipped": "Some validation checks were skipped for performance (file size: {0} KB, threshold: {1} KB)."
+    "largeFile.skipped": "Some validation checks were skipped for performance (file size: {0} KB, threshold: {1} KB).",
+
+    "security.entityExpansion": "Potentially dangerous recursive entity definition detected in DOCTYPE. Entity \"{0}\" references another entity, which may cause exponential expansion (billion laughs attack).",
+    "security.externalEntity": "External entity declaration detected in DOCTYPE (SYSTEM or PUBLIC). Entity \"{0}\" references an external resource, which may lead to XXE (XML External Entity) attacks.",
+    "security.excessiveEntities": "DOCTYPE declares {0} entities, exceeding the safe limit of {1}. This may indicate an entity expansion attack."
 }

