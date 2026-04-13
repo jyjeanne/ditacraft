@@ -44,20 +44,30 @@ const SUPPRESS_COMMENT_RE = /<!--\s*ditacraft-(disable|enable|disable-file)\s+([
  *
  * Uses CRLF-aware line counting (\n, \r\n, standalone \r) matching LSP line numbering.
  * The endLine of a suppression range is exclusive — the enable comment line itself is NOT suppressed.
+ *
+ * CDATA sections are neutralised before scanning so that literal text like
+ * `<![CDATA[<!-- ditacraft-disable X -->]]>` is not mistaken for a directive.
+ * The neutralisation replaces non-newline characters with spaces, preserving
+ * line offsets so the binary-search offset→line mapping remains correct.
  */
 export function parseSuppressions(text: string): SuppressionState {
     const fileSuppressed = new Set<string>();
     const ranges: SuppressionRange[] = [];
 
+    // Neutralise CDATA so directives inside CDATA are ignored.
+    // We only strip CDATA here (not full comments) because the suppression
+    // directives ARE comments — stripping all comments would remove them too.
+    const safeText = text.replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, (m) => m.replace(/[^\n\r]/g, ' '));
+
     // Pre-compute line start offsets for binary-search offset→line mapping
     const lineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i++) {
-        if (text[i] === '\r') {
-            if (i + 1 < text.length && text[i + 1] === '\n') {
+    for (let i = 0; i < safeText.length; i++) {
+        if (safeText[i] === '\r') {
+            if (i + 1 < safeText.length && safeText[i + 1] === '\n') {
                 i++; // Skip \n in \r\n pair
             }
             lineStarts.push(i + 1);
-        } else if (text[i] === '\n') {
+        } else if (safeText[i] === '\n') {
             lineStarts.push(i + 1);
         }
     }
@@ -76,7 +86,7 @@ export function parseSuppressions(text: string): SuppressionState {
     SUPPRESS_COMMENT_RE.lastIndex = 0; // Reset global regex state
     const openDisables = new Map<string, number>();
 
-    while ((match = SUPPRESS_COMMENT_RE.exec(text)) !== null) {
+    while ((match = SUPPRESS_COMMENT_RE.exec(safeText)) !== null) {
         const action = match[1]; // 'disable' | 'enable' | 'disable-file'
         const codes = match[2].split(/\s+/).filter(Boolean);
         const line = offsetToLine(match.index);

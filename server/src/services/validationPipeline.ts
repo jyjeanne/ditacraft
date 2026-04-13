@@ -114,6 +114,12 @@ const MAX_CACHE_ENTRIES = 500;
 /** Cache entries older than this are treated as misses (ms). */
 const CACHE_TTL_MS = 5 * 60_000;
 
+/** Format an error for log output, including stack trace when available. */
+function formatError(e: unknown): string {
+    if (e instanceof Error) return e.stack ?? e.message;
+    return String(e);
+}
+
 /**
  * Run a promise with a timeout. Returns the promise result or the fallback
  * if it times out. Logs a warning on timeout.
@@ -251,11 +257,21 @@ export class ValidationPipeline {
     }
 
     private evictOldest(): void {
-        const entries = [...this.phaseCache.entries()]
-            .sort((a, b) => a[1].timestamp - b[1].timestamp);
-        const toRemove = Math.max(1, Math.floor(entries.length * 0.2));
-        for (let i = 0; i < toRemove; i++) {
-            this.phaseCache.delete(entries[i][0]);
+        const now = Date.now();
+        // First pass: remove expired entries
+        for (const [key, entry] of this.phaseCache) {
+            if (now - entry.timestamp > CACHE_TTL_MS) {
+                this.phaseCache.delete(key);
+            }
+        }
+        // If still over limit, evict oldest 20%
+        if (this.phaseCache.size >= MAX_CACHE_ENTRIES) {
+            const entries = [...this.phaseCache.entries()]
+                .sort((a, b) => a[1].timestamp - b[1].timestamp);
+            const toRemove = Math.max(1, Math.floor(entries.length * 0.2));
+            for (let i = 0; i < toRemove; i++) {
+                this.phaseCache.delete(entries[i][0]);
+            }
         }
     }
 
@@ -388,7 +404,7 @@ export class ValidationPipeline {
                 const baseDiags = timePhase('XML+Structure+ID', () => validateDITADocument(document, settings));
                 diagnostics.push(...baseDiags);
                 this.setCache(uri, ValidationPhase.XmlStructureId, docVersion, settingsHash, baseDiags);
-            } catch (e) { this.log(`[validation] base validation failed: ${e}`); }
+            } catch (e) { this.log(`[validation] base validation failed: ${formatError(e)}`); }
         }
 
         if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
@@ -407,7 +423,7 @@ export class ValidationPipeline {
                     const cmDiags = timePhase('ContentModel', () => validateContentModel(text));
                     diagnostics.push(...cmDiags);
                     this.setCache(uri, ValidationPhase.ContentModel, docVersion, settingsHash, cmDiags);
-                } catch (e) { this.log(`[validation] content model validation failed: ${e}`); }
+                } catch (e) { this.log(`[validation] content model validation failed: ${formatError(e)}`); }
             }
         }
 
@@ -437,7 +453,7 @@ export class ValidationPipeline {
                     });
                     diagnostics.push(...dtdDiags);
                     this.setCache(uri, ValidationPhase.Schema, docVersion, settingsHash, dtdDiags);
-                } catch (e) { this.log(`[validation] DTD validation failed: ${e}`); }
+                } catch (e) { this.log(`[validation] DTD validation failed: ${formatError(e)}`); }
             }
         }
 
@@ -459,7 +475,7 @@ export class ValidationPipeline {
                     );
                     diagnostics.push(...rngDiags);
                     this.setCache(uri, ValidationPhase.Schema, docVersion, settingsHash, rngDiags);
-                } catch (e) { this.log(`[validation] RNG validation failed: ${e}`); }
+                } catch (e) { this.log(`[validation] RNG validation failed: ${formatError(e)}`); }
             }
         }
 
@@ -498,7 +514,7 @@ export class ValidationPipeline {
                     );
                     diagnostics.push(...xrefDiags);
                     this.setCache(uri, ValidationPhase.CrossRef, docVersion, settingsHash, xrefDiags);
-                } catch (e) { this.log(`[validation] cross-ref validation failed: ${e}`); }
+                } catch (e) { this.log(`[validation] cross-ref validation failed: ${formatError(e)}`); }
             })());
         }
 
@@ -529,7 +545,7 @@ export class ValidationPipeline {
                     });
                     diagnostics.push(...rulesDiags);
                     this.setCache(uri, ValidationPhase.DitaRules, docVersion, settingsHash, rulesDiags);
-                } catch (e) { this.log(`[validation] DITA rules failed: ${e}`); }
+                } catch (e) { this.log(`[validation] DITA rules failed: ${formatError(e)}`); }
             })());
         }
 
@@ -552,7 +568,7 @@ export class ValidationPipeline {
                     );
                     diagnostics.push(...cycleDiags);
                     this.setCache(uri, ValidationPhase.CircularRef, docVersion, settingsHash, cycleDiags);
-                } catch (e) { this.log(`[validation] circular ref detection failed: ${e}`); }
+                } catch (e) { this.log(`[validation] circular ref detection failed: ${formatError(e)}`); }
             })());
         }
 
@@ -571,7 +587,7 @@ export class ValidationPipeline {
                     );
                     this.subjectSchemeService.registerSchemes(schemePaths);
                 });
-            } catch (e) { this.log(`[validation] subject scheme registration failed: ${e}`); }
+            } catch (e) { this.log(`[validation] subject scheme registration failed: ${formatError(e)}`); }
         }
 
         // Phase 8: Profiling attribute validation (depends on phase 7, skip for large files)
@@ -587,7 +603,7 @@ export class ValidationPipeline {
                     );
                     diagnostics.push(...profDiags);
                     this.setCache(uri, ValidationPhase.Profiling, docVersion, settingsHash, profDiags);
-                } catch (e) { this.log(`[validation] profiling validation failed: ${e}`); }
+                } catch (e) { this.log(`[validation] profiling validation failed: ${formatError(e)}`); }
             }
         }
 
@@ -606,7 +622,7 @@ export class ValidationPipeline {
                     diagnostics.push(createUnusedTopicDiagnostic());
                 }
             }
-        } catch (e) { this.log(`[validation] workspace checks failed: ${e}`); }
+        } catch (e) { this.log(`[validation] workspace checks failed: ${formatError(e)}`); }
 
         // Phase 12: Custom rules (skip for large files)
         // Custom rules run synchronously but have built-in per-rule guards:
@@ -622,7 +638,7 @@ export class ValidationPipeline {
                 );
                 diagnostics.push(...customDiags);
             }
-        } catch (e) { this.log(`[validation] custom rules failed: ${e}`); }
+        } catch (e) { this.log(`[validation] custom rules failed: ${formatError(e)}`); }
 
         // Apply per-rule severity overrides
         const overrides = settings.validationSeverityOverrides;
@@ -667,10 +683,11 @@ export class ValidationPipeline {
         let errors = 0, warnings = 0, infos = 0;
         for (const d of diagnostics) {
             switch (d.severity) {
-                case 1: errors++; break;   // DiagnosticSeverity.Error
-                case 2: warnings++; break; // DiagnosticSeverity.Warning
-                case 3: infos++; break;    // DiagnosticSeverity.Information
-                case 4: infos++; break;    // DiagnosticSeverity.Hint
+                case DiagnosticSeverity.Error: errors++; break;
+                case DiagnosticSeverity.Warning: warnings++; break;
+                case DiagnosticSeverity.Information: infos++; break;
+                case DiagnosticSeverity.Hint: infos++; break;
+                default: break;
             }
         }
         return { errors, warnings, infos };
