@@ -12,6 +12,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import type { Dirent } from 'fs';
 
 import {
     DITA_ELEMENTS,
@@ -534,7 +535,7 @@ async function getHrefFileCompletions(
         searchDir = currentDir;
     }
 
-    let entries: import('fs').Dirent[];
+    let entries: Dirent[];
     try {
         entries = await fs.readdir(searchDir, { withFileTypes: true });
     } catch {
