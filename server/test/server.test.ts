@@ -196,15 +196,90 @@ suite('serverHandlers', () => {
             );
         });
 
-        test('includes executeCommandProvider with all commands', () => {
+        // ── executeCommandProvider conflict guard ───────────────
+        //
+        // Root cause of "Server initialization failed / command already exists":
+        //
+        // vscode-languageclient automatically calls vscode.commands.registerCommand()
+        // for every command listed in the server's executeCommandProvider.commands
+        // capability. If extension.ts already registered those commands (which it
+        // always does for setRootMap, clearRootMap, validateWorkspace), VS Code
+        // throws "command '<id>' already exists" and the entire LSP client startup
+        // aborts before the IPC connection is established.
+        //
+        // The server handles these commands via connection.onExecuteCommand(), which
+        // is invoked by the extension through explicit workspace/executeCommand LSP
+        // requests — executeCommandProvider is not required for that mechanism.
+        //
+        // Fix: keep executeCommandProvider absent from the InitializeResult.
+
+        test('does not include executeCommandProvider', () => {
             const result = buildInitializeResult(false);
-            const exec = result.capabilities.executeCommandProvider as { commands: string[] };
-            assert.ok(exec, 'executeCommandProvider should exist');
-            assert.deepStrictEqual(exec.commands, [
-                'ditacraft.setRootMap',
-                'ditacraft.clearRootMap',
-                'ditacraft.validateWorkspace',
-            ]);
+            assert.strictEqual(
+                result.capabilities.executeCommandProvider,
+                undefined,
+                'executeCommandProvider must be absent: vscode-languageclient re-registers every listed command via vscode.commands.registerCommand(), ' +
+                'which conflicts with the commands already registered by extension.ts and causes "Server initialization failed"'
+            );
+        });
+
+        test('does not include executeCommandProvider when workspace folders are supported', () => {
+            // Regression guard: the flag passed to buildInitializeResult must not
+            // accidentally re-introduce executeCommandProvider on either code path.
+            const result = buildInitializeResult(true);
+            assert.strictEqual(
+                result.capabilities.executeCommandProvider,
+                undefined,
+                'executeCommandProvider must be absent regardless of hasWorkspaceFolderCapability'
+            );
+        });
+
+        // The commands below are all registered directly by extension.ts.
+        // If any of them were ever added back to executeCommandProvider, the LSP
+        // client would try to register them a second time and crash on startup.
+        const EXTENSION_HOST_COMMANDS = [
+            'ditacraft.setRootMap',
+            'ditacraft.clearRootMap',
+            'ditacraft.validateWorkspace',
+            'ditacraft.validate',
+            'ditacraft.publish',
+            'ditacraft.publishHTML5',
+            'ditacraft.previewHTML5',
+            'ditacraft.newTopic',
+            'ditacraft.newMap',
+            'ditacraft.newBookmap',
+            'ditacraft.configureDitaOT',
+            'ditacraft.setupCSpell',
+            'ditacraft.showBuildOutput',
+            'ditacraft.showMapVisualizer',
+            'ditacraft.validateGuide',
+            'ditacraft.refreshDitaExplorer',
+            'ditacraft.refreshKeySpace',
+            'ditacraft.refreshDiagnosticsView',
+            'ditacraft.diagnosticsGroupByFile',
+            'ditacraft.diagnosticsGroupByType',
+            'ditacraft.openFile',
+            'ditacraft.showLogFile',
+            'ditacraft.openLogFile',
+            'ditacraft.showOutputChannel',
+            'ditacraft.clearOutputChannel',
+            'ditacraft.testLogger',
+        ];
+
+        test('advertised commands do not overlap with extension-host-registered commands', () => {
+            const result = buildInitializeResult(false);
+            const advertised: string[] =
+                (result.capabilities.executeCommandProvider as { commands?: string[] } | undefined)
+                    ?.commands ?? [];
+
+            const conflicts = advertised.filter(cmd => EXTENSION_HOST_COMMANDS.includes(cmd));
+            assert.deepStrictEqual(
+                conflicts,
+                [],
+                `Server capability advertises commands already registered by extension.ts: [${conflicts.join(', ')}]. ` +
+                'This will cause vscode-languageclient to call registerCommand() a second time and crash with ' +
+                '"command already exists" during LSP initialization.'
+            );
         });
 
         test('includes serverInfo with name and version', () => {

@@ -90,13 +90,6 @@ export function buildInitializeResult(hasWorkspaceFolderCapability: boolean): In
                 resolveProvider: true,
             },
             linkedEditingRangeProvider: true,
-            executeCommandProvider: {
-                commands: [
-                    'ditacraft.setRootMap',
-                    'ditacraft.clearRootMap',
-                    'ditacraft.validateWorkspace',
-                ],
-            },
         },
         serverInfo: {
             name: 'DitaCraft DITA Language Server',
