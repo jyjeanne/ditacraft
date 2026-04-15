@@ -69,8 +69,10 @@ export function validateDITADocument(
     return diagnostics;
 }
 
-// Regex to extract the DOCTYPE internal subset (content between [ and ])
-const DOCTYPE_INTERNAL_SUBSET_RE = /<!DOCTYPE\s[\s\S]*?\[([\s\S]*?)\]\s*>/i;
+// Regex to extract the DOCTYPE internal subset (content between [ and ]).
+// Uses quote-aware alternation so a ']>' sequence inside a quoted entity value
+// does not terminate the match prematurely and bypass the entity security checks.
+const DOCTYPE_INTERNAL_SUBSET_RE = /<!DOCTYPE\s[\s\S]*?\[((\"[^\"]*\"|'[^']*'|[^\]])*)\]\s*>/i;
 
 // Regex to match ALL ENTITY declarations (both internal and external) for counting.
 // Uses quote-aware alternation to avoid terminating early on '>' inside SYSTEM ids.

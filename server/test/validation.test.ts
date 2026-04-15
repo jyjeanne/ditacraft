@@ -668,6 +668,24 @@ suite('validateDITADocument', () => {
             assert.strictEqual(expansionDiags.length, 2);
         });
 
+        test('entity with ]> in value does not bypass security checks on later entities', () => {
+            // DOCTYPE_INTERNAL_SUBSET_RE was previously /[\s\S]*?/ (lazy), which stopped
+            // at the first ']>' — meaning a decoy entity with ']>' in its value would cause
+            // all subsequent entity declarations to be silently skipped.
+            const xml = [
+                '<!DOCTYPE topic [',
+                '  <!ENTITY decoy "value]>trick">',
+                '  <!ENTITY lol2 "&lol;&lol;&lol;">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const expansionDiags = diags.filter(d => d.code === 'DITA-SEC-001');
+            assert.strictEqual(expansionDiags.length, 1,
+                'entity expansion after a ]>-containing entity must still be detected');
+            assert.ok(expansionDiags[0].message.includes('lol2'));
+        });
+
         test('external entities count toward excessive-entities limit', () => {
             const entities = Array.from({ length: 51 }, (_, i) =>
                 `  <!ENTITY e${i} SYSTEM "file:///data${i}.xml">`
