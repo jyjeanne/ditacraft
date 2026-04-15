@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.7.2)
+## Current Status (v0.7.3)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -61,7 +61,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **12 LSP Settings** | Complete | 100% |
 | **Glossref Element Support** | Complete | 100% |
 | **Glossentry/Troubleshooting Validation** | Complete | 100% |
-| **Server Test Suite (697 tests)** | Complete | 100% |
+| **Server Test Suite (698 tests)** | Complete | 100% |
 | **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
@@ -113,6 +113,17 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Canonical offsetToPosition (dedup)** | Complete | 100% |
 | **SubjectSchemeService Cache Bug Fix** | Complete | 100% |
 | **Robust Extension Deactivation** | Complete | 100% |
+| **cSpell Lean Config (regex-based)** | Complete | 100% |
+| **LSP Async File I/O (hover.ts)** | Complete | 100% |
+| **DOCTYPE Subset ]> Bypass Fix** | Complete | 100% |
+
+### Recent Changes (v0.7.3)
+- **cSpell Simplification** — Replaced 350-term DITA word list with two regex patterns (`ignoreRegExpList`) that suppress XML tag and attribute noise in DITA files; LSP now owns DITA vocabulary validation; `DITA: Setup cSpell Configuration` command marked deprecated
+- **LSP Async File I/O** — Converted all sync `fs` calls in `hover.ts` to `fs/promises` (`readFile`, `access`) to prevent blocking the LSP event loop; `getHrefHover` and `getConrefPreview` promoted to async; missing `await` on `getConrefPreview` call in `getKeyrefHover` fixed (was returning `[object Promise]` in hover output)
+- **Security: DOCTYPE `]>` Bypass Fix** — `DOCTYPE_INTERNAL_SUBSET_RE` replaced lazy `[\s\S]*?` inner group with quote-aware alternation `(".."|'..'|[^\]])` so a `]>` sequence inside a quoted entity value cannot terminate the subset match early, which previously caused all subsequent entity declarations to be silently skipped — defeating billion-laughs and excessive-entity-count detection
+- **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early termination on `>` inside `SYSTEM "path/with/>chars"` identifiers
+- **Regression Tests** — New test covering the `]>` bypass scenario; `cspellSetupCommand` tests updated to assert lean config structure (no global `words`, has `ignoreRegExpList`)
+- **1376+ Total Tests** — Client (678) + Server (698)
 
 ### Recent Changes (v0.7.2)
 - **Per-Rule Severity Override** — `ditacraft.validationSeverityOverrides` setting: map any diagnostic code to error/warning/information/hint/off; applied as post-processing in the validation pipeline
@@ -616,10 +627,11 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.6.2 | Bookmap/topicref validation, error ranges, dedup, 1082 Tests | Released |
 | v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, glossref, 1087+ Tests | Released |
 | v0.7.1 | Guide validation, error catalog, ValidationPipeline, bug fixes, 1242+ Tests | Released |
-| v0.7.2 | Severity overrides, custom rules, architecture improvements, 1375+ Tests | **Current** |
+| v0.7.2 | Severity overrides, custom rules, architecture improvements, 1375+ Tests | Released |
+| v0.7.3 | cSpell lean config, hover async I/O, security regex hardening, 1376+ Tests | **Current** |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: March 2026 (v0.7.2 — Severity overrides, custom rules, architecture improvements, 1375+ tests)*
+*Last updated: April 2026 (v0.7.3 — cSpell lean config, hover async I/O, security regex hardening, 1376+ tests)*

@@ -15,14 +15,14 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 ✅ **13-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG (salve-annos) + 43 DITA rules + custom rules with DITA 1.2/1.3/2.0 support, per-phase error isolation, severity overrides, and comment-based suppression
 🌍 **Localized Diagnostics** - All 76+ diagnostic messages translatable (English + French included)
 ⚡ **Real-time Validation** - Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
-🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, and command injection prevention
+🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, command injection prevention, and quote-aware entity pre-checks (billion-laughs / XXE bypass-proof)
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
 👁️ **Live Preview** - Side-by-side HTML5 preview with auto-refresh and bidirectional scroll sync
 🗺️ **Map Visualizer** - Interactive tree view of DITA map hierarchies with navigation
 📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **1500+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **1376+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (~80 files, bookmap structure)
 
 ## Features
@@ -108,7 +108,8 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
   - XXE (XML External Entity) neutralization to prevent injection attacks
   - Path traversal protection with workspace bounds validation
   - Command injection prevention using safe execution methods
-  - Async file operations to prevent UI blocking
+  - Async file operations to prevent LSP event loop blocking
+  - Quote-aware entity pre-check — `]>` inside quoted entity values cannot bypass billion-laughs or excessive-entity-count detection (defense-in-depth, CVE-class)
 - **Intelligent error highlighting**:
   - Inline error highlighting with squiggly underlines
   - Errors appear in Problems panel with severity indicators
@@ -368,42 +369,49 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Clear Root Map** | - | Revert to automatic root map discovery |
 | **DITA: Validate Workspace** | - | Validate all DITA files across workspace |
 | **DITA: Validate Entire Guide** | - | Full DITA-OT validation of root map with report panel |
-| **DITA: Setup cSpell Configuration** | - | Create cSpell config for DITA files |
+| **DITA: Setup cSpell Configuration** _(deprecated)_ | - | Create a lean cSpell config for DITA files |
 
 ## Spell Checking with cSpell
 
-DitaCraft includes a pre-configured cSpell configuration with comprehensive DITA vocabulary to prevent false "unknown word" errors when using spell checkers.
+DitaCraft provides a lean `.cspellrc.json` template that works alongside the LSP server. Rather than maintaining a large DITA word list (which is now handled by the LSP), the configuration uses regex-based patterns to silently ignore XML tags and attribute syntax, so cSpell focuses exclusively on prose spelling errors in your content.
+
+### What the config does
+
+The generated `.cspellrc.json`:
+- **Suppresses XML tag noise** — ignores `<element-name>` and `attr="value"` patterns inside DITA files via `ignoreRegExpList`, so cSpell doesn't flag DITA markup as misspelled words
+- **Leaves prose spell-checking intact** — actual text content in `<p>`, `<title>`, `<shortdesc>`, etc. is still checked
+- **Includes a TypeScript word allowlist** — common DITA/LSP terms (`dita`, `keyref`, `conref`, `oasis`, `vscode`, etc.) allowed in `.ts` source files
+- **Ignores generated/binary paths** — `node_modules`, `out`, `dist`, `.git`, `*.ditaval` excluded
+
+> **Note:** The `DITA: Setup cSpell Configuration` command is deprecated. The DITA Language Server now handles DITA vocabulary validation; cSpell is only needed for prose spell-checking.
 
 ### Setup cSpell
 
-**Option 1: Automatic Setup (Recommended)**
+**Option 1: Run the command** _(still works, now creates the lean config)_
 1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Type "DITA: Setup cSpell Configuration"
-3. Click the command
-4. DitaCraft will create a `.cspellrc.json` file in your workspace root with all DITA terminology pre-configured
+3. Click the command — DitaCraft creates a `.cspellrc.json` in your workspace root
 
-**Option 2: Manual Setup**
-1. Copy the template `.cspellrc.json` from the DitaCraft project repository
-2. Place it in your workspace root folder
-3. The configuration includes:
-   - All DITA 1.3 elements (topic, titlealts, topicref, etc.)
-   - Common DITA attributes (href, conref, keyref, format, scope, etc.)
-   - Publishing terms (ditamap, bookmap, ditaval, etc.)
-   - Specialized configurations for `.dita`, `.ditamap`, `.bookmap`, and `.ditaval` files
+**Option 2: Manual setup**
 
-### Why cSpell Configuration?
-
-DITA includes many technical terms and element names (like `titlealts`, `conref`, `keyref`) that aren't recognized by standard spell checkers. The pre-configured `.cspellrc.json` prevents false "unknown word" warnings for these legitimate DITA terms while still catching actual spelling errors in your documentation content.
-
-### What's Included in the Configuration
-
-The default cSpell configuration includes:
-- **DITA elements**: topic, concept, task, reference, figure, table, section, and 100+ more
-- **DITA attributes**: href, conref, keyref, conkeyref, format, scope, type, and more
-- **Map elements**: ditamap, topicref, mapref, keydef, reltable, and more
-- **Bookmap elements**: chapter, part, appendix, frontmatter, backmatter, and more
-- **Learning elements**: learningBase, learningObject, learningContent, and more
-- **Specialized terms**: ditaarch, xmlns, OASIS standards, and DITA-OT related terms
+Create `.cspellrc.json` at your workspace root:
+```json
+{
+  "version": "0.2",
+  "language": "en",
+  "ignorePaths": ["node_modules", "out", "dist", ".git", ".vscode-test", "*.ditaval"],
+  "overrides": [
+    {
+      "filename": "**/*.{dita,ditamap,bookmap,xml}",
+      "ignoreRegExpList": ["<[^>]+>", "\\s[a-zA-Z-]+=(\"[^\"]*\"|'[^']*')"]
+    },
+    {
+      "filename": "src/**/*.ts",
+      "words": ["dita","dtd","conref","keyref","topicref","ditamap","xml","xpath","oasis","vscode","textmate"]
+    }
+  ]
+}
+```
 
 ## Configuration
 
@@ -772,7 +780,16 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.7.2 (Current)
+### Version 0.7.3 (Current)
+**cSpell Lean Config, LSP Async I/O, Security Regex Hardening**
+- **cSpell Simplification** — Replaced 350-term DITA word list with two `ignoreRegExpList` regex patterns; LSP now owns DITA vocabulary validation; `DITA: Setup cSpell Configuration` command deprecated
+- **LSP Async File I/O** — All sync `fs` calls in `hover.ts` converted to `fs/promises` (`readFile`, `access`) to prevent blocking the LSP event loop; `getHrefHover` / `getConrefPreview` promoted to async; missing `await` on `getConrefPreview` call in `getKeyrefHover` fixed (was surfacing `[object Promise]` in hover markdown)
+- **Security: DOCTYPE `]>` Bypass Fix** — `DOCTYPE_INTERNAL_SUBSET_RE` hardened with quote-aware alternation so `]>` inside a quoted entity value cannot terminate the internal-subset scan early, which previously allowed all subsequent entity declarations to be silently skipped — defeating billion-laughs and excessive-entity-count detection
+- **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early `>` termination inside `SYSTEM "path/with/>/chars"` identifiers
+- **Regression Tests** — New test covering the `]>` bypass scenario; cSpell command tests updated to assert lean config structure
+- **1376+ Total Tests** — Client (678) + Server (698)
+
+### Version 0.7.2
 **Advanced Validation Controls, Custom Rules, Architecture Improvements**
 - **Per-Rule Severity Override** — New `ditacraft.validationSeverityOverrides` setting lets you change any diagnostic code's severity (error, warning, information, hint) or suppress it entirely with `"off"`
 - **Comment-Based Rule Suppression** — Inline `<!-- ditacraft-disable CODE -->` / `<!-- ditacraft-enable CODE -->` directives for range-based suppression; `<!-- ditacraft-disable-file CODE -->` for whole-file suppression
@@ -925,7 +942,8 @@ We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md]
 - **v0.6.0** - Project Management, Views & Advanced LSP (1010+ tests) ✅ **COMPLETE**
 - **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, workspace-level analysis) ✅ **COMPLETE**
 - **v0.7.1** - Guide Validation, ValidationPipeline & Bug Fixes (1242+ tests) ✅ **COMPLETE**
-- **v0.7.2** - Severity Overrides, Custom Rules, Architecture Improvements (1375+ tests) **CURRENT**
+- **v0.7.2** - Severity Overrides, Custom Rules, Architecture Improvements (1375+ tests) ✅ **COMPLETE**
+- **v0.7.3** - cSpell lean config, hover async I/O, security regex hardening (1376+ tests) **CURRENT**
 - **v0.8.0** - Refactoring & Productivity (rename keys, templates)
 - **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)
 
