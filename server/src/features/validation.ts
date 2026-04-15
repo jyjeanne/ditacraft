@@ -73,8 +73,9 @@ export function validateDITADocument(
 const DOCTYPE_INTERNAL_SUBSET_RE = /<!DOCTYPE\s[\s\S]*?\[([\s\S]*?)\]\s*>/i;
 
 // Regex to match ALL ENTITY declarations (both internal and external) for counting.
+// Uses quote-aware alternation to avoid terminating early on '>' inside SYSTEM ids.
 // Captures: (1) optional % for parameter entities, (2) entity name.
-const ENTITY_ANY_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+[\s\S]*?>/gi;
+const ENTITY_ANY_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+(?:"[^"]*"|'[^']*'|[^>])*>/gi;
 
 // Regex to match internal ENTITY declarations with a quoted value.
 // Captures: (1) optional %, (2) name, (3) quote char, (4) value.
@@ -112,7 +113,8 @@ function hasNonPredefinedEntityRef(value: string): boolean {
     const re = new RegExp(ENTITY_REF_IN_VALUE_RE.source, ENTITY_REF_IN_VALUE_RE.flags);
     let m: RegExpExecArray | null;
     while ((m = re.exec(value)) !== null) {
-        if (m[1].startsWith('#')) continue;       // numeric ref like &#x20;
+        // ENTITY_REF_IN_VALUE_RE requires [a-zA-Z_] as first char, so numeric refs
+        // (&#160; &#x20;) never match here. Only named entity/param refs reach this point.
         if (!XML_PREDEFINED_ENTITIES.has(m[1])) return true;
     }
     return false;

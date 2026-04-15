@@ -136,9 +136,13 @@ suite('cSpell Setup Command Tests', () => {
             const content = fs.readFileSync(testConfigPath, 'utf-8');
             const config = JSON.parse(content);
 
-            // Should contain DITA-related words
-            assert.ok(config.words && config.words.includes('dita'),
-                     'Config should contain DITA vocabulary');
+            // Should use regex-based filtering instead of word list
+            assert.ok(!config.words, 'Replaced config should not have a global words array');
+            const ditaOverride = config.overrides?.find((o: { filename: string }) =>
+                o.filename.includes('dita')
+            );
+            assert.ok(ditaOverride?.ignoreRegExpList?.length > 0,
+                'Replaced config should use ignoreRegExpList for DITA files');
         });
 
         test('should handle Open Existing File choice', async () => {
@@ -185,7 +189,7 @@ suite('cSpell Setup Command Tests', () => {
 
     suite('Configuration Content Tests', () => {
 
-        test('should create config with DITA vocabulary', async () => {
+        test('should create config with regex-based DITA filtering', async () => {
             // Mock user choice to select 'Done'
             showInformationMessageStub.onFirstCall().resolves('Done');
 
@@ -199,13 +203,16 @@ suite('cSpell Setup Command Tests', () => {
             // Should have basic structure
             assert.ok(config.version, 'Config should have version');
             assert.ok(config.language, 'Config should have language');
-            assert.ok(config.words, 'Config should have words array');
 
-            // Should contain DITA-specific words (lowercase in template)
-            const words = config.words;
-            assert.ok(words.includes('dita'), 'Should include dita');
-            assert.ok(words.includes('ditamap'), 'Should include ditamap');
-            assert.ok(words.includes('bookmap'), 'Should include bookmap');
+            // No global DITA word list — LSP handles DITA vocabulary now
+            assert.ok(!config.words, 'Config should not have a global words array (LSP handles DITA vocabulary)');
+
+            // Should have DITA file overrides using ignoreRegExpList
+            const ditaOverride = config.overrides?.find((o: { filename: string }) =>
+                o.filename.includes('dita')
+            );
+            assert.ok(ditaOverride, 'Should have override for DITA files');
+            assert.ok(ditaOverride.ignoreRegExpList?.length > 0, 'DITA override should use ignoreRegExpList');
         });
 
         test('should create config with proper structure', async () => {

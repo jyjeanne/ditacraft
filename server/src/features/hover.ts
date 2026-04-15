@@ -8,7 +8,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 import * as path from 'path';
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 
 import { ELEMENT_DOCS, DITA_ELEMENTS } from '../data/ditaSchema';
 import { findReferenceAtOffset, parseReference } from '../utils/referenceParser';
@@ -43,7 +43,7 @@ export async function handleHover(
         }
 
         if (refAtOffset.type === 'href' || refAtOffset.type === 'conref') {
-            const hover = getHrefHover(refAtOffset, params.textDocument.uri);
+            const hover = await getHrefHover(refAtOffset, params.textDocument.uri);
             if (hover) return hover;
         }
     }
@@ -134,7 +134,7 @@ async function getKeyrefHover(
 
     // Conkeyref content preview — resolve key target, then extract element
     if (ref.type === 'conkeyref' && elementId && keyDef.targetFile) {
-        const preview = getConrefPreview(keyDef.targetFile, elementId);
+        const preview = await getConrefPreview(keyDef.targetFile, elementId);
         if (preview) {
             contents.push(`---\n\n**Preview:**\n\n\`\`\`xml\n${preview}\n\`\`\``);
         }
@@ -153,10 +153,10 @@ async function getKeyrefHover(
  * Shows resolved path, fragment info, file existence warning,
  * and inline content preview for conref references.
  */
-function getHrefHover(
+async function getHrefHover(
     ref: { type: string; value: string },
     documentUri: string
-): Hover | null {
+): Promise<Hover | null> {
     if (!ref.value) return null;
 
     const currentDir = path.dirname(uriToPath(documentUri));
@@ -182,7 +182,9 @@ function getHrefHover(
     try {
         if (parsed.filePath) {
             contents.push(`**Resolved:** ${resolvedPath}`);
-            if (!fs.existsSync(resolvedPath)) {
+            try {
+                await fs.access(resolvedPath);
+            } catch {
                 contents.push('**Warning:** Target file not found');
             }
         } else {
@@ -195,7 +197,7 @@ function getHrefHover(
 
         // Conref content preview — show the referenced element's content
         if (ref.type === 'conref' && parsed.fragment) {
-            const preview = getConrefPreview(resolvedPath, parsed.fragment);
+            const preview = await getConrefPreview(resolvedPath, parsed.fragment);
             if (preview) {
                 contents.push(`---\n\n**Preview:**\n\n\`\`\`xml\n${preview}\n\`\`\``);
             }
@@ -218,10 +220,10 @@ function getHrefHover(
  * Fragment format: "topicid/elementid" or just "topicid".
  * Returns the first ~300 chars of the element's XML content, or null.
  */
-function getConrefPreview(filePath: string, fragment: string): string | null {
+async function getConrefPreview(filePath: string, fragment: string): Promise<string | null> {
     let content: string;
     try {
-        content = fs.readFileSync(filePath, 'utf-8');
+        content = await fs.readFile(filePath, 'utf-8');
     } catch {
         return null;
     }

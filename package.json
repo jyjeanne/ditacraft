@@ -162,7 +162,7 @@
       },
       {
         "command": "ditacraft.setupCSpell",
-        "title": "DITA: Setup cSpell Configuration"
+        "title": "DITA: Setup cSpell Configuration (Deprecated - use LSP)"
       },
       {
         "command": "ditacraft.showLogFile",
