@@ -184,17 +184,17 @@ suite('findCrossFileReferences', () => {
         return filePath;
     }
 
-    test('returns empty array when no DITA files exist in workspace', () => {
+    test('returns empty array when no DITA files exist in workspace', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
-            const results = findCrossFileReferences('myId', path.join(tmp, 'target.dita'), [tmp]);
+            const results = await findCrossFileReferences('myId', path.join(tmp, 'target.dita'), [tmp]);
             assert.deepStrictEqual(results, []);
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
         }
     });
 
-    test('href with file path that resolves to target file is included', () => {
+    test('href with file path that resolves to target file is included', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             // target file
@@ -204,7 +204,7 @@ suite('findCrossFileReferences', () => {
             // referencing file — href points to target.dita#myId
             writeHrefFile(tmp, 'ref.ditamap', 'target.dita#myId');
 
-            const results = findCrossFileReferences('myId', targetPath, [tmp]);
+            const results = await findCrossFileReferences('myId', targetPath, [tmp]);
             assert.strictEqual(results.length, 1);
             assert.ok(results[0].uri.endsWith('ref.ditamap') || results[0].uri.includes('ref.ditamap'));
         } finally {
@@ -212,7 +212,7 @@ suite('findCrossFileReferences', () => {
         }
     });
 
-    test('href with file path that does not resolve to target file is excluded', () => {
+    test('href with file path that does not resolve to target file is excluded', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             const targetPath = path.join(tmp, 'target.dita');
@@ -223,28 +223,28 @@ suite('findCrossFileReferences', () => {
             fs.writeFileSync(otherPath, '<topic id="myId"/>');
             writeHrefFile(tmp, 'ref.ditamap', 'other.dita#myId');
 
-            const results = findCrossFileReferences('myId', targetPath, [tmp]);
+            const results = await findCrossFileReferences('myId', targetPath, [tmp]);
             assert.strictEqual(results.length, 0);
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
         }
     });
 
-    test('fragment-only ref inside target file is included', () => {
+    test('fragment-only ref inside target file is included', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             // The fragment-only href lives inside the target file itself
             const targetPath = path.join(tmp, 'target.dita');
             fs.writeFileSync(targetPath, '<topic id="root"><topicref href="#myId"/></topic>');
 
-            const results = findCrossFileReferences('myId', targetPath, [tmp]);
+            const results = await findCrossFileReferences('myId', targetPath, [tmp]);
             assert.strictEqual(results.length, 1);
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
         }
     });
 
-    test('fragment-only ref inside a different file is excluded', () => {
+    test('fragment-only ref inside a different file is excluded', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             const targetPath = path.join(tmp, 'target.dita');
@@ -254,14 +254,14 @@ suite('findCrossFileReferences', () => {
             const otherPath = path.join(tmp, 'other.ditamap');
             fs.writeFileSync(otherPath, '<map><topicref href="#myId"/></map>');
 
-            const results = findCrossFileReferences('myId', targetPath, [tmp]);
+            const results = await findCrossFileReferences('myId', targetPath, [tmp]);
             assert.strictEqual(results.length, 0);
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
         }
     });
 
-    test('conkeyref match is included by element ID regardless of key', () => {
+    test('conkeyref match is included by element ID regardless of key', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             const targetPath = path.join(tmp, 'target.dita');
@@ -271,7 +271,7 @@ suite('findCrossFileReferences', () => {
             const refPath = path.join(tmp, 'ref.ditamap');
             fs.writeFileSync(refPath, '<map><ph conkeyref="somekey/myId"/></map>');
 
-            const results = findCrossFileReferences('myId', targetPath, [tmp]);
+            const results = await findCrossFileReferences('myId', targetPath, [tmp]);
             assert.strictEqual(results.length, 1);
             assert.ok(results[0].uri.includes('ref.ditamap'));
         } finally {
@@ -279,7 +279,7 @@ suite('findCrossFileReferences', () => {
         }
     });
 
-    test('excludeUri parameter causes the specified file to be skipped', () => {
+    test('excludeUri parameter causes the specified file to be skipped', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             const targetPath = path.join(tmp, 'target.dita');
@@ -290,18 +290,18 @@ suite('findCrossFileReferences', () => {
             const refUri = URI.file(refPath).toString();
 
             // Without excludeUri we get a result
-            const withoutExclude = findCrossFileReferences('myId', targetPath, [tmp]);
+            const withoutExclude = await findCrossFileReferences('myId', targetPath, [tmp]);
             assert.strictEqual(withoutExclude.length, 1);
 
             // With excludeUri pointing to ref.ditamap, that file is skipped
-            const withExclude = findCrossFileReferences('myId', targetPath, [tmp], refUri);
+            const withExclude = await findCrossFileReferences('myId', targetPath, [tmp], refUri);
             assert.strictEqual(withExclude.length, 0);
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
         }
     });
 
-    test('documents parameter provides in-memory content instead of disk content', () => {
+    test('documents parameter provides in-memory content instead of disk content', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             const targetPath = path.join(tmp, 'target.dita');
@@ -325,7 +325,7 @@ suite('findCrossFileReferences', () => {
                 },
             } as any;
 
-            const results = findCrossFileReferences('myId', targetPath, [tmp], undefined, stubDocuments);
+            const results = await findCrossFileReferences('myId', targetPath, [tmp], undefined, stubDocuments);
             assert.strictEqual(results.length, 1);
             assert.ok(results[0].uri.includes('ref.ditamap'));
         } finally {
@@ -333,7 +333,7 @@ suite('findCrossFileReferences', () => {
         }
     });
 
-    test('no matches returns empty array', () => {
+    test('no matches returns empty array', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
             const targetPath = path.join(tmp, 'target.dita');
@@ -343,7 +343,7 @@ suite('findCrossFileReferences', () => {
             const refPath = path.join(tmp, 'ref.ditamap');
             fs.writeFileSync(refPath, '<map><topicref href="target.dita#otherId"/></map>');
 
-            const results = findCrossFileReferences('myId', targetPath, [tmp]);
+            const results = await findCrossFileReferences('myId', targetPath, [tmp]);
             assert.deepStrictEqual(results, []);
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
