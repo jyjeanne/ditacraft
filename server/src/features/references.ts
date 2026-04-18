@@ -21,11 +21,11 @@ import { uriToPath } from '../utils/textUtils';
  * Searches the current document and all workspace DITA files for references
  * to the ID at the cursor position.
  */
-export function handleReferences(
+export async function handleReferences(
     params: ReferenceParams,
     documents: TextDocuments<TextDocument>,
     workspaceFolders?: readonly string[]
-): Location[] {
+): Promise<Location[]> {
     const document = documents.get(params.textDocument.uri);
     if (!document) {
         return [];
@@ -62,7 +62,7 @@ export function handleReferences(
     // Find references across all workspace files
     if (workspaceFolders && workspaceFolders.length > 0) {
         const targetFilePath = uriToPath(document.uri);
-        const crossFileRefs = findCrossFileReferences(
+        const crossFileRefs = await findCrossFileReferences(
             idResult.id,
             targetFilePath,
             workspaceFolders,

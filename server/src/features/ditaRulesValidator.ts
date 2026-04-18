@@ -244,9 +244,11 @@ const DITA_RULES: DitaRule[] = [
         check(text, diagnostics) {
             // <shortdesc> with more than 50 words
             const regex = new RegExp(`<shortdesc\\b${TAG_ATTRS}>([\\s\\S]*?)<\\/shortdesc>`, 'g');
+            const stripTagsRegex = new RegExp(`<(?:"[^"]*"|'[^']*'|[^>"'])+>`, 'g');
             let match;
             while ((match = regex.exec(text)) !== null) {
-                const content = match[1].replace(new RegExp(`<(?:"[^"]*"|'[^']*'|[^>"'])+>`, 'g'), ''); // strip inner tags
+                stripTagsRegex.lastIndex = 0;
+                const content = match[1].replace(stripTagsRegex, '');
                 const wordCount = content.trim().split(/\s+/).filter(w => w.length > 0).length;
                 if (wordCount > 50) {
                     diagnostics.push(makeDiag(text, match.index, match[0].length,
@@ -264,13 +266,14 @@ const DITA_RULES: DitaRule[] = [
         check(text, diagnostics) {
             // <topichead> missing navtitle
             const regex = new RegExp(`<topichead\\b(${TAG_ATTRS})(?:\\/>|>([\\s\\S]*?)<\\/topichead>)`, 'g');
+            const topicmetaNavtitleRegex = new RegExp(`<topicmeta\\b${TAG_ATTRS}>[\\s\\S]*?<navtitle\\b`);
             let match;
             while ((match = regex.exec(text)) !== null) {
                 const attrs = match[1];
                 const content = match[2] || '';
                 const hasNavtitleAttr = /\bnavtitle\s*=/.test(attrs);
                 const hasNavtitleElement = /<navtitle\b/.test(content)
-                    || new RegExp(`<topicmeta\\b${TAG_ATTRS}>[\\s\\S]*?<navtitle\\b`).test(content);
+                    || topicmetaNavtitleRegex.test(content);
                 if (!hasNavtitleAttr && !hasNavtitleElement) {
                     diagnostics.push(makeDiag(text, match.index, match[0].length,
                         t('sch017.topicheadMissingNavtitle'),

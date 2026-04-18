@@ -44,7 +44,7 @@ export function setLocale(locale: string | undefined): void {
 export function t(key: string, ...args: (string | number)[]): string {
     let message = currentBundle[key] ?? en[key] ?? key;
     for (let i = 0; i < args.length; i++) {
-        message = message.replace(new RegExp(`\\{${i}\\}`, 'g'), String(args[i]));
+        message = message.replaceAll(`{${i}}`, String(args[i]));
     }
     return message;
 }

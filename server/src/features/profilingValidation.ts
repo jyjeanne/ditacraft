@@ -24,6 +24,17 @@ const PROFILING_ATTRIBUTES = [
     'deliveryTarget',
 ];
 
+/** Pre-compiled regexes for each profiling attribute (compiled once at module load). */
+const PROFILING_ATTR_REGEXES = new Map<string, RegExp>(
+    PROFILING_ATTRIBUTES.map(attrName => [
+        attrName,
+        new RegExp(
+            `<(\\w+)\\b([^>]*?)\\b${escapeRegex(attrName)}\\s*=\\s*["']([^"']+)["']`,
+            'g'
+        ),
+    ])
+);
+
 /**
  * Validate profiling attribute values against subject scheme constraints.
  * Only checks attributes that are controlled by a registered subject scheme.
@@ -46,10 +57,8 @@ export function validateProfilingAttributes(
             continue;
         }
 
-        const attrRegex = new RegExp(
-            `<(\\w+)\\b([^>]*?)\\b${escapeRegex(attrName)}\\s*=\\s*["']([^"']+)["']`,
-            'g'
-        );
+        const attrRegex = PROFILING_ATTR_REGEXES.get(attrName)!;
+        attrRegex.lastIndex = 0;
 
         let match: RegExpExecArray | null;
         while ((match = attrRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {

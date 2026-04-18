@@ -97,7 +97,9 @@ export class KeySpaceService implements IKeySpaceService {
         };
 
         // Async reload from actual settings
-        this.reloadCacheConfig();
+        this.reloadCacheConfig().catch((err) => {
+            this.log(`[KeySpaceService] Failed to load cache config: ${err}`);
+        });
 
         // Periodic cleanup
         this.startPeriodicCleanup();

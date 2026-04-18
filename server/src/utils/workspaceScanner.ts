@@ -89,23 +89,23 @@ export async function collectDitaFilesAsync(workspaceFolders: readonly string[])
  * - href/conref fragment-only: only included if found in the target file itself
  * - conkeyref: included by element ID match (cannot resolve key synchronously)
  */
-export function findCrossFileReferences(
+export async function findCrossFileReferences(
     targetId: string,
     targetFilePath: string,
     workspaceFolders: readonly string[],
     excludeUri?: string,
     documents?: TextDocuments<TextDocument>
-): Location[] {
+): Promise<Location[]> {
     const results: Location[] = [];
-    const ditaFiles = collectDitaFiles(workspaceFolders);
+    const ditaFiles = await collectDitaFilesAsync(workspaceFolders);
     const normalizedTargetPath = path.normalize(targetFilePath);
 
-    for (const filePath of ditaFiles) {
+    await Promise.all(ditaFiles.map(async (filePath) => {
         const fileUri = URI.file(filePath).toString();
 
         // Skip the current document (already searched by the caller)
         if (excludeUri && fileUri === excludeUri) {
-            continue;
+            return;
         }
 
         // Prefer in-memory content for open documents (may have unsaved changes)
@@ -115,14 +115,14 @@ export function findCrossFileReferences(
             content = openDoc.getText();
         } else {
             try {
-                content = fs.readFileSync(filePath, 'utf-8');
+                content = await fsp.readFile(filePath, 'utf-8');
             } catch {
-                continue;
+                return;
             }
         }
 
         const refs = findReferencesToId(content, targetId);
-        if (refs.length === 0) continue;
+        if (refs.length === 0) return;
 
         const fileDir = path.dirname(filePath);
 
@@ -150,7 +150,7 @@ export function findCrossFileReferences(
             const endPos = offsetToPosition(content, ref.valueEnd);
             results.push(Location.create(fileUri, { start: startPos, end: endPos }));
         }
-    }
+    }));
 
     return results;
 }
