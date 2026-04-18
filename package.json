@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/jyjeanne/ditacraft#readme",
   "engines": {
-    "vscode": "^1.82.0"
+    "vscode": "^1.115.0"
   },
   "categories": [
     "Programming Languages",
