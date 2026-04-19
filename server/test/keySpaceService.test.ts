@@ -636,6 +636,52 @@ suite('KeySpaceService', () => {
                 cleanup(tmpDir);
             }
         });
+
+        test('multi-name keyscope: PushDown works for every scope alias', async () => {
+            // Regression for Bug 1: when keyscope="a b", scopeDirectKeys must be
+            // initialised for both 'a' and 'b' so that child scopes of either alias
+            // inherit ancestor keys correctly.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="logo" href="logo.dita"/>
+  <mapref href="lib.ditamap" keyscope="libA libB"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'lib.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="api" href="api.dita"/>
+  <mapref href="deep.ditamap" keyscope="core"/>
+</map>`, 'utf-8');
+
+                const deepPath = path.join(tmpDir, 'deep.ditamap');
+                fs.writeFileSync(deepPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="util" href="util.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+
+                // Both scope aliases should get PushDown-inherited ancestor keys
+                assert.ok(keySpace.keys.has('libA.logo'),
+                    'PushDown: root logo should appear under libA alias');
+                assert.ok(keySpace.keys.has('libB.logo'),
+                    'PushDown: root logo should appear under libB alias');
+
+                // Deep child under libA must also inherit logo from root
+                assert.ok(keySpace.keys.has('libA.core.logo'),
+                    'PushDown: root logo should propagate into libA.core namespace');
+                assert.ok(keySpace.keys.has('libB.core.logo'),
+                    'PushDown: root logo should propagate into libB.core namespace');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
     });
 
     suite('context-aware key resolution', () => {
