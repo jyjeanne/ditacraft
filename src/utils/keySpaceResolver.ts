@@ -398,11 +398,13 @@ export class KeySpaceResolver implements vscode.Disposable {
             keySpace.mapHierarchy.push(currentMap);
 
             try {
-                // Read and parse current map — strip comments/CDATA to avoid false matches
+                // Read and parse current map — strip comments/CDATA, then reltable blocks.
+                // reltable hrefs are relationship-table links, not key space content (spec §2.4.4).
                 const rawContent = await this.readFileAsync(currentMap);
                 const mapContent = rawContent
                     .replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length))
-                    .replace(/<!\[CDATA\[[\s\S]*?]]>/g, (m) => ' '.repeat(m.length));
+                    .replace(/<!\[CDATA\[[\s\S]*?]]>/g, (m) => ' '.repeat(m.length))
+                    .replace(/<reltable\b[^>]*>[\s\S]*?<\/reltable\s*>/gi, '');
 
                 // Extract key definitions
                 const keys = this.extractKeyDefinitions(mapContent, currentMap);

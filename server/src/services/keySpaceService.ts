@@ -425,7 +425,9 @@ export class KeySpaceService implements IKeySpaceService {
 
             try {
                 const rawContent = await fsPromises.readFile(currentMap, 'utf-8');
-                const mapContent = stripCommentsAndCDATA(rawContent);
+                // Strip comments/CDATA first, then reltable blocks.
+                // reltable hrefs are relationship-table links — not key-space content (spec §2.4.4).
+                const mapContent = this.stripReltables(stripCommentsAndCDATA(rawContent));
 
                 const rootScopes = this.extractRootKeyscope(mapContent);
                 const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, rootScopes);
@@ -485,6 +487,35 @@ export class KeySpaceService implements IKeySpaceService {
                 const submaps = this.extractMapReferences(mapContent, currentMap, maxLinkMatches);
                 for (const submap of submaps) {
                     const childPrefixes = this.combineScopePrefixes(effectivePrefixes, submap.keyscopes);
+
+                    // Register @keys defined on the mapref element itself under the child scope prefix.
+                    // The mapref element is included in the child scope it creates (DITA spec §2.4.4.1).
+                    if (submap.inlineKeys.length > 0 && childPrefixes.length > 0) {
+                        for (const inlineKeyName of submap.inlineKeys) {
+                            const inlineDef: KeyDefinition = {
+                                keyName: inlineKeyName,
+                                sourceMap: currentMap,
+                                targetFile: submap.path,
+                            };
+                            for (const prefix of childPrefixes) {
+                                if (!scopeDirectKeys.has(prefix)) {
+                                    scopeDirectKeys.set(prefix, []);
+                                }
+                                const directKeys = scopeDirectKeys.get(prefix)!;
+                                if (!directKeys.some(k => k.keyName === inlineKeyName)) {
+                                    directKeys.push(inlineDef);
+                                }
+                                const qualifiedName = `${prefix}.${inlineKeyName}`;
+                                if (!keySpace.keys.has(qualifiedName)) {
+                                    keySpace.keys.set(qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                                }
+                            }
+                            if (!keySpace.keys.has(inlineKeyName)) {
+                                keySpace.keys.set(inlineKeyName, inlineDef);
+                            }
+                        }
+                    }
+
                     queue.push({ mapPath: submap.path, scopePrefixes: childPrefixes });
                 }
             } catch {
@@ -536,6 +567,14 @@ export class KeySpaceService implements IKeySpaceService {
 
             const keysValue = match[2];
             const fullElement = match[0];
+
+            // Skip elements that carry @keyscope AND reference a submap file.
+            // Their @keys belong to the child scope and are registered by the BFS
+            // submap loop (via extractMapReferences inlineKeys), not here.
+            const hasKeyscope = /\bkeyscope\s*=\s*["'][^"']+["']/i.test(fullElement);
+            const hasMapHref = /\bhref\s*=\s*["'][^"']*\.(?:ditamap|bookmap)["']/i.test(fullElement);
+            if (hasKeyscope && hasMapHref) continue;
+
             const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
 
             for (const keyName of keyNames) {
@@ -737,8 +776,8 @@ export class KeySpaceService implements IKeySpaceService {
         mapContent: string,
         mapPath: string,
         maxLinkMatches: number
-    ): { path: string; keyscopes: string[] }[] {
-        const submaps: { path: string; keyscopes: string[] }[] = [];
+    ): { path: string; keyscopes: string[]; inlineKeys: string[] }[] {
+        const submaps: { path: string; keyscopes: string[]; inlineKeys: string[] }[] = [];
         const mapDir = path.dirname(mapPath);
         // Match ANY element with href pointing to a .ditamap or .bookmap file.
         // This covers mapref, topicref, chapter, appendix, part, glossarylist,
@@ -763,7 +802,15 @@ export class KeySpaceService implements IKeySpaceService {
                 const keyscopes = keyscopeMatch
                     ? keyscopeMatch[1].split(/\s+/).filter(s => s.length > 0)
                     : [];
-                submaps.push({ path: absolutePath, keyscopes });
+                // Capture @keys on the mapref element itself when @keyscope is also present.
+                // Per DITA spec, @keys on the same element as @keyscope belong to the child scope.
+                const keysMatch = keyscopes.length > 0
+                    ? match[0].match(/\bkeys\s*=\s*["']([^"']+)["']/i)
+                    : null;
+                const inlineKeys = keysMatch
+                    ? keysMatch[1].split(/\s+/).filter(k => k.length > 0)
+                    : [];
+                submaps.push({ path: absolutePath, keyscopes, inlineKeys });
             }
         }
 
@@ -874,6 +921,15 @@ export class KeySpaceService implements IKeySpaceService {
             }
         }
         return Array.from(combined);
+    }
+
+    /**
+     * Remove `<reltable>` blocks from map content before key-space extraction.
+     * Relationship tables define topic relationships, not key definitions; their
+     * hrefs must not pollute scopeDirectKeys or topicToScope (DITA spec §2.4.4).
+     */
+    private stripReltables(content: string): string {
+        return content.replace(/<reltable\b[^>]*>[\s\S]*?<\/reltable\s*>/gi, '');
     }
 
     /** Extract keyscope(s) from the root map/bookmap element. */
