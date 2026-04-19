@@ -23,6 +23,8 @@ export interface KeyDefinition {
     sourceMap: string;
     scope?: string;
     processingRole?: string;
+    /** Indirect key reference: when set, resolution follows the chain to this key name. */
+    keyref?: string;
     metadata?: KeyMetadata;
 }
 
@@ -41,6 +43,12 @@ export interface KeySpace {
     subjectSchemePaths: string[];
     /** Keys defined more than once. Maps key name → all definitions (including the effective first one). */
     duplicateKeys: Map<string, KeyDefinition[]>;
+    /**
+     * Maps each topic file path (normalised) to its primary scope prefix.
+     * Used by resolveKey() to perform context-aware scope lookup before
+     * falling back to the flat unqualified key name.
+     */
+    topicToScope: Map<string, string>;
 }
 
 interface CacheConfig {
@@ -141,7 +149,27 @@ export class KeySpaceService implements IKeySpaceService {
         }
 
         const keySpace = await this.buildKeySpace(rootMap);
-        return keySpace.keys.get(keyName) ?? null;
+
+        // Context-aware resolution: when the authoring file lives inside a named
+        // scope, prefer the scope-qualified key (e.g. "product.lib.version") over
+        // the root-level unqualified key ("version").  The PushDown pass has already
+        // added inherited ancestor keys under the child scope namespace, so a child
+        // scope override always beats an ancestor definition at this lookup point.
+        const scopePrefix = keySpace.topicToScope.get(path.normalize(contextFilePath));
+        if (scopePrefix) {
+            const qualifiedName = `${scopePrefix}.${keyName}`;
+            const scopedDef = keySpace.keys.get(qualifiedName);
+            if (scopedDef) {
+                return this.followKeyrefChain(scopedDef, keySpace.keys);
+            }
+        }
+
+        // Fall back to the context-free (root-scope) entry.
+        const keyDef = keySpace.keys.get(keyName) ?? null;
+        if (keyDef) {
+            return this.followKeyrefChain(keyDef, keySpace.keys);
+        }
+        return null;
     }
 
     /**
@@ -362,11 +390,10 @@ export class KeySpaceService implements IKeySpaceService {
             mapHierarchy: [],
             subjectSchemePaths: [],
             duplicateKeys: new Map(),
+            topicToScope: new Map(),
         };
 
         const visited = new Set<string>();
-        // Each queue entry carries an array of scope prefixes (combinatorial).
-        // An empty array means no scope; each string is one fully-qualified prefix path.
         const queue: { mapPath: string; scopePrefixes: string[] }[] = [
             { mapPath: absoluteRootPath, scopePrefixes: [] },
         ];
@@ -378,6 +405,11 @@ export class KeySpaceService implements IKeySpaceService {
         } catch {
             // Use default
         }
+
+        // Tracks the highest-priority key definition per key name per scope prefix.
+        // The PushDown pass uses this to propagate ancestor-scope keys into
+        // descendant scope namespaces (e.g. "product.lib.version" from "product.version").
+        const scopeDirectKeys = new Map<string, KeyDefinition[]>();
 
         while (queue.length > 0) {
             const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
@@ -393,22 +425,29 @@ export class KeySpaceService implements IKeySpaceService {
 
             try {
                 const rawContent = await fsPromises.readFile(currentMap, 'utf-8');
-                // Strip comments and CDATA to avoid false matches
                 const mapContent = stripCommentsAndCDATA(rawContent);
 
-                // Detect keyscope(s) on root element of this map
                 const rootScopes = this.extractRootKeyscope(mapContent);
-                // Combine parent prefixes with root-level scopes (cross product)
                 const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, rootScopes);
+                // The primary prefix is the first (canonical) scope path for this map.
+                const primaryPrefix = effectivePrefixes[0] ?? '';
 
-                // Extract key definitions — first definition wins
+                if (!scopeDirectKeys.has(primaryPrefix)) {
+                    scopeDirectKeys.set(primaryPrefix, []);
+                }
+
                 const keys = this.extractKeyDefinitions(mapContent, currentMap, maxLinkMatches);
                 for (const keyDef of keys) {
-                    // Store unqualified key name (first definition wins)
+                    // Record as a direct key of this scope (first per key name wins).
+                    const directKeys = scopeDirectKeys.get(primaryPrefix)!;
+                    if (!directKeys.some(k => k.keyName === keyDef.keyName)) {
+                        directKeys.push(keyDef);
+                    }
+
+                    // Unqualified entry — first definition across the whole key space wins.
                     if (!keySpace.keys.has(keyDef.keyName)) {
                         keySpace.keys.set(keyDef.keyName, keyDef);
                     } else {
-                        // Track duplicate key definitions
                         let dups = keySpace.duplicateKeys.get(keyDef.keyName);
                         if (!dups) {
                             dups = [keySpace.keys.get(keyDef.keyName)!];
@@ -416,34 +455,53 @@ export class KeySpaceService implements IKeySpaceService {
                         }
                         dups.push(keyDef);
                     }
-                    // Store scope-qualified key names (e.g., "a.x.keyname", "b.x.keyname")
+
+                    // Scope-qualified entries — first definition per qualified name wins.
                     for (const prefix of effectivePrefixes) {
                         const qualifiedName = `${prefix}.${keyDef.keyName}`;
                         if (!keySpace.keys.has(qualifiedName)) {
-                            keySpace.keys.set(qualifiedName, {
-                                ...keyDef,
-                                keyName: qualifiedName,
-                            });
+                            keySpace.keys.set(qualifiedName, { ...keyDef, keyName: qualifiedName });
                         }
                     }
                 }
 
-                // Detect subject scheme maps (root element is <subjectScheme>)
+                // Record which scope each referenced topic belongs to.
+                // This is used later in resolveKey() for context-aware lookup.
+                this.extractTopicReferences(
+                    mapContent, currentMap, primaryPrefix, keySpace.topicToScope, maxLinkMatches
+                );
+
                 if (this.isSubjectSchemeMap(rawContent)) {
                     keySpace.subjectSchemePaths.push(currentMap);
                 }
 
-                // Queue submaps (inherit scope prefixes + detect new scopes)
                 const submaps = this.extractMapReferences(mapContent, currentMap, maxLinkMatches);
                 for (const submap of submaps) {
                     const childPrefixes = this.combineScopePrefixes(effectivePrefixes, submap.keyscopes);
-                    queue.push({
-                        mapPath: submap.path,
-                        scopePrefixes: childPrefixes,
-                    });
+                    queue.push({ mapPath: submap.path, scopePrefixes: childPrefixes });
                 }
             } catch {
                 // Error reading/parsing map, skip
+            }
+        }
+
+        // PushDown pass: for every child scope, inherit ancestor-scope key definitions
+        // at lower priority.  This ensures that a key defined in an ancestor scope (e.g.
+        // "product.version") is resolvable via its fully-qualified child-scope name (e.g.
+        // "product.lib.version") when authoring within the "lib" child scope.
+        // Keys already defined in the child scope (added during BFS) are not overwritten.
+        for (const [childPrefix] of scopeDirectKeys) {
+            if (childPrefix === '') continue;
+            const parts = childPrefix.split('.');
+            // Walk ancestor depths from root (depth=0 → '') up to the immediate parent.
+            for (let depth = 0; depth < parts.length; depth++) {
+                const ancestorPrefix = parts.slice(0, depth).join('.');
+                for (const ancestorKey of scopeDirectKeys.get(ancestorPrefix) ?? []) {
+                    const inheritedName = `${childPrefix}.${ancestorKey.keyName}`;
+                    if (!keySpace.keys.has(inheritedName)) {
+                        keySpace.keys.set(inheritedName, { ...ancestorKey, keyName: inheritedName });
+                    }
+                }
             }
         }
 
@@ -509,6 +567,10 @@ export class KeySpaceService implements IKeySpaceService {
                 // Extract processing-role
                 const roleMatch = fullElement.match(/\bprocessing-role\s*=\s*["']([^"']+)["']/i);
                 if (roleMatch) keyDef.processingRole = roleMatch[1];
+
+                // Extract keyref (indirect key alias — resolution follows the chain)
+                const keyrefMatch = fullElement.match(/\bkeyref\s*=\s*["']([^"']+)["']/i);
+                if (keyrefMatch) keyDef.keyref = keyrefMatch[1];
 
                 // Extract metadata from <topicmeta> child (navtitle, keywords, shortdesc)
                 // Skip metadata extraction for self-closing elements (no child content)
@@ -603,6 +665,61 @@ export class KeySpaceService implements IKeySpaceService {
             metadata: hasMetadata ? metadata : null,
             inlineContent,
         };
+    }
+
+    /**
+     * Follow @keyref chains up to hopsRemaining hops.
+     * Returns the original definition unchanged when no chain exists, the chain
+     * is broken (target key missing), or the hop limit / cycle guard fires.
+     */
+    private followKeyrefChain(
+        keyDef: KeyDefinition,
+        keys: Map<string, KeyDefinition>,
+        hopsRemaining = 3,
+        visited = new Set<string>()
+    ): KeyDefinition {
+        if (!keyDef.keyref || hopsRemaining <= 0 || visited.has(keyDef.keyName)) {
+            return keyDef;
+        }
+        visited.add(keyDef.keyName);
+        const next = keys.get(keyDef.keyref);
+        if (!next) return keyDef;
+        return this.followKeyrefChain(next, keys, hopsRemaining - 1, visited);
+    }
+
+    /**
+     * Scan a resolved map for topic hrefs (.dita / .xml) and record the
+     * owning scope prefix in topicToScope.  First-seen wins so that topics
+     * referenced at root level are not overwritten by a child-scope reference.
+     * Topics in the root scope (scopePrefix='') are recorded but leave the
+     * context-aware branch in resolveKey() dormant (empty-string check).
+     */
+    private extractTopicReferences(
+        mapContent: string,
+        mapPath: string,
+        scopePrefix: string,
+        topicToScope: Map<string, string>,
+        maxMatches: number
+    ): void {
+        const mapDir = path.dirname(mapPath);
+        const topicRefRegex = new RegExp(
+            `<(\\w+)\\b${TAG_ATTRS}\\bhref\\s*=\\s*["']([^"'#]+\\.(?:dita|xml))(?:#[^"']*)?["']`,
+            'gi'
+        );
+        let match: RegExpExecArray | null;
+        let count = 0;
+        while ((match = topicRefRegex.exec(mapContent)) !== null) {
+            if (++count > maxMatches) break;
+            if (match[1].toLowerCase() === 'mapref') continue;
+            const href = match[2];
+            if (href.startsWith('http://') || href.startsWith('https://')) continue;
+            const resolved = path.resolve(mapDir, href);
+            if (!this.isPathWithinWorkspace(resolved)) continue;
+            const normalized = path.normalize(resolved);
+            if (!topicToScope.has(normalized)) {
+                topicToScope.set(normalized, scopePrefix);
+            }
+        }
     }
 
     private extractMapReferences(
