@@ -160,14 +160,14 @@ export class KeySpaceService implements IKeySpaceService {
             const qualifiedName = `${scopePrefix}.${keyName}`;
             const scopedDef = keySpace.keys.get(qualifiedName);
             if (scopedDef) {
-                return this.followKeyrefChain(scopedDef, keySpace.keys);
+                return this.followKeyrefChain(scopedDef, keySpace.keys, scopePrefix);
             }
         }
 
         // Fall back to the context-free (root-scope) entry.
         const keyDef = keySpace.keys.get(keyName) ?? null;
         if (keyDef) {
-            return this.followKeyrefChain(keyDef, keySpace.keys);
+            return this.followKeyrefChain(keyDef, keySpace.keys, '');
         }
         return null;
     }
@@ -429,19 +429,26 @@ export class KeySpaceService implements IKeySpaceService {
 
                 const rootScopes = this.extractRootKeyscope(mapContent);
                 const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, rootScopes);
-                // The primary prefix is the first (canonical) scope path for this map.
+                // The primary prefix is the first (canonical) scope path for this map,
+                // used for topic-to-scope tracking.  All prefixes (multi-name keyscope)
+                // are used for scopeDirectKeys so PushDown inheritance works for every alias.
                 const primaryPrefix = effectivePrefixes[0] ?? '';
+                const allScopePrefixes = effectivePrefixes.length > 0 ? effectivePrefixes : [''];
 
-                if (!scopeDirectKeys.has(primaryPrefix)) {
-                    scopeDirectKeys.set(primaryPrefix, []);
+                for (const prefix of allScopePrefixes) {
+                    if (!scopeDirectKeys.has(prefix)) {
+                        scopeDirectKeys.set(prefix, []);
+                    }
                 }
 
                 const keys = this.extractKeyDefinitions(mapContent, currentMap, maxLinkMatches);
                 for (const keyDef of keys) {
-                    // Record as a direct key of this scope (first per key name wins).
-                    const directKeys = scopeDirectKeys.get(primaryPrefix)!;
-                    if (!directKeys.some(k => k.keyName === keyDef.keyName)) {
-                        directKeys.push(keyDef);
+                    // Record as a direct key of every scope alias (first per key name wins).
+                    for (const prefix of allScopePrefixes) {
+                        const directKeys = scopeDirectKeys.get(prefix)!;
+                        if (!directKeys.some(k => k.keyName === keyDef.keyName)) {
+                            directKeys.push(keyDef);
+                        }
                     }
 
                     // Unqualified entry — first definition across the whole key space wins.
@@ -675,6 +682,7 @@ export class KeySpaceService implements IKeySpaceService {
     private followKeyrefChain(
         keyDef: KeyDefinition,
         keys: Map<string, KeyDefinition>,
+        scopePrefix = '',
         hopsRemaining = 3,
         visited = new Set<string>()
     ): KeyDefinition {
@@ -682,9 +690,12 @@ export class KeySpaceService implements IKeySpaceService {
             return keyDef;
         }
         visited.add(keyDef.keyName);
-        const next = keys.get(keyDef.keyref);
+        // Prefer the scope-qualified target so that keyref chains within a named
+        // scope resolve to the scope's own override rather than the root definition.
+        const next = (scopePrefix ? keys.get(`${scopePrefix}.${keyDef.keyref}`) : undefined)
+            ?? keys.get(keyDef.keyref);
         if (!next) return keyDef;
-        return this.followKeyrefChain(next, keys, hopsRemaining - 1, visited);
+        return this.followKeyrefChain(next, keys, scopePrefix, hopsRemaining - 1, visited);
     }
 
     /**
@@ -710,7 +721,7 @@ export class KeySpaceService implements IKeySpaceService {
         let count = 0;
         while ((match = topicRefRegex.exec(mapContent)) !== null) {
             if (++count > maxMatches) break;
-            if (match[1].toLowerCase() === 'mapref') continue;
+            if (['mapref', 'keydef', 'subjectdef'].includes(match[1].toLowerCase())) continue;
             const href = match[2];
             if (href.startsWith('http://') || href.startsWith('https://')) continue;
             const resolved = path.resolve(mapDir, href);
