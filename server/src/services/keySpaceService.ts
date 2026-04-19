@@ -1033,8 +1033,29 @@ export class KeySpaceService implements IKeySpaceService {
             if (!nextClose) return null; // Malformed XML
 
             if (nextOpen && nextOpen.index < nextClose.index) {
-                depth++;
-                pos = nextOpen.index + nextOpen[0].length;
+                // Scan forward to the closing '>' of this opening tag to determine
+                // whether it's self-closing (ends with '/>').  Self-closing elements
+                // don't introduce a new nesting level.
+                let scanPos = nextOpen.index + nextOpen[0].length;
+                let inAttrQuote = false;
+                let quoteChar = '';
+                while (scanPos < content.length) {
+                    const ch = content[scanPos];
+                    if (inAttrQuote) {
+                        if (ch === quoteChar) inAttrQuote = false;
+                    } else if (ch === '"' || ch === "'") {
+                        inAttrQuote = true;
+                        quoteChar = ch;
+                    } else if (ch === '>') {
+                        break;
+                    }
+                    scanPos++;
+                }
+                // Check for self-closing: '>' preceded by '/' (ignoring whitespace)
+                let checkPos = scanPos - 1;
+                while (checkPos > nextOpen.index && /\s/.test(content[checkPos])) checkPos--;
+                if (content[checkPos] !== '/') depth++;
+                pos = scanPos + 1;
             } else {
                 depth--;
                 if (depth === 0) {
