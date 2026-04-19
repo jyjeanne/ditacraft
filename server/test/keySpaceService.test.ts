@@ -413,4 +413,307 @@ suite('KeySpaceService', () => {
             }
         });
     });
+
+    suite('keyref chain resolution', () => {
+
+        test('keyref attribute is captured on KeyDefinition', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="alias" keyref="real"/>
+  <keydef keys="real" href="real.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                const aliasDef = keySpace.keys.get('alias');
+                assert.ok(aliasDef, 'alias key should exist');
+                assert.strictEqual(aliasDef!.keyref, 'real', 'keyref attribute should be captured');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('resolveKey follows keyref chain to final definition', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="alias" keyref="real"/>
+  <keydef keys="real" href="real.dita"/>
+</map>`, 'utf-8');
+
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                const result = await service.resolveKey('alias', contextFile);
+                assert.ok(result, 'alias key should resolve');
+                assert.ok(result!.targetFile?.endsWith('real.dita'),
+                    'resolved definition should point to real.dita, not alias');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('multi-hop keyref chain resolves transitively', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="a" keyref="b"/>
+  <keydef keys="b" keyref="c"/>
+  <keydef keys="c" href="final.dita"/>
+</map>`, 'utf-8');
+
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                const result = await service.resolveKey('a', contextFile);
+                assert.ok(result, 'multi-hop keyref should resolve');
+                assert.ok(result!.targetFile?.endsWith('final.dita'),
+                    'should resolve through full chain to final.dita');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('cyclic keyref does not hang — returns a definition', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="x" keyref="y"/>
+  <keydef keys="y" keyref="x"/>
+</map>`, 'utf-8');
+
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                // Must not throw or hang; result may be x or y but must be non-null
+                const result = await service.resolveKey('x', contextFile);
+                assert.ok(result, 'cyclic keyref should return a definition, not null');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('keyref to missing key returns the alias definition itself', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="alias" keyref="nonexistent"/>
+</map>`, 'utf-8');
+
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                const result = await service.resolveKey('alias', contextFile);
+                assert.ok(result, 'alias with broken chain should still return a definition');
+                assert.strictEqual(result!.keyName, 'alias',
+                    'broken chain returns the alias definition itself');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
+
+    suite('PushDown scope inheritance', () => {
+
+        test('ancestor key is accessible via child-scope qualified name', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="logo" href="logo.dita"/>
+  <mapref href="lib.ditamap" keyscope="lib"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'lib.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="api" href="api.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.ok(keySpace.keys.has('logo'), 'unqualified ancestor key should exist');
+                assert.ok(keySpace.keys.has('lib.api'), 'child scope key should exist');
+                assert.ok(keySpace.keys.has('lib.logo'),
+                    'PushDown should make ancestor key available as lib.logo');
+                assert.ok(
+                    keySpace.keys.get('lib.logo')!.targetFile?.endsWith('logo.dita'),
+                    'inherited lib.logo should point to logo.dita'
+                );
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('child-scope override wins over ancestor key in qualified namespace', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="version" href="v1.dita"/>
+  <mapref href="product.ditamap" keyscope="product"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'product.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="version" href="v2.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                // product.version should be the child scope's definition (v2), not the root's (v1)
+                const productVersion = keySpace.keys.get('product.version');
+                assert.ok(productVersion, 'product.version should exist');
+                assert.ok(
+                    productVersion!.targetFile?.endsWith('v2.dita'),
+                    'child-scope override should win for product.version'
+                );
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('deeply nested scope inherits from all ancestors', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="brand" href="brand.dita"/>
+  <mapref href="product.ditamap" keyscope="product"/>
+</map>`, 'utf-8');
+
+                const midPath = path.join(tmpDir, 'product.ditamap');
+                fs.writeFileSync(midPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="version" href="v1.dita"/>
+  <mapref href="module.ditamap" keyscope="module"/>
+</map>`, 'utf-8');
+
+                const leafPath = path.join(tmpDir, 'module.ditamap');
+                fs.writeFileSync(leafPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="api" href="api.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                // product.module.api — direct key
+                assert.ok(keySpace.keys.has('product.module.api'), 'direct leaf key should exist');
+                // product.module.version — inherited from product scope via PushDown
+                assert.ok(keySpace.keys.has('product.module.version'),
+                    'PushDown should inherit product.version into product.module namespace');
+                // product.module.brand — inherited from root scope via PushDown
+                assert.ok(keySpace.keys.has('product.module.brand'),
+                    'PushDown should inherit root brand into product.module namespace');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
+
+    suite('context-aware key resolution', () => {
+
+        test('resolveKey uses child-scope definition when context is in that scope', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="version" href="v1.dita"/>
+  <mapref href="product.ditamap" keyscope="product"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'product.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="version" href="v2.dita"/>
+  <topicref href="product-guide.dita"/>
+</map>`, 'utf-8');
+
+                // product-guide.dita is within the "product" scope
+                const productGuide = path.join(tmpDir, 'product-guide.dita');
+                fs.writeFileSync(productGuide, '', 'utf-8');
+
+                // A topic outside any named scope
+                const rootTopic = path.join(tmpDir, 'root-topic.dita');
+                fs.writeFileSync(rootTopic, '', 'utf-8');
+
+                // From product-guide (product scope) → should get v2
+                const fromProduct = await service.resolveKey('version', productGuide);
+                assert.ok(fromProduct, 'version should resolve from product-guide context');
+                assert.ok(
+                    fromProduct!.targetFile?.endsWith('v2.dita'),
+                    'context-aware resolution should return product scope version (v2)'
+                );
+
+                // From root-topic (no named scope) → should get v1
+                const fromRoot = await service.resolveKey('version', rootTopic);
+                assert.ok(fromRoot, 'version should resolve from root-topic context');
+                assert.ok(
+                    fromRoot!.targetFile?.endsWith('v1.dita'),
+                    'context-free resolution should return root scope version (v1)'
+                );
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('topicToScope maps topic to its owning scope prefix', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <mapref href="lib.ditamap" keyscope="lib"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'lib.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <topicref href="lib-guide.dita"/>
+</map>`, 'utf-8');
+
+                const guidePath = path.join(tmpDir, 'lib-guide.dita');
+                fs.writeFileSync(guidePath, '', 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                const scopePrefix = keySpace.topicToScope.get(path.normalize(guidePath));
+                assert.strictEqual(scopePrefix, 'lib',
+                    'lib-guide.dita should be recorded in the "lib" scope');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
 });

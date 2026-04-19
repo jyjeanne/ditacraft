@@ -22,6 +22,7 @@ export interface KeyDefinition {
     sourceMap: string;             // Absolute path to map where key was defined
     scope?: string;                // Key scope (local, peer, external)
     processingRole?: string;       // resource-only, normal, etc.
+    keyref?: string;               // Indirect key reference — resolution follows this chain
     metadata?: KeyMetadata;        // Additional metadata from topicmeta
 }
 
@@ -633,6 +634,12 @@ export class KeySpaceResolver implements vscode.Disposable {
                     keyDef.processingRole = roleMatch[1];
                 }
 
+                // Extract keyref (indirect key alias)
+                const keyrefMatch = fullElement.match(/\bkeyref\s*=\s*["']([^"']+)["']/i);
+                if (keyrefMatch) {
+                    keyDef.keyref = keyrefMatch[1];
+                }
+
                 // Check for inline content (keydef without href)
                 if (!keyDef.targetFile) {
                     // Try to extract inline content from topicmeta/keywords
@@ -763,20 +770,21 @@ export class KeySpaceResolver implements vscode.Disposable {
         // Build key space
         const keySpace = await this.buildKeySpace(rootMap);
 
-        // Lookup key
+        // Lookup key, then follow any @keyref chain to the final definition.
         const keyDef = keySpace.keys.get(keyName);
 
         if (keyDef) {
+            const resolved = this.followKeyrefChain(keyDef, keySpace.keys);
             logger.debug('Key resolved', {
                 keyName,
-                targetFile: keyDef.targetFile,
-                sourceMap: path.basename(keyDef.sourceMap)
+                targetFile: resolved.targetFile,
+                sourceMap: path.basename(resolved.sourceMap)
             });
-        } else {
-            logger.debug('Key not found in key space', { keyName });
+            return resolved;
         }
 
-        return keyDef || null;
+        logger.debug('Key not found in key space', { keyName });
+        return null;
     }
 
     /**
@@ -938,6 +946,26 @@ export class KeySpaceResolver implements vscode.Disposable {
         this.keySpaceCache.clear();
         this.rootMapCache.clear();
         logger.info('Key space cache cleared');
+    }
+
+    /**
+     * Follow @keyref chains up to hopsRemaining hops.
+     * Returns the original definition if no chain exists, the target is missing,
+     * the hop limit is reached, or a cycle is detected.
+     */
+    private followKeyrefChain(
+        keyDef: KeyDefinition,
+        keys: Map<string, KeyDefinition>,
+        hopsRemaining = 3,
+        visited = new Set<string>()
+    ): KeyDefinition {
+        if (!keyDef.keyref || hopsRemaining <= 0 || visited.has(keyDef.keyName)) {
+            return keyDef;
+        }
+        visited.add(keyDef.keyName);
+        const next = keys.get(keyDef.keyref);
+        if (!next) return keyDef;
+        return this.followKeyrefChain(next, keys, hopsRemaining - 1, visited);
     }
 
     /**
