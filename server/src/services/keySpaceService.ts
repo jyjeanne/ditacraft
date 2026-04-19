@@ -66,6 +66,7 @@ export interface KeySpaceSettings {
 const ONE_MINUTE_MS = 60_000;
 const MAX_KEY_SPACES = 10;
 const MAX_MAP_REFERENCES = 1000;
+const MAX_INLINE_SCOPE_DEPTH = 10;
 const ROOT_MAP_CACHE_TTL_MS = ONE_MINUTE_MS;
 const FILE_WATCHER_DEBOUNCE_MS = 300;
 const MIN_CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
@@ -443,7 +444,15 @@ export class KeySpaceService implements IKeySpaceService {
                     }
                 }
 
-                const keys = this.extractKeyDefinitions(mapContent, currentMap, maxLinkMatches);
+                // Handle inline scope branches (topicrefs with @keyscope that don't
+                // reference an external map).  Returns mapContent with those blocks
+                // blanked out so that child-scope keys are not re-processed here.
+                const maskedContent = this.processInlineScopeBlocks(
+                    mapContent, currentMap, effectivePrefixes,
+                    keySpace, scopeDirectKeys, queue, maxLinkMatches
+                );
+
+                const keys = this.extractKeyDefinitions(maskedContent, currentMap, maxLinkMatches);
                 for (const keyDef of keys) {
                     // Record as a direct key of every scope alias (first per key name wins).
                     for (const prefix of allScopePrefixes) {
@@ -477,14 +486,17 @@ export class KeySpaceService implements IKeySpaceService {
                 // Record which scope each referenced topic belongs to.
                 // This is used later in resolveKey() for context-aware lookup.
                 this.extractTopicReferences(
-                    mapContent, currentMap, primaryPrefix, keySpace.topicToScope, maxLinkMatches
+                    maskedContent, currentMap, primaryPrefix, keySpace.topicToScope, maxLinkMatches
                 );
 
                 if (this.isSubjectSchemeMap(rawContent)) {
                     keySpace.subjectSchemePaths.push(currentMap);
                 }
 
-                const submaps = this.extractMapReferences(mapContent, currentMap, maxLinkMatches);
+                // Use maskedContent so submaps inside inline scope blocks are not
+                // queued again (processInlineScopeBlocks already queued them with the
+                // correct child scope prefix).
+                const submaps = this.extractMapReferences(maskedContent, currentMap, maxLinkMatches);
                 for (const submap of submaps) {
                     const childPrefixes = this.combineScopePrefixes(effectivePrefixes, submap.keyscopes);
 
@@ -921,6 +933,265 @@ export class KeySpaceService implements IKeySpaceService {
             }
         }
         return Array.from(combined);
+    }
+
+    // --- Internal: inline scope branch handling ---
+
+    /**
+     * Find all top-level elements within `content` that carry @keyscope but do NOT
+     * reference an external .ditamap/.bookmap file.  These are "inline scope branches"
+     * whose child key definitions must be processed under the child scope prefix.
+     *
+     * Only top-level blocks are returned; nested ones are found recursively in
+     * processInlineScopeBlocks so they are never double-processed.
+     */
+    private extractInlineScopeBlocks(content: string): Array<{
+        keyscopes: string[];
+        inlineKeys: string[];
+        innerContent: string;
+        outerStart: number;
+        outerEnd: number;
+    }> {
+        const blocks: Array<{
+            keyscopes: string[];
+            inlineKeys: string[];
+            innerContent: string;
+            outerStart: number;
+            outerEnd: number;
+        }> = [];
+
+        const keyscopedRe = new RegExp(
+            `<(\\w+)\\b${TAG_ATTRS}\\bkeyscope\\s*=\\s*["']([^"']+)["']${TAG_ATTRS}>`,
+            'gi'
+        );
+
+        let match: RegExpExecArray | null;
+        while ((match = keyscopedRe.exec(content)) !== null) {
+            const fullOpenTag = match[0];
+            const elemName = match[1];
+
+            // Root map/bookmap keyscopes are handled by extractRootKeyscope
+            if (/^(?:map|bookmap)$/i.test(elemName)) continue;
+            // Submap references are handled by extractMapReferences + inlineKeys mechanism
+            if (/\bhref\s*=\s*["'][^"']*\.(?:ditamap|bookmap)["']/i.test(fullOpenTag)) continue;
+            // Self-closing elements have no children to scope
+            if (fullOpenTag.endsWith('/>')) continue;
+
+            const openTagEnd = match.index + fullOpenTag.length;
+            const inner = this.findInnerContent(content, openTagEnd, elemName);
+            if (!inner) continue;
+
+            const keyscopes = match[2].split(/\s+/).filter(s => s.length > 0);
+            const keysMatch = fullOpenTag.match(/\bkeys\s*=\s*["']([^"']+)["']/i);
+            const inlineKeys = keysMatch
+                ? keysMatch[1].split(/\s+/).filter(k => k.length > 0)
+                : [];
+
+            blocks.push({
+                keyscopes,
+                inlineKeys,
+                innerContent: inner.content,
+                outerStart: match.index,
+                outerEnd: inner.end,
+            });
+        }
+
+        // Keep only top-level blocks; nested blocks are handled by recursion.
+        return blocks.filter(block =>
+            !blocks.some(
+                other =>
+                    other !== block &&
+                    other.outerStart < block.outerStart &&
+                    block.outerEnd <= other.outerEnd
+            )
+        );
+    }
+
+    /**
+     * Given a position immediately after an element's opening tag, find the matching
+     * closing tag and return the inner content and the end position of the close tag.
+     * Handles nesting of same-name elements correctly via a depth counter.
+     */
+    private findInnerContent(
+        content: string,
+        fromIndex: number,
+        tagName: string
+    ): { content: string; end: number } | null {
+        const escapedTag = tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const openRe = new RegExp(`<${escapedTag}\\b`, 'gi');
+        const closeRe = new RegExp(`<\\/${escapedTag}\\s*>`, 'gi');
+
+        let depth = 1;
+        let pos = fromIndex;
+
+        while (depth > 0 && pos < content.length) {
+            openRe.lastIndex = pos;
+            closeRe.lastIndex = pos;
+            const nextOpen = openRe.exec(content);
+            const nextClose = closeRe.exec(content);
+
+            if (!nextClose) return null; // Malformed XML
+
+            if (nextOpen && nextOpen.index < nextClose.index) {
+                depth++;
+                pos = nextOpen.index + nextOpen[0].length;
+            } else {
+                depth--;
+                if (depth === 0) {
+                    return {
+                        content: content.substring(fromIndex, nextClose.index),
+                        end: nextClose.index + nextClose[0].length,
+                    };
+                }
+                pos = nextClose.index + nextClose[0].length;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Replace character ranges with spaces to prevent re-processing.
+     * Preserves string length so that regex lastIndex values in the original
+     * content remain valid after masking.
+     */
+    private maskRanges(
+        content: string,
+        ranges: Array<{ start: number; end: number }>
+    ): string {
+        if (ranges.length === 0) return content;
+        const sorted = [...ranges].sort((a, b) => a.start - b.start);
+        let result = '';
+        let pos = 0;
+        for (const { start, end } of sorted) {
+            if (start > pos) result += content.substring(pos, start);
+            result += ' '.repeat(Math.max(0, end - start));
+            pos = end;
+        }
+        result += content.substring(pos);
+        return result;
+    }
+
+    /**
+     * Recursively process inline scope branches within map content.
+     *
+     * For each top-level element with @keyscope (but no external map href):
+     *   1. Compute child scope prefixes.
+     *   2. Register any @keys on the scope element itself in the child scope.
+     *   3. Recurse into the block's inner content (handles nesting).
+     *   4. Extract key definitions and topic references from the inner content
+     *      and register them under child scope prefixes.
+     *   5. Discover submaps inside the block and push them onto bfsQueue with
+     *      the appropriate child scope prefixes.
+     *
+     * Returns the input content with all inline scope block ranges replaced by
+     * spaces so the caller's extractKeyDefinitions / extractTopicReferences /
+     * extractMapReferences calls do not double-count child-scope content.
+     */
+    private processInlineScopeBlocks(
+        content: string,
+        mapPath: string,
+        parentEffectivePrefixes: string[],
+        keySpace: KeySpace,
+        scopeDirectKeys: Map<string, KeyDefinition[]>,
+        bfsQueue: Array<{ mapPath: string; scopePrefixes: string[] }>,
+        maxLinkMatches: number,
+        depth = 0
+    ): string {
+        if (depth > MAX_INLINE_SCOPE_DEPTH) return content;
+
+        const blocks = this.extractInlineScopeBlocks(content);
+        if (blocks.length === 0) return content;
+
+        const maskedContent = this.maskRanges(
+            content,
+            blocks.map(b => ({ start: b.outerStart, end: b.outerEnd }))
+        );
+
+        for (const block of blocks) {
+            const childPrefixes = this.combineScopePrefixes(parentEffectivePrefixes, block.keyscopes);
+            if (childPrefixes.length === 0) continue;
+
+            for (const prefix of childPrefixes) {
+                if (!scopeDirectKeys.has(prefix)) scopeDirectKeys.set(prefix, []);
+            }
+
+            // @keys on the scope-creating element itself belong to the child scope (DITA §2.4.4.1)
+            for (const inlineKeyName of block.inlineKeys) {
+                const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap: mapPath };
+                for (const prefix of childPrefixes) {
+                    const directKeys = scopeDirectKeys.get(prefix)!;
+                    if (!directKeys.some(k => k.keyName === inlineKeyName)) directKeys.push(inlineDef);
+                    const qualifiedName = `${prefix}.${inlineKeyName}`;
+                    if (!keySpace.keys.has(qualifiedName)) {
+                        keySpace.keys.set(qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                    }
+                }
+                if (!keySpace.keys.has(inlineKeyName)) keySpace.keys.set(inlineKeyName, inlineDef);
+            }
+
+            // Recurse into nested inline scopes; receive inner content with those sub-blocks masked
+            const maskedBlockContent = this.processInlineScopeBlocks(
+                block.innerContent, mapPath, childPrefixes,
+                keySpace, scopeDirectKeys, bfsQueue, maxLinkMatches, depth + 1
+            );
+
+            // Register key definitions from the (masked) block content under child scope
+            const blockKeys = this.extractKeyDefinitions(maskedBlockContent, mapPath, maxLinkMatches);
+            for (const keyDef of blockKeys) {
+                for (const prefix of childPrefixes) {
+                    const directKeys = scopeDirectKeys.get(prefix)!;
+                    if (!directKeys.some(k => k.keyName === keyDef.keyName)) directKeys.push(keyDef);
+                    const qualifiedName = `${prefix}.${keyDef.keyName}`;
+                    if (!keySpace.keys.has(qualifiedName)) {
+                        keySpace.keys.set(qualifiedName, { ...keyDef, keyName: qualifiedName });
+                    }
+                }
+                if (!keySpace.keys.has(keyDef.keyName)) {
+                    keySpace.keys.set(keyDef.keyName, keyDef);
+                } else {
+                    let dups = keySpace.duplicateKeys.get(keyDef.keyName);
+                    if (!dups) {
+                        dups = [keySpace.keys.get(keyDef.keyName)!, keyDef];
+                        keySpace.duplicateKeys.set(keyDef.keyName, dups);
+                    } else {
+                        dups.push(keyDef);
+                    }
+                }
+            }
+
+            // Register topic-scope associations for context-aware resolution
+            this.extractTopicReferences(
+                maskedBlockContent, mapPath, childPrefixes[0], keySpace.topicToScope, maxLinkMatches
+            );
+
+            // Discover submaps inside this block and queue with combined scope prefix
+            const blockSubmaps = this.extractMapReferences(maskedBlockContent, mapPath, maxLinkMatches);
+            for (const submap of blockSubmaps) {
+                const grandchildPrefixes = this.combineScopePrefixes(childPrefixes, submap.keyscopes);
+                if (submap.inlineKeys.length > 0 && grandchildPrefixes.length > 0) {
+                    for (const inlineKeyName of submap.inlineKeys) {
+                        const inlineDef: KeyDefinition = {
+                            keyName: inlineKeyName,
+                            sourceMap: mapPath,
+                            targetFile: submap.path,
+                        };
+                        for (const prefix of grandchildPrefixes) {
+                            if (!scopeDirectKeys.has(prefix)) scopeDirectKeys.set(prefix, []);
+                            const directKeys = scopeDirectKeys.get(prefix)!;
+                            if (!directKeys.some(k => k.keyName === inlineKeyName)) directKeys.push(inlineDef);
+                            const qualifiedName = `${prefix}.${inlineKeyName}`;
+                            if (!keySpace.keys.has(qualifiedName)) {
+                                keySpace.keys.set(qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                            }
+                        }
+                        if (!keySpace.keys.has(inlineKeyName)) keySpace.keys.set(inlineKeyName, inlineDef);
+                    }
+                }
+                bfsQueue.push({ mapPath: submap.path, scopePrefixes: grandchildPrefixes });
+            }
+        }
+
+        return maskedContent;
     }
 
     /**
