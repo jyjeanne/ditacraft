@@ -9,6 +9,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promises as fsPromises } from 'fs';
 
+import { XMLParser } from 'fast-xml-parser';
 import { TAG_ATTRS } from '../utils/patterns';
 import { stripCommentsAndCDATA } from '../utils/textUtils';
 import { IKeySpaceService } from './interfaces';
@@ -21,6 +22,8 @@ export interface KeyDefinition {
     elementId?: string;
     inlineContent?: string;
     sourceMap: string;
+    /** 1-based line number of the key-defining element within sourceMap. */
+    sourceLine?: number;
     scope?: string;
     processingRole?: string;
     /** Indirect key reference: when set, resolution follows the chain to this key name. */
@@ -32,6 +35,38 @@ export interface KeyMetadata {
     navtitle?: string;
     keywords?: string[];
     shortdesc?: string;
+}
+
+/** One lookup step recorded during key resolution explain mode. */
+export interface ResolutionStep {
+    /** The type of lookup attempted. */
+    type: 'context-scope-lookup' | 'unqualified-lookup' | 'peer-map-lookup' | 'keyref-hop';
+    /** The exact key name that was looked up at this step. */
+    attempted: string;
+    /** Whether this step produced a match. */
+    found: boolean;
+    /** The definition matched at this step (undefined when not found). */
+    definition?: KeyDefinition;
+    /** Human-readable explanation of what happened and why. */
+    note: string;
+}
+
+/** Detailed report produced by explainKey(). */
+export interface KeyResolutionReport {
+    keyName: string;
+    contextFilePath: string;
+    /** Scope prefix of the context file (e.g. "product.lib"), if any. */
+    contextScope?: string;
+    /** The winning definition, or null when the key is not found. */
+    resolvedDefinition: KeyDefinition | null;
+    /** Ordered list of lookup steps, including failed attempts. */
+    steps: ResolutionStep[];
+    /**
+     * Key names traversed by following @keyref chains, in hop order.
+     * ["alias", "real"] means alias @keyref→ real (no further chain).
+     * Empty when no keyref chain was followed.
+     */
+    keyrefChain: string[];
 }
 
 export interface KeySpace {
@@ -49,6 +84,17 @@ export interface KeySpace {
      * falling back to the flat unqualified key name.
      */
     topicToScope: Map<string, string>;
+    /**
+     * Peer maps encountered during BFS that are NOT inlined into this key space.
+     * Maps keyscope-name → absolute map path.  Populated for maprefs with
+     * @scope="peer" + @keyscope; loaded lazily in resolveKey() on cache miss.
+     */
+    deferredPeerMaps: Map<string, string>;
+    /**
+     * Set to true when the number of qualified scope aliases exceeded
+     * MAX_KEY_SPACE_ENTRIES.  Additional aliases were silently dropped.
+     */
+    scopeExplosionWarning?: boolean;
 }
 
 interface CacheConfig {
@@ -67,6 +113,8 @@ const ONE_MINUTE_MS = 60_000;
 const MAX_KEY_SPACES = 10;
 const MAX_MAP_REFERENCES = 1000;
 const MAX_INLINE_SCOPE_DEPTH = 10;
+/** Cap on total qualified scope-alias entries to guard against combinatorial explosion. */
+const MAX_KEY_SPACE_ENTRIES = 50_000;
 const ROOT_MAP_CACHE_TTL_MS = ONE_MINUTE_MS;
 const FILE_WATCHER_DEBOUNCE_MS = 300;
 const MIN_CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
@@ -78,6 +126,15 @@ export class KeySpaceService implements IKeySpaceService {
     private workspaceFolders: string[];
     private getSettings: () => Promise<KeySpaceSettings>;
     private log: (msg: string) => void;
+
+    /** Shared XMLParser instance — stateless, safe to reuse across all calls. */
+    private readonly xmlParser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '@_',
+        parseAttributeValue: false,
+        parseTagValue: false,
+        allowBooleanAttributes: true,
+    });
 
     private keySpaceCache: Map<string, KeySpace> = new Map();
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
@@ -170,7 +227,152 @@ export class KeySpaceService implements IKeySpaceService {
         if (keyDef) {
             return this.followKeyrefChain(keyDef, keySpace.keys, '');
         }
+
+        // Gap 4 — deferred peer map resolution.
+        // Keys in peer maps are accessed as "peerScopeName.actualKey".
+        // Strip the first scope segment and look up the remainder in the peer map's key space.
+        const dotIdx = keyName.indexOf('.');
+        if (dotIdx > 0 && keySpace.deferredPeerMaps.size > 0) {
+            const peerScopeName = keyName.slice(0, dotIdx);
+            const peerKey = keyName.slice(dotIdx + 1);
+            const peerMapPath = keySpace.deferredPeerMaps.get(peerScopeName);
+            if (peerMapPath) {
+                try {
+                    const peerKeySpace = await this.buildKeySpace(peerMapPath);
+                    const peerDef = peerKeySpace.keys.get(peerKey) ?? null;
+                    if (peerDef) {
+                        // Derive the scope prefix from peerKey so that keyref chains
+                        // within a named scope of the peer map resolve correctly.
+                        // e.g. peerKey="inner.realKey" → peerKeyScope="inner"
+                        const lastDot = peerKey.lastIndexOf('.');
+                        const peerKeyScope = lastDot > 0 ? peerKey.slice(0, lastDot) : '';
+                        return this.followKeyrefChain(peerDef, peerKeySpace.keys, peerKeyScope);
+                    }
+                } catch {
+                    // peer map not readable — fall through to null
+                }
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * Resolve a key and return a detailed trace explaining which definition
+     * was chosen and why.  Mirrors resolveKey() exactly but records every
+     * lookup step — including failed attempts — so callers can explain resolution
+     * to users or drive diagnostic messages.
+     */
+    public async explainKey(
+        keyName: string,
+        contextFilePath: string
+    ): Promise<KeyResolutionReport> {
+        const report: KeyResolutionReport = {
+            keyName,
+            contextFilePath,
+            resolvedDefinition: null,
+            steps: [],
+            keyrefChain: [],
+        };
+
+        const rootMap = await this.findRootMap(contextFilePath);
+        if (!rootMap) {
+            report.steps.push({
+                type: 'unqualified-lookup',
+                attempted: keyName,
+                found: false,
+                note: 'No root map found for context file; key space cannot be built',
+            });
+            return report;
+        }
+
+        const keySpace = await this.buildKeySpace(rootMap);
+
+        // Step 1 — context-aware scope lookup
+        const scopePrefix = keySpace.topicToScope.get(path.normalize(contextFilePath));
+        if (scopePrefix) {
+            report.contextScope = scopePrefix;
+            const qualifiedName = `${scopePrefix}.${keyName}`;
+            const scopedDef = keySpace.keys.get(qualifiedName);
+            report.steps.push({
+                type: 'context-scope-lookup',
+                attempted: qualifiedName,
+                found: !!scopedDef,
+                definition: scopedDef,
+                note: scopedDef
+                    ? `Matched scope-qualified "${qualifiedName}" (context scope: "${scopePrefix}")`
+                    : `Tried scope-qualified "${qualifiedName}" (context scope: "${scopePrefix}") — not found`,
+            });
+            if (scopedDef) {
+                const { def: resolved, chain } = this.followKeyrefChainWithTrace(scopedDef, keySpace.keys, scopePrefix);
+                this.appendKeyrefSteps(report.steps, chain, keySpace.keys);
+                report.keyrefChain = chain;
+                report.resolvedDefinition = resolved;
+                return report;
+            }
+        }
+
+        // Step 2 — unqualified (root-scope) lookup
+        const keyDef = keySpace.keys.get(keyName) ?? null;
+        const sourceLabel = keyDef
+            ? `${path.basename(keyDef.sourceMap)}${keyDef.sourceLine ? ':' + keyDef.sourceLine : ''}`
+            : '';
+        report.steps.push({
+            type: 'unqualified-lookup',
+            attempted: keyName,
+            found: !!keyDef,
+            definition: keyDef ?? undefined,
+            note: keyDef
+                ? `Matched unqualified key "${keyName}" — first-BFS-encounter wins (source: ${sourceLabel})`
+                : `Key "${keyName}" not found in key space`,
+        });
+        if (keyDef) {
+            const { def: resolved, chain } = this.followKeyrefChainWithTrace(keyDef, keySpace.keys, '');
+            this.appendKeyrefSteps(report.steps, chain, keySpace.keys);
+            report.keyrefChain = chain;
+            report.resolvedDefinition = resolved;
+            return report;
+        }
+
+        // Step 3 — deferred peer map lookup (Gap 4)
+        const dotIdx = keyName.indexOf('.');
+        if (dotIdx > 0 && keySpace.deferredPeerMaps.size > 0) {
+            const peerScopeName = keyName.slice(0, dotIdx);
+            const peerKey = keyName.slice(dotIdx + 1);
+            const peerMapPath = keySpace.deferredPeerMaps.get(peerScopeName);
+            const peerStep: ResolutionStep = {
+                type: 'peer-map-lookup',
+                attempted: keyName,
+                found: false,
+                note: peerMapPath
+                    ? `Trying peer map for scope "${peerScopeName}": ${path.basename(peerMapPath)}`
+                    : `Scope "${peerScopeName}" is not a registered peer scope`,
+            };
+            report.steps.push(peerStep);
+            if (peerMapPath) {
+                try {
+                    const peerKeySpace = await this.buildKeySpace(peerMapPath);
+                    const peerDef = peerKeySpace.keys.get(peerKey) ?? null;
+                    if (peerDef) {
+                        peerStep.found = true;
+                        peerStep.definition = peerDef;
+                        peerStep.note = `Found "${peerKey}" in peer map "${path.basename(peerMapPath)}"`;
+                        const lastDot = peerKey.lastIndexOf('.');
+                        const peerKeyScope = lastDot > 0 ? peerKey.slice(0, lastDot) : '';
+                        const { def: resolved, chain } = this.followKeyrefChainWithTrace(peerDef, peerKeySpace.keys, peerKeyScope);
+                        this.appendKeyrefSteps(report.steps, chain, peerKeySpace.keys);
+                        report.keyrefChain = chain;
+                        report.resolvedDefinition = resolved;
+                    } else {
+                        peerStep.note = `Key "${peerKey}" not found in peer map "${path.basename(peerMapPath)}"`;
+                    }
+                } catch {
+                    peerStep.note = `Peer map "${path.basename(peerMapPath)}" could not be loaded`;
+                }
+            }
+        }
+
+        return report;
     }
 
     /**
@@ -392,6 +594,7 @@ export class KeySpaceService implements IKeySpaceService {
             subjectSchemePaths: [],
             duplicateKeys: new Map(),
             topicToScope: new Map(),
+            deferredPeerMaps: new Map(),
         };
 
         const visited = new Set<string>();
@@ -477,9 +680,7 @@ export class KeySpaceService implements IKeySpaceService {
                     // Scope-qualified entries — first definition per qualified name wins.
                     for (const prefix of effectivePrefixes) {
                         const qualifiedName = `${prefix}.${keyDef.keyName}`;
-                        if (!keySpace.keys.has(qualifiedName)) {
-                            keySpace.keys.set(qualifiedName, { ...keyDef, keyName: qualifiedName });
-                        }
+                        this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
                     }
                 }
 
@@ -498,6 +699,16 @@ export class KeySpaceService implements IKeySpaceService {
                 // correct child scope prefix).
                 const submaps = this.extractMapReferences(maskedContent, currentMap, maxLinkMatches);
                 for (const submap of submaps) {
+                    // Peer maps are not inlined; register them for lazy resolution on key miss.
+                    if (submap.isPeer) {
+                        for (const scopeName of submap.keyscopes) {
+                            if (!keySpace.deferredPeerMaps.has(scopeName)) {
+                                keySpace.deferredPeerMaps.set(scopeName, submap.path);
+                            }
+                        }
+                        continue;
+                    }
+
                     const childPrefixes = this.combineScopePrefixes(effectivePrefixes, submap.keyscopes);
 
                     // Register @keys defined on the mapref element itself under the child scope prefix.
@@ -518,9 +729,7 @@ export class KeySpaceService implements IKeySpaceService {
                                     directKeys.push(inlineDef);
                                 }
                                 const qualifiedName = `${prefix}.${inlineKeyName}`;
-                                if (!keySpace.keys.has(qualifiedName)) {
-                                    keySpace.keys.set(qualifiedName, { ...inlineDef, keyName: qualifiedName });
-                                }
+                                this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
                             }
                             if (!keySpace.keys.has(inlineKeyName)) {
                                 keySpace.keys.set(inlineKeyName, inlineDef);
@@ -548,9 +757,7 @@ export class KeySpaceService implements IKeySpaceService {
                 const ancestorPrefix = parts.slice(0, depth).join('.');
                 for (const ancestorKey of scopeDirectKeys.get(ancestorPrefix) ?? []) {
                     const inheritedName = `${childPrefix}.${ancestorKey.keyName}`;
-                    if (!keySpace.keys.has(inheritedName)) {
-                        keySpace.keys.set(inheritedName, { ...ancestorKey, keyName: inheritedName });
-                    }
+                    this.addScopedKeyEntry(keySpace, inheritedName, { ...ancestorKey, keyName: inheritedName });
                 }
             }
         }
@@ -562,7 +769,216 @@ export class KeySpaceService implements IKeySpaceService {
 
     // --- Internal: Key extraction ---
 
+    /**
+     * Parse the preprocessed map XML with fast-xml-parser and return a flat list
+     * of all elements (tag name + attributes).  DOCTYPE is stripped before parsing.
+     * Returns null on parse failure so the caller can fall back to regex extraction.
+     */
+    private parseMapElements(
+        mapContent: string
+    ): Array<{ tagName: string; attrs: Record<string, string>; node: Record<string, unknown> }> | null {
+        // Strip DOCTYPE — fast-xml-parser chokes on internal subsets.
+        const stripped = mapContent.replace(
+            /<!DOCTYPE\s[\s\S]*?(?:\[[\s\S]*?\]\s*)?>|<!DOCTYPE[^>]*>/gi,
+            ''
+        );
+        try {
+            const parsed = this.xmlParser.parse(stripped) as Record<string, unknown>;
+            const results: Array<{ tagName: string; attrs: Record<string, string>; node: Record<string, unknown> }> = [];
+            this.collectXmlElements(parsed, results);
+            return results;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Recursive element collector for the fast-xml-parser tree.
+     * Strips namespace prefixes from both element names and attribute names.
+     */
+    private collectXmlElements(
+        obj: unknown,
+        out: Array<{ tagName: string; attrs: Record<string, string>; node: Record<string, unknown> }>,
+        tagName = ''
+    ): void {
+        if (typeof obj !== 'object' || obj === null) return;
+        if (Array.isArray(obj)) {
+            for (const item of obj) this.collectXmlElements(item, out, tagName);
+            return;
+        }
+        const node = obj as Record<string, unknown>;
+        if (tagName) {
+            const attrs: Record<string, string> = {};
+            for (const [key, val] of Object.entries(node)) {
+                if (!key.startsWith('@_')) continue;
+                // Strip @_ prefix and optional namespace prefix (ns:name → name)
+                const attrName = key.slice(2).replace(/^\w+:/, '');
+                attrs[attrName] = String(val ?? '');
+            }
+            out.push({ tagName, attrs, node });
+        }
+        for (const [key, val] of Object.entries(node)) {
+            if (key.startsWith('@_') || key === '#text') continue;
+            // Skip XML processing instructions (?xml, ?pi-name) — not elements
+            if (key.startsWith('?')) continue;
+            // Strip element namespace prefix
+            const childName = key.replace(/^\w+:/, '');
+            this.collectXmlElements(val, out, childName);
+        }
+    }
+
+    /**
+     * Extract key metadata from a parsed topicmeta node (fast-xml-parser tree).
+     */
+    private extractMetadataFromNode(
+        node: Record<string, unknown>
+    ): { metadata: KeyMetadata | null; inlineContent: string | null } {
+        const rawTopicmeta = node['topicmeta'];
+        if (!rawTopicmeta || typeof rawTopicmeta !== 'object') return { metadata: null, inlineContent: null };
+        // fxp returns an array when multiple topicmeta elements exist (invalid DITA) — use the first.
+        const raw = Array.isArray(rawTopicmeta) ? rawTopicmeta[0] : rawTopicmeta;
+        if (!raw || typeof raw !== 'object') return { metadata: null, inlineContent: null };
+        const meta = raw as Record<string, unknown>;
+        const metadata: KeyMetadata = {};
+        let inlineContent: string | null = null;
+
+        // navtitle
+        const navtitleRaw = meta['navtitle'];
+        if (typeof navtitleRaw === 'string') {
+            metadata.navtitle = navtitleRaw.trim() || undefined;
+        } else if (navtitleRaw && typeof navtitleRaw === 'object') {
+            const t = (navtitleRaw as Record<string, unknown>)['#text'];
+            if (typeof t === 'string') metadata.navtitle = t.trim() || undefined;
+        }
+
+        // keywords / keyword
+        const kwBlock = meta['keywords'];
+        if (kwBlock && typeof kwBlock === 'object') {
+            const kwRaw = (kwBlock as Record<string, unknown>)['keyword'];
+            const kwList: string[] = [];
+            const addKw = (v: unknown) => {
+                if (typeof v === 'string') kwList.push(v.trim());
+                else if (v && typeof v === 'object') {
+                    const t = (v as Record<string, unknown>)['#text'];
+                    if (typeof t === 'string') kwList.push(t.trim());
+                }
+            };
+            if (Array.isArray(kwRaw)) kwRaw.forEach(addKw);
+            else addKw(kwRaw);
+            if (kwList.length > 0) { metadata.keywords = kwList; inlineContent = kwList[0]; }
+        }
+        if (!inlineContent) {
+            const directKw = meta['keyword'];
+            if (typeof directKw === 'string') {
+                inlineContent = directKw.trim(); metadata.keywords = [inlineContent];
+            }
+        }
+
+        // shortdesc
+        const sdRaw = meta['shortdesc'];
+        if (typeof sdRaw === 'string') metadata.shortdesc = sdRaw.trim() || undefined;
+
+        const hasMetadata = metadata.navtitle || metadata.keywords || metadata.shortdesc;
+        return { metadata: hasMetadata ? metadata : null, inlineContent };
+    }
+
+    /**
+     * Extract key definitions using fast-xml-parser for correctness (multi-line
+     * attributes, namespace-prefixed attributes).  Falls back to regex on parse error.
+     */
     private extractKeyDefinitions(
+        mapContent: string,
+        mapPath: string,
+        maxMatches: number
+    ): KeyDefinition[] {
+        const elements = this.parseMapElements(mapContent);
+        if (elements !== null) {
+            return this.extractKeyDefinitionsFromElements(elements, mapPath, maxMatches, mapContent);
+        }
+        return this.extractKeyDefinitionsRegex(mapContent, mapPath, maxMatches);
+    }
+
+    /** XML-tree-based key extraction (primary path). */
+    private extractKeyDefinitionsFromElements(
+        elements: Array<{ tagName: string; attrs: Record<string, string>; node: Record<string, unknown> }>,
+        mapPath: string,
+        maxMatches: number,
+        mapContent?: string
+    ): KeyDefinition[] {
+        const keys: KeyDefinition[] = [];
+        const mapDir = path.dirname(mapPath);
+        let matchCount = 0;
+        // Running position for forward-scan provenance lookup.
+        let contentSearchPos = 0;
+
+        for (const { attrs, node } of elements) {
+            const keysValue = attrs['keys'];
+            if (!keysValue) continue;
+            if (++matchCount > maxMatches) break;
+
+            // Skip keyscoped submap refs — handled by the BFS inlineKeys mechanism.
+            if (attrs['keyscope'] && /\.(?:ditamap|bookmap)$/i.test(attrs['href'] ?? '')) continue;
+
+            const isSelfClosing = !Object.keys(node).some(k => !k.startsWith('@_') && k !== '#text');
+
+            // Compute the source line by scanning forward from the last match position.
+            // Anchor on 'keys="token' (or single-quote variant) to avoid matching the
+            // bare token inside hrefs, text content, or other attribute values.
+            // Elements are emitted in document order so the scan is monotone O(n) total.
+            let sourceLine: number | undefined;
+            if (mapContent) {
+                const firstToken = keysValue.split(/\s+/)[0];
+                const anchor1 = `keys="${firstToken}`;
+                const anchor2 = `keys='${firstToken}`;
+                const idx1 = mapContent.indexOf(anchor1, contentSearchPos);
+                const idx2 = mapContent.indexOf(anchor2, contentSearchPos);
+                const foundIdx = idx1 >= 0 && idx2 >= 0
+                    ? Math.min(idx1, idx2)
+                    : Math.max(idx1, idx2);
+                if (foundIdx >= 0) {
+                    sourceLine = this.computeLineNumber(mapContent, foundIdx);
+                    contentSearchPos = foundIdx + 1;
+                }
+            }
+
+            const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
+            for (const keyName of keyNames) {
+                const keyDef: KeyDefinition = { keyName, sourceMap: mapPath };
+                if (sourceLine !== undefined) keyDef.sourceLine = sourceLine;
+
+                const href = attrs['href'] ?? '';
+                if (href && !href.startsWith('http://') && !href.startsWith('https://')) {
+                    if (href.includes('#')) {
+                        const [filePart, elemId] = href.split('#', 2);
+                        if (filePart) {
+                            const resolved = path.resolve(mapDir, filePart);
+                            if (this.isPathWithinWorkspace(resolved)) keyDef.targetFile = resolved;
+                        }
+                        if (elemId) keyDef.elementId = elemId;
+                    } else {
+                        const resolved = path.resolve(mapDir, href);
+                        if (this.isPathWithinWorkspace(resolved)) keyDef.targetFile = resolved;
+                    }
+                }
+                if (attrs['scope']) keyDef.scope = attrs['scope'];
+                if (attrs['processing-role']) keyDef.processingRole = attrs['processing-role'];
+                if (attrs['keyref']) keyDef.keyref = attrs['keyref'];
+
+                if (!isSelfClosing) {
+                    const metaResult = this.extractMetadataFromNode(node);
+                    if (metaResult.metadata) keyDef.metadata = metaResult.metadata;
+                    if (!keyDef.targetFile && metaResult.inlineContent) {
+                        keyDef.inlineContent = metaResult.inlineContent;
+                    }
+                }
+                keys.push(keyDef);
+            }
+        }
+        return keys;
+    }
+
+    /** Regex-based key extraction (fallback for malformed XML). */
+    private extractKeyDefinitionsRegex(
         mapContent: string,
         mapPath: string,
         maxMatches: number
@@ -589,10 +1005,13 @@ export class KeySpaceService implements IKeySpaceService {
 
             const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
 
+            const sourceLine = this.computeLineNumber(mapContent, match.index);
+
             for (const keyName of keyNames) {
                 const keyDef: KeyDefinition = {
                     keyName,
                     sourceMap: mapPath,
+                    sourceLine,
                 };
 
                 // Extract href
@@ -750,6 +1169,62 @@ export class KeySpaceService implements IKeySpaceService {
     }
 
     /**
+     * Like followKeyrefChain but also returns the sequence of key names traversed.
+     * chain is empty when no @keyref exists; otherwise lists every visited key name
+     * including the final destination.
+     */
+    private followKeyrefChainWithTrace(
+        startDef: KeyDefinition,
+        keys: Map<string, KeyDefinition>,
+        scopePrefix: string
+    ): { def: KeyDefinition; chain: string[] } {
+        if (!startDef.keyref) return { def: startDef, chain: [] };
+
+        const chain: string[] = [];
+        let current = startDef;
+        const visited = new Set<string>();
+        let hopsRemaining = 3;
+
+        while (current.keyref && hopsRemaining > 0 && !visited.has(current.keyName)) {
+            visited.add(current.keyName);
+            chain.push(current.keyName);
+            const next = (scopePrefix ? keys.get(`${scopePrefix}.${current.keyref}`) : undefined)
+                ?? keys.get(current.keyref);
+            if (!next) break;
+            current = next;
+            hopsRemaining--;
+        }
+
+        // Append final destination only when it differs from the last pushed entry.
+        // Without this guard, a self-referential keyref (alias → alias) would produce
+        // chain = ["alias", "alias"] with a misleading duplicate.
+        if (chain.length > 0 && current.keyName !== chain[chain.length - 1]) {
+            chain.push(current.keyName);
+        }
+        return { def: current, chain };
+    }
+
+    /** Append one keyref-hop step per transition in `chain` to `steps`. */
+    private appendKeyrefSteps(
+        steps: ResolutionStep[],
+        chain: string[],
+        keys: Map<string, KeyDefinition>
+    ): void {
+        for (let i = 0; i + 1 < chain.length; i++) {
+            const from = chain[i];
+            const to = chain[i + 1];
+            const def = keys.get(to);
+            steps.push({
+                type: 'keyref-hop',
+                attempted: to,
+                found: !!def,
+                definition: def,
+                note: `Followed @keyref: "${from}" → "${to}"`,
+            });
+        }
+    }
+
+    /**
      * Scan a resolved map for topic hrefs (.dita / .xml) and record the
      * owning scope prefix in topicToScope.  First-seen wins so that topics
      * referenced at root level are not overwritten by a child-scope reference.
@@ -788,8 +1263,8 @@ export class KeySpaceService implements IKeySpaceService {
         mapContent: string,
         mapPath: string,
         maxLinkMatches: number
-    ): { path: string; keyscopes: string[]; inlineKeys: string[] }[] {
-        const submaps: { path: string; keyscopes: string[]; inlineKeys: string[] }[] = [];
+    ): { path: string; keyscopes: string[]; inlineKeys: string[]; isPeer: boolean }[] {
+        const submaps: { path: string; keyscopes: string[]; inlineKeys: string[]; isPeer: boolean }[] = [];
         const mapDir = path.dirname(mapPath);
         // Match ANY element with href pointing to a .ditamap or .bookmap file.
         // This covers mapref, topicref, chapter, appendix, part, glossarylist,
@@ -822,7 +1297,11 @@ export class KeySpaceService implements IKeySpaceService {
                 const inlineKeys = keysMatch
                     ? keysMatch[1].split(/\s+/).filter(k => k.length > 0)
                     : [];
-                submaps.push({ path: absolutePath, keyscopes, inlineKeys });
+                // Peer maps with @keyscope are deferred: their key space is not inlined
+                // into the current map but is accessible via "scopeName.keyName" notation.
+                const scopeMatch = match[0].match(/\bscope\s*=\s*["']([^"']+)["']/i);
+                const isPeer = scopeMatch?.[1] === 'peer' && keyscopes.length > 0;
+                submaps.push({ path: absolutePath, keyscopes, inlineKeys, isPeer });
             }
         }
 
@@ -933,6 +1412,34 @@ export class KeySpaceService implements IKeySpaceService {
             }
         }
         return Array.from(combined);
+    }
+
+    /**
+     * Insert a scope-qualified alias entry only when the key space has not yet
+     * reached the combinatorial explosion cap.  Always a no-op when the name
+     * already exists (first-definition wins).
+     */
+    private addScopedKeyEntry(
+        keySpace: KeySpace,
+        qualifiedName: string,
+        def: KeyDefinition
+    ): void {
+        if (keySpace.keys.has(qualifiedName)) return;
+        if (keySpace.keys.size >= MAX_KEY_SPACE_ENTRIES) {
+            keySpace.scopeExplosionWarning = true;
+            return;
+        }
+        keySpace.keys.set(qualifiedName, def);
+    }
+
+    /** Return the 1-based line number for `charIndex` within `content`. */
+    private computeLineNumber(content: string, charIndex: number): number {
+        let line = 1;
+        const end = Math.min(charIndex, content.length);
+        for (let i = 0; i < end; i++) {
+            if (content[i] === '\n') line++;
+        }
+        return line;
     }
 
     // --- Internal: inline scope branch handling ---
@@ -1143,9 +1650,7 @@ export class KeySpaceService implements IKeySpaceService {
                     const directKeys = scopeDirectKeys.get(prefix)!;
                     if (!directKeys.some(k => k.keyName === inlineKeyName)) directKeys.push(inlineDef);
                     const qualifiedName = `${prefix}.${inlineKeyName}`;
-                    if (!keySpace.keys.has(qualifiedName)) {
-                        keySpace.keys.set(qualifiedName, { ...inlineDef, keyName: qualifiedName });
-                    }
+                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
                 }
                 if (!keySpace.keys.has(inlineKeyName)) keySpace.keys.set(inlineKeyName, inlineDef);
             }
@@ -1163,9 +1668,7 @@ export class KeySpaceService implements IKeySpaceService {
                     const directKeys = scopeDirectKeys.get(prefix)!;
                     if (!directKeys.some(k => k.keyName === keyDef.keyName)) directKeys.push(keyDef);
                     const qualifiedName = `${prefix}.${keyDef.keyName}`;
-                    if (!keySpace.keys.has(qualifiedName)) {
-                        keySpace.keys.set(qualifiedName, { ...keyDef, keyName: qualifiedName });
-                    }
+                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
                 }
                 if (!keySpace.keys.has(keyDef.keyName)) {
                     keySpace.keys.set(keyDef.keyName, keyDef);
@@ -1188,6 +1691,14 @@ export class KeySpaceService implements IKeySpaceService {
             // Discover submaps inside this block and queue with combined scope prefix
             const blockSubmaps = this.extractMapReferences(maskedBlockContent, mapPath, maxLinkMatches);
             for (const submap of blockSubmaps) {
+                if (submap.isPeer) {
+                    for (const scopeName of submap.keyscopes) {
+                        if (!keySpace.deferredPeerMaps.has(scopeName)) {
+                            keySpace.deferredPeerMaps.set(scopeName, submap.path);
+                        }
+                    }
+                    continue;
+                }
                 const grandchildPrefixes = this.combineScopePrefixes(childPrefixes, submap.keyscopes);
                 if (submap.inlineKeys.length > 0 && grandchildPrefixes.length > 0) {
                     for (const inlineKeyName of submap.inlineKeys) {
@@ -1201,9 +1712,7 @@ export class KeySpaceService implements IKeySpaceService {
                             const directKeys = scopeDirectKeys.get(prefix)!;
                             if (!directKeys.some(k => k.keyName === inlineKeyName)) directKeys.push(inlineDef);
                             const qualifiedName = `${prefix}.${inlineKeyName}`;
-                            if (!keySpace.keys.has(qualifiedName)) {
-                                keySpace.keys.set(qualifiedName, { ...inlineDef, keyName: qualifiedName });
-                            }
+                            this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
                         }
                         if (!keySpace.keys.has(inlineKeyName)) keySpace.keys.set(inlineKeyName, inlineDef);
                     }
@@ -1251,4 +1760,105 @@ export class KeySpaceService implements IKeySpaceService {
             return false;
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Standalone reporting utilities
+// ---------------------------------------------------------------------------
+
+/**
+ * Produce a human-readable text report of an entire key space.
+ * Lists keys by scope, highlights duplicates and deferred peer maps.
+ */
+export function reportKeySpace(keySpace: KeySpace): string {
+    const lines: string[] = [];
+    lines.push(`Key Space Report: ${keySpace.rootMap}`);
+    lines.push(`  Built: ${new Date(keySpace.buildTime).toISOString()}`);
+    lines.push(`  Maps processed: ${keySpace.mapHierarchy.length}`);
+    lines.push(`  Total keys: ${keySpace.keys.size}`);
+    if (keySpace.scopeExplosionWarning) {
+        lines.push(`  WARNING: Scope explosion cap reached — some qualified aliases were dropped`);
+    }
+
+    // Group entries by their outermost scope prefix (text before first dot, or '' for root).
+    const byScope = new Map<string, Array<[string, KeyDefinition]>>();
+    for (const [name, def] of keySpace.keys) {
+        const dotIdx = name.indexOf('.');
+        const scope = dotIdx > 0 ? name.slice(0, dotIdx) : '';
+        if (!byScope.has(scope)) byScope.set(scope, []);
+        byScope.get(scope)!.push([name, def]);
+    }
+
+    lines.push('');
+    lines.push('Keys by scope:');
+    for (const scope of Array.from(byScope.keys()).sort()) {
+        lines.push(`  [${scope || 'root'}]`);
+        const entries = byScope.get(scope)!.sort((a, b) => a[0].localeCompare(b[0]));
+        for (const [name, def] of entries) {
+            const target = def.targetFile
+                ? path.basename(def.targetFile)
+                : (def.inlineContent ? `"${def.inlineContent}"` : '(no target)');
+            const lineSuffix = def.sourceLine ? `:${def.sourceLine}` : '';
+            const keyrefSuffix = def.keyref ? ` → keyref:${def.keyref}` : '';
+            lines.push(`    ${name} → ${target}  [${path.basename(def.sourceMap)}${lineSuffix}]${keyrefSuffix}`);
+        }
+    }
+
+    if (keySpace.duplicateKeys.size > 0) {
+        lines.push('');
+        lines.push(`Duplicate keys (${keySpace.duplicateKeys.size}):`);
+        for (const [name, defs] of keySpace.duplicateKeys) {
+            lines.push(`  ${name}  (${defs.length} definitions, first wins):`);
+            defs.forEach((d, i) => {
+                const lineSuffix = d.sourceLine ? `:${d.sourceLine}` : '';
+                const status = i === 0 ? 'effective' : 'shadowed';
+                lines.push(`    [${status}]  ${path.basename(d.sourceMap)}${lineSuffix}`);
+            });
+        }
+    }
+
+    if (keySpace.deferredPeerMaps.size > 0) {
+        lines.push('');
+        lines.push(`Deferred peer maps (${keySpace.deferredPeerMaps.size}):`);
+        for (const [scope, mapPath] of keySpace.deferredPeerMaps) {
+            lines.push(`  ${scope} → ${path.basename(mapPath)}`);
+        }
+    }
+
+    return lines.join('\n');
+}
+
+/**
+ * Render a KeyResolutionReport as human-readable text.
+ * Suitable for hover tooltips, hover documentation, or debug output.
+ */
+export function formatResolutionReport(report: KeyResolutionReport): string {
+    const lines: string[] = [];
+    const status = report.resolvedDefinition ? 'RESOLVED' : 'NOT FOUND';
+    lines.push(`Key resolution: "${report.keyName}"  [${status}]`);
+
+    if (report.contextScope) {
+        lines.push(`  Context scope: ${report.contextScope}`);
+    }
+
+    if (report.resolvedDefinition) {
+        const def = report.resolvedDefinition;
+        const target = def.targetFile
+            ? path.basename(def.targetFile)
+            : (def.inlineContent ? `"${def.inlineContent}"` : '(no target)');
+        const lineSuffix = def.sourceLine ? `:${def.sourceLine}` : '';
+        lines.push(`  Winner: ${target}  [${path.basename(def.sourceMap)}${lineSuffix}]`);
+    }
+
+    if (report.keyrefChain.length > 0) {
+        lines.push(`  Keyref chain: ${report.keyrefChain.join(' → ')}`);
+    }
+
+    lines.push('  Steps:');
+    for (const step of report.steps) {
+        const tick = step.found ? '✓' : '✗';
+        lines.push(`    ${tick} [${step.type}]  ${step.note}`);
+    }
+
+    return lines.join('\n');
 }

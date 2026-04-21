@@ -18,11 +18,36 @@ The revised algorithm runs in **three ordered phases**:
 
 | Phase | What it does |
 |-------|--------------|
-| **Phase 1 – BFS traversal** | Walk the map hierarchy; collect key definitions into the flat `keys` map; simultaneously populate `scopeDirectKeys` (per-scope direct key list) and `topicToScope` (topic file → owning scope prefix). |
+| **Phase 1 – BFS traversal** | Walk the map hierarchy; collect key definitions into the flat `keys` map; simultaneously populate `scopeDirectKeys` (per-scope direct key list) and `topicToScope` (topic file → owning scope prefix). Scope-qualified aliases (e.g. `product.key`) are generated inline here — this is the ditacraft equivalent of pydita's dedicated "pull-up" phase (see §1.1 below). |
 | **Phase 2 – PushDown** | After BFS, walk every non-root scope.  For each ancestor scope, inject its direct keys into the descendant's qualified namespace (e.g. `product.lib.version`) at lower priority (existing child-scope definitions are never overwritten). |
 | **Phase 3 – Keyref chain** | In `resolveKey`, follow any `@keyref` chain on the returned definition up to 3 hops, with cycle detection. |
 
-### Context-aware resolution (also in `resolveKey`)
+### 1.1 Pull-up vs push-down — comparison with pydita reference implementation
+
+The [pydita reference implementation](../samples_project/pydita-develop/docs/KEYSPACE_CONSTRUCTION_ALGORITHM.md)
+uses **three separate phases**:
+
+| pydita phase | Ditacraft equivalent |
+|---|---|
+| Phase 1 — structural population | Phase 1 BFS (identical goal) |
+| Phase 2 — **pull-up**: add `childscope.key` qualified aliases into ancestor spaces (post-order walk) | Merged into Phase 1 BFS: when a child scope's keys are extracted they are immediately registered in the root `keys` map under `childscope.key`, achieving the same result in a single pass |
+| Phase 3 — **push-down**: prepend ancestor definitions into descendants so inherited ancestor definitions win for duplicate names | Phase 2 PushDown: same goal, but ditacraft does **not** overwrite existing child-scope definitions — child scope wins for same-name collisions (opposite of pydita's ancestor-wins policy — see §1.2) |
+
+### 1.2 Precedence model
+
+Ditacraft and pydita apply different precedence rules for same-name key collisions after push-down:
+
+| Scenario | Ditacraft | pydita |
+|---|---|---|
+| Same key in ancestor and descendant | **Child-scope wins** — `if (!keySpace.keys.has(inheritedName))` guard prevents overwrite | **Ancestor wins** — push-down uses prepend semantics, so inherited ancestor definitions sort higher |
+| BFS encounter order | First-definition-wins | First-definition-wins |
+| Context-aware lookup (`resolveKey` with `contextFilePath`) | Tries `prefix.keyName` first, falls back to unqualified name | Resolves from the matching child `KeySpace` object directly |
+
+The ditacraft choice (child-scope wins) matches the DITA spec intent: a child scope can
+locally override an ancestor key definition.  pydita's ancestor-wins policy is stricter
+and may be intentional for their use case.  **This difference is documented but intentional.**
+
+### 1.3 Context-aware resolution
 
 Before the flat lookup, `resolveKey(keyName, contextFilePath)` checks whether
 the authoring file belongs to a named scope via `topicToScope`.  If so, it tries
@@ -118,33 +143,114 @@ the authoring file actually belonged to.
 
 ---
 
-### Gap 4 — No deferred peer map loading ★ — _Backlog_
+### Gap 4 — No deferred peer map loading ★★ — **FIXED**
 
-**What is missing**: Peer maps (`@scope="peer"`) are skipped during BFS.  Their
+**What was missing**: Peer maps (`@scope="peer"`) are skipped during BFS.  Their
 key spaces are never constructed, even on demand.
 
-**Planned fix** (`doBuildKeySpace` + `resolveKey`):
+**Fix applied** (`doBuildKeySpace` + `resolveKey`):
 
 1. During BFS, detect `@scope="peer" @keyscope @href` maprefs and register them
-   in a `deferredPeerMaps: Map<string, string>` (scope name → absolute map path).
-2. In `resolveKey`, on a cache miss, attempt to lazily load and merge the peer
-   map's key space before returning `null`.
+   in `deferredPeerMaps: Map<string, string>` (scope name → absolute map path).
+2. In `resolveKey`, on a cache miss for a scope-qualified name, lazily load and
+   merge the peer map's key space before returning `null`.
 
-**Estimated effort**: 3–4 days | **Risk**: Low-Medium
+**Validation rules enforced** (from KEYSPACE_CONSTRUCTION_GUIDE):
+- `@scope` must be `peer`
+- `@keyscope` must exist and have at least one token
+- `@href` must resolve to a readable target (on lazy load)
 
 ---
 
-### Gap 5 — Regex XML parsing ★ — _Backlog_
+### Gap 5 — Regex XML parsing ★ — **FIXED**
 
-**What is missing**: Key definitions are extracted with regular expressions rather
+**What was missing**: Key definitions were extracted with regular expressions rather
 than a proper XML parser, so some edge cases (multi-line attributes, namespace
-prefixes) may be missed.
+prefixes) were missed.
 
-**Planned fix**: Replace the regex extraction in `extractKeyDefinitions` with a
-call into the existing `fast-xml-parser` pipeline (already used in the validation
-pipeline) to obtain a proper element tree before attribute extraction.
+**Fix applied**: `extractKeyDefinitions` now uses `fast-xml-parser` (already used
+in the validation pipeline) as the primary extraction path, with the original
+regex logic retained as a fallback for malformed XML.
 
-**Estimated effort**: 3–4 days | **Risk**: Medium (existing tests protect against regressions)
+Notable edge cases handled:
+- Multi-line attribute values
+- Namespace-prefixed attributes (`xlink:href` → `href`)
+- XML processing instructions (`?xml`) not treated as key elements
+- `topicmeta` returned as array (fxp behavior for duplicate elements) — normalized
+  to first entry
+
+---
+
+### Gap 6 — No provenance tracking ★ — **FIXED**
+
+**What was missing**: Each `KeyDefinition` only stored the source map path
+(`sourceMap`), not the specific element position (line number, element ID, or
+XPath) within that map.
+
+**Impact**:
+- Duplicate key warnings could not point to the exact conflicting element.
+- Explainability checks ("why did this definition win?") required reconstructing
+  traversal order from context alone.
+- The KEYSPACE_CONSTRUCTION_GUIDE recommends: "retain provenance on each key
+  definition (source file URI, element identifier, and traversal position)."
+
+**Fix applied**:
+
+1. Added `sourceLine?: number` to `KeyDefinition` (1-based line number within `sourceMap`).
+2. New private helper `computeLineNumber(content, charIndex)` counts newlines before the match position.
+3. **Regex path** (`extractKeyDefinitionsRegex`): `sourceLine = computeLineNumber(mapContent, match.index)`.
+4. **XML path** (`extractKeyDefinitionsFromElements`): now accepts `mapContent`; a running `contentSearchPos` tracks position for a monotone forward scan (O(n) total), locating the `keys=` attribute to compute line numbers.
+5. Qualified scope aliases (spread copies) inherit `sourceLine` from the original definition.
+
+```typescript
+private computeLineNumber(content: string, charIndex: number): number {
+    let line = 1;
+    const end = Math.min(charIndex, content.length);
+    for (let i = 0; i < end; i++) {
+        if (content[i] === '\n') line++;
+    }
+    return line;
+}
+```
+
+**Estimated effort**: 2–3 days | **Risk**: Low
+
+---
+
+### Gap 7 — Scope explosion / combinatorial keyscope growth ★ — **FIXED**
+
+**What was missing**: DITA allows a single `@keyscope` attribute to declare
+multiple scope names (space-separated tokens).  A map with `keyscope="a b"` must
+synthesize _two_ independent child scopes.  A map with many multi-token keyscopes
+(the "scope explosion" scenario from pydita's `keyscope-explosion.ditamap` test)
+can cause the number of qualified key aliases to grow combinatorially.
+
+**Impact**:
+- Multi-token keyscopes may not register all expected qualified aliases.
+- Very large maps with many scopes may exhibit quadratic memory or time growth.
+
+**Fix applied**:
+
+1. **Multi-token keyscope correctness** — confirmed `combineScopePrefixes` correctly generates the cross-product of parent × child scope token arrays (e.g. `keyscope="x y"` parent + `keyscope="c d"` child → `x.c`, `x.d`, `y.c`, `y.d`). No code change needed here.
+
+2. **Explosion cap** — added `MAX_KEY_SPACE_ENTRIES = 50_000` constant and a `addScopedKeyEntry` helper used at every qualified-alias insertion site:
+
+```typescript
+private addScopedKeyEntry(keySpace: KeySpace, qualifiedName: string, def: KeyDefinition): void {
+    if (keySpace.keys.has(qualifiedName)) return;
+    if (keySpace.keys.size >= MAX_KEY_SPACE_ENTRIES) {
+        keySpace.scopeExplosionWarning = true;
+        return;
+    }
+    keySpace.keys.set(qualifiedName, def);
+}
+```
+
+This guards all 6 qualified-alias insertion sites (BFS main loop, BFS submap inline keys, PushDown pass, inline scope inline keys, inline scope block keys, inline scope submap keys).  Unqualified direct definitions are always admitted.
+
+3. **`scopeExplosionWarning?: boolean`** added to `KeySpace` so callers can detect that some aliases were dropped.
+
+**Estimated effort**: 1–2 days | **Risk**: Low-Medium
 
 ---
 
@@ -155,23 +261,41 @@ pipeline) to obtain a proper element tree before attribute extraction.
 | 1 — Keyref chain resolution | 1–2 days | ✅ Done |
 | 2 — PushDown scope inheritance | 2–3 days | ✅ Done |
 | 3 — Context-aware resolution | 1–2 days | ✅ Done |
-| 4 — Deferred peer map loading | 3–4 days | Backlog |
-| 5 — XML parser replacement | 3–4 days | Backlog |
+| 4 — Deferred peer map loading | 3–4 days | ✅ Done |
+| 5 — XML parser replacement | 3–4 days | ✅ Done |
+| 6 — Provenance tracking | 2–3 days | ✅ Done |
+| 7 — Scope explosion handling | 1–2 days | ✅ Done |
 
 ---
 
-## 4. Files Changed
+## 4. Implementation Checklist (from KEYSPACE_CONSTRUCTION_GUIDE)
+
+- [x] Deterministic traversal order (BFS queue, consistent processing)
+- [x] First-definition-wins encounter order
+- [x] Pull-up: descendant keys visible as scope-qualified aliases in ancestors
+- [x] Push-down: ancestor keys inherited by descendants (child-scope-wins on collision)
+- [x] Peer scope lazy materialization on key miss
+- [x] Canonical URI normalization via `path.normalize`
+- [x] Keyref chain with cycle detection (≤3 hops)
+- [x] Context-based resolution (topicToScope index)
+- [x] Provenance per key definition (`sourceLine` on `KeyDefinition`, both XML and regex paths)
+- [x] Scope explosion cap (`MAX_KEY_SPACE_ENTRIES = 50_000`, `scopeExplosionWarning` flag)
+- [x] Reporting tools for explainable resolution: `explainKey()` method + `reportKeySpace()` / `formatResolutionReport()` standalone functions
+
+---
+
+## 5. Files Changed
 
 | File | Changes |
 |------|---------|
-| `server/src/services/keySpaceService.ts` | `KeyDefinition.keyref`, `KeySpace.topicToScope`, PushDown in `doBuildKeySpace`, context-aware + keyref chain in `resolveKey`, new `followKeyrefChain` and `extractTopicReferences` methods |
+| `server/src/services/keySpaceService.ts` | `KeyDefinition.keyref`, `KeySpace.topicToScope`, PushDown in `doBuildKeySpace`, context-aware + keyref chain in `resolveKey`, new `followKeyrefChain` and `extractTopicReferences` methods; `KeySpace.deferredPeerMaps`, peer detection in `extractMapReferences`, lazy peer resolution in `resolveKey`; `XMLParser`-based `extractKeyDefinitions` (regex fallback), new `parseMapElements`, `collectXmlElements`, `extractMetadataFromNode` helpers; `KeyDefinition.sourceLine`, `computeLineNumber` helper, `addScopedKeyEntry` helper, `MAX_KEY_SPACE_ENTRIES` cap, `KeySpace.scopeExplosionWarning` |
 | `src/utils/keySpaceResolver.ts` | `KeyDefinition.keyref`, keyref extraction, `followKeyrefChain`, updated `resolveKey` |
 | `server/src/services/interfaces.ts` | No change (public API unchanged) |
-| `server/test/keySpaceService.test.ts` | New suites: `keyref chain resolution`, `PushDown scope inheritance`, `context-aware key resolution` |
+| `server/test/keySpaceService.test.ts` | New suites: `keyref chain resolution`, `PushDown scope inheritance`, `context-aware key resolution`, `deferred peer map loading (Gap 4)`, `XML-parser key extraction (Gap 5)`, `pydita-inspired test scenarios`, `provenance tracking (Gap 6)`, `scope explosion cap (Gap 7)` |
 
 ---
 
-## 5. Test Fixtures Covered by New Tests
+## 6. Test Fixtures Covered by New Tests
 
 ```
 keyref chain resolution
@@ -189,4 +313,40 @@ PushDown scope inheritance
 context-aware key resolution
     resolveKey uses child-scope definition when context is in that scope
     topicToScope maps topic to its owning scope prefix
+
+deferred peer map loading (Gap 4)
+    peer mapref with @keyscope is not inlined into main key space
+    resolveKey lazily loads peer map and returns key with scope prefix
+    peer mapref without @keyscope is ignored (no deferred registration)
+    nested key in peer map resolves via scope-qualified name
+
+XML-parser key extraction (Gap 5)
+    multi-line attribute value is correctly parsed
+    namespace-prefixed href attribute (xlink:href) is resolved
+    falls back to regex and still extracts keys when XML is malformed
+    inline keyword metadata extracted via XML parser
+    topicmeta returned as array (invalid DITA) does not crash
+    XML processing instruction (?xml) is not treated as a key-bearing element
+
+peer map keyref chain scope fix (Bug 1)
+    keyref chain within scoped peer map resolves via correct scope prefix
+
+pydita-inspired test scenarios
+    multiple @keys tokens on one keydef — all keys resolve
+    cross-sibling scope path returns null (submap02.submap01.topic-01)
+    push-down: inherited key in child scope has same source file as root key
+    scope-on-root-map keyscope creates qualified aliases
+    string key — keydef with inline content but no href is identifiable
+    scope explosion — 25 sibling scopes does not hang
+
+provenance tracking (Gap 6)
+    sourceLine is set on keys extracted via regex fallback path
+    sourceLine is set on keys extracted via XML parser path
+    duplicate keys report different sourceLines
+    qualified scope alias inherits sourceLine from original definition
+
+scope explosion cap (Gap 7)
+    multi-token @keyscope on submap registers qualified aliases for each token
+    nested multi-token keyscopes produce cross-product qualified aliases
+    scope explosion warning is set when MAX_KEY_SPACE_ENTRIES is exceeded
 ```

@@ -5,7 +5,8 @@
  */
 
 import { Diagnostic } from 'vscode-languageserver/node';
-import { KeyDefinition, KeySpace } from './keySpaceService';
+import { KeyDefinition, KeyResolutionReport, KeySpace } from './keySpaceService';
+export type { KeyResolutionReport };
 
 // ---------------------------------------------------------------------------
 // IKeySpaceService
@@ -29,6 +30,12 @@ export interface IKeySpaceService {
      * Finds the root map, builds (or retrieves cached) key space, then looks up key.
      */
     resolveKey(keyName: string, contextFilePath: string): Promise<KeyDefinition | null>;
+
+    /**
+     * Resolve a key and return a detailed trace explaining which definition
+     * was chosen and why, including every lookup step and any keyref chain followed.
+     */
+    explainKey(keyName: string, contextFilePath: string): Promise<KeyResolutionReport>;
 
     /**
      * Returns all keys from the key space for the given context file.
