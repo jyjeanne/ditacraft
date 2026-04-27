@@ -4,7 +4,8 @@
     "rootDir": ".",
     "outDir": "out",
     "composite": false,
-    "declaration": false
+    "declaration": false,
+    "types": ["mocha", "node"]
   },
   "include": [
     "src/**/*",
