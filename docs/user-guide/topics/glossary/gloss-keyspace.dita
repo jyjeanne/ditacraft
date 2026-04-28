@@ -3,7 +3,8 @@
 <glossentry id="gloss-keyspace">
     <glossterm>Key Space</glossterm>
     <glossdef>
-        <p>The collection of all key definitions available in a DITA map and its submaps. DitaCraft builds the key space from the root map to resolve keyref and conkeyref attributes. The key space is cached for performance.</p>
+        <p>The collection of all key definitions available in a DITA map and its submaps, built using a DITA 1.3 spec-compliant breadth-first traversal. DitaCraft builds the key space from the root map and makes it available for resolving <codeph>keyref</codeph> and <codeph>conkeyref</codeph> attributes.</p>
+        <p>The key space includes scope-qualified aliases generated from <codeph>@keyscope</codeph> attributes (e.g., <codeph>product-a.install-guide</codeph>) and supports multi-hop keyref chains. An explosion cap of 50,000 entries prevents runaway alias expansion in deeply nested maps. The key space is cached with a 5-minute TTL and automatically invalidated when map files change.</p>
     </glossdef>
     <related-links>
         <link href="../features/key-resolution.dita"/>

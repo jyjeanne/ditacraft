@@ -15,4 +15,32 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- Page number in body footers -->
+  <xsl:template name="insertBodyOddFooter">
+    <fo:static-content flow-name="odd-body-footer">
+      <fo:block xsl:use-attribute-sets="__body__odd__footer">
+        <fo:page-number/>
+      </fo:block>
+    </fo:static-content>
+  </xsl:template>
+
+  <xsl:template name="insertBodyEvenFooter">
+    <fo:static-content flow-name="even-body-footer">
+      <fo:block xsl:use-attribute-sets="__body__even__footer">
+        <fo:page-number/>
+      </fo:block>
+    </fo:static-content>
+  </xsl:template>
+
+  <!-- Suppress duplicate title rendered by PDF2 chapter heading for preface/notices wrappers -->
+  <xsl:template priority="10"
+      match="*[contains(@class,' topic/title ')]
+              [parent::*[contains(@class,' topic/topic ')]]
+              [ancestor::*[contains(@class,' bookmap/preface ')]]"/>
+
+  <xsl:template priority="10"
+      match="*[contains(@class,' topic/title ')]
+              [parent::*[contains(@class,' topic/topic ')]]
+              [ancestor::*[contains(@class,' bookmap/notices ')]]"/>
+
 </xsl:stylesheet>

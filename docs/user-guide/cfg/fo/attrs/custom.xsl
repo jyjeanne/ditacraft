@@ -317,6 +317,28 @@
   </xsl:attribute-set>
 
   <!-- ============================================================= -->
+  <!--  PAGE NUMBERS                                                 -->
+  <!-- ============================================================= -->
+
+  <!-- Body footer (odd pages): centered page number -->
+  <xsl:attribute-set name="__body__odd__footer">
+    <xsl:attribute name="text-align">center</xsl:attribute>
+    <xsl:attribute name="font-size">9pt</xsl:attribute>
+    <xsl:attribute name="font-family">Helvetica, Arial, sans-serif</xsl:attribute>
+    <xsl:attribute name="color">#64748b</xsl:attribute>
+    <xsl:attribute name="space-before">8pt</xsl:attribute>
+  </xsl:attribute-set>
+
+  <!-- Body footer (even pages): centered page number -->
+  <xsl:attribute-set name="__body__even__footer">
+    <xsl:attribute name="text-align">center</xsl:attribute>
+    <xsl:attribute name="font-size">9pt</xsl:attribute>
+    <xsl:attribute name="font-family">Helvetica, Arial, sans-serif</xsl:attribute>
+    <xsl:attribute name="color">#64748b</xsl:attribute>
+    <xsl:attribute name="space-before">8pt</xsl:attribute>
+  </xsl:attribute-set>
+
+  <!-- ============================================================= -->
   <!--  FILEPATH, UI, KEYWORD highlights                             -->
   <!-- ============================================================= -->
 

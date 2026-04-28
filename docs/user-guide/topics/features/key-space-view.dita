@@ -47,14 +47,18 @@
 
         <section id="key-scanning">
             <title>How Keys Are Collected</title>
-            <p>DitaCraft builds the key space by:</p>
+            <p>DitaCraft builds the key space using a DITA 1.3 spec-compliant BFS traversal:</p>
             <ol>
-                <li>Finding all <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files in the workspace</li>
-                <li>Parsing each map to extract <codeph>&lt;keydef&gt;</codeph> and key-bearing <codeph>&lt;topicref&gt;</codeph> elements</li>
-                <li>Scanning all <filepath>.dita</filepath>, <filepath>.ditamap</filepath>, and <filepath>.bookmap</filepath> files (up to 500) for <codeph>keyref</codeph> and <codeph>conkeyref</codeph> attributes</li>
-                <li>Comparing definitions against usages to classify each key</li>
+                <li>Starting from the root map, traverses the map hierarchy in breadth-first order</li>
+                <li>Extracts <codeph>&lt;keydef&gt;</codeph> and key-bearing <codeph>&lt;topicref&gt;</codeph> elements; first definition wins (DITA precedence rule)</li>
+                <li>Applies <codeph>@keyscope</codeph> PushDown inheritance: keys within a scoped branch get scope-qualified aliases (e.g., <codeph>product-a.install-guide</codeph>)</li>
+                <li>Follows keyref chains across scopes to resolve multi-hop references</li>
+                <li>Records provenance (source line) for every key definition</li>
+                <li>Enforces a 50,000-entry cap to prevent scope explosion from deeply nested scopes</li>
+                <li>Scans all <filepath>.dita</filepath>, <filepath>.ditamap</filepath>, and <filepath>.bookmap</filepath> files (up to 500) for <codeph>keyref</codeph> and <codeph>conkeyref</codeph> attributes</li>
+                <li>Compares definitions against usages to classify each key into Defined / Undefined / Unused</li>
             </ol>
-            <p>For <codeph>conkeyref</codeph> values like <codeph>conkeyref="my-key/element-id"</codeph>, only the key name before the slash is extracted.</p>
+            <p>For <codeph>conkeyref</codeph> values like <codeph>conkeyref="my-key/element-id"</codeph>, only the key name before the slash is extracted for classification purposes.</p>
         </section>
 
         <section id="auto-refresh">

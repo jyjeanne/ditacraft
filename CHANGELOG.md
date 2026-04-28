@@ -5,9 +5,21 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.3] - 2026-04-13
+## [0.7.3] - 2026-04-29
 
 ### Added
+
+**Key Space (7-gap improvement plan complete):**
+- **Keyref Chains** — Multi-hop keyref resolution follows chains across nested key scopes; `followKeyrefChain` now receives the correct scope prefix so chains inside scoped peer maps resolve against the right namespace
+- **Keyscope PushDown Inheritance** — `@keyscope` on `<map>` elements correctly propagates scope down to descendant key definitions (PushDown algorithm per DITA 1.3 spec)
+- **Inline Scope Branches** — `@keyscope` on non-map topicrefs treated as anonymous scope branches; descendant keys get scope-qualified aliases
+- **Three Spec Improvements** — Cascade algorithm alignment, peer map key inheritance, and fallback key definition handling per KEYSPACE_CONSTRUCTION_ALGORITHM specification
+- **Provenance Tracking** — `sourceLine` (1-based) added to `KeyDefinition`; computed via monotone forward scan on the XML path (O(n)) or direct newline count on the regex path; qualified scope aliases inherit `sourceLine` from their origin definition
+- **Scope Explosion Cap** — `MAX_KEY_SPACE_ENTRIES` constant (50,000) and `addScopedKeyEntry()` helper gate all 6 qualified-alias insertion sites; `scopeExplosionWarning` flag set on `KeySpace` when cap is hit
+- **Key Resolution Reporting** — `explainKey()` method on `KeySpaceService` returns `KeyResolutionReport` with full lookup trace and keyref chain steps; standalone `reportKeySpace()` and `formatResolutionReport()` functions expose human-readable key-space summaries
+- **Key Space Bug Fixes (4 from code review)** — `followKeyrefChain` scope prefix (Gap 1 fix), XMLParser class-level singleton instead of per-call instantiation, `topicmeta` array guard for invalid DITA with duplicate `<topicmeta>` elements, `collectXmlElements` skips `?xml` PI pseudo-nodes emitted by fast-xml-parser
+
+**Validation Pipeline:**
 - **Pipeline Budget** — Configurable validation pipeline budget (`pipelineBudgetMs`, default 30 s) with early-exit checks before each major phase, preventing runaway validation on large or complex files
 - **ReDoS Protection** — Custom regex rules are now screened for nested-quantifier patterns; per-rule runtime guards enforce a 10 000-match iteration cap and 2 s timeout
 - **LSP 3.17 Conformance** — Server now advertises `executeCommandProvider` with all 3 registered commands; reports `serverInfo` (name + version) in `InitializeResult`; declares `interFileDependencies: true` so clients know cross-file diagnostics may change when other files are edited
@@ -25,13 +37,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Validation Pipeline** — Phases 9 (DITA rules) and 12 (custom rules) now enforce per-phase timeouts; budget is checked with `>=` for accurate early-exit
 - **Documentation** — All architecture, validation specification, and README docs synchronized to current state; user guide updated to v0.7.3
 
+### Dependencies
+- **TypesXML** bumped from 1.19.0 to 2.0.0
+- **TypeScript** upgraded from 5.9.3 to 6.0.3; `moduleResolution: node` with `ignoreDeprecations: "6.0"`; explicit `typeRoots` added to `server/tsconfig.json` and `server/tsconfig.test.json`
+
 ### Tests
-- 810 server tests (up from ~700 in v0.7.0), including:
+- 881 server tests (up from 810 after pipeline/security work), including:
   - 31 LSP server handler tests + 19 settings tests
   - 40 automated manual-test-plan gap tests (keyscopes, Unicode/CJK, empty files, long lines, CRLF)
+  - 100+ key space service tests (keyref chains, keyscope nesting/inheritance/inline branches, provenance, scope explosion cap, explainKey reporting)
   - 8 ReDoS + 2 pipeline budget tests
   - 5 range formatting tests
   - 7 DITA-OT error code parsing tests
+- **1564+ Total Tests** — Client (683) + Server (881)
 
 ## [0.7.0] - 2026-03-11
 

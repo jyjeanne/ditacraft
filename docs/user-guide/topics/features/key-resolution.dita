@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="key-resolution">
     <title>Key Resolution</title>
-    <shortdesc>Use keys for indirect addressing and content reuse in your DITA projects.</shortdesc>
+    <shortdesc>Use keys for indirect addressing and content reuse in your DITA projects. DitaCraft implements a fully spec-compliant DITA 1.3 key space construction algorithm including keyref chains, keyscope inheritance, and resolution diagnostics.</shortdesc>
 
     <conbody>
         <section id="overview">
@@ -86,18 +86,82 @@
 &lt;/topicgroup&gt;</codeblock>
         </section>
 
-        <section id="ditacraft-support">
-            <title>DitaCraft Key Support</title>
-            <p>DitaCraft provides full support for DITA keys:</p>
+        <section id="keyref-chains">
+            <title>Keyref Chains</title>
+            <p>A keyref chain occurs when a key definition itself uses a <codeph>keyref</codeph> attribute to point to another key, forming a multi-hop chain. DitaCraft follows the full chain to resolve the final target.</p>
+            <p><b>Example:</b></p>
+            <codeblock>&lt;!-- root.ditamap --&gt;
+&lt;keydef keys="product" href="topics/product.dita"/&gt;
+
+&lt;!-- submap.ditamap with @keyscope="enterprise" --&gt;
+&lt;keydef keys="product" keyref="product"/&gt;</codeblock>
+            <p>When resolving <codeph>keyref="enterprise.product"</codeph>, DitaCraft follows the chain through the scoped alias back to the root definition in <filepath>product.dita</filepath>.</p>
+            <note type="important">Circular keyref chains are detected and short-circuited to prevent infinite loops.</note>
+        </section>
+
+        <section id="keyscope-inheritance">
+            <title>Keyscope Inheritance</title>
+            <p>DitaCraft implements the DITA 1.3 PushDown inheritance algorithm for key scopes. When a map element has a <codeph>@keyscope</codeph> attribute, its keys are made available under scope-qualified names throughout the parent map.</p>
+            <p><b>Scope on a map element:</b></p>
+            <codeblock>&lt;topicref href="submap.ditamap" keyscope="product-a"/&gt;</codeblock>
+            <p>All keys in <filepath>submap.ditamap</filepath> are accessible as <codeph>product-a.<i>keyname</i></codeph> from the parent map.</p>
+            <p><b>Scope on a non-map topicref (inline branch):</b></p>
+            <codeblock>&lt;topicref href="chapter.dita" keyscope="draft"&gt;
+    &lt;topicref href="draft-notes.dita"/&gt;
+&lt;/topicref&gt;</codeblock>
+            <p>DitaCraft treats <codeph>@keyscope</codeph> on a non-map topicref as an inline scope branch: keys defined within that branch are qualified under <codeph>draft.*</codeph> while still being accessible by their short names within the branch itself.</p>
+            <p><b>Multiple scope names:</b> A single element can declare multiple scopes separated by spaces (<codeph>keyscope="a b"</codeph>). DitaCraft creates qualified aliases under each scope name.</p>
+        </section>
+
+        <section id="scope-explosion-cap">
+            <title>Scope Explosion Protection</title>
+            <p>Deeply nested key scopes can produce a very large number of qualified key aliases (one per scope combination). DitaCraft enforces a cap of <b>50,000 key space entries</b> to prevent excessive memory use and slow builds.</p>
+            <p>When the cap is reached:</p>
             <ul>
-                <li><b>Key Resolution:</b> Automatically builds key space from root maps with improved root map discovery</li>
-                <li><b>Navigation:</b> Ctrl+Click on keyref and conkeyref navigates to the key's target. Cross-file Go to Definition resolves key references to their source files.</li>
-                <li><b>Preview:</b> Live preview shows resolved key values</li>
-                <li><b>Validation:</b> Warns about undefined or missing keys</li>
-                <li><b>Caching:</b> Key space is cached with TTL and LRU eviction for performance, with automatic invalidation when map files change</li>
-                <li><b>Key Scope Support:</b> Full <codeph>@keyscope</codeph> attribute handling with scope-qualified keys (e.g., <codeph>admin.audience</codeph>)</li>
-                <li><b>Root Map Selection:</b> Explicitly set the root map for precise key space control via <uicontrol>DITA: Set Root Map</uicontrol></li>
-                <li><b>LSP Integration:</b> The LSP server maintains its own key space service for instant keyref and conkeyref resolution in Go to Definition and document links</li>
+                <li>DitaCraft stops generating additional scope aliases</li>
+                <li>A <codeph>scopeExplosionWarning</codeph> flag is set on the key space</li>
+                <li>All keys defined before the cap was reached remain available</li>
+            </ul>
+            <p>In practice, this limit is only reached with extremely large maps that have many deeply nested key scopes. Normal DITA projects are not affected.</p>
+        </section>
+
+        <section id="provenance-tracking">
+            <title>Key Provenance</title>
+            <p>Every key definition in DitaCraft's key space records its <b>source line number</b> (1-based) within the map file where it was defined. This information is used by:</p>
+            <ul>
+                <li><uicontrol>Go to Definition</uicontrol> — jumps to the exact line of the <codeph>&lt;keydef&gt;</codeph> element</li>
+                <li>The Key Space View — shows the source location in tooltips</li>
+                <li>Hover on keyref — displays the definition location alongside the resolved target</li>
+            </ul>
+            <p>For scope-qualified aliases generated from a nested scope, the source line is inherited from the original key definition.</p>
+        </section>
+
+        <section id="key-resolution-diagnostics">
+            <title>Key Resolution Diagnostics</title>
+            <p>DitaCraft provides tools for understanding exactly how a key was resolved, which is useful for debugging complex map hierarchies.</p>
+            <p>When you hover over a <codeph>keyref</codeph> or <codeph>conkeyref</codeph> attribute, the hover tooltip shows:</p>
+            <ul>
+                <li>The resolved target file or inline content</li>
+                <li>The key scope context used for resolution</li>
+                <li>The source map and line where the key was defined</li>
+                <li>Any keyref chain steps that were followed</li>
+            </ul>
+            <p>The underlying <codeph>explainKey()</codeph> API (used by the LSP server) returns a full <codeph>KeyResolutionReport</codeph> containing every lookup step, the effective key space, and the complete keyref chain — useful for extension authors building on top of DitaCraft.</p>
+        </section>
+
+        <section id="ditacraft-support">
+            <title>DitaCraft Key Support Summary</title>
+            <p>DitaCraft provides full DITA 1.3 spec-compliant key support:</p>
+            <ul>
+                <li><b>Key Space Construction:</b> BFS traversal with full cascade algorithm, peer map handling, and fallback key definitions</li>
+                <li><b>Keyref Chains:</b> Multi-hop resolution with correct scope prefix tracking</li>
+                <li><b>Keyscope Inheritance:</b> PushDown algorithm for map-level scopes and inline branch scopes on non-map topicrefs</li>
+                <li><b>Scope Explosion Protection:</b> 50,000-entry cap with warning flag</li>
+                <li><b>Provenance Tracking:</b> Source line recorded for every key definition</li>
+                <li><b>Navigation:</b> Ctrl+Click on keyref and conkeyref navigates to the key's target with Go to Definition across files</li>
+                <li><b>Caching:</b> Key space cached with 5-minute TTL, automatic invalidation on map changes</li>
+                <li><b>Root Map Selection:</b> Explicitly set the root map via <uicontrol>DITA: Set Root Map</uicontrol></li>
+                <li><b>Validation:</b> Undefined and missing keys flagged as diagnostics</li>
             </ul>
         </section>
     </conbody>

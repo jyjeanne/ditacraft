@@ -11,7 +11,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 ## Highlights
 
 🔗 **Smart Navigation** - Ctrl+Click on `href`, `conref`, `keyref`, and `conkeyref` attributes with full key space resolution
-🔑 **Key Space Resolution** - Automatic or explicit root map selection with key scope support
+🔑 **Key Space Resolution** - Full DITA 1.3 spec-compliant key space construction: keyref chains, keyscope inheritance (PushDown), inline scope branches, provenance tracking, scope explosion protection (50 k cap), and `explainKey()` resolution diagnostics
 ✅ **13-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG (salve-annos) + 43 DITA rules + custom rules with DITA 1.2/1.3/2.0 support, per-phase error isolation, severity overrides, and comment-based suppression
 🌍 **Localized Diagnostics** - All 76+ diagnostic messages translatable (English + French included)
 ⚡ **Real-time Validation** - Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
@@ -22,7 +22,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **1376+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **1564+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (~80 files, bookmap structure)
 
 ## Features
@@ -59,11 +59,13 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
   - Hover tooltip showing target filename and reference type
   - Automatically resolves paths relative to the map file location
   - Skips external URLs (http://, https://) - they won't be underlined
-- **Full Key Space Resolution** (NEW in v0.2.0)
+- **Full Key Space Resolution** (complete as of v0.7.3)
   - Automatically discovers root maps in your workspace
-  - Builds and caches key space from map hierarchies
-  - Resolves `@keyref`, `@conkeyref`, and key-based references
-  - Handles submaps, nested maps, and complex key definitions
+  - Builds and caches key space from map hierarchies (DITA 1.3 spec-compliant BFS)
+  - Resolves `@keyref`, `@conkeyref`, and key-based references including multi-hop keyref chains
+  - Full `@keyscope` support: PushDown inheritance, inline scope branches, qualified alias explosion cap (50,000 keys)
+  - Provenance tracking: each key definition records its source line for diagnostics
+  - `explainKey()` API returns a full `KeyResolutionReport` with lookup trace and keyref chain steps
   - Tiered caching (1-minute root map discovery, 5-minute key space TTL) with intelligent invalidation
 - Navigate seamlessly between maps and topics in your documentation structure
 - **How to use:**
@@ -585,7 +587,7 @@ ditacraft/
 │   │   │   └── ...
 │   │   ├── messages/            # Localization bundles (en.json, fr.json — 80+ message keys)
 │   │   └── data/                # DITA schema & specialization data (@class matching)
-│   └── test/                    # Server test suites (810+ tests)
+│   └── test/                    # Server test suites (881+ tests)
 ├── dtds/                        # DITA 1.2, 1.3, and 2.0 DTD files (master catalog)
 ├── docs/                        # Documentation
 │   ├── architecture.puml        # Architecture diagram (PlantUML)
@@ -609,7 +611,7 @@ DitaCraft includes comprehensive test coverage across client and server:
 - Activity bar views: DITA Explorer, Key Space, Diagnostics, file decorations
 - Map hierarchy parser (25 tests)
 
-**LSP Server Tests (810+ tests):**
+**LSP Server Tests (881+ tests):**
 - Reference parser (40 tests) - all 6 exported parsing functions
 - XML tokenizer (26 tests) - state machine, error recovery, CRLF, context detection, Unicode/CJK
 - XML formatting (25 tests) - indentation, inline, preformatted, edge cases, range formatting
@@ -630,7 +632,7 @@ DitaCraft includes comprehensive test coverage across client and server:
 - Subject scheme service - parsing, caching, hierarchy, value constraints
 - DITA specialization - @class matching, topic/map type names, utility functions
 - DITA version detector - version detection from content (1.0-2.0)
-- Key space service - 7 keyscope nesting tests
+- Key space service - 100+ tests: keyref chains, keyscope nesting/inheritance/inline branches, provenance, scope explosion cap, explainKey reporting
 - Server handlers - 31 wiring tests + 19 settings tests
 - Edge cases - empty files, long lines, mixed CRLF, Unicode/CJK content
 
@@ -642,15 +644,18 @@ npm test
 # Run server tests (standalone, no VS Code needed)
 cd server && npm test
 
+# Run a single server test suite
+cd server && npm test -- --grep "KeySpaceService"
+
 # Compile everything
 npm run compile
 ```
 
 ## Known Limitations
 
-### Smart Navigation (v0.2.0)
+### Smart Navigation
 
-The current implementation provides comprehensive navigation support. Minor limitations include:
+The current implementation provides comprehensive navigation support. Remaining minor limitations:
 
 1. **Same-file Content References (`@conref` with `#`)** - e.g., `<ph conref="#v4.3/summary"/>`
    - References starting with `#` point to elements within the same file
@@ -658,21 +663,17 @@ The current implementation provides comprehensive navigation support. Minor limi
 
 2. **Conditional Key Definitions**
    - Keys with DITAVAL conditions may not be resolved correctly
-   - The key space builder uses the first definition found
+   - The key space builder uses the first definition found (no condition evaluation)
 
-3. **External Key Scopes**
-   - Keys defined in external key scopes are not yet supported
-   - Limited to keys within the workspace
-
-**What now works (NEW in v0.2.0):**
-- ✅ `href="path/to/file.dita"` - Direct file paths
-- ✅ `href="file.dita#topic_id"` - File paths with fragment identifiers
-- ✅ `conref="file.dita#element_id"` - Content references
-- ✅ `keyref="key-name"` - Key references resolved via key space
-- ✅ `conkeyref="key-name/element"` - Content key references
-- ✅ Automatic root map discovery and key space building
-- ✅ Intelligent caching with tiered TTLs (1-minute root map, 5-minute key space)
-- ✅ File watcher debouncing (300ms) for performance
+**What works:**
+- ✅ `href="path/to/file.dita"` — Direct file paths with or without fragment identifiers
+- ✅ `conref="file.dita#element_id"` — Content references
+- ✅ `keyref="key-name"` — Key references with full key space resolution
+- ✅ `conkeyref="key-name/element"` — Content key references
+- ✅ Keyref chains (multi-hop) across nested key scopes
+- ✅ `@keyscope` nesting, inheritance, inline scope branches (DITA 1.3 spec-compliant)
+- ✅ Scope explosion protection (50,000-key cap)
+- ✅ Automatic root map discovery and tiered caching
 
 ### Contributing
 
@@ -781,13 +782,33 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 ## Recent Updates
 
 ### Version 0.7.3 (Current)
-**cSpell Lean Config, LSP Async I/O, Security Regex Hardening**
-- **cSpell Simplification** — Replaced 350-term DITA word list with two `ignoreRegExpList` regex patterns; LSP now owns DITA vocabulary validation; `DITA: Setup cSpell Configuration` command deprecated
-- **LSP Async File I/O** — All sync `fs` calls in `hover.ts` converted to `fs/promises` (`readFile`, `access`) to prevent blocking the LSP event loop; `getHrefHover` / `getConrefPreview` promoted to async; missing `await` on `getConrefPreview` call in `getKeyrefHover` fixed (was surfacing `[object Promise]` in hover markdown)
-- **Security: DOCTYPE `]>` Bypass Fix** — `DOCTYPE_INTERNAL_SUBSET_RE` hardened with quote-aware alternation so `]>` inside a quoted entity value cannot terminate the internal-subset scan early, which previously allowed all subsequent entity declarations to be silently skipped — defeating billion-laughs and excessive-entity-count detection
-- **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early `>` termination inside `SYSTEM "path/with/>/chars"` identifiers
-- **Regression Tests** — New test covering the `]>` bypass scenario; cSpell command tests updated to assert lean config structure
-- **1376+ Total Tests** — Client (678) + Server (698)
+**Key Space Algorithm Completion, Validation Pipeline Hardening, TypeScript 6.0 & TypesXML 2.0**
+
+**Key Space (7-gap improvement plan complete):**
+- **Keyref Chains** — Multi-hop keyref resolution across scopes; chain scope prefix bug fixed so chains inside scoped peer maps resolve correctly
+- **Keyscope Inheritance & Inline Branches** — PushDown scope inheritance and `@keyscope` on non-map topicrefs treated as anonymous scope branches per DITA 1.3 spec; three additional cascade/fallback/peer-map spec improvements
+- **Provenance Tracking** — `sourceLine` (1-based) added to `KeyDefinition`; qualified scope aliases inherit source line from their origin definition
+- **Scope Explosion Cap** — `MAX_KEY_SPACE_ENTRIES` (50,000) gates all 6 qualified-alias insertion sites; `scopeExplosionWarning` flag set on `KeySpace` when cap is hit
+- **Resolution Reporting** — `explainKey()` returns `KeyResolutionReport` with full lookup trace and keyref chain steps; `reportKeySpace()` / `formatResolutionReport()` provide human-readable key-space summaries
+- **Bug Fixes (4)** — XMLParser is now a class-level singleton (was re-instantiated per call), topicmeta array guard for duplicate `<topicmeta>` elements, `?xml` PI pseudo-node skipping in `collectXmlElements`
+
+**Validation Pipeline:**
+- **Pipeline Budget** — Configurable `pipelineBudgetMs` (default 30 s) with early-exit before each major phase; prevents runaway validation on large or complex files
+- **ReDoS Protection** — Custom regex rules screened for nested-quantifier patterns; 10,000-match iteration cap and 2 s timeout enforced per rule
+- **LSP 3.17 Conformance** — `executeCommandProvider`, `serverInfo` (name + version from package.json), and `interFileDependencies: true` advertised in `InitializeResult`
+- **Range Formatting Fix** — Falls back to full-document replacement when structural reflow detected, preventing silent content loss
+- **DITA-OT Error Parsing** — Severity-first log format (`[ERROR] [DOTJ013E]`) now recognized alongside legacy `[DOTJ013E][ERROR]` format
+
+**Dependencies & Tooling:**
+- **TypesXML 2.0.0** — Upgraded from 1.19.0
+- **TypeScript 6.0** — Upgraded from 5.9.3; `moduleResolution: node` with `ignoreDeprecations: "6.0"`, explicit `typeRoots` in all tsconfig files
+
+**Earlier 0.7.3 changes:**
+- **cSpell Simplification** — Replaced 350-term DITA word list with two `ignoreRegExpList` patterns; `DITA: Setup cSpell Configuration` command deprecated
+- **LSP Async File I/O** — All sync `fs` calls in `hover.ts` converted to `fs/promises`; `[object Promise]` in hover output fixed
+- **Security: DOCTYPE `]>` Bypass Fix** — Quote-aware regex prevents `]>` inside quoted entity values from terminating internal-subset scan early (billion-laughs / XXE bypass)
+- **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early `>` termination inside `SYSTEM` identifiers
+- **1564+ Total Tests** — Client (683) + Server (881); key space service tests expanded from 7 to 100+
 
 ### Version 0.7.2
 **Advanced Validation Controls, Custom Rules, Architecture Improvements**
@@ -943,7 +964,7 @@ We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md]
 - **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, workspace-level analysis) ✅ **COMPLETE**
 - **v0.7.1** - Guide Validation, ValidationPipeline & Bug Fixes (1242+ tests) ✅ **COMPLETE**
 - **v0.7.2** - Severity Overrides, Custom Rules, Architecture Improvements (1375+ tests) ✅ **COMPLETE**
-- **v0.7.3** - cSpell lean config, hover async I/O, security regex hardening (1376+ tests) **CURRENT**
+- **v0.7.3** - Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TypeScript 6.0, TypesXML 2.0 (1564+ tests) **CURRENT**
 - **v0.8.0** - Refactoring & Productivity (rename keys, templates)
 - **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)
 

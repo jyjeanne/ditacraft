@@ -26,13 +26,25 @@ npm install
 ```bash
 npm run compile
 ```
-Runs type checking and esbuild for both client and server. Produces `out/extension.js` and `server/out/server.js`.
+Runs type checking and esbuild for both client and server via `esbuild.js`. Produces `out/extension.js` and `server/out/server.js`.
+
+### Type-Check Only (No Emit)
+```bash
+npm run check-types
+```
+Runs `tsc --noEmit` for both client and server. Faster than a full compile when you only want type errors.
 
 ### Development Watch Mode (Recommended)
 ```bash
 npm run watch
 ```
 Runs esbuild and TypeScript in watch mode. Press **F5** in VS Code to launch in debug mode. Reload with **Ctrl+R** to test changes.
+
+### Package Extension
+```bash
+npm run package
+```
+Runs `vsce package` to produce a `.vsix` file for manual installation or publishing.
 
 ### Linting
 ```bash
@@ -124,6 +136,8 @@ The `ValidationPipeline` in `server/src/services/validationPipeline.ts` orchestr
 ### Key Services
 
 **ValidationPipeline** — Orchestrates 13 phases, applies severity overrides and comment suppression
+
+**SuppressionEngine** — Parses inline suppression comments and filters diagnostics by range or file; extracted from the pipeline for testability
 
 **KeySpaceService** — Parses DITA maps, builds key space (BFS traversal), handles @keyscope nesting, 5-min cache TTL
 
@@ -291,7 +305,8 @@ suite('My Feature', () => {
 **Client Entry:** `src/extension.ts`, `src/languageClient.ts`
 **Server Entry:** `server/src/server.ts`, `server/src/serverHandlers.ts`
 **Core Validation:** `server/src/services/validationPipeline.ts`, `server/src/features/validation.ts`, `server/src/features/ditaRulesValidator.ts`
-**Key Services:** `server/src/services/keySpaceService.ts`, `server/src/services/catalogValidationService.ts`, `server/src/services/subjectSchemeService.ts`
+**Key Services:** `server/src/services/keySpaceService.ts`, `server/src/services/catalogValidationService.ts`, `server/src/services/subjectSchemeService.ts`, `server/src/services/suppressionEngine.ts`
+**Service Interfaces:** `server/src/services/interfaces.ts` — contracts for `IKeySpaceService`, `ISubjectSchemeService`, `ICatalogValidationService`; use these for mocking in tests
 **Config & Utils:** `src/utils/configurationManager.ts`, `server/src/utils/xmlTokenizer.ts`, `server/src/utils/diagnosticCodes.ts`
 
 ---
@@ -302,6 +317,6 @@ suite('My Feature', () => {
 - **Key space:** 5-minute cache TTL; refresh with **DITA: Refresh Key Space** command
 - **DITA versions:** Auto-detected from @DITAArchVersion or DOCTYPE; override with ditacraft.ditaVersion
 - **Custom rules:** Load from JSON file (ditacraft.customRulesFile); support fileType filtering
-- **Comment suppression:** <!-- ditacraft-disable CODE --> and <!-- ditacraft-enable CODE --> suppress rules in ranges
+- **Comment suppression:** Three directives — `<!-- ditacraft-disable CODE -->` / `<!-- ditacraft-enable CODE -->` for range-based suppression; `<!-- ditacraft-disable-file CODE -->` suppresses a rule for the entire file
 - **Performance:** Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
 - **Security:** XXE protection, path traversal validation, command injection prevention, quote-aware entity pre-checks

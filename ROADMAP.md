@@ -14,7 +14,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Modular Validation Engines** | Complete | 100% |
 | DTD Validation (DITA 1.3) | Complete | 100% |
 | OASIS XML Catalog Support | Complete | 100% |
-| Key Space Resolution | Complete | 95% |
+| Key Space Resolution | Complete | 100% |
 | Real-time Validation | Complete | 100% |
 | **Rate Limiting (DoS Protection)** | Complete | 100% |
 | DITA-OT Publishing | Complete | 100% |
@@ -61,7 +61,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **12 LSP Settings** | Complete | 100% |
 | **Glossref Element Support** | Complete | 100% |
 | **Glossentry/Troubleshooting Validation** | Complete | 100% |
-| **Server Test Suite (698 tests)** | Complete | 100% |
+| **Server Test Suite (881+ tests)** | Complete | 100% |
 | **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
@@ -116,14 +116,46 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **cSpell Lean Config (regex-based)** | Complete | 100% |
 | **LSP Async File I/O (hover.ts)** | Complete | 100% |
 | **DOCTYPE Subset ]> Bypass Fix** | Complete | 100% |
+| **Key Space: Keyref Chains (multi-hop)** | Complete | 100% |
+| **Key Space: Keyscope PushDown Inheritance** | Complete | 100% |
+| **Key Space: Inline Scope Branches (@keyscope on topicrefs)** | Complete | 100% |
+| **Key Space: Provenance Tracking (sourceLine)** | Complete | 100% |
+| **Key Space: Scope Explosion Cap (50 k entries)** | Complete | 100% |
+| **Key Space: Resolution Reporting (explainKey, reportKeySpace)** | Complete | 100% |
+| **Validation Pipeline Budget (pipelineBudgetMs)** | Complete | 100% |
+| **ReDoS Protection (custom rules)** | Complete | 100% |
+| **LSP 3.17 Conformance (executeCommandProvider, serverInfo)** | Complete | 100% |
+| **Range Formatting Safety (structural reflow fallback)** | Complete | 100% |
+| **TypesXML 2.0.0** | Complete | 100% |
+| **TypeScript 6.0 Support** | Complete | 100% |
 
 ### Recent Changes (v0.7.3)
-- **cSpell Simplification** — Replaced 350-term DITA word list with two regex patterns (`ignoreRegExpList`) that suppress XML tag and attribute noise in DITA files; LSP now owns DITA vocabulary validation; `DITA: Setup cSpell Configuration` command marked deprecated
-- **LSP Async File I/O** — Converted all sync `fs` calls in `hover.ts` to `fs/promises` (`readFile`, `access`) to prevent blocking the LSP event loop; `getHrefHover` and `getConrefPreview` promoted to async; missing `await` on `getConrefPreview` call in `getKeyrefHover` fixed (was returning `[object Promise]` in hover output)
-- **Security: DOCTYPE `]>` Bypass Fix** — `DOCTYPE_INTERNAL_SUBSET_RE` replaced lazy `[\s\S]*?` inner group with quote-aware alternation `(".."|'..'|[^\]])` so a `]>` sequence inside a quoted entity value cannot terminate the subset match early, which previously caused all subsequent entity declarations to be silently skipped — defeating billion-laughs and excessive-entity-count detection
-- **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early termination on `>` inside `SYSTEM "path/with/>chars"` identifiers
-- **Regression Tests** — New test covering the `]>` bypass scenario; `cspellSetupCommand` tests updated to assert lean config structure (no global `words`, has `ignoreRegExpList`)
-- **1376+ Total Tests** — Client (678) + Server (698)
+
+**Key Space (7-gap improvement plan complete):**
+- **Keyref Chains** — Multi-hop keyref resolution across nested key scopes; chain scope prefix bug fixed so chains inside scoped peer maps resolve against the correct namespace
+- **Keyscope PushDown Inheritance** — `@keyscope` correctly pushes scope down to descendant keys; inline scope branches (`@keyscope` on non-map topicrefs) treated as anonymous scope branches per DITA 1.3 spec; three additional spec improvements (cascade algorithm, peer map handling, fallback key definitions)
+- **Provenance Tracking** — `sourceLine` (1-based) added to `KeyDefinition` via monotone forward XML scan; qualified scope aliases inherit `sourceLine` from their origin
+- **Scope Explosion Cap** — `MAX_KEY_SPACE_ENTRIES` (50,000) guards all 6 qualified-alias insertion sites; `scopeExplosionWarning` set on `KeySpace` when cap is hit
+- **Resolution Reporting** — `explainKey()` returns `KeyResolutionReport` with full lookup trace and keyref chain steps; `reportKeySpace()` / `formatResolutionReport()` expose human-readable summaries
+- **4 Bug Fixes** — XMLParser is now a class-level singleton (was re-instantiated per `extractKeyDefinitions` call), topicmeta array guard for duplicate `<topicmeta>`, `?xml` PI pseudo-node skipping in `collectXmlElements`
+
+**Validation Pipeline:**
+- **Pipeline Budget** — Configurable `pipelineBudgetMs` (default 30 s) with early-exit before each major phase; prevents runaway validation on large or complex files
+- **ReDoS Protection** — Custom regex rules screened for nested-quantifier patterns; per-rule 10,000-match iteration cap and 2 s timeout
+- **LSP 3.17 Conformance** — `executeCommandProvider`, `serverInfo` (name + version from `server/package.json`), and `interFileDependencies: true` in `InitializeResult`
+- **Range Formatting Fix** — Falls back to full-document replacement on structural reflow (was silently dropping content)
+- **DITA-OT Error Parsing** — Severity-first format (`[ERROR] [DOTJ013E]`) now recognized alongside legacy `[DOTJ013E][ERROR]`
+
+**Dependencies:**
+- **TypesXML 2.0.0** — Bumped from 1.19.0
+- **TypeScript 6.0** — Upgraded from 5.9.3; `moduleResolution: node` + `ignoreDeprecations: "6.0"`; explicit `typeRoots` in all tsconfig files
+
+**Earlier 0.7.3 changes:**
+- **cSpell Simplification** — Replaced 350-term DITA word list with two regex patterns (`ignoreRegExpList`); `DITA: Setup cSpell Configuration` command deprecated
+- **LSP Async File I/O** — All sync `fs` calls in `hover.ts` converted to `fs/promises`; `[object Promise]` hover bug fixed
+- **Security: DOCTYPE `]>` Bypass Fix** — Quote-aware regex prevents `]>` inside quoted entity values from terminating internal-subset scan early
+- **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early `>` termination in `SYSTEM` identifiers
+- **1564+ Total Tests** — Client (683) + Server (881); key space service tests expanded from 7 to 100+
 
 ### Recent Changes (v0.7.2)
 - **Per-Rule Severity Override** — `ditacraft.validationSeverityOverrides` setting: map any diagnostic code to error/warning/information/hint/off; applied as post-processing in the validation pipeline
@@ -628,10 +660,10 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, glossref, 1087+ Tests | Released |
 | v0.7.1 | Guide validation, error catalog, ValidationPipeline, bug fixes, 1242+ Tests | Released |
 | v0.7.2 | Severity overrides, custom rules, architecture improvements, 1375+ Tests | Released |
-| v0.7.3 | cSpell lean config, hover async I/O, security regex hardening, 1376+ Tests | **Current** |
+| v0.7.3 | Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TS 6.0, TypesXML 2.0, 1564+ Tests | **Current** |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: April 2026 (v0.7.3 — cSpell lean config, hover async I/O, security regex hardening, 1376+ tests)*
+*Last updated: April 2026 (v0.7.3 — key space algorithm completion, pipeline budget/ReDoS hardening, TypeScript 6.0, TypesXML 2.0, 1564+ tests)*

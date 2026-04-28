@@ -13,7 +13,7 @@
                 <li>Full DTD validation with three engine options</li>
                 <li>Smart navigation with Ctrl+Click on href, conref, keyref, and conkeyref</li>
                 <li>Cross-file Go to Definition, Find References, and Rename</li>
-                <li>Key space resolution for keyref and conkeyref with key scope support</li>
+                <li>Full DITA 1.3 spec-compliant key space construction: keyref chains, keyscope PushDown inheritance, inline scope branches, provenance tracking, and scope explosion protection</li>
                 <li>43 DITA validation rules with DITA 2.0 awareness</li>
                 <li>Localized diagnostics (English, French)</li>
                 <li>Explicit root map selection with status bar indicator</li>

@@ -2,5 +2,8 @@
 <!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
 <glossentry id="gloss-keyscope">
     <glossterm>Key Scope</glossterm>
-    <glossdef>A DITA feature (via the <codeph>@keyscope</codeph> attribute) that enables different key definitions within different contexts of the same map. Key scopes allow the same key name to resolve to different targets depending on the context. DitaCraft supports scope-qualified key references (e.g., <codeph>admin.audience</codeph>).</glossdef>
+    <glossdef>
+        <p>A DITA 1.3 feature (via the <codeph>@keyscope</codeph> attribute) that enables different key definitions within different contexts of the same map. Key scopes allow the same key name to resolve to different targets depending on the context.</p>
+        <p>DitaCraft implements the full DITA 1.3 keyscope algorithm: scope names on map elements trigger PushDown inheritance so all keys in that branch gain scope-qualified aliases (e.g., <codeph>admin.audience</codeph>). Placing <codeph>@keyscope</codeph> on a non-map topicref creates an inline scope branch. Multiple scope names can be declared on a single element (space-separated) to generate aliases under each name. Keyref chains inside scoped branches are resolved with the correct scope prefix.</p>
+    </glossdef>
 </glossentry>
