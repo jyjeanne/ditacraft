@@ -739,7 +739,7 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.10",
-    "fast-xml-parser": "^5.7.2",
+    "fast-xml-parser": "^5.7.3",
     "typesxml": "^2.0.0",
     "vscode-languageclient": "^9.0.1"
   },
