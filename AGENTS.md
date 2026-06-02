@@ -39,6 +39,15 @@ npm run coverage
 
 # Server coverage (server only; thresholds: 90% lines/stmts/funcs, 80% branches)
 cd server && npm run coverage
+
+# MCP server tests (Mocha TDD, standalone, no VS Code needed)
+cd mcp && npx tsc -p test/tsconfig.json && npx mocha out/test/mcp/test/*.test.js out/test/mcp/test/**/*.test.js --ui tdd --timeout 30000
+
+# MCP server — build only
+npm run esbuild-base -- --sourcemap   # builds client + server + MCP
+
+# MCP server — smoke test (requires tsx)
+npx tsx mcp/test/smoke-test.ts
 ```
 
 **Important script chain:** `npm test` triggers `pretest` → `npm run compile-tests && npm run lint` → then `node ./out/test/runTest.js`. `compile-tests` is just `tsc -p ./` (compiles client source to `out/`, not the same as `check-types`). Server tests are completely independent — they compile + run via their own `tsc -p tsconfig.test.json && mocha ...`.
@@ -51,7 +60,8 @@ This is a **client-server VS Code extension** using the Language Server Protocol
 
 - **Client** (`src/`): VS Code extension that registers commands, tree view providers, webview panels, and starts the language server. Entry point: `src/extension.ts`. The language client is configured in `src/languageClient.ts` and communicates over IPC.
 - **Server** (`server/`): Standalone LSP server with its own `package.json`, `tsconfig.json`, and dependencies. Entry point: `server/src/server.ts`. It wires all `connection.on*` handlers to feature modules. Handler wiring is extracted into `server/src/serverHandlers.ts`.
-- **Build**: `esbuild.js` bundles both client (`src/extension.ts` → `out/extension.js`) and server (`server/src/server.ts` → `server/out/server.js`) as CommonJS. Client externalizes `vscode`; server bundles everything. Accepts `--watch`, `--minify`, `--sourcemap` flags.
+- **MCP Server** (`mcp/`): Standalone MCP server (Model Context Protocol) for external AI agents. Entry point: `mcp/src/server.ts`. Bundles `server/src/` modules directly — no VS Code dependency. Exposes 6 tools and 3 resources over stdio JSON-RPC. Built by esbuild to `dist/mcp-server.js`.
+- **Build**: `esbuild.js` bundles all three targets: client (`src/extension.ts` → `out/extension.js`), server (`server/src/server.ts` → `server/out/server.js`), and MCP server (`mcp/src/server.ts` → `dist/mcp-server.js`). Client externalizes `vscode`; server and MCP bundle everything. Accepts `--watch`, `--minify`, `--sourcemap` flags.
 
 ### Server internals (`server/src/`)
 

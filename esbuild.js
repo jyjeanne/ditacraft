@@ -51,11 +51,20 @@ async function main() {
         outfile: 'server/out/server.js',
     });
 
+    // Build MCP server (standalone - bundles server/src/ + mcp/src/ + @modelcontextprotocol/sdk)
+    const mcpCtx = await esbuild.context({
+        ...sharedOptions,
+        entryPoints: ['mcp/src/server.ts'],
+        outfile: 'dist/mcp-server.js',
+        // Resolve server dependencies from server/node_modules (vscode-languageserver-*)
+        nodePaths: ['server/node_modules'],
+    });
+
     if (watch) {
-        await Promise.all([clientCtx.watch(), serverCtx.watch()]);
+        await Promise.all([clientCtx.watch(), serverCtx.watch(), mcpCtx.watch()]);
     } else {
-        await Promise.all([clientCtx.rebuild(), serverCtx.rebuild()]);
-        await Promise.all([clientCtx.dispose(), serverCtx.dispose()]);
+        await Promise.all([clientCtx.rebuild(), serverCtx.rebuild(), mcpCtx.rebuild()]);
+        await Promise.all([clientCtx.dispose(), serverCtx.dispose(), mcpCtx.dispose()]);
     }
 }
 

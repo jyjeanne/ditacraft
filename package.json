@@ -878,6 +878,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@xmldom/xmldom": "^0.9.10",
     "fast-xml-parser": "^5.8.0",
     "openai": "^6.41.0",
