@@ -5,8 +5,31 @@
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.80+-blue.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-0.8.0-orange.svg)](CHANGELOG.md)
 
-DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, validation, and seamless integration with DITA-OT for multi-format publishing.
+DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, real-time validation, smart navigation, AI-powered assistance, an MCP server for external AI agents, and seamless integration with DITA-OT for multi-format publishing.
+
+## Table of Contents
+
+- [Highlights](#highlights)
+- [Features](#features)
+  - [Language Server Protocol (LSP)](#%EF%B8%8F-language-server-protocol-lsp)
+  - [AI-Powered Features](#-ai-powered-features-github-copilot-integration)
+  - [Smart Navigation](#-smart-navigation)
+  - [Advanced Validation](#-advanced-validation)
+  - [One-Click Publishing](#-one-click-publishing)
+  - [Live Preview](#%EF%B8%8F-live-preview)
+  - [Activity Bar Views](#-activity-bar-views)
+  - [Map Visualizer](#%EF%B8%8F-map-visualizer)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Commands](#commands)
+- [Configuration](#configuration)
+- [AI Provider Configuration](#ai-provider-configuration)
+- [MCP Server Integration](#mcp-server-integration-external-ai-agents)
+- [Development](#development)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## Highlights
 
@@ -22,8 +45,9 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🤖 **AI-Powered Features** - GitHub Copilot integration: `@ditacraft` chat participant, AI Quick Fix, AI Completion, and map restructuring
-🧪 **1537+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🤖 **AI-Powered Features** - GitHub Copilot integration: `@ditacraft` chat participant, AI Quick Fix, AI Completion, map restructuring, and multi-provider cascade (Copilot → Anthropic → OpenAI → Ollama)
+🔌 **MCP Server** - Standalone Model Context Protocol server for external AI agents (opencode, Claude Desktop, Cursor, Continue) — 6 tools, 3 resources, zero VS Code dependency
+🧪 **1564+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (~80 files, bookmap structure)
 
 ## Features
@@ -56,9 +80,11 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **F4: AI Completion** — Enriched IntelliSense: AI suggests element content and attribute values in context
 - **Provider Cascade** — Auto mode: Copilot → Anthropic → OpenAI → Ollama; supports `copilot-only`, `byok-only`, `local-only` modes
 - **Circuit Breaker** — Per-provider resilience: 3 failures in 5 min opens the breaker (10 min cooldown); zero-dependency on unavailable providers
+- **Streaming Support** — AI responses stream in real time via `vscode.lm` (Copilot) or server-sent events (Anthropic/OpenAI); Ollama uses `/api/generate` with streaming chunks
 - **Metrics Dashboard** — Request counts, latency, and error rates per provider; visible in the Configure AI panel
 - **DitaCraft: Configure AI** — Guided setup for provider selection, API keys (stored securely via OS keychain), and feature toggles
 
+### ✍️ **Syntax Highlighting & Snippets**
 
 - Syntax highlighting for `.dita`, `.ditamap`, `.bookmap`, and `.ditaval` files
 - Intelligent code snippets and auto-completion (21 comprehensive snippets)
@@ -471,7 +497,7 @@ Create `.cspellrc.json` at your workspace root:
 | `ditacraft.largeFileThresholdKB` | number | `500` | Skip heavy validation phases for files larger than this (0 = disabled) |
 | `ditacraft.customRulesFile` | string | `""` | Absolute path to a JSON file defining custom regex validation rules |
 
-📖 **[Full Configuration Guide](CONFIGURATION.md)**
+📖 **See the [All Settings](#all-settings) reference table above for the full list of configuration options.**
 
 ## AI Provider Configuration
 
@@ -624,7 +650,7 @@ Native Google Gemini support (`gemini-1.5-pro`, `gemini-1.5-flash`) is planned f
 - **Local Gemma** — run Google's open-weights model via Ollama: `ollama pull gemma3`
 - **OpenAI-compatible proxy** — expose Gemini through a proxy that implements the OpenAI Chat Completions API
 
-Track progress: see the [AI Roadmap](#milestone-7-advanced-ai-features-v090--planned) section.
+Track progress: see the [Roadmap](ROADMAP.md#milestone-7-publishing-enhancements-v090) section.
 
 ---
 
@@ -652,7 +678,7 @@ Track progress: see the [AI Roadmap](#milestone-7-advanced-ai-features-v090--pla
 
 DitaCraft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
 
-> **Status:** MCP server is **available** in v0.8.0. Build with `npm run build-standalone` to produce `dist/mcp-server.js`.
+> **Status:** MCP server is **available** in v0.8.0 (current). Build with `npm run build-standalone` to produce `dist/mcp-server.js` and `dist/lsp-server.js`.
 
 ### What is MCP?
 
@@ -870,6 +896,13 @@ ditacraft/
 │   │   ├── messages/            # Localization bundles (en.json, fr.json — 80+ message keys)
 │   │   └── data/                # DITA schema & specialization data (@class matching)
 │   └── test/                    # Server test suites (881+ tests)
+├── mcp/                         # Standalone MCP server (Model Context Protocol)
+│   ├── src/
+│   │   └── server.ts            # MCP entry point (6 tools, 3 resources)
+│   └── test/                    # MCP test suites + smoke tests
+├── dist/                        # Standalone bundles (built by npm run build-standalone)
+│   ├── mcp-server.js            # Self-contained MCP server (3.2 MB)
+│   └── lsp-server.js            # Self-contained LSP server (2.0 MB)
 ├── dtds/                        # DITA 1.2, 1.3, and 2.0 DTD files (master catalog)
 ├── docs/                        # Documentation
 │   ├── architecture.puml        # Architecture diagram (PlantUML)
@@ -918,6 +951,12 @@ DitaCraft includes comprehensive test coverage across client and server:
 - Server handlers - 31 wiring tests + 19 settings tests
 - Edge cases - empty files, long lines, mixed CRLF, Unicode/CJK content
 
+**MCP Server Tests (standalone Mocha):**
+- Tool tests: `dita_validate`, `dita_context_snapshot`, `dita_key_space`, `dita_map_structure`, `dita_resolve_reference`, `dita_explain_key`
+- Resource tests: all 3 workspace resources
+- Security tests: path traversal rejection, workspace isolation
+- Smoke test: `npx tsx mcp/test/smoke-test.ts` (end-to-end tools + resources)
+
 **Running Tests:**
 ```bash
 # Run client tests (requires VS Code)
@@ -928,6 +967,12 @@ cd server && npm test
 
 # Run a single server test suite
 cd server && npm test -- --grep "KeySpaceService"
+
+# Run MCP server tests (standalone, no VS Code needed)
+cd mcp && npx tsc -p test/tsconfig.json && npx mocha out/test/mcp/test/*.test.js --ui tdd --timeout 30000
+
+# MCP smoke test (validates tools + resources end-to-end)
+npx tsx mcp/test/smoke-test.ts
 
 # Compile everything
 npm run compile
@@ -1063,7 +1108,34 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.7.4 (Current)
+### Version 0.8.0 (Current)
+**MCP Server, Standalone LSP Server & Standalone Bundles**
+
+**MCP Server (`mcp/`):**
+- **Standalone MCP server** — `dist/mcp-server.js` (3.2 MB, no `node_modules` needed); exposes DitaCraft's DITA intelligence to any MCP-aware AI agent (opencode, Claude Desktop, Cursor, Continue)
+- **6 MCP tools** — `dita_validate`, `dita_context_snapshot`, `dita_key_space`, `dita_map_structure`, `dita_resolve_reference`, `dita_explain_key`
+- **3 MCP resources** — `dita://workspace/maps`, `dita://workspace/diagnostics`, `dita://workspace/keys`
+- **Workspace isolation** — Path traversal protection, HTTP/UNC/null-byte rejection; all communication stays local via stdio transport
+- **Smoke test** — `npx tsx mcp/test/smoke-test.ts` validates all tools and resources end-to-end
+
+**Standalone LSP Server (`dist/lsp-server.js`):**
+- Self-contained bundle (2.0 MB); no `node_modules` needed at runtime
+- Launch via `node dist/lsp-server.js --stdio`; embed via `child_process.spawn` in any Node.js LSP client
+- Set `DITACRAFT_EXTENSION_ROOT` to point to the directory containing `dtds/`
+
+**Build Commands:**
+- `npm run build-standalone` — produces both `dist/mcp-server.js` and `dist/lsp-server.js`
+- `npm run package` — produces the VS Code extension `.vsix` file
+
+**Testing:**
+- MCP server tests: `cd mcp && npx tsc -p test/tsconfig.json && npx mocha out/test/mcp/test/*.test.js --ui tdd --timeout 30000`
+- LSP standalone smoke test: `npx tsx mcp/test/lsp-smoke-test.ts`
+
+**1564+ Total Tests** — Client (683) + Server (881)
+
+---
+
+### Version 0.7.4
 **AI Integration — GitHub Copilot, Anthropic, OpenAI & Ollama**
 
 **AI Infrastructure:**
@@ -1267,8 +1339,9 @@ We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md]
 - **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, workspace-level analysis) ✅ **COMPLETE**
 - **v0.7.1** - Guide Validation, ValidationPipeline & Bug Fixes (1242+ tests) ✅ **COMPLETE**
 - **v0.7.2** - Severity Overrides, Custom Rules, Architecture Improvements (1375+ tests) ✅ **COMPLETE**
-- **v0.7.3** - Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TypeScript 6.0, TypesXML 2.0 (1564+ tests) **CURRENT**
-- **v0.8.0** - Refactoring & Productivity (rename keys, templates)
+- **v0.7.3** - Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TypeScript 6.0, TypesXML 2.0 (1564+ tests) ✅ **COMPLETE**
+- **v0.7.4** - AI Integration: Copilot, Anthropic, OpenAI, Ollama; @ditacraft chat participant, AI Quick Fix, AI Completion ✅ **COMPLETE**
+- **v0.8.0** - MCP Server (6 tools, 3 resources), Standalone LSP Server, standalone bundles ✅ **CURRENT**
 - **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)
 
 ## Contributing
