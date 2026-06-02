@@ -1,4 +1,4 @@
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { handleBuildContextSnapshot, BuildContextSnapshotParams, ContextSnapshotResult } from '../../../server/src/features/contextSnapshot';
 import { resolvePath } from '../workspace';
 

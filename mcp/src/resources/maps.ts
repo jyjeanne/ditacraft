@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { log } from '../logger';
 
 interface MapEntry {

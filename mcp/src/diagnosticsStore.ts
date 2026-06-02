@@ -124,7 +124,10 @@ function globToRegex(pattern: string): RegExp {
                 regexStr += ch;
         }
     }
-    return new RegExp(regexStr);
+    // Anchored so the pattern matches the full URI, not a substring.
+    // (?:^|/) ensures the first segment is always preceded by a path boundary
+    // (avoids "bad-topics/" matching a pattern for "topics/").
+    return new RegExp('(?:^|/)' + regexStr + '$');
 }
 
 export interface StoredDiagnostic {

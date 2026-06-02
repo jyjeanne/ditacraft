@@ -8,6 +8,9 @@ import { z } from 'zod';
 
 import { log, setLevel } from './logger';
 import { DiagnosticsStore } from './diagnosticsStore';
+import { McpContext } from './types';
+
+export type { McpContext };
 
 import { CatalogValidationService } from '../../server/src/services/catalogValidationService';
 import { RngValidationService } from '../../server/src/services/rngValidationService';
@@ -60,16 +63,6 @@ const keySpaceService = new KeySpaceService(
 );
 
 const diagnosticsStore = new DiagnosticsStore();
-
-export interface McpContext {
-    workspaceRoot: string;
-    extensionRoot: string;
-    validationPipeline: ValidationPipeline;
-    keySpaceService: KeySpaceService;
-    catalogService: CatalogValidationService;
-    subjectSchemeService: SubjectSchemeService;
-    diagnosticsStore: DiagnosticsStore;
-}
 
 const ctx: McpContext = {
     workspaceRoot,

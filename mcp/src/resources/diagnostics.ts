@@ -1,4 +1,4 @@
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { log } from '../logger';
 
 interface DiagnosticsResourceResult {

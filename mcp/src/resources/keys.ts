@@ -1,7 +1,6 @@
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { log } from '../logger';
-import * as fs from 'fs';
-import * as path from 'path';
+import { discoverRootMap } from '../utils/mapDiscovery';
 
 interface KeyEntry {
     keyName: string;
@@ -25,7 +24,7 @@ export async function readKeysResource(
     log('debug', `Keys resource query: includeScopes=${includeScopes}, search=${search}`);
 
     // Auto-discover root map
-    const rootMapPath = await discoverRootMap(ctx.workspaceRoot);
+    const rootMapPath = discoverRootMap(ctx.workspaceRoot);
     if (!rootMapPath) {
         return { totalKeys: 0, keys: [] };
     }
@@ -57,29 +56,4 @@ export async function readKeysResource(
         totalKeys: keys.length,
         keys,
     };
-}
-
-async function discoverRootMap(workspaceRoot: string): Promise<string | null> {
-    const candidates: string[] = [];
-    const scanDir = (dir: string, depth: number): void => {
-        if (depth > 3) return;
-        let entries: fs.Dirent[];
-        try {
-            entries = fs.readdirSync(dir, { withFileTypes: true });
-        } catch {
-            return;
-        }
-        for (const entry of entries) {
-            if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-                scanDir(path.join(dir, entry.name), depth + 1);
-            } else if (entry.isFile() && entry.name.endsWith('.ditamap')) {
-                candidates.push(path.join(dir, entry.name));
-            }
-        }
-    };
-
-    scanDir(workspaceRoot, 0);
-
-    const rootMaps = candidates.filter((c) => path.dirname(c) === workspaceRoot);
-    return rootMaps.length > 0 ? rootMaps[0] : (candidates.length > 0 ? candidates[0] : null);
 }

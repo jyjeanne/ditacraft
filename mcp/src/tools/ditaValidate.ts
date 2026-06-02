@@ -3,10 +3,11 @@ import { Diagnostic } from 'vscode-languageserver-types';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { resolvePath, fileExists } from '../workspace';
 import { handleValidateFragment } from '../../../server/src/features/fragmentValidator';
 import { log } from '../logger';
+import { defaultMcpSettings } from '../mcpSettings';
 
 interface DitaValidateArgs {
     uri?: string;
@@ -85,28 +86,7 @@ export async function handleDitaValidate(
 
         filePath = uri;
 
-        // Build settings matching what the LSP server would provide
-        const settings = {
-            maxNumberOfProblems: 100,
-            ditaRulesEnabled: true,
-            ditaRulesCategories: ['mandatory', 'recommendation', 'authoring', 'accessibility'] as any as string[],
-            crossRefValidationEnabled: true,
-            subjectSchemeValidationEnabled: true,
-            validationSeverityOverrides: {} as Record<string, string>,
-            largeFileThresholdKB: 500,
-            customRulesFile: '',
-            ditaVersion: 'auto' as any as string,
-            schemaFormat: 'dtd' as any as string,
-            rngSchemaPath: '',
-            validationEngine: 'typesxml' as any as string,
-            validationDebounceMs: 500,
-            keySpaceCacheTtlMinutes: 5 as any as number,
-            maxLinkMatches: 10000 as any as number,
-            autoValidate: false as any as boolean,
-            logLevel: 'warn' as any as string,
-            xmlCatalogPath: '',
-            pipelineBudgetMs: 30000 as any as number,
-        } as any;
+        const settings = defaultMcpSettings();
 
         diagnostics = await ctx.validationPipeline.validate(
             document, settings, ctx.keySpaceService,

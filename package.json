@@ -805,6 +805,7 @@
     "compile-tests": "tsc -p ./",
     "lint": "eslint",
     "test": "node ./out/test/runTest.js",
+    "test:mcp": "cd mcp && npx tsc -p test/tsconfig.json && npx mocha \"out/test/mcp/test/*.test.js\" \"out/test/mcp/test/**/*.test.js\" --ui tdd --timeout 30000",
     "coverage": "npx c8 npm test",
     "coverage:check": "npx c8 check-coverage",
     "coverage:report": "npx c8 report --reporter=html --reporter=text --reporter=lcov"

@@ -1,8 +1,8 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-import type { McpContext } from '../server';
-import { resolvePath } from '../workspace';
+import type { McpContext } from '../types';
+import { resolvePath, validateWithinWorkspace, fileUriToFsPath } from '../workspace';
 import { parseReference, findElementByIdOffset } from '../../../server/src/utils/referenceParser';
 import { offsetToPosition, uriToPath } from '../../../server/src/utils/textUtils';
 import { log } from '../logger';
@@ -54,9 +54,20 @@ async function resolveKeyref(
     fromUri: string | undefined,
     ctx: McpContext,
     trace: string[],
+    visited: Set<string> = new Set(),
 ): Promise<ResolveReferenceResult> {
+    if (visited.has(keyName)) {
+        trace.push(`  -> cycle detected: "${keyName}" already in chain`);
+        return {
+            resolved: false,
+            resolutionTrace: trace,
+            error: `Cyclic keyref chain detected at key "${keyName}"`,
+        };
+    }
+    visited.add(keyName);
+
     const contextPath = fromUri
-        ? (resolvePath(fromUri, ctx.workspaceRoot) ?? '').replace(/^file:\/\/\/?/, '')
+        ? fileUriToFsPath(resolvePath(fromUri, ctx.workspaceRoot) ?? '')
         : ctx.workspaceRoot;
 
     trace.push(`keyref lookup: "${keyName}" from context "${contextPath}"`);
@@ -72,7 +83,7 @@ async function resolveKeyref(
 
     if (keyDef.keyref) {
         trace.push(`  -> keyref chain: "${keyName}" -> "${keyDef.keyref}"`);
-        return resolveKeyref(keyDef.keyref, fromUri, ctx, trace);
+        return resolveKeyref(keyDef.keyref, fromUri, ctx, trace, visited);
     }
 
     if (keyDef.targetFile) {
@@ -124,8 +135,10 @@ async function resolveConkeyref(
     }
 
     if (elementId && keyResult.targetUri) {
-        const fsPath = keyResult.targetUri.replace(/^file:\/\/\/?/, '');
-        if (fs.existsSync(fsPath)) {
+        const fsPath = fileUriToFsPath(keyResult.targetUri);
+        // Security: the targetUri came from the key space (resolved from workspace maps),
+        // but validate it is still within the workspace before reading
+        if (validateWithinWorkspace(fsPath, ctx.workspaceRoot) && fs.existsSync(fsPath)) {
             const content = fs.readFileSync(fsPath, 'utf-8');
             const offset = findElementByIdOffset(content, elementId);
             if (offset >= 0) {
@@ -171,10 +184,20 @@ function resolveHrefOrConref(
 
     // Cross-file reference
     const baseDir = fromUri
-        ? path.dirname((resolvePath(fromUri, ctx.workspaceRoot) ?? '').replace(/^file:\/\/\/?/, ''))
+        ? path.dirname(fileUriToFsPath(resolvePath(fromUri, ctx.workspaceRoot) ?? ''))
         : ctx.workspaceRoot;
 
     const targetPath = path.resolve(baseDir, parsed.filePath);
+
+    // Security: reject any path that escapes the workspace
+    if (!validateWithinWorkspace(targetPath, ctx.workspaceRoot)) {
+        trace.push(`  -> rejected: path escapes workspace boundary`);
+        return {
+            resolved: false,
+            resolutionTrace: trace,
+            error: `Target file is outside workspace: ${parsed.filePath}`,
+        };
+    }
 
     if (!fs.existsSync(targetPath)) {
         trace.push(`  -> file not found: ${targetPath}`);

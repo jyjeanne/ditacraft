@@ -1,4 +1,4 @@
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { resolvePath } from '../workspace';
 
 interface DitaExplainKeyArgs {

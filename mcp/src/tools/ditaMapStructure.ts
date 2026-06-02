@@ -1,4 +1,4 @@
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { handleGetContextGraph, GetContextGraphParams, ContextGraph, MapNode, TopicRefNode } from '../../../server/src/features/contextGraph';
 import { resolvePath } from '../workspace';
 import * as path from 'path';

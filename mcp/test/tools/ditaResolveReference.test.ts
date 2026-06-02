@@ -82,4 +82,54 @@ suite('dita_resolve_reference', () => {
         assert.strictEqual(result.resolved, false);
     });
 
+    test('rejects path traversal in reference (security)', async () => {
+        const result = await ws.callTool('dita_resolve_reference', {
+            reference: '../../../../etc/passwd',
+            referenceType: 'href',
+            fromUri: 'topics/source.dita',
+        }) as Record<string, unknown>;
+        assert.strictEqual(result.resolved, false);
+        // Must not expose any file content
+        const text = JSON.stringify(result);
+        assert.ok(!text.includes('root:') && !text.includes('daemon:'));
+    });
+
+    test('rejects traversal with backslashes (Windows security)', async () => {
+        const result = await ws.callTool('dita_resolve_reference', {
+            reference: '..\\..\\..\\Windows\\System32\\drivers\\etc\\hosts',
+            referenceType: 'href',
+        }) as Record<string, unknown>;
+        assert.strictEqual(result.resolved, false);
+    });
+
+    test('cyclic keyref chain does not stack-overflow (returns resolved=false with error)', async () => {
+        // Set up a second workspace with cyclic key definitions
+        const cycleWs = await createTestWorkspace();
+        const cycleMap = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">',
+            '<map>',
+            '  <title>Cycle Map</title>',
+            '  <keydef keys="key-a" keyref="key-b"/>',
+            '  <keydef keys="key-b" keyref="key-a"/>',
+            '</map>',
+        ].join('\n');
+        cycleWs.addFile('cycle.ditamap', cycleMap);
+
+        const result = await cycleWs.callTool('dita_resolve_reference', {
+            reference: 'key-a',
+            referenceType: 'keyref',
+        }) as Record<string, unknown>;
+
+        // Must return gracefully — not crash the server
+        assert.strictEqual(typeof result, 'object');
+        // Should be unresolved or return cycle error
+        assert.ok(
+            result.resolved === false || typeof result.error === 'string',
+            `Expected unresolved or error, got: ${JSON.stringify(result)}`,
+        );
+
+        await cycleWs.cleanup();
+    });
+
 });

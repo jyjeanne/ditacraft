@@ -1,9 +1,10 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-import type { McpContext } from '../server';
+import type { McpContext } from '../types';
 import { resolvePath } from '../workspace';
 import { log } from '../logger';
+import { discoverRootMap } from '../utils/mapDiscovery';
 
 interface DitaKeySpaceArgs {
     mapUri?: string;
@@ -49,10 +50,9 @@ export async function handleDitaKeySpace(
         }
         rootMapPath = discovered;
     }
-
     log('debug', `Building key space for root map: ${rootMapPath}`);
 
-    const keySpace = await ctx.keySpaceService.buildKeySpace(rootMapPath);
+    const _keySpace = await ctx.keySpaceService.buildKeySpace(rootMapPath);
     const allKeys = await ctx.keySpaceService.getAllKeys(rootMapPath);
 
     const keys: KeyEntry[] = [];
@@ -91,31 +91,4 @@ export async function handleDitaKeySpace(
         totalKeys: keys.length,
         keys,
     };
-}
-
-function discoverRootMap(workspaceRoot: string): string | null {
-    // Heuristic: look for *.ditamap files, prefer ones at the root level
-    const candidates: string[] = [];
-    const scanDir = (dir: string, depth: number): void => {
-        if (depth > 3) return;
-        let entries: fs.Dirent[];
-        try {
-            entries = fs.readdirSync(dir, { withFileTypes: true });
-        } catch {
-            return;
-        }
-        for (const entry of entries) {
-            if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
-                scanDir(path.join(dir, entry.name), depth + 1);
-            } else if (entry.isFile() && entry.name.endsWith('.ditamap')) {
-                candidates.push(path.join(dir, entry.name));
-            }
-        }
-    };
-
-    scanDir(workspaceRoot, 0);
-
-    // Prefer maps directly in workspace root
-    const rootMaps = candidates.filter((c) => path.dirname(c) === workspaceRoot);
-    return rootMaps.length > 0 ? rootMaps[0] : (candidates.length > 0 ? candidates[0] : null);
 }

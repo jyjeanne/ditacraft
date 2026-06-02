@@ -87,6 +87,21 @@ export function validateWithinWorkspace(filePath: string, workspaceRoot: string)
 }
 
 /**
+ * Convert a `file://` URI to a filesystem path, correctly handling both Unix
+ * (`file:///workspace/a.dita` → `/workspace/a.dita`) and Windows
+ * (`file:///C:/path/a.dita` → `C:/path/a.dita`).
+ */
+export function fileUriToFsPath(uri: string): string {
+    let p = uri.slice('file://'.length);
+    p = decodeURIComponent(p);
+    // Windows: /C:/path → C:/path
+    if (/^\/[A-Za-z]:/.test(p)) {
+        p = p.slice(1);
+    }
+    return p;
+}
+
+/**
  * Check if a file exists at the resolved path.
  */
 export function fileExists(fileUri: string, workspaceRoot: string): boolean {
@@ -94,7 +109,7 @@ export function fileExists(fileUri: string, workspaceRoot: string): boolean {
     if (!resolved) {
         return false;
     }
-    const fsPath = resolved.replace(/^file:\/\/\/?/, '');
+    const fsPath = fileUriToFsPath(resolved);
     try {
         return fs.existsSync(fsPath);
     } catch {

@@ -76,6 +76,37 @@ suite('DiagnosticsStore', () => {
         assert.ok(result.diagnostics[0].file.includes('topics'));
     });
 
+    suite('globToRegex anchoring (regression for *.dita matching .ditamap)', () => {
+
+        test('*.dita does NOT match .ditamap files', () => {
+            const store = new DiagnosticsStore();
+            store.update('file:///ws/topics/a.ditamap', [makeDiag('E1', 'Err', 1, 1)]);
+            store.update('file:///ws/topics/b.dita', [makeDiag('E2', 'Err', 1, 1)]);
+            const result = store.query({ filePattern: '*.dita' });
+            assert.strictEqual(result.totalCount, 1);
+            assert.ok(result.diagnostics[0].code === 'E2');
+        });
+
+        test('topics/* matches files in topics/ but not other/', () => {
+            const store = new DiagnosticsStore();
+            store.update('file:///ws/topics/a.dita', [makeDiag('E1', 'Err', 1, 1)]);
+            store.update('file:///ws/other/a.dita', [makeDiag('E2', 'Err', 1, 1)]);
+            const result = store.query({ filePattern: 'topics/*' });
+            assert.strictEqual(result.totalCount, 1);
+            assert.strictEqual(result.diagnostics[0].code, 'E1');
+        });
+
+        test('**/*.dita matches dita files at any depth', () => {
+            const store = new DiagnosticsStore();
+            store.update('file:///ws/a/b/c.dita', [makeDiag('E1', 'Err', 1, 1)]);
+            store.update('file:///ws/a/b/c.ditamap', [makeDiag('E2', 'Err', 1, 1)]);
+            const result = store.query({ filePattern: '**/*.dita' });
+            assert.strictEqual(result.totalCount, 1);
+            assert.strictEqual(result.diagnostics[0].code, 'E1');
+        });
+
+    });
+
     test('query() respects limit', () => {
         const store = new DiagnosticsStore();
         store.update('file:///ws/a.dita', [
@@ -110,5 +141,32 @@ suite('DiagnosticsStore', () => {
         store.update('file:///ws/valid.dita', []);
         const result = store.query();
         assert.strictEqual(result.totalCount, 0);
+    });
+
+    suite('globToRegex path-boundary anchor (fix: (?:^|/) prefix)', () => {
+
+        test('topics/*.dita does NOT match file in bad-topics/ directory', () => {
+            const store = new DiagnosticsStore();
+            store.update('file:///ws/bad-topics/a.dita', [makeDiag('E1', 'Err', 1, 1)]);
+            store.update('file:///ws/topics/b.dita', [makeDiag('E2', 'Err', 1, 1)]);
+
+            const result = store.query({ filePattern: 'topics/*.dita' });
+            assert.strictEqual(result.totalCount, 1, 'should only match topics/, not bad-topics/');
+            assert.ok(result.diagnostics[0].file.includes('/topics/b.dita'));
+        });
+
+        test('topics/*.dita does NOT match sub-topics/ directory', () => {
+            const store = new DiagnosticsStore();
+            store.update('file:///ws/sub-topics/c.dita', [makeDiag('E1', 'Err', 1, 1)]);
+            const result = store.query({ filePattern: 'topics/*.dita' });
+            assert.strictEqual(result.totalCount, 0, 'sub-topics/ should not match topics/ pattern');
+        });
+
+        test('topics/*.dita matches a file directly in topics/', () => {
+            const store = new DiagnosticsStore();
+            store.update('file:///ws/topics/d.dita', [makeDiag('E1', 'Err', 1, 1)]);
+            const result = store.query({ filePattern: 'topics/*.dita' });
+            assert.strictEqual(result.totalCount, 1);
+        });
     });
 });
