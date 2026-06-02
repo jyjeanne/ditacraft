@@ -58,6 +58,10 @@
                     <dd>Dedicated DitaCraft sidebar with three tree views: DITA Explorer (map hierarchy browser), Key Space (defined/undefined/unused keys), and Diagnostics (validation issues grouped by file or severity). Includes file decoration badges for validation status and root map selector in the status bar.</dd>
                 </dlentry>
                 <dlentry>
+                    <dt>AI Features</dt>
+                    <dd>Copilot-powered assistance for DITA authoring: restructure maps with a plain-language instruction, explain validation errors, analyze the semantic structure of any DITA element, and discover conref/keyref reuse opportunities. Requires GitHub Copilot (or a configured Anthropic, OpenAI, or Ollama provider). See <xref keyref="ai-features"/> for details.</dd>
+                </dlentry>
+                <dlentry>
                     <dt>Root Map Management</dt>
                     <dd>Explicitly set a root map for your project to control key resolution, cross-reference validation, and subject scheme discovery. Status bar indicator shows the current root map. See <xref keyref="root-map"/> for details.</dd>
                 </dlentry>
@@ -80,7 +84,7 @@
                 <li><b>Folding:</b> Collapse sections, steps, and other block elements</li>
                 <li><b>Outline View:</b> Navigate document structure in the Outline panel</li>
                 <li><b>Workspace Symbols:</b> Search for elements across all open files with <uicontrol>Ctrl+T</uicontrol></li>
-                <li><b>Code Actions:</b> Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs, DITA rules violations (add <codeph>@otherrole</codeph>, remove deprecated <codeph>&lt;indextermref&gt;</codeph>, convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element, add missing <codeph>&lt;alt&gt;</codeph>)</li>
+                <li><b>Code Actions:</b> Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs, DITA rules violations (add <codeph>@otherrole</codeph>, remove deprecated <codeph>&lt;indextermref&gt;</codeph>, convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element, add missing <codeph>&lt;alt&gt;</codeph>) plus AI-powered fixes (<codeph>✨ Fix with DitaCraft AI</codeph>)</li>
                 <li><b>XML Formatting:</b> Format DITA documents with proper indentation and inline/block handling</li>
             </ul>
         </section>

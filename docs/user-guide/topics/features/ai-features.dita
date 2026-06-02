@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="ai-features">
+    <title>AI Features</title>
+    <shortdesc>DitaCraft integrates GitHub Copilot and other LLM providers to assist with DITA map
+        restructuring, error explanation, element analysis, and content reuse discovery.</shortdesc>
+
+    <conbody>
+
+        <section id="overview">
+            <title>Overview</title>
+            <p>DitaCraft's AI features connect to an LLM provider — GitHub Copilot by default — and
+                layer context-aware DITA intelligence on top of plain chat. All AI commands use the
+                current document's DITA context (topic hierarchy, key space, validation
+                diagnostics), not just raw text.</p>
+            <p>Supported providers, tried in order:</p>
+            <ol>
+                <li><b>GitHub Copilot</b> — integrated; no API key required when Copilot is
+                    installed.</li>
+                <li><b>Anthropic (Claude)</b> — requires an API key stored via <uicontrol>DitaCraft:
+                        Configure AI</uicontrol>.</li>
+                <li><b>OpenAI (GPT-4o)</b> — requires an API key stored via <uicontrol>DitaCraft:
+                        Configure AI</uicontrol>.</li>
+                <li><b>Ollama</b> — local inference; requires Ollama running on
+                        <codeph>localhost:11434</codeph> and
+                        <codeph>ditacraft.ai.provider.ollama.enabled</codeph> set to
+                        <codeph>true</codeph>.</li>
+            </ol>
+            <p>Use <b>DitaCraft: Configure AI</b> from the Command Palette to view provider status
+                and store API keys securely via VS Code SecretStorage.</p>
+        </section>
+
+        <section id="configure-ai">
+            <title>Configure AI</title>
+            <p>Run <menucascade><uicontrol>Command Palette</uicontrol><uicontrol>DitaCraft: Configure AI</uicontrol></menucascade> to open the AI Settings panel.</p>
+            <p>The panel shows:</p>
+            <ul>
+                <li>Live status for each provider (available / not configured / unavailable)</li>
+                <li>Input fields for Anthropic and OpenAI API keys. Keys are stored in VS Code
+                    SecretStorage (OS keychain integration) — never in plain-text settings or
+                    workspace files.</li>
+                <li>AI mode selector (<codeph>auto</codeph>, <codeph>copilot-only</codeph>,
+                        <codeph>byok-only</codeph>, or <codeph>local-only</codeph>)</li>
+            </ul>
+            <note type="tip">With <codeph>auto</codeph> mode (the default), DitaCraft tries each
+                provider in priority order and falls back automatically if one is
+                unavailable.</note>
+        </section>
+
+        <section id="chat-participant">
+            <title>@ditacraft Chat Participant</title>
+            <p>DitaCraft registers a Copilot Chat participant named <b>@ditacraft</b>. Open the
+                Copilot Chat panel (<uicontrol>Ctrl+Alt+I</uicontrol>) and prefix your message with
+                    <codeph>@ditacraft</codeph> to access the following slash commands.</p>
+
+            <dl>
+                <dlentry>
+                    <dt>/restructure</dt>
+                    <dd>
+                        <p>Proposes a restructured DITA map based on a plain-language intention.</p>
+                        <p><b>Usage:</b>
+                            <codeph>@ditacraft /restructure &lt;intention&gt;</codeph></p>
+                        <p><b>Example:</b>
+                            <codeph>@ditacraft /restructure Group topics by audience: admin first,
+                                then end user</codeph></p>
+                        <p>DitaCraft builds a DITA context snapshot from the active
+                                <filepath>.ditamap</filepath>, sends it to the LLM, and streams back
+                            valid DITA XML. The response is validated by the LSP before being
+                            presented. The active tab must be a <filepath>.ditamap</filepath>
+                            file.</p>
+                    </dd>
+                </dlentry>
+                <dlentry>
+                    <dt>/validate</dt>
+                    <dd>
+                        <p>Explains a DITA validation diagnostic at the cursor position in plain
+                            language.</p>
+                        <p><b>Usage:</b>
+                            <codeph>@ditacraft /validate [optional question]</codeph></p>
+                        <p><b>Example:</b>
+                            <codeph>@ditacraft /validate why does DITA require unique IDs?</codeph></p>
+                        <p>DitaCraft reads the first diagnostic on the current line, includes the
+                            surrounding XML context, and asks the LLM to explain the error and
+                            suggest a fix. If no diagnostics are present, the response confirms the
+                            file is valid.</p>
+                    </dd>
+                </dlentry>
+                <dlentry>
+                    <dt>/explain</dt>
+                    <dd>
+                        <p>Explains the semantic structure and purpose of the selected DITA
+                            element.</p>
+                        <p><b>Usage:</b>
+                            <codeph>@ditacraft /explain [focus instruction]</codeph></p>
+                        <p><b>Example:</b>
+                            <codeph>@ditacraft /explain focus on accessibility best
+                                practices</codeph></p>
+                        <p>Select an XML element in the editor before running this command. The
+                            selection is sent to the LLM inside a code fence; any focus instruction
+                            you provide is sent separately as context (not embedded inside the
+                            XML).</p>
+                    </dd>
+                </dlentry>
+                <dlentry>
+                    <dt>/suggest-reuse</dt>
+                    <dd>
+                        <p>Identifies content reuse opportunities in the current DITA map using
+                                <codeph>conref</codeph> and <codeph>keyref</codeph>
+                            patterns.</p>
+                        <p><b>Usage:</b>
+                            <codeph>@ditacraft /suggest-reuse [focus instruction]</codeph></p>
+                        <p><b>Example:</b>
+                            <codeph>@ditacraft /suggest-reuse focus on installation topics
+                                only</codeph></p>
+                        <p>DitaCraft analyzes the map structure and topic content, then returns a
+                            list of concrete reuse suggestions with code examples. The active tab
+                            must be a <filepath>.ditamap</filepath> file.</p>
+                    </dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="restructure-map-command">
+            <title>F2: Restructure Map Command</title>
+            <p>The <b>DitaCraft: Restructure Map with AI</b> command provides a full
+                diff-and-apply workflow for restructuring a DITA map.</p>
+            <p><b>How to use:</b></p>
+            <ol>
+                <li>Open a <filepath>.ditamap</filepath> file (it must be the active tab).</li>
+                <li>Open the Command Palette and run <uicontrol>DitaCraft: Restructure Map with
+                        AI</uicontrol>. Alternatively, right-click the file in the Explorer and
+                    choose <uicontrol>Restructure Map with AI</uicontrol>.</li>
+                <li>Enter your restructuring intention in the InputBox that appears.</li>
+                <li>DitaCraft opens a <b>diff editor</b> showing the current map (left) and the
+                    proposed restructure (right).</li>
+                <li>A dialog asks <b>Apply restructured map?</b> — click <uicontrol>Apply</uicontrol>
+                    to save or <uicontrol>Cancel</uicontrol> to discard.</li>
+            </ol>
+            <p>All original <codeph>href</codeph> attributes are preserved. The change is undoable
+                with <uicontrol>Ctrl+Z</uicontrol>.</p>
+        </section>
+
+        <section id="ai-quick-fix">
+            <title>F3: AI Quick Fix</title>
+            <p>For supported diagnostic codes, DitaCraft offers an <b>✨ Fix with DitaCraft AI</b>
+                code action alongside the built-in quick fixes.</p>
+            <p>To use: click the lightbulb icon or press <uicontrol>Ctrl+.</uicontrol> on a
+                flagged element, then select <uicontrol>✨ Fix with DitaCraft AI</uicontrol>.</p>
+            <p>Supported diagnostic codes:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Code</stentry>
+                    <stentry>Error type</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>DITA-CM-001/002/003</codeph></stentry>
+                    <stentry>Invalid child element (content model violation)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-XREF-001</codeph></stentry>
+                    <stentry>Missing or broken <codeph>href</codeph> target file</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-STRUCT-003/004/005</codeph></stentry>
+                    <stentry>Missing required attribute or structural violation</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-STRUCT-008</codeph></stentry>
+                    <stentry>Missing <codeph>topicref</codeph> target</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-XREF-003/004</codeph></stentry>
+                    <stentry>Broken <codeph>conref</codeph> or cross-reference</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-DTD-001</codeph>, <codeph>DITA-RNG-001</codeph></stentry>
+                    <stentry>DTD or RelaxNG schema violation</stentry>
+                </strow>
+            </simpletable>
+            <note type="tip">The AI quick fix is context-aware: it reads the surrounding XML before
+                proposing the fix, so the result respects your content model.</note>
+        </section>
+
+        <section id="ai-completion">
+            <title>F4: AI Completion</title>
+            <p>When <codeph>ditacraft.ai.completion.enabled</codeph> is <codeph>true</codeph>
+                (default), DitaCraft appends AI-suggested elements to the standard LSP completion
+                list.</p>
+            <p>AI completions are identified by the <b>(AI)</b> suffix and the
+                    <codeph>DitaCraft AI</codeph> detail label. They appear below the native LSP
+                completions (sorted last). The AI suggestion is generated with a 500 ms timeout
+                budget — if the LLM does not respond in time, only native completions are
+                shown.</p>
+            <p>To disable AI completions, set
+                    <codeph>ditacraft.ai.completion.enabled</codeph> to <codeph>false</codeph> in
+                Settings.</p>
+        </section>
+
+        <section id="ai-resilience">
+            <title>Resilience and Fallback</title>
+            <p>DitaCraft uses a <b>circuit breaker</b> to prevent cascading failures when an LLM
+                provider is unavailable:</p>
+            <ul>
+                <li>After 3 consecutive failures within 5 minutes, the provider's circuit opens and
+                    no further calls are attempted for 10 minutes.</li>
+                <li>After the cooldown, one probe request is sent (HALF_OPEN state). If it
+                    succeeds, the circuit closes; if not, the cooldown resets.</li>
+                <li>Cancelled requests (user pressed Escape) do not count as failures.</li>
+            </ul>
+            <p>When the active provider's circuit is open, DitaCraft automatically falls back to the
+                next available provider in the cascade (Copilot → Anthropic → OpenAI → Ollama).</p>
+        </section>
+
+        <section id="ai-metrics">
+            <title>Metrics and Telemetry</title>
+            <p>When <codeph>ditacraft.ai.telemetry.enabled</codeph> is <codeph>true</codeph>,
+                DitaCraft logs AI call metrics to the <uicontrol>DitaCraft</uicontrol> output
+                channel in the format:</p>
+            <codeblock>[AI] ✔ validate via copilot 1842ms ~340tok</codeblock>
+            <p>Each line shows: command name, provider used, latency in milliseconds, and estimated
+                token count. Failed calls show <codeph>✘</codeph> instead of
+                <codeph>✔</codeph>.</p>
+            <p>Metrics are retained in memory (capped at 1,000 entries) and cleared on extension
+                restart. They are never sent to any remote service.</p>
+        </section>
+
+        <section id="ai-settings">
+            <title>AI Settings Reference</title>
+            <simpletable>
+                <sthead>
+                    <stentry>Setting</stentry>
+                    <stentry>Type</stentry>
+                    <stentry>Default</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>ditacraft.ai.mode</codeph></stentry>
+                    <stentry>string</stentry>
+                    <stentry><codeph>auto</codeph></stentry>
+                    <stentry>Provider cascade mode: <codeph>auto</codeph>,
+                            <codeph>copilot-only</codeph>, <codeph>byok-only</codeph> (Anthropic or
+                        OpenAI only), or <codeph>local-only</codeph> (Ollama only)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.ai.completion.enabled</codeph></stentry>
+                    <stentry>boolean</stentry>
+                    <stentry><codeph>true</codeph></stentry>
+                    <stentry>Show AI-suggested completions alongside LSP completions</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.ai.provider.ollama.enabled</codeph></stentry>
+                    <stentry>boolean</stentry>
+                    <stentry><codeph>true</codeph></stentry>
+                    <stentry>Enable Ollama local inference provider</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.ai.provider.ollama.baseUrl</codeph></stentry>
+                    <stentry>string</stentry>
+                    <stentry><codeph>http://localhost:11434</codeph></stentry>
+                    <stentry>Base URL for the Ollama server</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.ai.provider.ollama.model</codeph></stentry>
+                    <stentry>string</stentry>
+                    <stentry><codeph>llama3</codeph></stentry>
+                    <stentry>Ollama model name to use</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>ditacraft.ai.telemetry.enabled</codeph></stentry>
+                    <stentry>boolean</stentry>
+                    <stentry><codeph>false</codeph></stentry>
+                    <stentry>Log AI call metrics (provider, latency, tokens) to the output
+                        channel</stentry>
+                </strow>
+            </simpletable>
+            <note type="caution">Setting <codeph>ditacraft.ai.mode</codeph> to
+                    <codeph>local-only</codeph> while <codeph>ditacraft.ai.provider.ollama.enabled</codeph>
+                is <codeph>false</codeph> will produce a configuration conflict error on
+                startup. Use <codeph>byok-only</codeph> if you want to use only your Anthropic or
+                OpenAI key without Copilot or Ollama.</note>
+        </section>
+
+    </conbody>
+</concept>

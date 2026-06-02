@@ -37,11 +37,19 @@ import { DitaFileDecorationProvider } from './providers/ditaFileDecorationProvid
 import { KeySpaceViewProvider } from './providers/keySpaceViewProvider';
 import { DiagnosticsViewProvider } from './providers/diagnosticsViewProvider';
 import { startLanguageClient, stopLanguageClient, getLanguageClient, waitForLanguageClientReady } from './languageClient';
+import { LLMRouterService, SecretManager, DitaCraftLLMConfig, AIServiceOrchestrator, MetricsCollector } from './llm';
+import { configureAICommand, restructureMapCommand } from './commands';
+import { createDitacraftParticipant } from './chat/ditacraftParticipant';
+import { AIQuickFixProvider, AI_QUICKFIX_COMMAND, safeExecuteAiQuickFix } from './providers/aiQuickFixProvider';
+import { registerAICompletionProvider } from './providers/aiCompletionProvider';
 
 // Global extension state
 let ditaOtWrapper: DitaOtWrapper;
 let outputChannel: vscode.OutputChannel;
 let rootMapStatusBarItem: vscode.StatusBarItem;
+let llmRouterService: LLMRouterService;
+let secretManager: SecretManager;
+let aiOrchestrator: AIServiceOrchestrator;
 
 /**
  * Extension activation function
@@ -174,6 +182,73 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Clean up old logs (keep 7 days)
         logger.clearOldLogs(7);
+
+        // Initialize LLM router (non-blocking — gracefully degrades if no provider)
+        outputChannel.appendLine('Initializing LLM router...');
+        secretManager = new SecretManager(context.secrets);
+        llmRouterService = new LLMRouterService();
+
+        // Attach metrics collector to the router
+        const metricsCollector = new MetricsCollector(outputChannel);
+        llmRouterService.setMetrics(metricsCollector);
+
+        fireAndForget(
+            (async () => {
+                const aiConfig = await buildLLMConfig(secretManager);
+                await llmRouterService.initialize(aiConfig);
+            })(),
+            'LLMRouterService.initialize'
+        );
+        // Register configureAI command (needs router + secretManager)
+        context.subscriptions.push(
+            vscode.commands.registerCommand('ditacraft.configureAI', () =>
+                configureAICommand(context, llmRouterService, secretManager)
+            )
+        );
+
+        // ── Phase 2: AI Orchestrator, Chat Participant, Commands ─────────
+        aiOrchestrator = new AIServiceOrchestrator(llmRouterService, getLanguageClient);
+
+        // Register @ditacraft Chat Participant
+        if ('chat' in vscode) {
+            const participant = createDitacraftParticipant(context, aiOrchestrator);
+            context.subscriptions.push(participant);
+        }
+
+        // Restructure Map command (F2)
+        context.subscriptions.push(
+            vscode.commands.registerCommand('ditacraft.restructureMap', (uri?: vscode.Uri) =>
+                restructureMapCommand(aiOrchestrator, uri)
+            )
+        );
+
+        // AI Quick Fix command (F3) + Code Action Provider
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                AI_QUICKFIX_COMMAND,
+                (documentUri: vscode.Uri, diagnostic: vscode.Diagnostic) =>
+                    safeExecuteAiQuickFix(aiOrchestrator, documentUri, diagnostic)
+            )
+        );
+        const DITA_SELECTOR: vscode.DocumentSelector = [
+            { scheme: 'file', language: 'dita' },
+            { scheme: 'file', pattern: '**/*.ditamap' },
+            { scheme: 'file', pattern: '**/*.bookmap' },
+        ];
+        context.subscriptions.push(
+            vscode.languages.registerCodeActionsProvider(
+                DITA_SELECTOR,
+                new AIQuickFixProvider(aiOrchestrator),
+                { providedCodeActionKinds: AIQuickFixProvider.providedCodeActionKinds }
+            )
+        );
+
+        // AI Completion Provider (F4 — Phase 3)
+        context.subscriptions.push(
+            registerAICompletionProvider(aiOrchestrator)
+        );
+
+        outputChannel.appendLine('LLM router and AI features initialized');
 
         // Verify DITA-OT installation on activation (async - don't wait)
         verifyDitaOtInstallation();
@@ -364,6 +439,27 @@ function sendInitialRootMapSetting(): void {
             updateRootMapStatusBar(rootMap);
         }
     }
+}
+
+/**
+ * Build the LLM config from VS Code settings + SecretManager keys.
+ */
+async function buildLLMConfig(sm: SecretManager): Promise<DitaCraftLLMConfig> {
+    const cfg = vscode.workspace.getConfiguration('ditacraft.ai');
+    const [anthropicKey, openaiKey] = await Promise.all([
+        sm.getApiKey('anthropic'),
+        sm.getApiKey('openai'),
+    ]);
+    return {
+        mode: cfg.get<DitaCraftLLMConfig['mode']>('mode', 'auto'),
+        anthropicApiKey: anthropicKey,
+        anthropicModel: cfg.get<string>('provider.anthropic.model', 'claude-3-5-sonnet-20241022'),
+        openaiApiKey: openaiKey,
+        openaiModel: cfg.get<string>('provider.openai.model', 'gpt-4o'),
+        ollamaEnabled: cfg.get<boolean>('provider.ollama.enabled', true),
+        ollamaBaseUrl: cfg.get<string>('provider.ollama.baseUrl', 'http://localhost:11434'),
+        ollamaModel: cfg.get<string>('provider.ollama.model', 'llama3'),
+    };
 }
 
 /**

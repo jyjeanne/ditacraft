@@ -22,7 +22,8 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
 📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🧪 **1564+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🤖 **AI-Powered Features** - GitHub Copilot integration: `@ditacraft` chat participant, AI Quick Fix, AI Completion, and map restructuring
+🧪 **1537+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (~80 files, bookmap structure)
 
 ## Features
@@ -44,7 +45,21 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **Diagnostics**: XML well-formedness, DITA structure, ID, cross-reference, scope consistency, circular reference detection, DITA rules (43 Schematron-equivalent rules including DITA 2.0), profiling/subject scheme, DTD (OASIS catalog with DITA 1.2/1.3/2.0), optional RelaxNG, workspace-level analysis, DITAVAL validation, custom regex rules, per-rule severity overrides, and comment-based rule suppression
 - **Localization**: All diagnostic messages translatable via i18n system (English + French)
 
-### 📝 **DITA Editing**
+### 🤖 **AI-Powered Features** (GitHub Copilot Integration)
+- **`@ditacraft` Chat Participant** — Interact with your DITA workspace directly in GitHub Copilot Chat:
+  - `/restructure` — AI-driven DITA map reorganization with diff review before applying
+  - `/validate` — Get AI explanations for validation errors with fix suggestions
+  - `/explain` — Plain-language explanations of DITA structure and element usage
+  - `/suggest-reuse` — Find content reuse opportunities (shared topics, conrefs)
+- **F2: AI Map Restructure** — Bound to `ditacraft.restructureMap`; AI proposes a restructured map hierarchy; shows diff and asks for confirmation before writing
+- **F3: AI Quick Fix** — AI-generated fixes for 12 diagnostic codes (CM-001/002/003, XREF-001/003/004, STRUCT-003/004/005/008, DTD-001, XML-001) via Code Actions → "Fix with AI"
+- **F4: AI Completion** — Enriched IntelliSense: AI suggests element content and attribute values in context
+- **Provider Cascade** — Auto mode: Copilot → Anthropic → OpenAI → Ollama; supports `copilot-only`, `byok-only`, `local-only` modes
+- **Circuit Breaker** — Per-provider resilience: 3 failures in 5 min opens the breaker (10 min cooldown); zero-dependency on unavailable providers
+- **Metrics Dashboard** — Request counts, latency, and error rates per provider; visible in the Configure AI panel
+- **DitaCraft: Configure AI** — Guided setup for provider selection, API keys (stored securely via OS keychain), and feature toggles
+
+
 - Syntax highlighting for `.dita`, `.ditamap`, `.bookmap`, and `.ditaval` files
 - Intelligent code snippets and auto-completion (21 comprehensive snippets)
 - Support for all DITA topic types (concept, task, reference, topic, glossentry, troubleshooting)
@@ -59,7 +74,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
   - Hover tooltip showing target filename and reference type
   - Automatically resolves paths relative to the map file location
   - Skips external URLs (http://, https://) - they won't be underlined
-- **Full Key Space Resolution** (complete as of v0.7.3)
+- **Full Key Space Resolution** (complete as of v0.7.4)
   - Automatically discovers root maps in your workspace
   - Builds and caches key space from map hierarchies (DITA 1.3 spec-compliant BFS)
   - Resolves `@keyref`, `@conkeyref`, and key-based references including multi-hop keyref chains
@@ -371,6 +386,8 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Clear Root Map** | - | Revert to automatic root map discovery |
 | **DITA: Validate Workspace** | - | Validate all DITA files across workspace |
 | **DITA: Validate Entire Guide** | - | Full DITA-OT validation of root map with report panel |
+| **DITA: Configure AI Settings** | - | Configure AI provider, API keys, and feature toggles |
+| **DITA: Restructure Map with AI** | `F2` | AI-driven map restructuring with diff review |
 | **DITA: Setup cSpell Configuration** _(deprecated)_ | - | Create a lean cSpell config for DITA files |
 
 ## Spell Checking with cSpell
@@ -455,6 +472,273 @@ Create `.cspellrc.json` at your workspace root:
 | `ditacraft.customRulesFile` | string | `""` | Absolute path to a JSON file defining custom regex validation rules |
 
 📖 **[Full Configuration Guide](CONFIGURATION.md)**
+
+## AI Provider Configuration
+
+DitaCraft supports four LLM backends with automatic fallback. This section shows how to set up each one.
+
+### Provider Overview
+
+| Provider | Requires | Privacy | Best For |
+|----------|----------|---------|----------|
+| **GitHub Copilot** | Active Copilot subscription | Data sent to GitHub | Default — zero config |
+| **Anthropic Claude** | `ANTHROPIC_API_KEY` (BYOK) | Data sent to Anthropic | Best reasoning quality |
+| **OpenAI (ChatGPT / GPT-4o)** | `OPENAI_API_KEY` (BYOK) | Data sent to OpenAI | Broad compatibility |
+| **Ollama (local)** | Ollama running on your machine | **Stays local** | Air-gapped / privacy-first |
+
+The active mode is set with `ditacraft.ai.mode`:
+
+```json
+{
+  "ditacraft.ai.mode": "auto"
+}
+```
+
+| Value | Behaviour |
+|-------|-----------|
+| `"auto"` | Copilot first, then Anthropic, then OpenAI, then Ollama |
+| `"copilot-only"` | Only GitHub Copilot (error if no Copilot subscription) |
+| `"byok-only"` | Only Anthropic / OpenAI (skips Copilot entirely) |
+| `"local-only"` | Only Ollama — **no data leaves your machine** |
+
+---
+
+### 🤖 GitHub Copilot (Default — No Setup Required)
+
+DitaCraft uses the built-in `vscode.lm` API; no npm package or API key needed.
+
+**Requirements:**
+- GitHub Copilot extension installed and signed in
+- Active Copilot Individual, Business, or Enterprise subscription
+
+**Steps:**
+1. Install the [GitHub Copilot extension](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot)
+2. Sign in with your GitHub account
+3. DitaCraft auto-detects Copilot and uses it immediately — nothing else to configure
+
+**Optional override (to use a specific Copilot model):**
+```json
+{
+  "ditacraft.ai.mode": "copilot-only"
+}
+```
+
+---
+
+### 🧠 Anthropic Claude (BYOK)
+
+Claude is the highest-quality model available for structured content tasks like DITA map restructuring.
+
+**Supported models:** `claude-3-5-sonnet-20241022` (default), `claude-3-opus-20240229`, `claude-3-haiku-20240307`
+
+**Steps:**
+1. Get an API key from [console.anthropic.com](https://console.anthropic.com/)
+2. Open the Command Palette and run **DitaCraft: Configure AI Settings**
+3. In the panel, paste your key into the **Anthropic** field and click **Save Key**
+4. The key is stored in your OS keychain via `vscode.SecretStorage` — never in `settings.json`
+5. Optionally choose your model:
+
+```json
+{
+  "ditacraft.ai.mode": "byok-only",
+  "ditacraft.ai.provider.anthropic.model": "claude-3-5-sonnet-20241022"
+}
+```
+
+> **Key format:** Anthropic API keys start with `sk-ant-`. Keys not matching this prefix are rejected before any network call.
+
+---
+
+### 💬 OpenAI / ChatGPT (BYOK)
+
+Supports GPT-4o (default), GPT-4 Turbo, and other OpenAI Chat Completions models.
+
+**Supported models:** `gpt-4o` (default), `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`
+
+**Steps:**
+1. Get an API key from [platform.openai.com](https://platform.openai.com/api-keys)
+2. Run **DitaCraft: Configure AI Settings** from the Command Palette
+3. Paste your key into the **OpenAI** field and click **Save Key**
+4. Optionally set the model:
+
+```json
+{
+  "ditacraft.ai.mode": "byok-only",
+  "ditacraft.ai.provider.openai.model": "gpt-4o"
+}
+```
+
+> **OpenAI-compatible APIs (LM Studio, Jan, etc.):** These are not yet supported natively, but you can expose them via Ollama's OpenAI-compatible proxy endpoint in the meantime.
+
+---
+
+### 🏠 Local LLM with Ollama (Air-Gapped / Privacy Mode)
+
+Ollama lets you run open-source models entirely on your machine — no data ever leaves your computer.
+
+**Install Ollama:** [ollama.ai](https://ollama.ai)
+
+**Recommended DITA-capable models:**
+
+| Model | Command | Context | Notes |
+|-------|---------|---------|-------|
+| `llama3` | `ollama pull llama3` | 8 k | Default; good general quality |
+| `llama3.1` | `ollama pull llama3.1` | 128 k | Large context — better for big maps |
+| `mistral` | `ollama pull mistral` | 8 k | Fast, lighter footprint |
+| `codellama` | `ollama pull codellama` | 16 k | Good for XML/structured content |
+| `gemma3` | `ollama pull gemma3` | 8 k | Google Gemma 3 (open weights) |
+| `phi3` | `ollama pull phi3` | 8 k | Microsoft Phi-3; compact and fast |
+
+**Steps:**
+1. Install and start Ollama: `ollama serve`
+2. Pull your preferred model: `ollama pull llama3`
+3. Configure DitaCraft:
+
+```json
+{
+  "ditacraft.ai.mode": "local-only",
+  "ditacraft.ai.provider.ollama.enabled": true,
+  "ditacraft.ai.provider.ollama.baseUrl": "http://localhost:11434",
+  "ditacraft.ai.provider.ollama.model": "llama3"
+}
+```
+
+4. Run **DitaCraft: Configure AI Settings** and click **Test Connection** to verify Ollama is reachable
+
+**Custom Ollama endpoint (remote server / Docker):**
+```json
+{
+  "ditacraft.ai.provider.ollama.baseUrl": "http://my-gpu-server:11434"
+}
+```
+
+> **Gemini via Ollama:** Google does not publish full Gemini weights, but you can run `gemma3` (Google's open-weights model) locally via `ollama pull gemma3`. For cloud Gemini (Gemini 1.5 Pro etc.), native support is planned in a future release.
+
+---
+
+### ☁️ Gemini (Google) — Planned
+
+Native Google Gemini support (`gemini-1.5-pro`, `gemini-1.5-flash`) is planned for a future release via the Google Generative AI SDK.
+
+**Workarounds available today:**
+- **Local Gemma** — run Google's open-weights model via Ollama: `ollama pull gemma3`
+- **OpenAI-compatible proxy** — expose Gemini through a proxy that implements the OpenAI Chat Completions API
+
+Track progress: see the [AI Roadmap](#milestone-7-advanced-ai-features-v090--planned) section.
+
+---
+
+### ⚙️ Full AI Settings Reference
+
+```json
+{
+  "ditacraft.ai.enabled": true,
+  "ditacraft.ai.mode": "auto",
+  "ditacraft.ai.provider.anthropic.model": "claude-3-5-sonnet-20241022",
+  "ditacraft.ai.provider.openai.model": "gpt-4o",
+  "ditacraft.ai.provider.ollama.enabled": true,
+  "ditacraft.ai.provider.ollama.baseUrl": "http://localhost:11434",
+  "ditacraft.ai.provider.ollama.model": "llama3",
+  "ditacraft.ai.context.maxTokens": 8000,
+  "ditacraft.ai.quickfix.enabled": true,
+  "ditacraft.ai.completion.enabled": true,
+  "ditacraft.ai.streaming.enabled": true
+}
+```
+
+---
+
+## MCP Server Integration (External AI Agents)
+
+DitaCraft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
+
+> **Status:** MCP server support is **planned** for v0.8.0. The LSP extension point (`dita/buildContextSnapshot`, `dita/getContextGraph`) is already implemented and will be wrapped in an MCP adapter. The configuration below documents the target interface.
+
+### What is MCP?
+
+[Model Context Protocol](https://modelcontextprotocol.io) is an open standard (by Anthropic) that lets AI agents call tools and read resources from external servers. Compatible agents include **opencode**, **Claude Desktop**, **Continue**, **Cursor**, and any MCP-aware tool.
+
+### Planned: DitaCraft MCP Server
+
+Once released, DitaCraft will expose these MCP tools:
+
+| Tool | Description |
+|------|-------------|
+| `dita_validate` | Validate a DITA file and return diagnostics as structured JSON |
+| `dita_context_snapshot` | Return context-aware XML snippet for the cursor position (L1/L2/L3) |
+| `dita_key_space` | List all defined keys and their resolved targets |
+| `dita_map_structure` | Return the full topic hierarchy of a DITA map |
+| `dita_resolve_reference` | Resolve an href/keyref/conref to its target file and element |
+
+And these MCP resources:
+
+| Resource | Description |
+|----------|-------------|
+| `dita://workspace/maps` | All DITA maps in the workspace |
+| `dita://workspace/diagnostics` | Current validation diagnostics |
+| `dita://workspace/keys` | Full key space |
+
+### Using DitaCraft with opencode (Planned)
+
+[opencode](https://opencode.ai) is a terminal-first AI coding agent. Once the MCP server ships, add DitaCraft to your opencode config:
+
+```jsonc
+// ~/.config/opencode/config.json  (example — target interface, not yet released)
+{
+  "mcp": {
+    "servers": {
+      "ditacraft": {
+        "type": "stdio",
+        "command": "node",
+        "args": ["/path/to/ditacraft-mcp/dist/server.js"],
+        "env": {
+          "WORKSPACE": "${workspaceFolder}"
+        }
+      }
+    }
+  }
+}
+```
+
+Then in opencode:
+```
+> @ditacraft validate my-guide/main.ditamap
+> @ditacraft what keys are defined in this workspace?
+> @ditacraft explain why DITA-STRUCT-003 is firing on chapter1.dita
+```
+
+### Using DitaCraft with Claude Desktop (Planned)
+
+```json
+// ~/Library/Application Support/Claude/claude_desktop_config.json
+{
+  "mcpServers": {
+    "ditacraft": {
+      "command": "node",
+      "args": ["/path/to/ditacraft-mcp/dist/server.js"],
+      "env": { "WORKSPACE": "/path/to/your/dita/project" }
+    }
+  }
+}
+```
+
+### Current Workaround via LSP (Available Now)
+
+Any tool that speaks **Language Server Protocol** can already connect to DitaCraft's server process directly:
+
+```json
+// .vscode/settings.json — point another LSP client to the running server
+{
+  "ditacraft.enableExternalLspAccess": true
+}
+```
+
+The server exposes the following custom LSP notifications/requests today:
+- `dita/buildContextSnapshot` — returns L1/L2/L3 DITA context for a given position
+- `dita/getContextGraph` — returns the dependency graph for a document
+- `dita/validateFragment` — validate an XML fragment against DITA rules
+
+> 🗺️ **Track MCP progress:** [GitHub Issues — label `mcp`](https://github.com/jyjeanne/ditacraft/labels/mcp)
 
 ## Supported Output Formats
 
@@ -781,7 +1065,28 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.7.3 (Current)
+### Version 0.7.4 (Current)
+**AI Integration — GitHub Copilot, Anthropic, OpenAI & Ollama**
+
+**AI Infrastructure:**
+- **LLMRouterService** — Provider cascade with automatic fallback: Copilot (`vscode.lm`) → Anthropic → OpenAI → Ollama; `auto`, `copilot-only`, `byok-only`, `local-only` modes
+- **CircuitBreaker** — Per-provider resilience: 3 failures in 5 min opens the breaker (10 min cooldown); AbortError (cancellations) never counted as failures
+- **MetricsCollector** — Rolling buffer (1000 entries) tracking request count, latency, and error rate per provider
+- **SecretManager** — API keys stored via `vscode.SecretStorage` (OS keychain); no plaintext settings
+
+**AI Features:**
+- **@ditacraft Chat Participant** — 4 slash commands: `/restructure`, `/validate`, `/explain`, `/suggest-reuse`
+- **F2: AI Map Restructure** — AI proposes restructured map hierarchy; diff view with user confirmation before writing
+- **F3: AI Quick Fix** — Code Actions "Fix with AI" for 12 diagnostic codes (CM-001/002/003, XREF-001/003/004, STRUCT-003/004/005/008, DTD-001, XML-001)
+- **F4: AI Completion** — AI-enriched IntelliSense for element content and attribute values
+- **Configure AI WebView** — Guided setup for provider selection, API keys, feature toggles, and live metrics
+
+**LSP Additions:**
+- `dita/getContextGraph`, `dita/validateFragment`, `dita/buildContextSnapshot` (Levels 1/2/3 sliding window)
+
+**1537+ Total Tests** — Client (642) + Server (895)
+
+### Version 0.7.3
 **Key Space Algorithm Completion, Validation Pipeline Hardening, TypeScript 6.0 & TypesXML 2.0**
 
 **Key Space (7-gap improvement plan complete):**
@@ -808,7 +1113,7 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 - **LSP Async File I/O** — All sync `fs` calls in `hover.ts` converted to `fs/promises`; `[object Promise]` in hover output fixed
 - **Security: DOCTYPE `]>` Bypass Fix** — Quote-aware regex prevents `]>` inside quoted entity values from terminating internal-subset scan early (billion-laughs / XXE bypass)
 - **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early `>` termination inside `SYSTEM` identifiers
-- **1564+ Total Tests** — Client (683) + Server (881); key space service tests expanded from 7 to 100+
+- **1537+ Total Tests** — Client (683) + Server (881); key space service tests expanded from 7 to 100+
 
 ### Version 0.7.2
 **Advanced Validation Controls, Custom Rules, Architecture Improvements**

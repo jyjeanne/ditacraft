@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.7.3)
+## Current Status (v0.7.4)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -61,7 +61,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **12 LSP Settings** | Complete | 100% |
 | **Glossref Element Support** | Complete | 100% |
 | **Glossentry/Troubleshooting Validation** | Complete | 100% |
-| **Server Test Suite (881+ tests)** | Complete | 100% |
+| **Server Test Suite (895+ tests)** | Complete | 100% |
 | **LSP Architecture Documentation** | Complete | 100% |
 | **Activity Bar: DITA Explorer** | Complete | 100% |
 | **Activity Bar: Key Space View** | Complete | 100% |
@@ -128,8 +128,44 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Range Formatting Safety (structural reflow fallback)** | Complete | 100% |
 | **TypesXML 2.0.0** | Complete | 100% |
 | **TypeScript 6.0 Support** | Complete | 100% |
+| **AI: LLMRouterService (provider cascade)** | Complete | 100% |
+| **AI: AIServiceOrchestrator** | Complete | 100% |
+| **AI: CircuitBreaker (per-provider resilience)** | Complete | 100% |
+| **AI: MetricsCollector (request/latency/error tracking)** | Complete | 100% |
+| **AI: SecretManager (OS keychain via vscode.SecretStorage)** | Complete | 100% |
+| **AI: CopilotLLMProvider (vscode.lm API)** | Complete | 100% |
+| **AI: AnthropicLLMProvider** | Complete | 100% |
+| **AI: OpenAILLMProvider** | Complete | 100% |
+| **AI: OllamaLLMProvider (local/air-gapped)** | Complete | 100% |
+| **AI: @ditacraft Chat Participant (/restructure, /validate, /explain, /suggest-reuse)** | Complete | 100% |
+| **AI: F2 Restructure Map Command** | Complete | 100% |
+| **AI: F3 AI Quick Fix Provider (12 diagnostic codes)** | Complete | 100% |
+| **AI: F4 AI Completion Provider** | Complete | 100% |
+| **AI: Configure AI WebView Command** | Complete | 100% |
+| **LSP: contextGraph Handler** | Complete | 100% |
+| **LSP: fragmentValidator Handler** | Complete | 100% |
+| **LSP: contextSnapshot Handler (Levels 1/2/3)** | Complete | 100% |
 
-### Recent Changes (v0.7.3)
+### Recent Changes (v0.7.4)
+
+**AI Integration (Phase 1–3 complete):**
+- **LLMRouterService** — Provider cascade with automatic fallback: Copilot → Anthropic → OpenAI → Ollama; supports `auto`, `copilot-only`, `byok-only`, and `local-only` modes
+- **CircuitBreaker** — Per-provider resilience proxy: 3 failures in 5 min opens the breaker (10 min cooldown); user cancellations (AbortError) never count as failures
+- **MetricsCollector** — Rolling buffer (1000 entries, 25% eviction) tracking request count, latency, and error rate per provider
+- **SecretManager** — API keys stored via `vscode.SecretStorage` (OS keychain); zero plaintext settings
+- **AI Providers** — CopilotLLMProvider (`vscode.lm` API, no npm dependency), AnthropicLLMProvider, OpenAILLMProvider, OllamaLLMProvider (`http://localhost:11434`, llama3 default)
+- **AIServiceOrchestrator** — ContextBuilder + PromptAssembler + ResponseValidator pipeline
+- **@ditacraft Chat Participant** — 4 slash commands: `/restructure`, `/validate`, `/explain`, `/suggest-reuse`
+- **F2: Restructure Map** — AI proposes restructured map hierarchy; diff review with user confirmation before writing
+- **F3: AI Quick Fix** — Code Actions "Fix with AI" for 12 diagnostic codes (CM-001/002/003, XREF-001/003/004, STRUCT-003/004/005/008, DTD-001, XML-001)
+- **F4: AI Completion** — Enriched IntelliSense with AI-generated element content and attribute value suggestions
+- **Configure AI WebView** — Guided provider setup with live provider status and metrics dashboard
+- **LSP: contextGraph/fragmentValidator/contextSnapshot** — 3 new server-side handlers for AI context assembly with Level 1/2/3 sliding window
+- **9 New AI Settings** — `ditacraft.ai.enabled`, `ai.mode`, `ai.provider.anthropic.model`, `ai.provider.openai.model`, `ai.provider.ollama.baseUrl`, `ai.provider.ollama.model`, `ai.context.maxTokens`, `ai.quickfix.enabled`, `ai.streaming.enabled`
+- **Documentation** — New `docs/user-guide/topics/features/ai-features.dita`, updated `ARCHITECTURE.md` (AI layer, vscode.lm API), updated `.github/skills/README.md`, end-to-end `docs/ai-test-plan.md`
+- **1537+ Total Tests** — Client (642) + Server (895)
+
+### Previous Changes (v0.7.3)
 
 **Key Space (7-gap improvement plan complete):**
 - **Keyref Chains** — Multi-hop keyref resolution across nested key scopes; chain scope prefix bug fixed so chains inside scoped peer maps resolve against the correct namespace
@@ -155,7 +191,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - **LSP Async File I/O** — All sync `fs` calls in `hover.ts` converted to `fs/promises`; `[object Promise]` hover bug fixed
 - **Security: DOCTYPE `]>` Bypass Fix** — Quote-aware regex prevents `]>` inside quoted entity values from terminating internal-subset scan early
 - **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early `>` termination in `SYSTEM` identifiers
-- **1564+ Total Tests** — Client (683) + Server (881); key space service tests expanded from 7 to 100+
+- **1537+ Total Tests** — Client (683) + Server (881); key space service tests expanded from 7 to 100+
 
 ### Recent Changes (v0.7.2)
 - **Per-Rule Severity Override** — `ditacraft.validationSeverityOverrides` setting: map any diagnostic code to error/warning/information/hint/off; applied as post-processing in the validation pipeline
@@ -660,10 +696,11 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.7.0 | Multi-version DTD (1.2/1.3/2.0), scope/cycle validation, workspace analysis, glossref, 1087+ Tests | Released |
 | v0.7.1 | Guide validation, error catalog, ValidationPipeline, bug fixes, 1242+ Tests | Released |
 | v0.7.2 | Severity overrides, custom rules, architecture improvements, 1375+ Tests | Released |
-| v0.7.3 | Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TS 6.0, TypesXML 2.0, 1564+ Tests | **Current** |
+| v0.7.3 | Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TS 6.0, TypesXML 2.0, 1537+ Tests | Released |
+| v0.7.4 | AI integration (Phases 1-3): LLM router, circuit breaker, @ditacraft chat, F2/F3/F4 AI features, 1537+ Tests | **Current** |
 | v0.8.0 | Refactoring & productivity | Planned |
 | v0.9.0 | Publishing enhancements | Planned |
 
 ---
 
-*Last updated: April 2026 (v0.7.3 — key space algorithm completion, pipeline budget/ReDoS hardening, TypeScript 6.0, TypesXML 2.0, 1564+ tests)*
+*Last updated: June 2026 (v0.7.4 — AI integration phases 1-3: LLM router with circuit breaker, @ditacraft chat participant, F2 map restructure, F3 AI quick fix, F4 AI completion, 1537+ tests)*

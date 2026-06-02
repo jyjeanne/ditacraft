@@ -84,4 +84,67 @@ Both `tsconfig.json` files enable `strict: true` with `noUnusedLocals`, `noUnuse
 ### ESLint
 - `@typescript-eslint/no-explicit-any` is warn-level (prefer typed alternatives).
 - Unused variables prefixed with `_` are allowed.
-- Server code (`server/`) has its own ESLint ignore — the root config only covers client code.
+- Root `npm run lint` runs the root ESLint config (primarily client code). The LSP server has its own config/ignores under `server/`.
+
+## Running tests (fast paths)
+
+### Server (LSP) tests (Mocha TDD)
+
+```bash
+cd server
+
+# Run all server tests
+npm test
+
+# Run a single suite/test by name
+npm test -- --grep "validateDITADocument"
+
+# Run a single compiled test file directly
+tsc -p tsconfig.test.json && npx mocha out/test/validation.test.js --ui tdd --timeout 10000
+```
+
+### Client (VS Code integration) tests
+
+```bash
+# Runs via @vscode/test-electron
+npm test
+```
+
+To focus on a single client test, filter/limit what gets required in `src\test\suite\index.ts` (the harness loads tests from there).
+
+## High-level architecture (how it hangs together)
+
+- This is a **VS Code extension (client) + separate LSP server (server)** communicating over **IPC / LSP 3.17+**.
+- Client entry + wiring:
+  - `src\extension.ts` registers commands, views, providers, and starts the language client.
+  - `src\languageClient.ts` configures the language client and launches the server process.
+- Server entry + wiring:
+  - `server\src\server.ts` is the LSP entry point.
+  - `server\src\serverHandlers.ts` wires `connection.on*` handlers to feature modules.
+- Build output:
+  - `esbuild.js` bundles client → `out\extension.js` and server → `server\out\server.js` (CommonJS).
+
+## Validation + diagnostics model (server)
+
+- The core validator is `server\src\services\validationPipeline.ts`: a **13-phase pipeline** with **per-phase try/catch isolation** (one phase failing must not break others).
+- Performance guardrails:
+  - Smart debouncing: topics ~300ms, maps ~1000ms, with per-document cancellation.
+  - Large file optimization: files over the configured threshold skip heavier phases.
+- Diagnostics conventions:
+  - **Never inline diagnostic code strings**: add/update codes in `server\src\utils\diagnosticCodes.ts`.
+  - **All diagnostic text is localized**: messages come from `server\src\messages\{locale}.json` and are retrieved via `t()` from `server\src\utils\i18n.ts`.
+  - Severity overrides are driven by the `ditacraft.validationSeverityOverrides` setting (applied in the pipeline).
+  - Suppression is comment-based:
+    - `<!-- ditacraft-disable CODE -->` / `<!-- ditacraft-enable CODE -->` (range)
+    - `<!-- ditacraft-disable-file CODE -->` (entire file)
+  - Settings are cached per-document in `server\src\settings.ts` and refreshed via `workspace/didChangeConfiguration`.
+
+## Feature implementation patterns
+
+- **Server features** live in `server\src\features\` and export handler functions (stateless). Put state/caching in `server\src\services\`.
+- **Client commands** live in `src\commands\`:
+  - Register command handlers in `src\extension.ts`.
+  - Add command contributions in `package.json` under `contributes.commands`.
+- Tests:
+  - Server tests use helpers like `createDoc()` / `createDocs()` from `server\test\helper.ts` to mock `TextDocuments` without running VS Code.
+  - Client tests run in the VS Code test harness and typically assert via diagnostics/commands.

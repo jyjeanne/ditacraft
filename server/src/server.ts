@@ -54,6 +54,9 @@ import { handlePrepareRename, handleRename } from './features/rename';
 import { handleFoldingRanges } from './features/folding';
 import { handleDocumentLinks, handleDocumentLinkResolve } from './features/documentLinks';
 import { handleLinkedEditingRange } from './features/linkedEditing';
+import { handleGetContextGraph, GetContextGraphParams, ContextGraph } from './features/contextGraph';
+import { handleValidateFragment, ValidateFragmentParams, FragmentValidationResult } from './features/fragmentValidator';
+import { handleBuildContextSnapshot, BuildContextSnapshotParams, ContextSnapshotResult } from './features/contextSnapshot';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { detectUnusedTopics, WorkspaceIndex } from './features/workspaceValidation';
@@ -269,6 +272,24 @@ connection.onRequest('ditacraft/validateFile', async (params: { uri: string }, t
         diagnosticCount: diagnostics.length,
         diagnostics,
     };
+});
+
+// Custom request: dita/getContextGraph
+// Builds a structured DITA map graph for LLM context injection.
+connection.onRequest('dita/getContextGraph', (params: GetContextGraphParams): ContextGraph => {
+    return handleGetContextGraph(params, keySpaceService);
+});
+
+// Custom request: dita/validateFragment
+// Validates an XML DITA fragment in-memory (used to verify LLM-generated content).
+connection.onRequest('dita/validateFragment', async (params: ValidateFragmentParams): Promise<FragmentValidationResult> => {
+    return handleValidateFragment(params, validationPipeline);
+});
+
+// Custom request: dita/buildContextSnapshot
+// Builds a token-budgeted text snapshot of a DITA map for LLM prompts.
+connection.onRequest('dita/buildContextSnapshot', (params: BuildContextSnapshotParams): ContextSnapshotResult => {
+    return handleBuildContextSnapshot(params, keySpaceService);
 });
 
 // File watcher — invalidate key space cache on map changes

@@ -2,7 +2,7 @@
   "name": "ditacraft",
   "displayName": "DitaCraft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
@@ -53,6 +53,32 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "chatParticipants": [
+      {
+        "id": "ditacraft",
+        "name": "ditacraft",
+        "description": "DitaCraft AI assistant for DITA documentation — restructure maps, explain errors, and more.",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "restructure",
+            "description": "Propose a restructured DITA map based on your intention"
+          },
+          {
+            "name": "validate",
+            "description": "Explain a DITA validation error in plain language"
+          },
+          {
+            "name": "explain",
+            "description": "Explain the semantic structure of the selected DITA element"
+          },
+          {
+            "name": "suggest-reuse",
+            "description": "Identify conref/keyref reuse opportunities in the current DITA map"
+          }
+        ]
+      }
+    ],
     "languages": [
       {
         "id": "dita",
@@ -237,10 +263,26 @@
       {
         "command": "ditacraft.validateGuide",
         "title": "DITA: Validate Entire Guide Using DITA-OT"
+      },
+      {
+        "command": "ditacraft.configureAI",
+        "title": "DitaCraft: Configure AI Settings",
+        "category": "DitaCraft"
+      },
+      {
+        "command": "ditacraft.restructureMap",
+        "title": "DitaCraft: Restructure Active DITA Map",
+        "category": "DitaCraft",
+        "icon": "$(wand)"
       }
     ],
     "menus": {
       "editor/title": [
+        {
+          "command": "ditacraft.restructureMap",
+          "when": "resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "navigation@4"
+        },
         {
           "command": "ditacraft.validate",
           "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
@@ -338,6 +380,17 @@
         {
           "command": "ditacraft.showMapVisualizer",
           "when": "resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.restructureMap",
+          "when": "resourceExtname == .ditamap || resourceExtname == .bookmap"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "ditacraft.restructureMap",
+          "when": "resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "ditacraft@1"
         }
       ]
     },
@@ -642,6 +695,92 @@
           "default": false,
           "description": "Automatically suggest cSpell DITA dictionary setup when cSpell is installed but not configured. The 'DITA: Setup cSpell Configuration' command is always available regardless of this setting.",
           "order": 29
+        },
+        "ditacraft.ai.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable all DitaCraft AI features. When disabled, the LSP validation, navigation, and publishing features remain fully functional.",
+          "order": 30
+        },
+        "ditacraft.ai.mode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "copilot-only",
+            "byok-only",
+            "local-only"
+          ],
+          "enumDescriptions": [
+            "Automatically select the best available provider (Copilot first, then BYOK, then Ollama).",
+            "Only use GitHub Copilot. Requires an active Copilot subscription.",
+            "Only use a user-supplied API key (Anthropic, OpenAI). Skips Copilot.",
+            "Only use a local Ollama server. No data is sent to external services."
+          ],
+          "default": "auto",
+          "description": "LLM provider selection strategy for DitaCraft AI features.",
+          "order": 31
+        },
+        "ditacraft.ai.provider.anthropic.model": {
+          "type": "string",
+          "default": "claude-3-5-sonnet-20241022",
+          "description": "Anthropic Claude model to use when a BYOK Anthropic API key is configured.",
+          "order": 32
+        },
+        "ditacraft.ai.provider.openai.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "OpenAI model to use when a BYOK OpenAI API key is configured.",
+          "order": 33
+        },
+        "ditacraft.ai.provider.ollama.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Base URL for the local Ollama server (local-only / air-gapped mode).",
+          "order": 34
+        },
+        "ditacraft.ai.provider.ollama.model": {
+          "type": "string",
+          "default": "llama3",
+          "description": "Ollama model name to use (e.g. llama3, mistral, codellama).",
+          "order": 35
+        },
+        "ditacraft.ai.context.maxTokens": {
+          "type": "number",
+          "default": 8000,
+          "minimum": 1000,
+          "maximum": 128000,
+          "description": "Maximum number of tokens to use for the DITA context injected into LLM prompts.",
+          "order": 36
+        },
+        "ditacraft.ai.quickfix.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show an AI-powered quick fix option alongside standard LSP quick fixes for DITA diagnostics.",
+          "order": 37
+        },
+        "ditacraft.ai.streaming.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Stream LLM responses progressively in Copilot Chat (requires streaming-capable provider).",
+          "order": 38
+        },
+        "ditacraft.ai.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send anonymised usage metrics (latency, success/failure rates) to the DitaCraft team. No document content or personal data is included.",
+          "order": 39
+        },
+        "ditacraft.ai.completion.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable AI-enriched DITA completions (F4). When enabled, DitaCraft requests AI suggestions if fewer than 3 native completions are available. Non-blocking: abandoned after 500ms.",
+          "order": 40
+        },
+        "ditacraft.ai.provider.ollama.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include Ollama as a fallback LLM provider (local inference). Requires Ollama to be running on the configured base URL.",
+          "order": 41
         }
       }
     },
@@ -738,8 +877,10 @@
     "typescript-eslint": "^8.60.0"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
     "@xmldom/xmldom": "^0.9.10",
     "fast-xml-parser": "^5.8.0",
+    "openai": "^6.41.0",
     "typesxml": "^2.1.0",
     "vscode-languageclient": "^9.0.1"
   },

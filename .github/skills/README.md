@@ -165,3 +165,56 @@ Key guidelines:
 ## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## DitaCraft AI Integration
+
+This repository also implements a full LLM/AI integration for the DitaCraft VS Code extension. The `ai-spec-review` skill was used to review and validate the LLM integration specification before implementation.
+
+### @ditacraft Chat Participant
+
+DitaCraft registers a Copilot Chat participant that provides DITA-aware AI assistance:
+
+```
+@ditacraft /restructure Group topics by audience: admin first, then end user
+@ditacraft /validate
+@ditacraft /explain focus on accessibility best practices
+@ditacraft /suggest-reuse focus on installation topics only
+```
+
+| Command | Description |
+|---|---|
+| `/restructure` | Proposes a restructured DITA map as valid XML, based on a plain-language intention |
+| `/validate` | Explains the diagnostic at the cursor position in plain language with a fix suggestion |
+| `/explain` | Explains the semantic structure of the selected DITA element |
+| `/suggest-reuse` | Identifies `conref`/`keyref` reuse opportunities in the active DITA map |
+
+### Provider Cascade
+
+The AI layer uses a priority cascade with per-provider circuit breakers:
+
+```
+GitHub Copilot → Anthropic Claude → OpenAI GPT-4o → Ollama (local)
+```
+
+Each provider is wrapped in a `CircuitBreaker`: after 3 failures in 5 minutes, the provider is bypassed for 10 minutes, and the next available provider is tried automatically.
+
+### Additional AI Features
+
+| Feature | Trigger | Description |
+|---|---|---|
+| **Configure AI** | Command Palette | WebView panel to view provider status and store API keys (SecretStorage) |
+| **Restructure Map** | Command Palette / Explorer menu | Full diff-and-apply workflow with LLM-proposed DITA map |
+| **AI Quick Fix** | `Ctrl+.` on supported diagnostics | `✨ Fix with DitaCraft AI` code action |
+| **AI Completion** | Type `<` in a DITA file | AI-enriched completion items with `(AI)` suffix, 500ms timeout |
+
+### Using ai-spec-review with DitaCraft
+
+To review a new DitaCraft AI feature specification:
+
+```
+Review this specification using ai-spec-review skill
+```
+
+Point it at `docs/ditacraft-llm-spec.md` or any new feature spec to get a structured review covering all 14 engineering dimensions before implementation begins.

@@ -110,4 +110,10 @@
             <navtitle>Guide Validation (DITA-OT)</navtitle>
         </topicmeta>
     </topicref>
+
+    <topicref href="ai-features.dita" keys="ai-features">
+        <topicmeta>
+            <navtitle>AI Features</navtitle>
+        </topicmeta>
+    </topicref>
 </map>

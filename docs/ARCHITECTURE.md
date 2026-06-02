@@ -1,7 +1,7 @@
 # DitaCraft Architecture
 
 **Technical Architecture Documentation**
-*Version: 0.7.2 | Last Updated: March 2026*
+*Version: 0.7.3 | Last Updated: June 2026*
 
 This document describes the architecture, component responsibilities, data flows, and design decisions of the DitaCraft VS Code extension.
 
@@ -38,9 +38,11 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | DTD Validation | TypesXML + OASIS XML Catalog (bundled) |
 | RNG Validation | salve-annos + saxes (optional) |
 | XML Tokenizer | Custom state-machine (8 states, 22 token types) |
+| LLM Providers | GitHub Copilot (`vscode.lm`), Anthropic SDK, OpenAI SDK, Ollama (native fetch) |
+| AI Orchestration | AIServiceOrchestrator + LLMRouterService (cascade + circuit breaker) |
 | Publishing | DITA-OT (external) |
 | Testing | Mocha + VS Code Extension Test API |
-| Test Count | 1386 tests (683 client + 703 server) |
+| Test Count | 1537 tests (642 client + 895 server) |
 
 ---
 
@@ -89,6 +91,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
                     │  circularRef   │  Data:                  │
                     │  workspaceVal  │  ditaSchema             │
                     │  customRules   │  ditaSpecialization     │
+                    │  contextGraph  │                         │
+                    │  contextSnapshot│                        │
                     └─────────────────────────────────────────┘
                            │
                ┌───────────▼───────────────┐
@@ -100,6 +104,24 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
                │ fast-xml-parser (XML)     │
                │ @xmldom/xmldom (SAX/DOM)  │
                └───────────────────────────┘
+
+                           │ (LLM requests)
+               ┌───────────▼───────────────────────────┐
+               │        AI Layer (Client-side)        │
+               └───────────────────────────────────────┘
+               │ LLMRouterService (cascade + breakers)│
+               │ AIServiceOrchestrator (DITA pipeline) │
+               │ CircuitBreaker   (per-provider)       │
+               │ MetricsCollector (capped at 1000)     │
+               │ Providers:                            │
+               │   CopilotLLMProvider  (vscode.lm API) │
+               │   AnthropicLLMProvider (Claude SDK)   │
+               │   OpenAILLMProvider   (OpenAI SDK)    │
+               │   OllamaLLMProvider   (native fetch)  │
+               │ Chat Participant: @ditacraft           │
+               │   /restructure  /validate             │
+               │   /explain  /suggest-reuse            │
+               └───────────────────────────────────────┘
 ```
 
 ### Layer Descriptions
@@ -110,7 +132,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | **Providers** | VS Code API integrations (diagnostics, views, webviews) | Uses Utils, responds to VS Code events |
 | **Utils** | Shared business logic and utilities | Called by Commands and Providers |
 | **LSP Server** | Language intelligence (validation, completions, navigation) | IPC via JSON-RPC |
-| **External** | Third-party tools and libraries | Called by Utils and LSP Server |
+| **AI Layer** | LLM cascade routing, AI commands, chat participant, completion | Calls LLM providers; reads LSP context snapshots |
+| **External** | Third-party tools and libraries | Called by Utils, LSP Server, and AI Layer |
 
 ---
 
@@ -125,6 +148,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `previewCommand.ts` | Live HTML preview in VS Code panel |
 | `fileCreationCommands.ts` | New DITA file creation from templates |
 | `configureCommand.ts` | Extension configuration UI |
+| `configureAICommand.ts` | AI provider configuration WebView (SecretStorage-backed) |
+| `restructureMapCommand.ts` | F2: Restructure map via LLM + diff editor + apply dialog |
 | `cspellSetupCommand.ts` | cSpell DITA dictionary setup |
 
 ### Providers (`src/providers/`)
@@ -141,6 +166,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `diagnosticsViewProvider.ts` | Activity bar: aggregated diagnostics with dedup |
 | `ditaFileDecorationProvider.ts` | Error/warning badges on tree items |
 | `typesxmlValidator.ts` | TypesXML DTD validation engine |
+| `aiCompletionProvider.ts` | F4: AI-enriched completion items with 500ms timeout budget |
+| `aiQuickFixProvider.ts` | F3: AI Quick Fix code actions for supported diagnostic codes |
 
 ### Validation Engines (`src/providers/validation/`)
 
@@ -175,6 +202,9 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `services/rngValidationService.ts` | salve-annos RelaxNG validation (Layer 3) |
 | `services/keySpaceService.ts` | DITA key space resolution (BFS map traversal) |
 | `services/subjectSchemeService.ts` | Subject scheme parsing and value constraints |
+| `services/suppressionEngine.ts` | Parses inline `ditacraft-disable/enable` suppression comments |
+| `features/contextGraph.ts` | `dita/getContextGraph` LSP request: map hierarchy as graph with path traversal guard |
+| `features/contextSnapshot.ts` | 3-level context compression for LLM prompts (Level 1: titles, Level 2: full, Level 3: sliding window) |
 | `utils/xmlTokenizer.ts` | Error-tolerant state-machine XML tokenizer |
 | `utils/textUtils.ts` | Shared text utilities (comment stripping, offsetToRange, escapeRegex) |
 | `utils/patterns.ts` | Shared regex patterns (TAG_ATTRS) |
@@ -194,6 +224,21 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `rateLimiter.ts` | Rate limiting for DoS protection |
 | `mapHierarchyParser.ts` | Shared map hierarchy parser (Explorer + Visualizer) |
 | `keyUsageScanner.ts` | Workspace-wide keyref/conkeyref scanner |
+
+### AI Layer (`src/llm/`, `src/chat/`)
+
+| File | Responsibility |
+|------|----------------|
+| `llm/llmRouterService.ts` | Cascade router: Copilot → Anthropic → OpenAI → Ollama; wraps each provider in a `BreakerWrappedProvider` |
+| `llm/aiServiceOrchestrator.ts` | Full DITA-aware AI pipeline: context snapshot → prompt → LLM streaming → LSP validation |
+| `llm/circuitBreaker.ts` | Per-provider circuit breaker: CLOSED/OPEN/HALF_OPEN; 3 failures in 5 min → 10 min cooldown |
+| `llm/metricsCollector.ts` | AI call metrics (command, provider, latency, tokens); capped at 1,000 entries |
+| `llm/secretManager.ts` | API key storage via VS Code `SecretStorage` (never in plain-text settings) |
+| `llm/providers/copilotProvider.ts` | GitHub Copilot LLM provider via VS Code `vscode.lm` API (no external package needed) |
+| `llm/providers/anthropicProvider.ts` | Anthropic Claude provider via `@anthropic-ai/sdk` |
+| `llm/providers/openaiProvider.ts` | OpenAI GPT-4o provider via `openai` SDK |
+| `llm/providers/ollamaProvider.ts` | Ollama local provider via native `fetch`; `streamCompleted` flag guards incomplete streams |
+| `chat/ditacraftParticipant.ts` | `@ditacraft` Copilot Chat participant with `/restructure`, `/validate`, `/explain`, `/suggest-reuse` |
 
 ---
 
@@ -337,7 +382,43 @@ previewCommand.ts
                            └──► Load HTML into WebView
 ```
 
----
+### AI Request Flow
+
+```
+User sends @ditacraft /restructure <intention>
+         │
+         ▼
+ditacraftParticipant.ts handleRestructure()
+         │
+         ├──► LSP: dita/getContextSnapshot (server/features/contextSnapshot.ts)
+         │         ├── Level 1: topic titles only (≤ budget)
+         │         ├── Level 2: full topicref tree (≤ budget)
+         │         └── Level 3: sliding window centered on focusUri
+         │
+         ├──► Assemble prompt (system + DITA context + user intention)
+         │
+         ▼
+AIServiceOrchestrator.restructureMap()
+         │
+         ▼
+LLMRouterService.stream()
+         │
+         ├──► Try provider 1 (e.g. Copilot)
+         │         ├── [circuit OPEN] skip → try next
+         │         ├── [success] stream tokens → onChunk callback
+         │         └── [3rd failure in 5 min] open circuit → try next
+         │
+         └──► BreakerWrappedProvider (wraps each provider)
+                   ├── Records failure/success per provider
+                   └── HALF_OPEN probe after 10 min cooldown
+         │
+         ▼
+Streamed response rendered in Copilot Chat panel
+         │
+         └──► LSP validation of proposed XML (optional, async)
+```
+
+
 
 ## Extension Lifecycle
 
@@ -356,8 +437,13 @@ previewCommand.ts
 9.  Register Activity Bar views (Explorer, Key Space, Diagnostics)
 10. Register file decoration provider
 11. Register openFile command for tree views
-12. Check cSpell auto-prompt (disabled by default)
-13. Show welcome message (first install)
+12. Initialize MetricsCollector
+13. Initialize LLMRouterService (builds provider cascade, wraps with circuit breakers)
+14. Register AI completion provider (CompletionItemProvider with 500ms timeout)
+15. Register @ditacraft Copilot Chat participant
+16. Register configureAI and restructureMap commands
+17. Check cSpell auto-prompt (disabled by default)
+18. Show welcome message (first install)
 ```
 
 ### Deactivation
@@ -412,6 +498,25 @@ previewCommand.ts
 | Pool Size | 3 pre-configured parser instances |
 | Strategy | Pop/push; create new if pool empty; discard on error |
 
+### Circuit Breaker (Client-Side — per AI provider)
+
+| Property | Value |
+|----------|-------|
+| Location | `CircuitBreaker` in `src/llm/circuitBreaker.ts` |
+| Failure threshold | 3 failures within 5-minute rolling window |
+| Cooldown | 10 minutes (OPEN state) |
+| Recovery | 1 probe request in HALF_OPEN state; success → CLOSED |
+| Abort guard | `AbortError` (user cancellation) never counts as failure |
+
+### AI Metrics Buffer (Client-Side)
+
+| Property | Value |
+|----------|-------|
+| Location | `MetricsCollector` in `src/llm/metricsCollector.ts` |
+| Max entries | 1,000 |
+| Eviction | Oldest 250 removed when cap is reached (25% trim) |
+| Persistence | In-memory only; cleared on extension restart |
+
 ### Configuration Cache (Client-Side)
 
 | Property | Value |
@@ -436,6 +541,9 @@ previewCommand.ts
 | **Adapter** | `DitaOtWrapper` | Adapt CLI to TypeScript API |
 | **Object Pool** | DTD parser pool, RNG grammar cache | Reuse expensive resources |
 | **Pipeline** | `ValidationPipeline` (13-phase validation) | Sequential processing with error isolation per phase |
+| **Circuit Breaker** | `CircuitBreaker` + `BreakerWrappedProvider` | Prevent cascading LLM failures; automatic provider fallback |
+| **Chain of Responsibility** | `LLMRouterService` provider cascade | Try each provider in priority order until one succeeds |
+| **Proxy** | `BreakerWrappedProvider` wraps every `ILLMProvider` | Transparent circuit-breaking without changing provider interface |
 
 ---
 
@@ -481,6 +589,32 @@ if (!rateLimiter.isAllowed(filePath)) {
 }
 ```
 
+### API Key Security
+
+LLM provider API keys are stored in VS Code `SecretStorage` (OS keychain integration), never in plain-text settings or workspace files:
+
+```typescript
+// SecretManager — stores/retrieves keys via vscode.SecretStorage
+await secretManager.store('anthropic.apiKey', key);
+const key = await secretManager.get('anthropic.apiKey');
+```
+
+### LLM Prompt Injection Guard
+
+User-controlled content (DITA element text) is always placed inside a code fence in the LLM prompt. User focus instructions are appended *outside* the fence to prevent prompt injection through authored content:
+
+```
+```xml
+<element>...authored content...</element>
+```
+
+Focus on: [user instruction here]
+```
+
+### Context Graph Path Traversal
+
+`contextGraph.ts` rejects hrefs with absolute paths or more than 8 `../` traversals, preventing LLM context requests from reading files outside the DITA workspace.
+
 ---
 
 ## File Structure
@@ -492,6 +626,8 @@ ditacraft/
 │   │   ├── validateCommand.ts     #   Manual validation + stale cleanup
 │   │   ├── publishCommand.ts
 │   │   ├── previewCommand.ts
+│   │   ├── configureAICommand.ts  #   AI provider configuration WebView
+│   │   ├── restructureMapCommand.ts# F2: Restructure map + diff editor
 │   │   ├── cspellSetupCommand.ts
 │   │   └── ...
 │   ├── providers/                 # VS Code API integrations
@@ -500,25 +636,42 @@ ditacraft/
 │   │   ├── ditaExplorerProvider.ts#   Activity bar: map tree
 │   │   ├── keySpaceViewProvider.ts#   Activity bar: key space
 │   │   ├── diagnosticsViewProvider.ts # Activity bar: diagnostics (dedup)
+│   │   ├── aiCompletionProvider.ts#   F4: AI completion (500ms budget)
+│   │   ├── aiQuickFixProvider.ts  #   F3: AI Quick Fix code actions
 │   │   ├── validation/            #   Modular validation engines
 │   │   │   ├── typesxmlEngine.ts
 │   │   │   ├── builtinEngine.ts
 │   │   │   └── ...
 │   │   └── ...
+│   ├── llm/                       # AI / LLM layer
+│   │   ├── llmRouterService.ts    #   Cascade router + circuit breaker wiring
+│   │   ├── aiServiceOrchestrator.ts# DITA-aware AI pipeline
+│   │   ├── circuitBreaker.ts      #   Per-provider circuit breaker
+│   │   ├── metricsCollector.ts    #   AI call metrics (capped at 1000)
+│   │   ├── secretManager.ts       #   SecretStorage-backed API key manager
+│   │   ├── index.ts               #   Barrel export
+│   │   ├── types.ts               #   LLMRequest, LLMResponse, ILLMProvider
+│   │   └── providers/
+│   │       ├── copilotProvider.ts #   GitHub Copilot
+│   │       ├── anthropicProvider.ts#  Anthropic Claude SDK
+│   │       ├── openaiProvider.ts  #   OpenAI SDK
+│   │       └── ollamaProvider.ts  #   Ollama via native fetch
+│   ├── chat/                      # Copilot Chat participant
+│   │   └── ditacraftParticipant.ts#   @ditacraft with 4 slash commands
 │   ├── utils/                     # Shared client utilities
 │   │   ├── configurationManager.ts
 │   │   ├── keySpaceResolver.ts
 │   │   ├── rateLimiter.ts
 │   │   ├── mapHierarchyParser.ts
 │   │   └── ...
-│   ├── test/                      # Client tests (683)
+│   ├── test/                      # Client tests (701)
 │   └── extension.ts               # Entry point
 │
 ├── server/                        # LSP Server (Separate Process)
 │   ├── src/
 │   │   ├── server.ts              # LSP entry point + smart debouncing
 │   │   ├── settings.ts
-│   │   ├── features/              # 17 LSP feature handlers
+│   │   ├── features/              # LSP feature handlers
 │   │   │   ├── validation.ts      #   XML + structure + IDs
 │   │   │   ├── crossRefValidation.ts # Cross-file references
 │   │   │   ├── ditaRulesValidator.ts # 43 DITA rules
@@ -526,20 +679,23 @@ ditacraft/
 │   │   │   ├── circularRefDetection.ts # Circular ref DFS
 │   │   │   ├── workspaceValidation.ts  # Duplicate IDs + orphans
 │   │   │   ├── customRulesValidator.ts # User-defined regex rules
+│   │   │   ├── contextGraph.ts    #   dita/getContextGraph LSP handler
+│   │   │   ├── contextSnapshot.ts #   dita/getContextSnapshot (3 levels)
 │   │   │   ├── completion.ts
 │   │   │   ├── hover.ts
 │   │   │   ├── codeActions.ts
 │   │   │   └── ...
 │   │   ├── services/              # Domain services with caching
 │   │   │   ├── validationPipeline.ts       # 13-phase orchestration
+│   │   │   ├── suppressionEngine.ts        # Comment suppression
 │   │   │   ├── catalogValidationService.ts # DTD (TypesXML)
 │   │   │   ├── rngValidationService.ts     # RNG (salve-annos)
 │   │   │   ├── keySpaceService.ts
 │   │   │   └── subjectSchemeService.ts
 │   │   ├── utils/                 # Server utilities
 │   │   │   ├── xmlTokenizer.ts
-│   │   │   ├── textUtils.ts       #   Shared: comment stripping, offsetToRange
-│   │   │   ├── patterns.ts        #   Shared: TAG_ATTRS regex
+│   │   │   ├── textUtils.ts
+│   │   │   ├── patterns.ts
 │   │   │   ├── i18n.ts
 │   │   │   └── ...
 │   │   ├── messages/              # Localized diagnostic messages
