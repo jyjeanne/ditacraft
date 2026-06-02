@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="mcp-integration">
+    <title>MCP Server Integration</title>
+    <shortdesc>DitaCraft exposes its DITA intelligence — validation, key space resolution, context
+        snapshots, and map analysis — to external AI agents via the Model Context Protocol
+        (MCP).</shortdesc>
+
+    <conbody>
+
+        <section id="overview">
+            <title>Overview</title>
+            <p>The <b>MCP server</b> lets AI coding agents like opencode, Claude Desktop, Cursor, and
+                Continue read and query your DITA workspace. It runs as a standalone Node.js process
+                with no VS Code dependency — agents spawn it directly via stdio.</p>
+            <p>The server exposes <b>6 tools</b> and <b>3 resources</b>:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Tool</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>dita_validate</codeph></stentry>
+                    <stentry>Validate a DITA file or XML fragment and return diagnostics with error
+                        counts and severity</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>dita_context_snapshot</codeph></stentry>
+                    <stentry>Token-budgeted map snapshot for LLM prompt injection (Levels
+                        1/2/3)</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>dita_key_space</codeph></stentry>
+                    <stentry>List all defined keys and their resolved targets with scope and
+                        provenance filters</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>dita_map_structure</codeph></stentry>
+                    <stentry>Return map topic hierarchy as JSON, tree text, or CSV</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>dita_resolve_reference</codeph></stentry>
+                    <stentry>Resolve href, keyref, conref, or conkeyref to target file and
+                        element</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>dita_explain_key</codeph></stentry>
+                    <stentry>Step-by-step key resolution trace with scope and keyref chain
+                        details</stentry>
+                </strow>
+            </simpletable>
+            <p><b>Resources:</b>
+                <codeph>dita://workspace/maps</codeph>,
+                <codeph>dita://workspace/diagnostics</codeph>,
+                <codeph>dita://workspace/keys</codeph></p>
+        </section>
+
+        <section id="building">
+            <title>Building the MCP Server</title>
+            <p>Run the standalone build command from the DitaCraft project root:</p>
+            <codeblock>npm run build-standalone
+# → dist/mcp-server.js  (3.2 MB)
+# → dist/lsp-server.js  (2.0 MB)</codeblock>
+            <p>Both bundles are self-contained — no <codeph>node_modules</codeph> needed at
+                runtime.</p>
+        </section>
+
+        <section id="opencode">
+            <title>Using with opencode</title>
+            <p>Add the DitaCraft MCP server to your opencode configuration:</p>
+            <codeblock>// ~/.config/opencode/opencode.json
+{
+  "mcpServers": {
+    "ditacraft": {
+      "command": "node",
+      "args": ["/path/to/ditacraft/dist/mcp-server.js"],
+      "env": {
+        "WORKSPACE": "/home/user/projects/my-dita-docs"
+      }
+    }
+  }
+}</codeblock>
+            <p>Then use opencode to interact with your DITA workspace:</p>
+            <codeblock>&gt; @ditacraft validate topics/intro.dita
+&gt; @ditacraft show me the map structure as a tree
+&gt; @ditacraft explain why keyref install-guide isn't resolving
+&gt; @ditacraft what diagnostics does the workspace have?</codeblock>
+        </section>
+
+        <section id="claude-desktop">
+            <title>Using with Claude Desktop</title>
+            <p>Add the server to your Claude Desktop config:</p>
+            <codeblock>// macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+// Windows: %APPDATA%\Claude\claude_desktop_config.json
+{
+  "mcpServers": {
+    "ditacraft": {
+      "command": "node",
+      "args": ["/absolute/path/to/dist/mcp-server.js"],
+      "env": { "WORKSPACE": "/path/to/dita/project" }
+    }
+  }
+}</codeblock>
+        </section>
+
+        <section id="standalone-lsp">
+            <title>Standalone LSP Server</title>
+            <p>DitaCraft also ships a standalone LSP server bundle for embedding in other Node.js
+                projects:</p>
+            <codeblock>node dist/lsp-server.js --stdio</codeblock>
+            <p>Set the <codeph>DITACRAFT_EXTENSION_ROOT</codeph> environment variable to point to
+                the directory containing the <filepath>dtds/</filepath> folder. The LSP server uses
+                stdin/stdout for JSON-RPC communication.</p>
+            <p>Embed programmatically:</p>
+            <codeblock>const { spawn } = require('child_process');
+const server = spawn('node', ['lsp-server.js', '--stdio'], {
+    env: { DITACRAFT_EXTENSION_ROOT: __dirname },
+});
+// Communicate via server.stdin / server.stdout</codeblock>
+        </section>
+
+        <section id="security">
+            <title>Workspace Security</title>
+            <p>The MCP server enforces workspace isolation:</p>
+            <ul>
+                <li>All file paths are resolved relative to the <codeph>WORKSPACE</codeph>
+                    environment variable</li>
+                <li>Path traversal attacks (<codeph>../../</codeph> beyond 8 levels) are
+                    rejected</li>
+                <li>HTTP URLs, UNC paths, and null bytes are rejected</li>
+                <li>No document content is ever transmitted to external services</li>
+            </ul>
+            <note type="tip">The MCP server uses stdio transport by default, which means all
+                communication stays local to the machine. No network configuration is
+                required.</note>
+        </section>
+
+    </conbody>
+</concept>

@@ -2,7 +2,7 @@
   "name": "ditacraft",
   "displayName": "DitaCraft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
@@ -799,6 +799,7 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "vsce package",
     "esbuild-base": "node esbuild.js",
+    "build-standalone": "node esbuild-standalone.js",
     "check-types": "tsc --noEmit && tsc --noEmit --project server/tsconfig.json",
     "pretest": "npm run compile-tests && npm run lint",
     "compile-tests": "tsc -p ./",

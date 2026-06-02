@@ -33,6 +33,7 @@
   "exclude": [
     "node_modules",
     "debug-test.ts",
-    "smoke-test.ts"
+    "smoke-test.ts",
+    "lsp-smoke-test.ts"
   ]
 }

@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.7.4)
+## Current Status (v0.8.0)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -19,6 +19,8 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Rate Limiting (DoS Protection)** | Complete | 100% |
 | DITA-OT Publishing | Complete | 100% |
 | Live HTML5 Preview | Complete | 100% |
+| **MCP Server (6 tools, 3 resources)** | Complete | 100% |
+| **Standalone LSP Server (distributable)** | Complete | 100% |
 | Preview Theme Support | Complete | 100% |
 | Preview Custom CSS | Complete | 100% |
 | Preview Scroll Sync | Complete | 100% |
@@ -146,7 +148,20 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **LSP: fragmentValidator Handler** | Complete | 100% |
 | **LSP: contextSnapshot Handler (Levels 1/2/3)** | Complete | 100% |
 
-### Recent Changes (v0.7.4)
+### Recent Changes (v0.8.0)
+
+**MCP Server & Standalone Distribution:**
+- **MCP Server** — Standalone process exposing 6 MCP tools (`dita_validate`, `dita_context_snapshot`, `dita_key_space`, `dita_map_structure`, `dita_resolve_reference`, `dita_explain_key`) and 3 MCP resources (`dita://workspace/maps`, `dita://workspace/diagnostics`, `dita://workspace/keys`) over stdio JSON-RPC. No VS Code dependency — agents spawn `node dist/mcp-server.js`.
+- **Standalone LSP Server** — Distributable LSP bundle (`dist/lsp-server.js`) runnable with `node dist/lsp-server.js --stdio`. Embeddable in any Node.js project via `child_process.spawn`.
+- **Standalone Build** — New `npm run build-standalone` script producing `dist/lsp-server.js` (2.0 MB) and `dist/mcp-server.js` (3.2 MB). Both are self-contained bundles with zero `node_modules` dependency.
+- **Workspace Isolation** — Path validation rejects traversal (>8 levels), URLs, UNC paths, null bytes. All file access confined to `WORKSPACE` env var.
+- **DiagnosticsStore** — In-memory diagnostics accumulator with severity/glob/limit filtering.
+- **Key Space Explain** — `dita_explain_key` tool exposes full `KeyResolutionReport` with step-by-step resolution trace.
+- **67 MCP Tests** — 26 infrastructure + 30 tool integration + 11 smoke tests; all pass via `cd mcp && npx tsc && npx mocha`.
+- **Client Config** — opencode, Claude Desktop, Cursor, and Continue integrations documented.
+- **1591+ Total Tests** — Client (640) + Server (895) + MCP (56)
+
+### Previous Changes (v0.7.4)
 
 **AI Integration (Phase 1–3 complete):**
 - **LLMRouterService** — Provider cascade with automatic fallback: Copilot → Anthropic → OpenAI → Ollama; supports `auto`, `copilot-only`, `byok-only`, and `local-only` modes
@@ -542,11 +557,29 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ---
 
-## Milestone 6: Refactoring & Productivity (v0.8.0)
+## Milestone 6: MCP Server & Standalone Distribution (v0.8.0) ✅ COMPLETE
 
-**Focus:** Add refactoring tools and productivity features.
+**Focus:** Expose DITA intelligence to external AI agents and enable standalone distribution.
 
-### Refactoring Tools
+### MCP Server
+- [x] 6 MCP tools — dita_validate, dita_context_snapshot, dita_key_space, dita_map_structure, dita_resolve_reference, dita_explain_key
+- [x] 3 MCP resources — workspace/maps, workspace/diagnostics, workspace/keys
+- [x] stdio transport via @modelcontextprotocol/sdk
+- [x] Zod-validated input schemas
+- [x] Direct import of server/src/ modules (no LSP IPC, no VS Code)
+- [x] Workspace path isolation (traversal, URL, UNC, null byte rejection)
+- [x] DiagnosticsStore for in-memory diagnostic aggregation
+- [x] opencode / Claude Desktop / Cursor / Continue integration examples
+- [x] 67 MCP tests (26 unit + 30 tool integration + 11 smoke)
+
+### Standalone LSP Server
+- [x] Distributable bundle (dist/lsp-server.js, 2.0 MB)
+- [x] --stdio flag for headless LSP transport
+- [x] DITACRAFT_EXTENSION_ROOT env var for DTD discovery
+- [x] npm run build-standalone command
+- [x] LSP smoke test via stdio
+
+### Refactoring Tools (deferred to v0.8.1)
 - [ ] Rename key across all usages
 - [ ] Rename element ID with reference updates
 - [ ] Move topic with reference updates
@@ -697,10 +730,10 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.7.1 | Guide validation, error catalog, ValidationPipeline, bug fixes, 1242+ Tests | Released |
 | v0.7.2 | Severity overrides, custom rules, architecture improvements, 1375+ Tests | Released |
 | v0.7.3 | Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TS 6.0, TypesXML 2.0, 1537+ Tests | Released |
-| v0.7.4 | AI integration (Phases 1-3): LLM router, circuit breaker, @ditacraft chat, F2/F3/F4 AI features, 1537+ Tests | **Current** |
-| v0.8.0 | Refactoring & productivity | Planned |
-| v0.9.0 | Publishing enhancements | Planned |
+| v0.7.4 | AI integration (Phases 1-3): LLM router, circuit breaker, @ditacraft chat, F2/F3/F4 AI features, 1537+ Tests | Released |
+| v0.8.0 | MCP server (6 tools, 3 resources), standalone LSP distribution, 1591+ Tests | **Current** |
+| v0.9.0 | Refactoring & publishing enhancements | Planned |
 
 ---
 
-*Last updated: June 2026 (v0.7.4 — AI integration phases 1-3: LLM router with circuit breaker, @ditacraft chat participant, F2 map restructure, F3 AI quick fix, F4 AI completion, 1537+ tests)*
+*Last updated: June 2026 (v0.8.0 — MCP server with 6 tools/3 resources, standalone LSP distribution, 67 MCP tests, 1591+ total tests)*

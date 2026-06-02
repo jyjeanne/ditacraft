@@ -6,6 +6,7 @@ export default tseslint.config(
         ignores: [
             'out/',
             'dist/',
+            'mcp/out/',
             '**/*.d.ts',
             'node_modules/',
             '.vscode-test/',

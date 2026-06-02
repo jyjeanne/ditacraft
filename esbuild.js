@@ -60,11 +60,18 @@ async function main() {
         nodePaths: ['server/node_modules'],
     });
 
+    // Build standalone LSP server (headless, no VS Code needed, node dist/lsp-server.js --stdio)
+    const lspStandaloneCtx = await esbuild.context({
+        ...sharedOptions,
+        entryPoints: ['server/src/standalone.ts'],
+        outfile: 'dist/lsp-server.js',
+    });
+
     if (watch) {
-        await Promise.all([clientCtx.watch(), serverCtx.watch(), mcpCtx.watch()]);
+        await Promise.all([clientCtx.watch(), serverCtx.watch(), mcpCtx.watch(), lspStandaloneCtx.watch()]);
     } else {
-        await Promise.all([clientCtx.rebuild(), serverCtx.rebuild(), mcpCtx.rebuild()]);
-        await Promise.all([clientCtx.dispose(), serverCtx.dispose(), mcpCtx.dispose()]);
+        await Promise.all([clientCtx.rebuild(), serverCtx.rebuild(), mcpCtx.rebuild(), lspStandaloneCtx.rebuild()]);
+        await Promise.all([clientCtx.dispose(), serverCtx.dispose(), mcpCtx.dispose(), lspStandaloneCtx.dispose()]);
     }
 }
 

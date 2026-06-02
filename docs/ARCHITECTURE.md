@@ -1,7 +1,7 @@
 # DitaCraft Architecture
 
 **Technical Architecture Documentation**
-*Version: 0.7.3 | Last Updated: June 2026*
+*Version: 0.8.0 | Last Updated: June 2026*
 
 This document describes the architecture, component responsibilities, data flows, and design decisions of the DitaCraft VS Code extension.
 
@@ -22,10 +22,11 @@ This document describes the architecture, component responsibilities, data flows
 
 ## Overview
 
-DitaCraft is a VS Code extension providing comprehensive DITA authoring support through a **client-server architecture**:
+DitaCraft is a VS Code extension providing comprehensive DITA authoring support through a **multi-process architecture**:
 
 - **Client (Extension Host):** UI commands, file creation, publishing, preview, activity bar views
 - **LSP Server (Separate Process):** Validation, IntelliSense, navigation, formatting, code actions
+- **MCP Server (Standalone Process):** DITA tools and resources for external AI agents via Model Context Protocol
 
 ### Technology Stack
 
@@ -33,7 +34,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 |-----------|------------|
 | Client Runtime | VS Code Extension Host (Node.js) |
 | LSP Server | vscode-languageserver 9.x (Node.js IPC) |
-| Language | TypeScript 5.x |
+| MCP Server | @modelcontextprotocol/sdk (stdio JSON-RPC) |
+| Language | TypeScript 6.x |
 | XML Parsing | fast-xml-parser, @xmldom/xmldom |
 | DTD Validation | TypesXML + OASIS XML Catalog (bundled) |
 | RNG Validation | salve-annos + saxes (optional) |
@@ -42,7 +44,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | AI Orchestration | AIServiceOrchestrator + LLMRouterService (cascade + circuit breaker) |
 | Publishing | DITA-OT (external) |
 | Testing | Mocha + VS Code Extension Test API |
-| Test Count | 1537 tests (642 client + 895 server) |
+| Test Count | 1591 tests (640 client + 895 server + 56 MCP) |
+| Build | esbuild (4 targets: client, server, MCP, standalone LSP) |
 
 ---
 
@@ -209,6 +212,32 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `utils/textUtils.ts` | Shared text utilities (comment stripping, offsetToRange, escapeRegex) |
 | `utils/patterns.ts` | Shared regex patterns (TAG_ATTRS) |
 | `utils/i18n.ts` | Localization with 80+ messages in EN+FR |
+
+### MCP Server (`mcp/src/`)
+
+The MCP server is a standalone process that bundles `server/src/` modules and exposes them over the Model Context Protocol. No VS Code or LSP IPC — agents spawn it directly via stdio.
+
+| File | Responsibility |
+|------|----------------|
+| `server.ts` | Entry point: MCP initialize, tool registration (6 tools), resource registration (3 resources) |
+| `logger.ts` | stderr logger with configurable level |
+| `workspace.ts` | Path validation and URI resolution (rejects traversal, URLs, UNC, null bytes) |
+| `diagnosticsStore.ts` | In-memory diagnostics accumulator with severity/glob/limit filtering |
+| `tools/ditaValidate.ts` | File + fragment validation via ValidationPipeline |
+| `tools/ditaContextSnapshot.ts` | Token-budgeted map snapshots via contextSnapshot |
+| `tools/ditaKeySpace.ts` | Key space listing with auto-discovery + scope/provenance filters |
+| `tools/ditaMapStructure.ts` | Map hierarchy as JSON/tree/CSV via contextGraph |
+| `tools/ditaResolveReference.ts` | href/keyref/conref/conkeyref resolution (mirrors definition.ts) |
+| `tools/ditaExplainKey.ts` | Step-by-step key resolution trace via explainKey |
+| `resources/maps.ts` | Workspace DITA map listing |
+| `resources/diagnostics.ts` | Validation diagnostics snapshot |
+| `resources/keys.ts` | Key space query with search/includescopes filters |
+
+### Standalone LSP Server (`server/src/standalone.ts`)
+
+| File | Responsibility |
+|------|----------------|
+| `standalone.ts` | Entry point for `node dist/lsp-server.js --stdio`; sets `DITACRAFT_EXTENSION_ROOT` env var before importing `server.ts` |
 
 ### Utils (`src/utils/`)
 
@@ -704,12 +733,48 @@ ditacraft/
 │   │   └── data/                  # Static schema data
 │   │       ├── ditaSchema.ts
 │   │       └── ditaSpecialization.ts
-│   └── test/                      # Server tests (703)
+│   └── test/                      # Server tests (895)
 │
-├── dtds/                          # Bundled DITA 1.3 DTDs + catalog.xml
+├── mcp/                            # MCP Server (Standalone Process)
+│   ├── src/
+│   │   ├── server.ts               # MCP entry point (stdio JSON-RPC)
+│   │   ├── logger.ts               # stderr logger
+│   │   ├── workspace.ts            # Path validation / security
+│   │   ├── diagnosticsStore.ts     # In-memory diagnostics
+│   │   ├── tools/                  # 6 MCP tool handlers
+│   │   │   ├── ditaValidate.ts
+│   │   │   ├── ditaContextSnapshot.ts
+│   │   │   ├── ditaKeySpace.ts
+│   │   │   ├── ditaMapStructure.ts
+│   │   │   ├── ditaResolveReference.ts
+│   │   │   └── ditaExplainKey.ts
+│   │   └── resources/              # 3 MCP resource providers
+│   │       ├── maps.ts
+│   │       ├── diagnostics.ts
+│   │       └── keys.ts
+│   └── test/                       # MCP tests (56)
+│       └── ...
+│
+├── dist/                           # Standalone distributable bundles
+│   ├── lsp-server.js               # LSP server (node --stdio)
+│   └── mcp-server.js               # MCP server
+│
+├── dtds/                          # Bundled DITA 1.2/1.3/2.0 DTDs + catalog.xml
 ├── docs/                          # Architecture documentation
 └── package.json                   # Extension manifest
 ```
+
+### Standalone Distribution
+
+Two bundle scripts produce distributable files:
+
+```bash
+npm run build-standalone
+# → dist/lsp-server.js  (2.0 MB) — Embed in any Node.js project
+# → dist/mcp-server.js  (3.2 MB) — Connect via opencode/Claude Desktop
+```
+
+Both bundles are self-contained CommonJS files with zero `node_modules` dependency. The LSP server requires the `dtds/` directory alongside it for DTD validation; the MCP server is fully self-contained (includes DTD paths via `CatalogValidationService`).
 
 ---
 

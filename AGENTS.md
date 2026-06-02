@@ -46,8 +46,17 @@ cd mcp && npx tsc -p test/tsconfig.json && npx mocha out/test/mcp/test/*.test.js
 # MCP server — build only
 npm run esbuild-base -- --sourcemap   # builds client + server + MCP
 
+# Standalone bundles (distributable — no VS Code needed)
+npm run build-standalone              # outputs dist/lsp-server.js + dist/mcp-server.js
+
+# Standalone LSP server (embed in other Node.js projects)
+node dist/lsp-server.js --stdio       # LSP via stdin/stdout transport
+
 # MCP server — smoke test (requires tsx)
 npx tsx mcp/test/smoke-test.ts
+
+# LSP standalone — smoke test (requires tsx)
+npx tsx mcp/test/lsp-smoke-test.ts
 ```
 
 **Important script chain:** `npm test` triggers `pretest` → `npm run compile-tests && npm run lint` → then `node ./out/test/runTest.js`. `compile-tests` is just `tsc -p ./` (compiles client source to `out/`, not the same as `check-types`). Server tests are completely independent — they compile + run via their own `tsc -p tsconfig.test.json && mocha ...`.

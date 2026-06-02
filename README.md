@@ -652,25 +652,24 @@ Track progress: see the [AI Roadmap](#milestone-7-advanced-ai-features-v090--pla
 
 DitaCraft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
 
-> **Status:** MCP server support is **planned** for v0.8.0. The LSP extension point (`dita/buildContextSnapshot`, `dita/getContextGraph`) is already implemented and will be wrapped in an MCP adapter. The configuration below documents the target interface.
+> **Status:** MCP server is **available** in v0.8.0. Build with `npm run build-standalone` to produce `dist/mcp-server.js`.
 
 ### What is MCP?
 
 [Model Context Protocol](https://modelcontextprotocol.io) is an open standard (by Anthropic) that lets AI agents call tools and read resources from external servers. Compatible agents include **opencode**, **Claude Desktop**, **Continue**, **Cursor**, and any MCP-aware tool.
 
-### Planned: DitaCraft MCP Server
+### DitaCraft MCP Server
 
-Once released, DitaCraft will expose these MCP tools:
+Run `npm run build-standalone` then configure your agent:
 
 | Tool | Description |
 |------|-------------|
-| `dita_validate` | Validate a DITA file and return diagnostics as structured JSON |
-| `dita_context_snapshot` | Return context-aware XML snippet for the cursor position (L1/L2/L3) |
+| `dita_validate` | Validate a DITA file or XML fragment and return diagnostics |
+| `dita_context_snapshot` | Token-budgeted map snapshot for LLM injection (L1/L2/L3) |
 | `dita_key_space` | List all defined keys and their resolved targets |
-| `dita_map_structure` | Return the full topic hierarchy of a DITA map |
-| `dita_resolve_reference` | Resolve an href/keyref/conref to its target file and element |
-
-And these MCP resources:
+| `dita_map_structure` | Return the full topic hierarchy (JSON/tree/CSV) |
+| `dita_resolve_reference` | Resolve an href/keyref/conref/conkeyref to its target |
+| `dita_explain_key` | Detailed step-by-step key resolution trace |
 
 | Resource | Description |
 |----------|-------------|
@@ -678,67 +677,66 @@ And these MCP resources:
 | `dita://workspace/diagnostics` | Current validation diagnostics |
 | `dita://workspace/keys` | Full key space |
 
-### Using DitaCraft with opencode (Planned)
-
-[opencode](https://opencode.ai) is a terminal-first AI coding agent. Once the MCP server ships, add DitaCraft to your opencode config:
+### Using DitaCraft with opencode
 
 ```jsonc
-// ~/.config/opencode/config.json  (example — target interface, not yet released)
+// ~/.config/opencode/opencode.json
 {
-  "mcp": {
-    "servers": {
-      "ditacraft": {
-        "type": "stdio",
-        "command": "node",
-        "args": ["/path/to/ditacraft-mcp/dist/server.js"],
-        "env": {
-          "WORKSPACE": "${workspaceFolder}"
-        }
+  "mcpServers": {
+    "ditacraft": {
+      "command": "node",
+      "args": ["/path/to/ditacraft/dist/mcp-server.js"],
+      "env": {
+        "WORKSPACE": "/home/user/projects/my-dita-docs"
       }
     }
   }
 }
 ```
 
-Then in opencode:
 ```
-> @ditacraft validate my-guide/main.ditamap
-> @ditacraft what keys are defined in this workspace?
-> @ditacraft explain why DITA-STRUCT-003 is firing on chapter1.dita
+> @ditacraft validate topics/intro.dita
+> @ditacraft show me the map structure as a tree
+> @ditacraft explain why keyref install-guide isn't resolving
 ```
 
-### Using DitaCraft with Claude Desktop (Planned)
+### Using DitaCraft with Claude Desktop
 
 ```json
-// ~/Library/Application Support/Claude/claude_desktop_config.json
+// macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+// Windows: %APPDATA%\Claude\claude_desktop_config.json
 {
   "mcpServers": {
     "ditacraft": {
       "command": "node",
-      "args": ["/path/to/ditacraft-mcp/dist/server.js"],
-      "env": { "WORKSPACE": "/path/to/your/dita/project" }
+      "args": ["/absolute/path/to/dist/mcp-server.js"],
+      "env": { "WORKSPACE": "/path/to/dita/project" }
     }
   }
 }
 ```
 
-### Current Workaround via LSP (Available Now)
+### Standalone LSP Server
 
-Any tool that speaks **Language Server Protocol** can already connect to DitaCraft's server process directly:
+DitaCraft also ships a **standalone LSP server** bundle for embedding in other Node.js projects:
 
-```json
-// .vscode/settings.json — point another LSP client to the running server
-{
-  "ditacraft.enableExternalLspAccess": true
-}
+```bash
+npm run build-standalone
+# → dist/lsp-server.js (2.0 MB) — self-contained, no node_modules needed
+
+# Launch as headless LSP server:
+node dist/lsp-server.js --stdio
 ```
 
-The server exposes the following custom LSP notifications/requests today:
-- `dita/buildContextSnapshot` — returns L1/L2/L3 DITA context for a given position
-- `dita/getContextGraph` — returns the dependency graph for a document
-- `dita/validateFragment` — validate an XML fragment against DITA rules
+Embed in any Node.js LSP client via `child_process.spawn`:
 
-> 🗺️ **Track MCP progress:** [GitHub Issues — label `mcp`](https://github.com/jyjeanne/ditacraft/labels/mcp)
+```js
+const { spawn } = require('child_process');
+const server = spawn('node', ['lsp-server.js', '--stdio'], {
+    env: { DITACRAFT_EXTENSION_ROOT: __dirname },
+});
+// Communicate via server.stdin / server.stdout using vscode-languageserver
+```
 
 ## Supported Output Formats
 

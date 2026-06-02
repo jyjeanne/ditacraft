@@ -116,4 +116,10 @@
             <navtitle>AI Features</navtitle>
         </topicmeta>
     </topicref>
+
+    <topicref href="mcp-integration.dita" keys="mcp-integration">
+        <topicmeta>
+            <navtitle>MCP Integration</navtitle>
+        </topicmeta>
+    </topicref>
 </map>

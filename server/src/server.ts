@@ -132,8 +132,10 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
     // Initialize TypesXML catalog validation service.
     // The server module runs from <extensionPath>/server/out/server.js,
     // so extensionPath is two directories up from __dirname.
+    // In standalone mode (dist/lsp-server.js), DITACRAFT_EXTENSION_ROOT is set.
     const serverDir = __dirname; // server/out
-    const extensionPath = path.resolve(serverDir, '..', '..');
+    const extensionPath = process.env.DITACRAFT_EXTENSION_ROOT
+        || path.resolve(serverDir, '..', '..');
 
     // Pass external catalog path from initialization options if available
     const initOptions = params.initializationOptions as { xmlCatalogPath?: string } | undefined;
