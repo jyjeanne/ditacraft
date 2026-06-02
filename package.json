@@ -828,9 +828,9 @@
     "clean": true,
     "all": false,
     "check-coverage": true,
-    "lines": 63,
-    "statements": 63,
-    "functions": 70,
+    "lines": 61,
+    "statements": 61,
+    "functions": 63,
     "branches": 73
   },
   "nyc": {

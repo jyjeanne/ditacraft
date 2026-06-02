@@ -1,6 +1,6 @@
 /* eslint-disable no-throw-literal */
 import * as assert from 'assert';
-import { fireAndForget, getErrorMessage, tryAsync } from '../../utils/errorUtils';
+import { fireAndForget, getErrorMessage, tryAsync, isFileNotFoundError, formatErrorMessage, formatDitaError, createEnhancedError } from '../../utils/errorUtils';
 import { logger } from '../../utils/logger';
 
 suite('Error Handling Utility Tests', () => {
@@ -295,5 +295,155 @@ suite('Error Handling Utility Tests', () => {
                 done();
             }, 100);
         });
+    });
+
+    suite('isFileNotFoundError Tests', () => {
+
+        test('returns true for Node.js ENOENT error', () => {
+            const error = Object.assign(new Error('file not found'), { code: 'ENOENT' });
+            assert.strictEqual(isFileNotFoundError(error), true);
+        });
+
+        test('returns true for object with ENOENT code', () => {
+            assert.strictEqual(isFileNotFoundError({ code: 'ENOENT', message: 'test' }), true);
+        });
+
+        test('returns true for message containing "file not found"', () => {
+            assert.strictEqual(isFileNotFoundError(new Error('Error: file not found at path')), true);
+        });
+
+        test('returns true for message containing "no such file"', () => {
+            assert.strictEqual(isFileNotFoundError(new Error('no such file or directory')), true);
+        });
+
+        test('returns true for message containing "does not exist"', () => {
+            assert.strictEqual(isFileNotFoundError(new Error('path does not exist')), true);
+        });
+
+        test('returns false for generic error', () => {
+            assert.strictEqual(isFileNotFoundError(new Error('something went wrong')), false);
+        });
+
+        test('returns false for null', () => {
+            assert.strictEqual(isFileNotFoundError(null), false);
+        });
+
+        test('returns false for undefined', () => {
+            assert.strictEqual(isFileNotFoundError(undefined), false);
+        });
+
+        test('returns false for string error', () => {
+            assert.strictEqual(isFileNotFoundError('random string'), false);
+        });
+
+    });
+
+    suite('formatErrorMessage Tests', () => {
+
+        test('includes context in formatted output', () => {
+            const result = formatErrorMessage(new Error('test error'), 'Validation');
+            assert.ok(result.includes('🚨 Validation Error'));
+            assert.ok(result.includes('test error'));
+        });
+
+        test('includes suggestions when provided', () => {
+            const result = formatErrorMessage(new Error('test'), 'Preview', ['Try again', 'Check settings']);
+            assert.ok(result.includes('Try again'));
+            assert.ok(result.includes('Check settings'));
+        });
+
+        test('includes error code when available', () => {
+            const error = Object.assign(new Error('test'), { code: 'ERR-001' });
+            const result = formatErrorMessage(error, 'Test');
+            assert.ok(result.includes('ERR-001'));
+        });
+
+        test('does not include suggestions section when empty', () => {
+            const result = formatErrorMessage(new Error('test'), 'Test');
+            assert.ok(!result.includes('Suggestions'));
+        });
+
+        test('handles non-Error objects', () => {
+            const result = formatErrorMessage('plain string error', 'General');
+            assert.ok(result.includes('plain string error'));
+        });
+
+    });
+
+    suite('formatDitaError Tests', () => {
+
+        test('validation error with DOCTYPE message adds suggestions', () => {
+            const result = formatDitaError(new Error('missing DOCTYPE'), 'validation');
+            assert.ok(result.includes('DOCTYPE declaration'));
+        });
+
+        test('validation error with id attribute message adds suggestions', () => {
+            const result = formatDitaError(new Error('missing id attribute'), 'validation');
+            assert.ok(result.includes('unique id attribute'));
+        });
+
+        test('validation error with title message adds suggestions', () => {
+            const result = formatDitaError(new Error('missing title'), 'validation');
+            assert.ok(result.includes('<title> element'));
+        });
+
+        test('publishing error with DITA-OT message adds suggestions', () => {
+            const result = formatDitaError(new Error('DITA-OT failed'), 'publishing');
+            assert.ok(result.includes('DITA-OT is properly installed'));
+        });
+
+        test('publishing error with timeout message adds suggestions', () => {
+            const result = formatDitaError(new Error('timeout exceeded'), 'publishing');
+            assert.ok(result.includes('Increase the DITA-OT timeout'));
+        });
+
+        test('preview error with HTML file message adds suggestions', () => {
+            const result = formatDitaError(new Error('HTML file not generated'), 'preview');
+            assert.ok(result.includes('regenerating the preview'));
+        });
+
+        test('general error adds common suggestions', () => {
+            const result = formatDitaError(new Error('unknown error'), 'general');
+            assert.ok(result.includes('output channel'));
+        });
+
+        test('formatDitaError without specific keywords adds common suggestions only', () => {
+            const result = formatDitaError(new Error('some other error'), 'publishing');
+            assert.ok(result.includes('DITA specification'));
+        });
+
+    });
+
+    suite('createEnhancedError Tests', () => {
+
+        test('creates error with context prefix', () => {
+            const result = createEnhancedError(new Error('original'), 'MyContext');
+            assert.ok(result.message.startsWith('[MyContext]'));
+            assert.ok(result.message.includes('original'));
+        });
+
+        test('preserves stack from original Error', () => {
+            const original = new Error('test');
+            const result = createEnhancedError(original, 'Ctx');
+            assert.strictEqual(result.stack, original.stack);
+        });
+
+        test('handles non-Error input', () => {
+            const result = createEnhancedError('plain text', 'Ctx');
+            assert.ok(result.message.includes('[Ctx]'));
+            assert.ok(result.message.includes('plain text'));
+        });
+
+        test('attaches metadata when provided', () => {
+            const result = createEnhancedError(new Error('test'), 'Ctx', { file: 'test.dita', line: 42 }) as Error & Record<string, unknown>;
+            assert.strictEqual(result['file'], 'test.dita');
+            assert.strictEqual(result['line'], 42);
+        });
+
+        test('returns Error instance', () => {
+            const result = createEnhancedError(new Error('test'), 'Ctx');
+            assert.ok(result instanceof Error);
+        });
+
     });
 });
