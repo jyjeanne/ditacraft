@@ -879,12 +879,12 @@
     "typescript-eslint": "^8.61.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.100.1",
+    "@anthropic-ai/sdk": "^0.102.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@xmldom/xmldom": "^0.9.10",
     "fast-xml-parser": "^5.8.0",
-    "openai": "^6.41.0",
-    "typesxml": "^2.1.0",
+    "openai": "^6.42.0",
+    "typesxml": "^2.2.0",
     "vscode-languageclient": "^9.0.1"
   },
   "overrides": {
