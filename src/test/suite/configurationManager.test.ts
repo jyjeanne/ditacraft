@@ -394,14 +394,14 @@ suite('validateNumericConfig Function', () => {
 suite('Logger Dynamic Configuration Test Suite', () => {
     test('Logger should have reloadConfiguration method', async () => {
         // Import logger dynamically to test it has the method
-        const { logger } = await import('../../utils/logger');
+        const { logger } = await import('../../utils/logger.js');
 
         assert.ok(typeof logger.reloadConfiguration === 'function',
             'Logger should have reloadConfiguration method');
     });
 
     test('Logger reloadConfiguration should not throw', async () => {
-        const { logger } = await import('../../utils/logger');
+        const { logger } = await import('../../utils/logger.js');
 
         // Should not throw when called
         assert.doesNotThrow(() => {

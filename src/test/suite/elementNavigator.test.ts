@@ -73,7 +73,7 @@ suite('Element Navigator Test Suite', () => {
     suite('Command URI Navigation', () => {
         test('Should create valid command URIs for same-file references', async () => {
             // Import the link provider
-            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider');
+            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider.js');
             const linkProvider = new DitaLinkProvider();
 
             const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
@@ -103,7 +103,7 @@ suite('Element Navigator Test Suite', () => {
         });
 
         test('Should include tooltip for same-file references', async () => {
-            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider');
+            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider.js');
             const linkProvider = new DitaLinkProvider();
 
             const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
@@ -146,7 +146,7 @@ suite('Element Navigator Test Suite', () => {
 
     suite('Integration with Link Provider', () => {
         test('Conref same-file references should use command URIs', async () => {
-            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider');
+            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider.js');
             const linkProvider = new DitaLinkProvider();
 
             // Create a test document with same-file conref
@@ -177,7 +177,7 @@ suite('Element Navigator Test Suite', () => {
         });
 
         test('Xref same-file references should use command URIs', async () => {
-            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider');
+            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider.js');
             const linkProvider = new DitaLinkProvider();
 
             const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
@@ -195,7 +195,7 @@ suite('Element Navigator Test Suite', () => {
         });
 
         test('Link element same-file references should use command URIs', async () => {
-            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider');
+            const { DitaLinkProvider } = await import('../../providers/ditaLinkProvider.js');
             const linkProvider = new DitaLinkProvider();
 
             const fileUri = vscode.Uri.file(path.join(fixturesPath, 'topic-with-xref-links.dita'));
