@@ -5,6 +5,23 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-06-24
+
+### Fixed
+- **Preview auto-refresh on save** (#96) — `ditacraft.previewAutoRefresh` was read from configuration but never wired to a save event, so saving a previewed file did nothing. The preview now re-renders when the previewed source file is saved. Rapid saves are debounced (500 ms) and refreshes are serialized so only one DITA-OT publish runs at a time; the refresh preserves editor focus and updates the panel in place without pulling it to the foreground. Path matching is case-insensitive on Windows/macOS so it works whether the preview was opened from the editor or the file tree.
+- **CommonJS test build** — `tsc -p ./` now emits CommonJS again (Node16 module resolution), fixing a `MODULE_TYPELESS_PACKAGE_JSON` failure when running the test runner.
+- **vscode-languageclient 10 resolution** — switched TypeScript `moduleResolution` so the client's `exports`-based `vscode-languageclient/node` entrypoint resolves under the new package layout.
+
+### Changed
+- **Minimum VS Code version raised to 1.125.0** (`engines.vscode`) to match the bumped `@types/vscode`, restoring `vsce package`.
+
+### Dependencies
+- **vscode-languageclient** 9.0.1 → 10.0.0
+- **@vscode/test-electron** 2.5.2 → 3.0.0
+- **@types/node** 25.9.3 → 26.0.0
+- Additional production and dev dependency group bumps
+- **actions/checkout** GitHub Action 6 → 7
+
 ## [0.7.3] - 2026-04-29
 
 ### Added
