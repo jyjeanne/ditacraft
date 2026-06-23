@@ -10,7 +10,7 @@ export {
     resetValidationRateLimiter
 } from './validateCommand';
 export { publishCommand, publishHTML5Command } from './publishCommand';
-export { previewHTML5Command, initializePreview } from './previewCommand';
+export { previewHTML5Command, initializePreview, shouldAutoRefreshPreview } from './previewCommand';
 export { newTopicCommand, newMapCommand, newBookmapCommand } from './fileCreationCommands';
 export { configureDitaOTCommand } from './configureCommand';
 export { setupCSpellCommand } from './cspellSetupCommand';

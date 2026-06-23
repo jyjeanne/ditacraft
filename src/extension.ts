@@ -19,6 +19,7 @@ import {
     publishHTML5Command,
     previewHTML5Command,
     initializePreview,
+    shouldAutoRefreshPreview,
     newTopicCommand,
     newMapCommand,
     newBookmapCommand,
@@ -26,7 +27,7 @@ import {
     setupCSpellCommand,
     validateGuideCommand
 } from './commands';
-import { registerPreviewPanelSerializer } from './providers/previewPanel';
+import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
 import { UI_TIMEOUTS } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
@@ -78,6 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.appendLine('Initializing preview panel...');
         initializePreview(context);
         registerPreviewPanelSerializer(context);
+        registerPreviewAutoRefresh(context);
         outputChannel.appendLine('Preview panel initialized');
 
         // Note: Document links now provided by the LSP server (Phase 6)
@@ -505,6 +507,87 @@ export async function deactivate(): Promise<void> {
     }
 
     try { logger.dispose(); } catch { /* may not be initialized */ }
+}
+
+/** Debounce delay before a save triggers a preview re-publish (ms). */
+const PREVIEW_AUTO_REFRESH_DEBOUNCE_MS = 500;
+
+/**
+ * Register the save-triggered auto-refresh for the HTML5 preview.
+ *
+ * When `ditacraft.previewAutoRefresh` is enabled and the saved document is the
+ * source file currently shown in the preview panel, re-run the preview command
+ * so DITA-OT regenerates the output (the source is now newer than the cached
+ * HTML) and the panel updates. Focus is preserved so the cursor stays in the
+ * editor. Resolves issue #96.
+ *
+ * Rapid saves (auto-save, fast Ctrl+S) are coalesced: a short debounce drops
+ * redundant triggers, and refreshes are serialized so at most one DITA-OT
+ * publish runs at a time against the shared output directory. A save that
+ * arrives while a publish is in flight schedules exactly one trailing refresh.
+ */
+function registerPreviewAutoRefresh(context: vscode.ExtensionContext): void {
+    let debounceTimer: NodeJS.Timeout | undefined;
+    let refreshInFlight = false;
+    let pendingUri: vscode.Uri | undefined;
+
+    const runRefresh = (uri: vscode.Uri): void => {
+        refreshInFlight = true;
+        logger.debug('Auto-refreshing preview after save', { file: uri.fsPath });
+        fireAndForget(
+            previewHTML5Command(uri, /* preserveFocus */ true).finally(() => {
+                refreshInFlight = false;
+                // Replay the most recent save that landed during this publish.
+                if (pendingUri) {
+                    const next = pendingUri;
+                    pendingUri = undefined;
+                    runRefresh(next);
+                }
+            }),
+            'preview-auto-refresh'
+        );
+    };
+
+    const saveListener = vscode.workspace.onDidSaveTextDocument(document => {
+        const panel = DitaPreviewPanel.currentPanel;
+        if (!panel) {
+            return;
+        }
+
+        if (!shouldAutoRefreshPreview(
+            document.uri.fsPath,
+            configManager.get('previewAutoRefresh'),
+            panel.getSourceFile()
+        )) {
+            return;
+        }
+
+        const uri = document.uri;
+
+        // A publish is already running — remember this save and replay it once
+        // the current run finishes, rather than launching a concurrent publish.
+        if (refreshInFlight) {
+            pendingUri = uri;
+            return;
+        }
+
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+        debounceTimer = setTimeout(() => {
+            debounceTimer = undefined;
+            runRefresh(uri);
+        }, PREVIEW_AUTO_REFRESH_DEBOUNCE_MS);
+    });
+
+    context.subscriptions.push(saveListener, {
+        dispose: () => {
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+                debounceTimer = undefined;
+            }
+        }
+    });
 }
 
 /**

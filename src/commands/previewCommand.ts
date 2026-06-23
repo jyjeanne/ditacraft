@@ -23,8 +23,13 @@ export function initializePreview(context: vscode.ExtensionContext): void {
 /**
  * Command: ditacraft.previewHTML5
  * Shows HTML5 preview in WebView panel
+ *
+ * @param uri Optional file URI; falls back to the active editor.
+ * @param preserveFocus When true, the preview panel is revealed without
+ *        stealing focus from the editor. Used by the save-triggered
+ *        auto-refresh so the cursor stays in the document.
  */
-export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
+export async function previewHTML5Command(uri?: vscode.Uri, preserveFocus = false): Promise<void> {
     try {
         // Get and validate file URI
         const fileUri = await getAndValidateFileUri(uri);
@@ -43,11 +48,45 @@ export async function previewHTML5Command(uri?: vscode.Uri): Promise<void> {
         const outputDir = await generateHtml5OutputIfNeeded(ditaOt, filePath);
 
         // Find and display the main HTML file
-        await displayPreview(filePath, outputDir);
+        await displayPreview(filePath, outputDir, preserveFocus);
 
     } catch (error) {
         handlePreviewError(error);
     }
+}
+
+/**
+ * Decide whether a save should trigger an auto-refresh of the preview.
+ * Exported for testing.
+ *
+ * Refresh only when the setting is enabled AND the saved file is the same
+ * source file currently shown in the preview panel. Paths are normalized and
+ * compared case-insensitively on case-insensitive platforms (Windows/macOS),
+ * so a tree-view URI (`c:\…`) and an editor document URI (`C:\…`) still match.
+ */
+export function shouldAutoRefreshPreview(
+    savedFilePath: string,
+    autoRefreshEnabled: boolean,
+    previewedSourceFile: string | undefined
+): boolean {
+    if (!autoRefreshEnabled || previewedSourceFile === undefined) {
+        return false;
+    }
+    return pathsEqual(savedFilePath, previewedSourceFile);
+}
+
+/**
+ * Compare two file system paths for equality, accounting for separator
+ * normalization and platform case-sensitivity.
+ */
+function pathsEqual(a: string, b: string): boolean {
+    const normA = path.normalize(a);
+    const normB = path.normalize(b);
+    // Windows and macOS file systems are case-insensitive; Linux is not.
+    if (process.platform === 'win32' || process.platform === 'darwin') {
+        return normA.toLowerCase() === normB.toLowerCase();
+    }
+    return normA === normB;
 }
 
 /**
@@ -195,7 +234,7 @@ async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: stri
 /**
  * Display the preview in WebView panel or external browser
  */
-async function displayPreview(sourceFilePath: string, outputDir: string): Promise<void> {
+async function displayPreview(sourceFilePath: string, outputDir: string, preserveFocus = false): Promise<void> {
     const fileName = path.basename(sourceFilePath, path.extname(sourceFilePath));
 
     // Find the main HTML file (P1-1 Fix: await async function)
@@ -210,7 +249,8 @@ async function displayPreview(sourceFilePath: string, outputDir: string): Promis
         DitaPreviewPanel.createOrShow(
             extensionContext.extensionUri,
             htmlFile,
-            sourceFilePath
+            sourceFilePath,
+            preserveFocus
         );
         logger.info('Preview panel opened', { htmlFile, sourceFile: sourceFilePath });
     } else {

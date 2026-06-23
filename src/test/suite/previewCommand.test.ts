@@ -10,7 +10,8 @@ import * as fs from 'fs';
 import {
     validateFilePath,
     findMainHtmlFile,
-    initializePreview
+    initializePreview,
+    shouldAutoRefreshPreview
 } from '../../commands/previewCommand';
 
 suite('Preview Command Test Suite', () => {
@@ -256,6 +257,61 @@ suite('Preview Command Test Suite', () => {
 
             assert.ok(customCss !== undefined, 'previewCustomCss should be defined');
             assert.strictEqual(typeof customCss, 'string', 'previewCustomCss should be string');
+        });
+    });
+
+    suite('Auto-Refresh on Save (issue #96)', () => {
+        const savedFile = path.join('C:', 'docs', 'topic.dita');
+
+        test('Should refresh when enabled and saved file is the previewed source', function() {
+            assert.strictEqual(
+                shouldAutoRefreshPreview(savedFile, true, savedFile),
+                true
+            );
+        });
+
+        test('Should not refresh when the setting is disabled', function() {
+            assert.strictEqual(
+                shouldAutoRefreshPreview(savedFile, false, savedFile),
+                false
+            );
+        });
+
+        test('Should not refresh when no preview panel is open (no source file)', function() {
+            assert.strictEqual(
+                shouldAutoRefreshPreview(savedFile, true, undefined),
+                false
+            );
+        });
+
+        test('Should not refresh when a different file is saved', function() {
+            const otherFile = path.join('C:', 'docs', 'other.dita');
+            assert.strictEqual(
+                shouldAutoRefreshPreview(otherFile, true, savedFile),
+                false
+            );
+        });
+
+        test('Should match paths that differ only by normalization', function() {
+            const a = path.join('C:', 'docs', 'topic.dita');
+            const b = path.join('C:', 'docs', '.', 'sub', '..', 'topic.dita');
+            assert.strictEqual(
+                shouldAutoRefreshPreview(a, true, b),
+                true
+            );
+        });
+
+        test('Should match case-insensitively on Windows/macOS (drive-letter casing)', function() {
+            if (process.platform !== 'win32' && process.platform !== 'darwin') {
+                this.skip();
+                return;
+            }
+            const previewed = path.join('C:', 'Docs', 'Topic.dita');
+            const saved = path.join('c:', 'docs', 'topic.dita');
+            assert.strictEqual(
+                shouldAutoRefreshPreview(saved, true, previewed),
+                true
+            );
         });
     });
 });

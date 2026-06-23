@@ -44,13 +44,19 @@ export class DitaPreviewPanel {
     public static createOrShow(
         extensionUri: vscode.Uri,
         htmlFile: string,
-        sourceFile: string
+        sourceFile: string,
+        preserveFocus = false
     ): DitaPreviewPanel {
         const column = vscode.ViewColumn.Beside;
 
-        // If we already have a panel, show it
+        // If we already have a panel, refresh its content.
         if (DitaPreviewPanel.currentPanel) {
-            DitaPreviewPanel.currentPanel._panel.reveal(column);
+            // Auto-refresh (preserveFocus) updates content in place without
+            // pulling the preview tab to the foreground; the manual command
+            // reveals it so the user sees the panel they just invoked.
+            if (!preserveFocus) {
+                DitaPreviewPanel.currentPanel._panel.reveal(column);
+            }
             DitaPreviewPanel.currentPanel.update(htmlFile, sourceFile);
             return DitaPreviewPanel.currentPanel;
         }
@@ -59,7 +65,7 @@ export class DitaPreviewPanel {
         const panel = vscode.window.createWebviewPanel(
             DitaPreviewPanel.viewType,
             'DITA Preview',
-            column,
+            { viewColumn: column, preserveFocus },
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
