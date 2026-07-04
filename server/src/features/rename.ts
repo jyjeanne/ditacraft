@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import {
     PrepareRenameParams,
     RenameParams,
@@ -15,11 +14,10 @@ import { URI } from 'vscode-uri';
 import {
     findIdAtOffset,
     findReferencesToId,
-    parseReference,
     ReferenceOccurrence,
 } from '../utils/referenceParser';
 
-import { collectDitaFiles } from '../utils/workspaceScanner';
+import { collectDitaFiles, referenceMatchesTarget } from '../utils/workspaceScanner';
 import { offsetToPosition, uriToPath, normalizeFsPath } from '../utils/textUtils';
 import { KeySpaceService } from '../services/keySpaceService';
 
@@ -151,32 +149,11 @@ async function collectMatchingEdits(
     keySpaceService: KeySpaceService | undefined,
     log?: (msg: string) => void
 ): Promise<TextEdit[]> {
-    const contextDir = path.dirname(contextFilePath);
     const edits: TextEdit[] = [];
 
     for (const ref of refs) {
-        if (ref.type === 'href' || ref.type === 'conref') {
-            const parsed = parseReference(ref.value);
-            if (parsed.filePath) {
-                const resolvedPath = normalizeFsPath(path.resolve(contextDir, parsed.filePath));
-                if (resolvedPath !== normalizedTargetPath) continue;
-            } else {
-                // Fragment-only ref: only relevant when this file is the target file
-                if (normalizeFsPath(contextFilePath) !== normalizedTargetPath) continue;
-            }
-        } else if (ref.type === 'conkeyref') {
-            if (!keySpaceService) {
-                log?.(
-                    `Rename: skipping unverifiable conkeyref "${ref.value}" in ${contextFilePath} ` +
-                    '(no KeySpaceService available to resolve the key target)'
-                );
-                continue;
-            }
-            const slashIdx = ref.value.indexOf('/');
-            const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
-            const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);
-            const resolvedTarget = keyDef?.targetFile ? normalizeFsPath(keyDef.targetFile) : null;
-            if (resolvedTarget !== normalizedTargetPath) continue;
+        if (!(await referenceMatchesTarget(ref, contextFilePath, normalizedTargetPath, keySpaceService, log))) {
+            continue;
         }
 
         const newValue = replaceIdInReference(ref.type, ref.value, oldId, newId);

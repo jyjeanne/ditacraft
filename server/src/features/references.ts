@@ -1,4 +1,3 @@
-import * as path from 'path';
 import {
     Location,
     ReferenceParams,
@@ -12,11 +11,10 @@ import {
     findIdAtOffset,
     findReferencesToId,
     findElementByIdOffset,
-    parseReference,
     ReferenceOccurrence,
 } from '../utils/referenceParser';
 
-import { findCrossFileReferences } from '../utils/workspaceScanner';
+import { findCrossFileReferences, referenceMatchesTarget } from '../utils/workspaceScanner';
 import { uriToPath, normalizeFsPath } from '../utils/textUtils';
 import { KeySpaceService } from '../services/keySpaceService';
 
@@ -101,33 +99,12 @@ async function filterMatchingRefs(
     keySpaceService: KeySpaceService | undefined,
     log?: (msg: string) => void
 ): Promise<ReferenceOccurrence[]> {
-    const contextDir = path.dirname(contextFilePath);
     const matching: ReferenceOccurrence[] = [];
 
     for (const ref of refs) {
-        if (ref.type === 'href' || ref.type === 'conref') {
-            const parsed = parseReference(ref.value);
-            if (parsed.filePath) {
-                const resolvedPath = normalizeFsPath(path.resolve(contextDir, parsed.filePath));
-                if (resolvedPath !== normalizedTargetPath) continue;
-            } else if (normalizeFsPath(contextFilePath) !== normalizedTargetPath) {
-                continue;
-            }
-        } else if (ref.type === 'conkeyref') {
-            if (!keySpaceService) {
-                log?.(
-                    `Find References: skipping unverifiable conkeyref "${ref.value}" in ${contextFilePath} ` +
-                    '(no KeySpaceService available to resolve the key target)'
-                );
-                continue;
-            }
-            const slashIdx = ref.value.indexOf('/');
-            const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
-            const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);
-            const resolvedTarget = keyDef?.targetFile ? normalizeFsPath(keyDef.targetFile) : null;
-            if (resolvedTarget !== normalizedTargetPath) continue;
+        if (await referenceMatchesTarget(ref, contextFilePath, normalizedTargetPath, keySpaceService, log)) {
+            matching.push(ref);
         }
-        matching.push(ref);
     }
 
     return matching;
