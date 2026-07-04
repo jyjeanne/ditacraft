@@ -14,7 +14,7 @@ import { ELEMENT_DOCS, DITA_ELEMENTS } from '../data/ditaSchema';
 import { findReferenceAtOffset, parseReference } from '../utils/referenceParser';
 import { KeySpaceService } from '../services/keySpaceService';
 import { TAG_ATTRS } from '../utils/patterns';
-import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
 
 /**
  * Handle hover requests.
@@ -43,7 +43,9 @@ export async function handleHover(
         }
 
         if (refAtOffset.type === 'href' || refAtOffset.type === 'conref') {
-            const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
+            const workspaceFolders = effectiveWorkspaceFolders(
+                uriToPath(params.textDocument.uri), keySpaceService?.getWorkspaceFolders() ?? []
+            );
             const hover = await getHrefHover(refAtOffset, params.textDocument.uri, workspaceFolders);
             if (hover) return hover;
         }

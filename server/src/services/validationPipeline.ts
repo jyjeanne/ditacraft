@@ -15,7 +15,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { CancellationToken } from 'vscode-languageserver';
 
 import { DitaCraftSettings } from '../settings';
-import { normalizeFsPath, uriToPath } from '../utils/textUtils';
+import { normalizeFsPath, uriToPath, effectiveWorkspaceFolders } from '../utils/textUtils';
 import { t } from '../utils/i18n';
 import { validateDITADocument } from '../features/validation';
 import { validateContentModel } from '../features/contentModelValidation';
@@ -562,7 +562,10 @@ export class ValidationPipeline {
                 try {
                     const cycleDiags = await timePhaseAsync('CircularRef', () =>
                         withTimeout(
-                            detectCircularReferences(text, uri, keySpaceService?.getWorkspaceFolders() ?? []),
+                            detectCircularReferences(
+                                text, uri,
+                                effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? [])
+                            ),
                             phaseTimeoutMs, 'CircularRef', [] as Diagnostic[], this.log, token,
                         )
                     );

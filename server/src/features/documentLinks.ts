@@ -9,7 +9,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { KeySpaceService } from '../services/keySpaceService';
-import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
 
 // --- Types ---
 
@@ -37,7 +37,7 @@ export async function handleDocumentLinks(
     const documentUri = params.textDocument.uri;
     const documentDir = path.dirname(uriToPath(documentUri));
     const contextFilePath = uriToPath(documentUri);
-    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
+    const workspaceFolders = effectiveWorkspaceFolders(contextFilePath, keySpaceService?.getWorkspaceFolders() ?? []);
     const links: DocumentLink[] = [];
 
     // Regex patterns (created per-call to avoid shared stateful /g flag)

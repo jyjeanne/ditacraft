@@ -25,7 +25,7 @@ import {
 import { KeySpaceService } from '../services/keySpaceService';
 import { SubjectSchemeService } from '../services/subjectSchemeService';
 import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
-import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
 
 const enum Context {
     ElementName,
@@ -330,7 +330,9 @@ async function getAttributeValueCompletions(
 
     // --- Href / Conref completion ---
     if (attrName === 'href' || attrName === 'conref') {
-        const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
+        const workspaceFolders = effectiveWorkspaceFolders(
+            uriToPath(documentUri), keySpaceService?.getWorkspaceFolders() ?? []
+        );
         if (ctx.prefix.includes('#')) {
             // Fragment completion: topic/element IDs in target file
             return getHrefFragmentCompletions(ctx, documentUri, workspaceFolders);

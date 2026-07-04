@@ -7,6 +7,7 @@ import {
     escapeRegex,
     isPathWithinWorkspace,
     normalizeFsPath,
+    effectiveWorkspaceFolders,
 } from '../src/utils/textUtils';
 
 /** Temporarily override process.platform for a single test. */
@@ -363,6 +364,40 @@ suite('textUtils', () => {
                 const targetPath = '/workspace/project/topic.dita';
                 assert.strictEqual(isPathWithinWorkspace(targetPath, workspaceFolders), false);
             });
+        });
+    });
+
+    // -------------------------------------------------------------------------
+    suite('effectiveWorkspaceFolders', () => {
+        test('empty workspaceFolders is returned unchanged', () => {
+            const result = effectiveWorkspaceFolders('/any/document.dita', []);
+            assert.deepStrictEqual(result, []);
+        });
+
+        test('document inside a workspace folder keeps the real folder list', () => {
+            const workspaceFolders = [path.resolve('/workspace/project')];
+            const documentPath = path.resolve('/workspace/project/topic.dita');
+            assert.deepStrictEqual(effectiveWorkspaceFolders(documentPath, workspaceFolders), workspaceFolders);
+        });
+
+        test('document outside every workspace folder falls back to single-file mode (regression)', () => {
+            // A loose file opened outside any configured workspace folder must
+            // not have its own relative references blocked — otherwise even a
+            // trivial same-directory sibling reference would be treated as
+            // "outside the workspace" just because the document itself is.
+            const workspaceFolders = [path.resolve('/workspace/project')];
+            const documentPath = path.resolve('/elsewhere/loose-file.dita');
+            assert.deepStrictEqual(effectiveWorkspaceFolders(documentPath, workspaceFolders), []);
+        });
+
+        test('a reference from an out-of-workspace document then passes isPathWithinWorkspace (regression)', () => {
+            const workspaceFolders = [path.resolve('/workspace/project')];
+            const documentPath = path.resolve('/elsewhere/loose-file.dita');
+            const siblingTarget = path.resolve('/elsewhere/sibling.dita');
+
+            const effective = effectiveWorkspaceFolders(documentPath, workspaceFolders);
+            assert.strictEqual(isPathWithinWorkspace(siblingTarget, effective), true,
+                'a same-directory sibling of an out-of-workspace document must still resolve');
         });
     });
 });
