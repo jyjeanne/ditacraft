@@ -322,9 +322,14 @@ connection.onDidChangeWatchedFiles(async (params: DidChangeWatchedFilesParams) =
     for (const change of classification.changes) {
         validationPipeline.invalidateForFileSave(change.uri);
     }
-    // When external map files change, revalidate all open documents
-    // (key space and cross-references may have changed)
-    if (classification.mapChanged) {
+    // When external DITA files change — topics as well as maps — revalidate
+    // all open documents. Cross-reference diagnostics for an open document
+    // depend on the *content* of whatever file its href/conref/conkeyref
+    // fragments resolve to; saving an unrelated topic (not just a map) can
+    // just as easily invalidate another open document's cached DITA-XREF-*/
+    // DITA-KEY-* results (e.g. an id was renamed or removed), so this must
+    // not be gated on mapChanged alone.
+    if (classification.ditaFileChanged) {
         validationPipeline.invalidateForMapChange();
         debouncedRefresh('__map_external__', MAP_DEBOUNCE_MS);
     }

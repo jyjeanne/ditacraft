@@ -46,6 +46,20 @@ suite('handleCompletion', () => {
             const items = await complete(content, 0, 18);
             assert.strictEqual(items.length, 0);
         });
+
+        test('mismatched closing tag does not corrupt parent-element lookup (regression)', async () => {
+            // <b> is never properly closed — </p> is a mismatch that must
+            // resync findParentElement's stack by closing both <p> and <b>.
+            // Without that, the stack is left with <topic, b> after </body>
+            // (since </body> only pops the entry it actually matches), and
+            // the trailing < would incorrectly offer <b>'s children (none)
+            // instead of <topic>'s.
+            const content = '<topic><body><p><b>text</p></body><';
+            const items = await complete(content, 0, content.length);
+            const labels = items.map(i => i.label);
+            assert.ok(labels.includes('title'),
+                'parent should resolve to <topic> (offering its children), not the stuck <b>');
+        });
     });
 
     suite('Attribute completions', () => {
