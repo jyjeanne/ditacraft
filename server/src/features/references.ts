@@ -29,7 +29,8 @@ export async function handleReferences(
     params: ReferenceParams,
     documents: TextDocuments<TextDocument>,
     workspaceFolders?: readonly string[],
-    keySpaceService?: KeySpaceService
+    keySpaceService?: KeySpaceService,
+    log?: (msg: string) => void
 ): Promise<Location[]> {
     const document = documents.get(params.textDocument.uri);
     if (!document) {
@@ -64,7 +65,7 @@ export async function handleReferences(
     const normalizedTargetPath = normalizeFsPath(targetFilePath);
     const refs = findReferencesToId(text, idResult.id);
     for (const ref of await filterMatchingRefs(
-        refs, targetFilePath, normalizedTargetPath, keySpaceService
+        refs, targetFilePath, normalizedTargetPath, keySpaceService, log
     )) {
         const startPos = document.positionAt(ref.valueStart);
         const endPos = document.positionAt(ref.valueEnd);
@@ -79,7 +80,8 @@ export async function handleReferences(
             workspaceFolders,
             document.uri,
             documents,
-            keySpaceService
+            keySpaceService,
+            log
         );
         results.push(...crossFileRefs);
     }
@@ -96,7 +98,8 @@ async function filterMatchingRefs(
     refs: ReferenceOccurrence[],
     contextFilePath: string,
     normalizedTargetPath: string,
-    keySpaceService: KeySpaceService | undefined
+    keySpaceService: KeySpaceService | undefined,
+    log?: (msg: string) => void
 ): Promise<ReferenceOccurrence[]> {
     const contextDir = path.dirname(contextFilePath);
     const matching: ReferenceOccurrence[] = [];
@@ -111,7 +114,13 @@ async function filterMatchingRefs(
                 continue;
             }
         } else if (ref.type === 'conkeyref') {
-            if (!keySpaceService) continue;
+            if (!keySpaceService) {
+                log?.(
+                    `Find References: skipping unverifiable conkeyref "${ref.value}" in ${contextFilePath} ` +
+                    '(no KeySpaceService available to resolve the key target)'
+                );
+                continue;
+            }
             const slashIdx = ref.value.indexOf('/');
             const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
             const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);

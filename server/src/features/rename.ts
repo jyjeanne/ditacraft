@@ -54,7 +54,8 @@ export async function handleRename(
     params: RenameParams,
     documents: TextDocuments<TextDocument>,
     workspaceFolders?: readonly string[],
-    keySpaceService?: KeySpaceService
+    keySpaceService?: KeySpaceService,
+    log?: (msg: string) => void
 ): Promise<WorkspaceEdit | null> {
     const document = documents.get(params.textDocument.uri);
     if (!document) return null;
@@ -87,7 +88,7 @@ export async function handleRename(
     const normalizedTargetPath = normalizeFsPath(targetFilePath);
     const refs = findReferencesToId(text, oldId);
     const selfEdits = await collectMatchingEdits(
-        refs, text, targetFilePath, normalizedTargetPath, oldId, newId, keySpaceService
+        refs, text, targetFilePath, normalizedTargetPath, oldId, newId, keySpaceService, log
     );
     currentEdits.push(...selfEdits);
     changes[document.uri] = currentEdits;
@@ -117,7 +118,7 @@ export async function handleRename(
             if (fileRefs.length === 0) continue;
 
             const fileEdits = await collectMatchingEdits(
-                fileRefs, content, filePath, normalizedTargetPath, oldId, newId, keySpaceService
+                fileRefs, content, filePath, normalizedTargetPath, oldId, newId, keySpaceService, log
             );
 
             if (fileEdits.length > 0) {
@@ -147,7 +148,8 @@ async function collectMatchingEdits(
     normalizedTargetPath: string,
     oldId: string,
     newId: string,
-    keySpaceService: KeySpaceService | undefined
+    keySpaceService: KeySpaceService | undefined,
+    log?: (msg: string) => void
 ): Promise<TextEdit[]> {
     const contextDir = path.dirname(contextFilePath);
     const edits: TextEdit[] = [];
@@ -163,7 +165,13 @@ async function collectMatchingEdits(
                 if (normalizeFsPath(contextFilePath) !== normalizedTargetPath) continue;
             }
         } else if (ref.type === 'conkeyref') {
-            if (!keySpaceService) continue;
+            if (!keySpaceService) {
+                log?.(
+                    `Rename: skipping unverifiable conkeyref "${ref.value}" in ${contextFilePath} ` +
+                    '(no KeySpaceService available to resolve the key target)'
+                );
+                continue;
+            }
             const slashIdx = ref.value.indexOf('/');
             const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
             const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);

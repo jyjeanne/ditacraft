@@ -280,8 +280,15 @@ suite('findCrossFileReferences', () => {
             const refPath = path.join(tmp, 'ref.ditamap');
             fs.writeFileSync(refPath, '<map><ph conkeyref="somekey/myId"/></map>');
 
-            const results = await findCrossFileReferences('myId', targetPath, [tmp]);
+            const logs: string[] = [];
+            const results = await findCrossFileReferences(
+                'myId', targetPath, [tmp], undefined, undefined, undefined, (msg) => logs.push(msg)
+            );
             assert.strictEqual(results.length, 0);
+            assert.ok(
+                logs.some(m => m.includes('somekey/myId')),
+                'skipping an unverifiable conkeyref should be logged so it is not silently dropped (regression)'
+            );
         } finally {
             fs.rmSync(tmp, { recursive: true, force: true });
         }

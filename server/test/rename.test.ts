@@ -196,16 +196,23 @@ suite('handleRename', () => {
             const doc = createDoc(fs.readFileSync(targetPath, 'utf-8'), URI.file(targetPath).toString());
             const docs = createDocs(doc);
 
+            const logs: string[] = [];
             const edit = await handleRename(
                 { textDocument: { uri: doc.uri }, position: { line: 0, character: 12 }, newName: 't1new' },
                 docs,
-                [tmpDir]
+                [tmpDir],
                 // no keySpaceService
+                undefined,
+                (msg) => logs.push(msg)
             );
 
             const referencerUri = URI.file(referencerPath).toString();
             assert.ok(!edit?.changes?.[referencerUri],
                 'without a KeySpaceService, an unverifiable conkeyref must not be rewritten');
+            assert.ok(
+                logs.some(m => m.includes('mykey/t1')),
+                'skipping an unverifiable conkeyref should be logged so it is not silently dropped (regression)'
+            );
         } finally {
             fs.rmSync(tmpDir, { recursive: true, force: true });
         }

@@ -99,7 +99,8 @@ export async function findCrossFileReferences(
     workspaceFolders: readonly string[],
     excludeUri?: string,
     documents?: TextDocuments<TextDocument>,
-    keySpaceService?: KeySpaceService
+    keySpaceService?: KeySpaceService,
+    log?: (msg: string) => void
 ): Promise<Location[]> {
     const results: Location[] = [];
     const ditaFiles = collectDitaFiles(workspaceFolders);
@@ -149,7 +150,13 @@ export async function findCrossFileReferences(
                     }
                 }
             } else if (ref.type === 'conkeyref') {
-                if (!keySpaceService) continue;
+                if (!keySpaceService) {
+                    log?.(
+                        `Skipping unverifiable conkeyref "${ref.value}" in ${filePath} ` +
+                        '(no KeySpaceService available to resolve the key target)'
+                    );
+                    continue;
+                }
                 const slashIdx = ref.value.indexOf('/');
                 const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
                 const keyDef = await keySpaceService.resolveKey(keyName, filePath);

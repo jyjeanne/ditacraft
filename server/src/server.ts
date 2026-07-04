@@ -407,7 +407,7 @@ connection.onDefinition((params: DefinitionParams) => handleDefinition(params, d
 // Find References handler (cross-file via workspace folders)
 connection.onReferences((params: ReferenceParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
-    return handleReferences(params, documents, folders, keySpaceService);
+    return handleReferences(params, documents, folders, keySpaceService, (msg) => connection.console.warn(msg));
 });
 
 // Document formatting handler
@@ -425,7 +425,7 @@ connection.onPrepareRename((params: PrepareRenameParams) => handlePrepareRename(
 // Rename handler (cross-file via workspace folders)
 connection.onRenameRequest((params: RenameParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
-    return handleRename(params, documents, folders, keySpaceService);
+    return handleRename(params, documents, folders, keySpaceService, (msg) => connection.console.warn(msg));
 });
 
 // Folding Ranges handler
