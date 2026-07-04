@@ -27,7 +27,7 @@ export function handleDitaMapStructure(
         includeMetadata: includeMetadata ?? true,
     };
 
-    const graph = handleGetContextGraph(params);
+    const graph = handleGetContextGraph(params, ctx.keySpaceService);
 
     if (format === 'tree') {
         return formatAsTree(graph);

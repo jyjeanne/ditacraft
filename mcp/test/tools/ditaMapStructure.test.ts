@@ -1,4 +1,7 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { createTestWorkspace, TestWorkspace } from '../helper';
 
 const MAP_WITH_TOPICS = [
@@ -77,6 +80,38 @@ suite('dita_map_structure', () => {
         const text = result.content[0]?.text ?? '';
         const parsed = JSON.parse(text);
         assert.ok(parsed.rootMap);
+    });
+
+    test('topicref escaping the workspace is not resolved into a child (regression)', async () => {
+        // A submap reachable from test-map.ditamap references a path that
+        // escapes the workspace root entirely. The map-structure tool must
+        // not resolve or report on files outside the workspace, mirroring
+        // the guard already verified for handleGetContextGraph directly in
+        // server/test/contextGraph.test.ts.
+        const outsideFile = path.join(os.tmpdir(), 'ditacraft-mcp-outside.dita');
+        fs.writeFileSync(outsideFile, '<topic id="o"><title>Outside</title></topic>');
+        const escapeMapPath = path.join(ws.dir, 'escape-map.ditamap');
+        const relativeHref = path.relative(path.dirname(escapeMapPath), outsideFile).replace(/\\/g, '/');
+        fs.writeFileSync(escapeMapPath, [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">',
+            '<map>',
+            '  <title>Escape Map</title>',
+            `  <topicref href="${relativeHref}"/>`,
+            '</map>',
+        ].join('\n'));
+
+        try {
+            const result = await ws.callToolRaw('dita_map_structure', { mapUri: 'escape-map.ditamap' });
+            const text = result.content[0]?.text ?? '';
+            const parsed = JSON.parse(text);
+            assert.strictEqual(parsed.rootMap.children.length, 0,
+                'escaping topicref must not be resolved into a child');
+            assert.strictEqual(parsed.topics.length, 0,
+                'no topic outside the workspace should be indexed');
+        } finally {
+            fs.rmSync(outsideFile, { force: true });
+        }
     });
 
 });
