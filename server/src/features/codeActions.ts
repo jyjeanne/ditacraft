@@ -382,11 +382,18 @@ function fixDeprecatedAltAttr(
     text: string,
     document: TextDocument
 ): CodeAction[] {
-    const startOffset = document.offsetAt(diagnostic.range.start);
-    const textAtPos = text.slice(startOffset);
+    // The diagnostic range points at the alt="..." attribute itself (see
+    // DITA-SCH-011 in ditaRulesValidator.ts), not at the <image tag start.
+    // Search backward for the enclosing tag rather than forward from the
+    // attribute — searching forward would skip past this tag entirely and
+    // match the *next* <image> element in the document instead.
+    const diagnosticOffset = document.offsetAt(diagnostic.range.start);
+    const tagStart = text.lastIndexOf('<image', diagnosticOffset);
+    if (tagStart === -1) return [];
+    const textFromTagStart = text.slice(tagStart);
 
     // Find the <image> tag and extract alt attribute value
-    const imageMatch = textAtPos.match(/<image\b([^>]*)/);
+    const imageMatch = textFromTagStart.match(/<image\b([^>]*)/);
     if (!imageMatch) return [];
 
     const attrs = imageMatch[1];
@@ -396,7 +403,7 @@ function fixDeprecatedAltAttr(
     const altValue = altMatch[1];
 
     // Remove the alt attribute from the tag
-    const altAttrStart = startOffset + imageMatch[0].indexOf(altMatch[0]);
+    const altAttrStart = tagStart + imageMatch[0].indexOf(altMatch[0]);
     const altAttrEnd = altAttrStart + altMatch[0].length;
 
     // Also remove leading space before the attribute
@@ -406,7 +413,7 @@ function fixDeprecatedAltAttr(
     }
 
     // Find where to insert the <alt> element — after the image opening tag
-    const tagEnd = text.indexOf('>', startOffset);
+    const tagEnd = text.indexOf('>', tagStart);
     if (tagEnd === -1) return [];
 
     const isSelfClosing = text[tagEnd - 1] === '/';

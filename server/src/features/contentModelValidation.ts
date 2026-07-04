@@ -194,8 +194,8 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
     'body': {
         allowedChildren: [
             // basic.block
-            'p', 'ul', 'ol', 'sl', 'dl', 'pre', 'codeblock', 'msgblock',
-            'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
+            'p', 'ul', 'ol', 'sl', 'dl', 'parml', 'pre', 'codeblock', 'msgblock',
+            'screen', 'syntaxdiagram', 'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
             'fig', 'table', 'simpletable', 'div',
             // body-specific
             'section', 'example', 'bodydiv', 'sectiondiv',
@@ -213,7 +213,7 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
         allowedChildren: [
             // basic.block
             'p', 'ul', 'ol', 'sl', 'dl', 'pre', 'codeblock', 'msgblock',
-            'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
+            'screen', 'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
             'fig', 'table', 'simpletable', 'div',
             // conbody-specific
             'section', 'example', 'bodydiv', 'sectiondiv', 'conbodydiv',
@@ -255,8 +255,8 @@ const DITA_CONTENT_MODELS: Record<string, ContentModel> = {
             // section.cnt = basic.block + basic.ph + title + sectiondiv + txt.incl + data + foreign
             'title',
             // basic.block
-            'p', 'ul', 'ol', 'sl', 'dl', 'pre', 'codeblock', 'msgblock',
-            'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
+            'p', 'ul', 'ol', 'sl', 'dl', 'parml', 'pre', 'codeblock', 'msgblock',
+            'screen', 'syntaxdiagram', 'lines', 'lq', 'note', 'hazardstatement', 'image', 'object',
             'fig', 'table', 'simpletable', 'div', 'sectiondiv',
             // txt.incl
             'draft-comment', 'required-cleanup', 'fn', 'indexterm', 'indextermref',

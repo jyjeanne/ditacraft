@@ -219,10 +219,19 @@ suite('handleCodeActions', () => {
     });
 
     suite('DITA-SCH-011: Convert alt attribute to element', () => {
+        // The real validator (ditaRulesValidator.ts, DITA-SCH-011) points the
+        // diagnostic range at the alt="..." attribute itself, not at the
+        // <image tag start — these tests mirror that so they actually
+        // exercise the same code path a real diagnostic would.
+        function altAttrDiag(content: string): Diagnostic {
+            const altOffset = content.indexOf('alt=');
+            const altMatch = content.slice(altOffset).match(/alt\s*=\s*["'][^"']*["']/)!;
+            return makeDiag('DITA-SCH-011', 0, altOffset, 0, altOffset + altMatch[0].length, 'dita-rules');
+        }
+
         test('offers fix for self-closing image with alt attribute', () => {
             const content = '<image href="pic.png" alt="A photo"/>';
-            const diag = makeDiag('DITA-SCH-011', 0, 0, 0, content.length, 'dita-rules');
-            const result = actions(content, [diag]);
+            const result = actions(content, [altAttrDiag(content)]);
             assert.ok(result.length > 0);
             assert.ok(result[0].title.includes('Convert'));
             const edits = result[0].edit!.changes![TEST_URI];
@@ -234,12 +243,27 @@ suite('handleCodeActions', () => {
 
         test('offers fix for open/close image with alt attribute', () => {
             const content = '<image href="pic.png" alt="A photo"></image>';
-            const diag = makeDiag('DITA-SCH-011', 0, 0, 0, content.length, 'dita-rules');
-            const result = actions(content, [diag]);
+            const result = actions(content, [altAttrDiag(content)]);
             assert.ok(result.length > 0);
             const edits = result[0].edit!.changes![TEST_URI];
             const allNewText = edits.map(e => e.newText).join('');
             assert.ok(allNewText.includes('<alt>A photo</alt>'));
+        });
+
+        test('fixes the diagnosed image, not a later one with its own alt attribute (regression)', () => {
+            // Two images, each with a deprecated alt attribute. Fixing the
+            // FIRST one's diagnostic must not touch the second image at all —
+            // before the fix, searching forward from the attribute offset
+            // skipped past the first <image and matched the second instead.
+            const content =
+                '<p><image href="a.png" alt="Foo"/></p>' +
+                '<p><image href="b.png" alt="Bar"/></p>';
+            const result = actions(content, [altAttrDiag(content)]);
+            assert.ok(result.length > 0);
+            const edits = result[0].edit!.changes![TEST_URI];
+            const allNewText = edits.map(e => e.newText).join('');
+            assert.ok(allNewText.includes('Foo'), 'should convert the diagnosed (first) image\'s alt value');
+            assert.ok(!allNewText.includes('Bar'), 'must not touch the second image\'s alt value');
         });
     });
 
