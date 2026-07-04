@@ -867,6 +867,56 @@ suite('KeySpaceService', () => {
                 cleanup(tmpDir);
             }
         });
+
+        test('resolveKey matches a case-differing context path on Windows (regression)', async () => {
+            // vscode-uri's URI.file() lowercases Windows drive letters on
+            // round-trip, so a context path derived from a document URI can
+            // differ in case from the same path as resolved via path.resolve()
+            // while walking the map. A bare path.normalize() does not fold
+            // case, so topicToScope lookups would silently miss on Windows.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform')!;
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="version" href="v1.dita"/>
+  <mapref href="product.ditamap" keyscope="product"/>
+</map>`, 'utf-8');
+
+                const subPath = path.join(tmpDir, 'product.ditamap');
+                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="version" href="v2.dita"/>
+  <topicref href="product-guide.dita"/>
+</map>`, 'utf-8');
+
+                const productGuide = path.join(tmpDir, 'product-guide.dita');
+                fs.writeFileSync(productGuide, '', 'utf-8');
+
+                Object.defineProperty(process, 'platform', { value: 'win32' });
+
+                // Only the filename segment differs in case — the directory
+                // must stay real so findRootMap's readdir still locates
+                // root.ditamap.
+                const mixedCaseGuide = path.join(
+                    path.dirname(productGuide),
+                    path.basename(productGuide).toUpperCase()
+                );
+
+                const result = await service.resolveKey('version', mixedCaseGuide);
+                assert.ok(result, 'resolveKey should resolve despite the case-differing context path');
+                assert.ok(
+                    result!.targetFile?.endsWith('v2.dita'),
+                    'context-aware resolution should still find the product-scope version (v2) on Windows'
+                );
+            } finally {
+                Object.defineProperty(process, 'platform', originalPlatform);
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
     });
 
     suite('reltable exclusion', () => {
