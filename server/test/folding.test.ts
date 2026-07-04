@@ -75,6 +75,35 @@ suite('computeFoldingRanges', () => {
         assert.ok(ranges.length >= 3); // topic, body, section
     });
 
+    test('mismatched closing tag resyncs through intervening unclosed ancestors (regression)', () => {
+        // <c> (line 2) is never properly closed — </b> (line 3) is a mismatch
+        // that must resync by closing both <b> and <c>. A later stray </c>
+        // (line 5, no corresponding <c> reopened) must then be ignored rather
+        // than incorrectly pairing with the abandoned <c> from line 2 — which
+        // would produce a bogus fold range overlapping the unrelated <d> block.
+        const text =
+            '<a>\n' +
+            '  <b>\n' +
+            '    <c>\n' +
+            '</b>\n' +
+            '<d>\n' +
+            '</c>\n' +
+            '</d>\n' +
+            '</a>';
+        const ranges = computeFoldingRanges(text);
+
+        const bogusRange = ranges.find(r => r.startLine === 2);
+        assert.strictEqual(bogusRange, undefined,
+            'stray </c> at line 5 must not pair with the long-abandoned <c> at line 2');
+
+        // <b> ([1,3], resynced by the mismatched </b>), <d> ([4,6]), and <a>
+        // ([0,7]) each produce a fold; the stray </c> produces none.
+        assert.strictEqual(ranges.length, 3);
+        assert.ok(ranges.some(r => r.startLine === 1 && r.endLine === 3), '<b> fold should be [1,3]');
+        assert.ok(ranges.some(r => r.startLine === 4 && r.endLine === 6), '<d> fold should be [4,6]');
+        assert.ok(ranges.some(r => r.startLine === 0 && r.endLine === 7), '<a> fold should be [0,7]');
+    });
+
     test('Windows line endings (CRLF)', () => {
         const text = '<topic>\r\n  <title>T</title>\r\n</topic>';
         const ranges = computeFoldingRanges(text);

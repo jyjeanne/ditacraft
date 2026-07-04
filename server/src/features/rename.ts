@@ -16,10 +16,12 @@ import {
     findIdAtOffset,
     findReferencesToId,
     parseReference,
+    ReferenceOccurrence,
 } from '../utils/referenceParser';
 
 import { collectDitaFiles } from '../utils/workspaceScanner';
 import { offsetToPosition, uriToPath } from '../utils/textUtils';
+import { KeySpaceService } from '../services/keySpaceService';
 
 /**
  * Handle Prepare Rename request.
@@ -48,11 +50,12 @@ export function handlePrepareRename(
  * Handle Rename request.
  * Renames an id attribute value and updates all references across the workspace.
  */
-export function handleRename(
+export async function handleRename(
     params: RenameParams,
     documents: TextDocuments<TextDocument>,
-    workspaceFolders?: readonly string[]
-): WorkspaceEdit | null {
+    workspaceFolders?: readonly string[],
+    keySpaceService?: KeySpaceService
+): Promise<WorkspaceEdit | null> {
     const document = documents.get(params.textDocument.uri);
     if (!document) return null;
 
@@ -76,24 +79,21 @@ export function handleRename(
         newText: newId,
     });
 
-    // 2. Update all references to this ID in the current document
+    // 2. Update all references to this ID in the current document.
+    // Filtered the same way as cross-file refs below — a href/conref/conkeyref
+    // in this file may reference a *different* file's element that merely
+    // shares the same id text, and must not be rewritten.
+    const targetFilePath = uriToPath(document.uri);
+    const normalizedTargetPath = path.normalize(targetFilePath);
     const refs = findReferencesToId(text, oldId);
-    for (const ref of refs) {
-        const newValue = replaceIdInReference(ref.type, ref.value, oldId, newId);
-        currentEdits.push({
-            range: Range.create(
-                document.positionAt(ref.valueStart),
-                document.positionAt(ref.valueEnd)
-            ),
-            newText: newValue,
-        });
-    }
+    const selfEdits = await collectMatchingEdits(
+        refs, text, targetFilePath, normalizedTargetPath, oldId, newId, keySpaceService
+    );
+    currentEdits.push(...selfEdits);
     changes[document.uri] = currentEdits;
 
     // 3. Cross-file: update references in other workspace files
     if (workspaceFolders && workspaceFolders.length > 0) {
-        const targetFilePath = uriToPath(document.uri);
-        const normalizedTargetPath = path.normalize(targetFilePath);
         const ditaFiles = collectDitaFiles(workspaceFolders);
 
         for (const filePath of ditaFiles) {
@@ -116,33 +116,9 @@ export function handleRename(
             const fileRefs = findReferencesToId(content, oldId);
             if (fileRefs.length === 0) continue;
 
-            const fileDir = path.dirname(filePath);
-            const fileEdits: TextEdit[] = [];
-
-            for (const ref of fileRefs) {
-                // Filter: only include refs that point to the target file
-                if (ref.type === 'href' || ref.type === 'conref') {
-                    const parsed = parseReference(ref.value);
-                    if (parsed.filePath) {
-                        const resolvedPath = path.normalize(
-                            path.resolve(fileDir, parsed.filePath)
-                        );
-                        if (resolvedPath !== normalizedTargetPath) continue;
-                    } else {
-                        // Fragment-only ref: only relevant in the target file itself
-                        if (path.normalize(filePath) !== normalizedTargetPath) continue;
-                    }
-                }
-                // conkeyref: include all matches by element ID
-
-                const newValue = replaceIdInReference(ref.type, ref.value, oldId, newId);
-                const startPos = offsetToPosition(content, ref.valueStart);
-                const endPos = offsetToPosition(content, ref.valueEnd);
-                fileEdits.push({
-                    range: Range.create(startPos, endPos),
-                    newText: newValue,
-                });
-            }
+            const fileEdits = await collectMatchingEdits(
+                fileRefs, content, filePath, normalizedTargetPath, oldId, newId, keySpaceService
+            );
 
             if (fileEdits.length > 0) {
                 changes[fileUri] = fileEdits;
@@ -151,6 +127,60 @@ export function handleRename(
     }
 
     return { changes };
+}
+
+/**
+ * Filter reference occurrences found in `contextFilePath` down to only those
+ * that actually point at `normalizedTargetPath` (the file whose element is
+ * being renamed), then build the corresponding text edits.
+ *
+ * href/conref are filtered by resolving their file part relative to the
+ * containing file. conkeyref has no file part — the key must be resolved via
+ * the key space to know which file it targets. Without a KeySpaceService,
+ * a conkeyref match cannot be verified and is skipped rather than risking a
+ * rewrite of an unrelated file's reference that merely shares the id text.
+ */
+async function collectMatchingEdits(
+    refs: ReferenceOccurrence[],
+    content: string,
+    contextFilePath: string,
+    normalizedTargetPath: string,
+    oldId: string,
+    newId: string,
+    keySpaceService: KeySpaceService | undefined
+): Promise<TextEdit[]> {
+    const contextDir = path.dirname(contextFilePath);
+    const edits: TextEdit[] = [];
+
+    for (const ref of refs) {
+        if (ref.type === 'href' || ref.type === 'conref') {
+            const parsed = parseReference(ref.value);
+            if (parsed.filePath) {
+                const resolvedPath = path.normalize(path.resolve(contextDir, parsed.filePath));
+                if (resolvedPath !== normalizedTargetPath) continue;
+            } else {
+                // Fragment-only ref: only relevant when this file is the target file
+                if (path.normalize(contextFilePath) !== normalizedTargetPath) continue;
+            }
+        } else if (ref.type === 'conkeyref') {
+            if (!keySpaceService) continue;
+            const slashIdx = ref.value.indexOf('/');
+            const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
+            const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);
+            const resolvedTarget = keyDef?.targetFile ? path.normalize(keyDef.targetFile) : null;
+            if (resolvedTarget !== normalizedTargetPath) continue;
+        }
+
+        const newValue = replaceIdInReference(ref.type, ref.value, oldId, newId);
+        const startPos = offsetToPosition(content, ref.valueStart);
+        const endPos = offsetToPosition(content, ref.valueEnd);
+        edits.push({
+            range: Range.create(startPos, endPos),
+            newText: newValue,
+        });
+    }
+
+    return edits;
 }
 
 /**

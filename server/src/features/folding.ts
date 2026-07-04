@@ -69,7 +69,12 @@ export function computeFoldingRanges(text: string): FoldingRange[] {
                 if (tagStack[j].name === closeName) {
                     const openLine = tagStack[j].line;
                     const closeLine = lineAtOffset(lineOffsets, match.index);
-                    tagStack.splice(j, 1);
+                    // Resync: drop this entry and every intervening entry
+                    // above it (never-closed ancestors from a mismatched or
+                    // missing closing tag) instead of removing only the
+                    // matched one, which would leave them stuck in the stack
+                    // and corrupt fold ranges for the rest of the document.
+                    tagStack.length = j;
                     if (closeLine > openLine) {
                         ranges.push({
                             startLine: openLine,
