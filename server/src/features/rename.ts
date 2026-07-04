@@ -91,13 +91,16 @@ export async function handleRename(
     currentEdits.push(...selfEdits);
     changes[document.uri] = currentEdits;
 
-    // 3. Cross-file: update references in other workspace files
+    // 3. Cross-file: update references in other workspace files. Files are
+    // processed concurrently (KeySpaceService dedupes concurrent builds of
+    // the same key space via pendingBuilds) since each file's conkeyref
+    // matches otherwise resolve one at a time.
     if (workspaceFolders && workspaceFolders.length > 0) {
         const ditaFiles = collectDitaFiles(workspaceFolders);
 
-        for (const filePath of ditaFiles) {
+        const perFileEdits = await Promise.all(ditaFiles.map(async (filePath) => {
             const fileUri = URI.file(filePath).toString();
-            if (fileUri === document.uri) continue;
+            if (fileUri === document.uri) return null;
 
             // Prefer in-memory content for open documents (may have unsaved changes)
             const openDoc = documents.get(fileUri);
@@ -108,19 +111,23 @@ export async function handleRename(
                 try {
                     content = fs.readFileSync(filePath, 'utf-8');
                 } catch {
-                    continue;
+                    return null;
                 }
             }
 
             const fileRefs = findReferencesToId(content, oldId);
-            if (fileRefs.length === 0) continue;
+            if (fileRefs.length === 0) return null;
 
             const fileEdits = await collectMatchingEdits(
                 fileRefs, content, filePath, normalizedTargetPath, oldId, newId, keySpaceService, log
             );
 
-            if (fileEdits.length > 0) {
-                changes[fileUri] = fileEdits;
+            return fileEdits.length > 0 ? { fileUri, fileEdits } : null;
+        }));
+
+        for (const result of perFileEdits) {
+            if (result) {
+                changes[result.fileUri] = result.fileEdits;
             }
         }
     }
@@ -149,12 +156,13 @@ async function collectMatchingEdits(
     keySpaceService: KeySpaceService | undefined,
     log?: (msg: string) => void
 ): Promise<TextEdit[]> {
-    const edits: TextEdit[] = [];
+    const matchFlags = await Promise.all(
+        refs.map(ref => referenceMatchesTarget(ref, contextFilePath, normalizedTargetPath, keySpaceService, log))
+    );
 
-    for (const ref of refs) {
-        if (!(await referenceMatchesTarget(ref, contextFilePath, normalizedTargetPath, keySpaceService, log))) {
-            continue;
-        }
+    const edits: TextEdit[] = [];
+    refs.forEach((ref, i) => {
+        if (!matchFlags[i]) return;
 
         const newValue = replaceIdInReference(ref.type, ref.value, oldId, newId);
         const startPos = offsetToPosition(content, ref.valueStart);
@@ -163,7 +171,7 @@ async function collectMatchingEdits(
             range: Range.create(startPos, endPos),
             newText: newValue,
         });
-    }
+    });
 
     return edits;
 }

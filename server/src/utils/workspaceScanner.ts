@@ -152,16 +152,20 @@ export async function findCrossFileReferences(
     keySpaceService?: KeySpaceService,
     log?: (msg: string) => void
 ): Promise<Location[]> {
-    const results: Location[] = [];
     const ditaFiles = collectDitaFiles(workspaceFolders);
     const normalizedTargetPath = normalizeFsPath(targetFilePath);
 
-    for (const filePath of ditaFiles) {
+    // Each file's conkeyref matches are resolved concurrently (KeySpaceService
+    // dedupes concurrent builds of the same key space via pendingBuilds), then
+    // files themselves are processed concurrently too. Promise.all preserves
+    // input order, so results come back in the same order as sequential
+    // processing would have produced.
+    const perFileResults = await Promise.all(ditaFiles.map(async (filePath): Promise<Location[]> => {
         const fileUri = URI.file(filePath).toString();
 
         // Skip the current document (already searched by the caller)
         if (excludeUri && fileUri === excludeUri) {
-            continue;
+            return [];
         }
 
         // Prefer in-memory content for open documents (may have unsaved changes)
@@ -173,24 +177,26 @@ export async function findCrossFileReferences(
             try {
                 content = fs.readFileSync(filePath, 'utf-8');
             } catch {
-                continue;
+                return [];
             }
         }
 
         const refs = findReferencesToId(content, targetId);
-        if (refs.length === 0) continue;
+        if (refs.length === 0) return [];
 
-        for (const ref of refs) {
-            const matches = await referenceMatchesTarget(
-                ref, filePath, normalizedTargetPath, keySpaceService, log
-            );
-            if (!matches) continue;
+        const matchFlags = await Promise.all(
+            refs.map(ref => referenceMatchesTarget(ref, filePath, normalizedTargetPath, keySpaceService, log))
+        );
 
+        const fileResults: Location[] = [];
+        refs.forEach((ref, i) => {
+            if (!matchFlags[i]) return;
             const startPos = offsetToPosition(content, ref.valueStart);
             const endPos = offsetToPosition(content, ref.valueEnd);
-            results.push(Location.create(fileUri, { start: startPos, end: endPos }));
-        }
-    }
+            fileResults.push(Location.create(fileUri, { start: startPos, end: endPos }));
+        });
+        return fileResults;
+    }));
 
-    return results;
+    return perFileResults.flat();
 }

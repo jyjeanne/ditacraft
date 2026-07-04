@@ -142,6 +142,51 @@ suite('handleRename', () => {
         }
     });
 
+    test('multiple conkeyrefs in one file resolve concurrently without mismatching edit-to-ref (regression)', async () => {
+        // Regression for parallelizing resolveKey calls: each ref's match
+        // result must still map to that same ref's own text edit, not get
+        // shuffled by concurrent resolution order.
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+        try {
+            const targetPath = path.join(tmpDir, 'target.dita');
+            const unrelatedPath = path.join(tmpDir, 'unrelated.dita');
+            fs.writeFileSync(targetPath, '<topic id="t1"><title>T</title></topic>');
+            fs.writeFileSync(unrelatedPath, '<topic id="t1"><title>U</title></topic>');
+
+            const referencerPath = path.join(tmpDir, 'referencer.dita');
+            fs.writeFileSync(referencerPath,
+                '<topic id="r1"><title>R</title><body>' +
+                '<p conkeyref="badkey1/t1">a</p>' +
+                '<p conkeyref="goodkey/t1">b</p>' +
+                '<p conkeyref="badkey2/t1">c</p>' +
+                '</body></topic>');
+
+            const doc = createDoc(fs.readFileSync(targetPath, 'utf-8'), URI.file(targetPath).toString());
+            const docs = createDocs(doc);
+
+            const keySpaceService = mockKeySpaceService((keyName) =>
+                keyName === 'goodkey'
+                    ? { keyName: 'goodkey', targetFile: targetPath, sourceMap: targetPath }
+                    : { keyName, targetFile: unrelatedPath, sourceMap: unrelatedPath }
+            );
+
+            const edit = await handleRename(
+                { textDocument: { uri: doc.uri }, position: { line: 0, character: 12 }, newName: 't1new' },
+                docs,
+                [tmpDir],
+                keySpaceService
+            );
+
+            const referencerUri = URI.file(referencerPath).toString();
+            const edits = edit?.changes?.[referencerUri];
+            assert.ok(edits, 'referencer file should have an edit');
+            assert.strictEqual(edits!.length, 1, 'only the goodkey conkeyref should be rewritten');
+            assert.strictEqual(edits![0].newText, 'goodkey/t1new');
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
     test('cross-file conkeyref resolving to a DIFFERENT file is NOT rewritten (regression)', async () => {
         // "mykey" resolves to some unrelated file, not the one being renamed —
         // even though the conkeyref's trailing element id text ("s1") happens

@@ -394,6 +394,45 @@ suite('findCrossFileReferences', () => {
         }
     });
 
+    test('multiple conkeyrefs per file resolve concurrently without mismatching ref-to-result (regression)', async () => {
+        // Regression for parallelizing resolveKey calls: each ref's match
+        // result must still map back to that same ref's position, not get
+        // shuffled by concurrent resolution order.
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
+        try {
+            const targetPath = path.join(tmp, 'target.dita');
+            const unrelatedPath = path.join(tmp, 'unrelated.dita');
+            fs.writeFileSync(targetPath, '<topic id="myId"/>');
+            fs.writeFileSync(unrelatedPath, '<topic id="myId"/>');
+
+            const refPath = path.join(tmp, 'ref.ditamap');
+            const content =
+                '<map>' +
+                '<ph conkeyref="badkey1/myId"/>' +
+                '<ph conkeyref="goodkey/myId"/>' +
+                '<ph conkeyref="badkey2/myId"/>' +
+                '</map>';
+            fs.writeFileSync(refPath, content);
+
+            const keySpaceService = mockKeySpaceService((keyName) => {
+                if (keyName === 'goodkey') return { keyName, targetFile: targetPath, sourceMap: targetPath };
+                return { keyName, targetFile: unrelatedPath, sourceMap: unrelatedPath };
+            });
+
+            const results = await findCrossFileReferences(
+                'myId', targetPath, [tmp], undefined, undefined, keySpaceService
+            );
+
+            assert.strictEqual(results.length, 1, 'only the goodkey conkeyref should match');
+            const expectedOffset = content.indexOf('goodkey');
+            const expectedPos = offsetToPosition(content, expectedOffset);
+            assert.strictEqual(results[0].range.start.line, expectedPos.line);
+            assert.strictEqual(results[0].range.start.character, expectedPos.character);
+        } finally {
+            fs.rmSync(tmp, { recursive: true, force: true });
+        }
+    });
+
     test('excludeUri parameter causes the specified file to be skipped', async () => {
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-test-'));
         try {
