@@ -17,7 +17,7 @@ import {
 } from '../utils/referenceParser';
 
 import { findCrossFileReferences } from '../utils/workspaceScanner';
-import { uriToPath } from '../utils/textUtils';
+import { uriToPath, normalizeFsPath } from '../utils/textUtils';
 import { KeySpaceService } from '../services/keySpaceService';
 
 /**
@@ -61,7 +61,7 @@ export async function handleReferences(
     // file may reference a *different* file's element that merely shares
     // the same id text, and must not be reported as a match.
     const targetFilePath = uriToPath(document.uri);
-    const normalizedTargetPath = path.normalize(targetFilePath);
+    const normalizedTargetPath = normalizeFsPath(targetFilePath);
     const refs = findReferencesToId(text, idResult.id);
     for (const ref of await filterMatchingRefs(
         refs, targetFilePath, normalizedTargetPath, keySpaceService
@@ -105,9 +105,9 @@ async function filterMatchingRefs(
         if (ref.type === 'href' || ref.type === 'conref') {
             const parsed = parseReference(ref.value);
             if (parsed.filePath) {
-                const resolvedPath = path.normalize(path.resolve(contextDir, parsed.filePath));
+                const resolvedPath = normalizeFsPath(path.resolve(contextDir, parsed.filePath));
                 if (resolvedPath !== normalizedTargetPath) continue;
-            } else if (path.normalize(contextFilePath) !== normalizedTargetPath) {
+            } else if (normalizeFsPath(contextFilePath) !== normalizedTargetPath) {
                 continue;
             }
         } else if (ref.type === 'conkeyref') {
@@ -115,7 +115,7 @@ async function filterMatchingRefs(
             const slashIdx = ref.value.indexOf('/');
             const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
             const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);
-            const resolvedTarget = keyDef?.targetFile ? path.normalize(keyDef.targetFile) : null;
+            const resolvedTarget = keyDef?.targetFile ? normalizeFsPath(keyDef.targetFile) : null;
             if (resolvedTarget !== normalizedTargetPath) continue;
         }
         matching.push(ref);
