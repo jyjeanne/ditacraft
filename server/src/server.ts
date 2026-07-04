@@ -420,7 +420,7 @@ connection.onPrepareRename((params: PrepareRenameParams) => handlePrepareRename(
 // Rename handler (cross-file via workspace folders)
 connection.onRenameRequest((params: RenameParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
-    return handleRename(params, documents, folders);
+    return handleRename(params, documents, folders, keySpaceService);
 });
 
 // Folding Ranges handler
