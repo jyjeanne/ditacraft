@@ -205,4 +205,40 @@ suite('settings', () => {
             updateGlobalSettings({});
         });
     });
+
+    // ── getDocumentSettings recovers from a transient failure (regression) ──
+
+    suite('getDocumentSettings (transient connection failure)', () => {
+        test('a rejected getConfiguration call does not permanently poison the cache', async () => {
+            let callCount = 0;
+            const mockConnection = {
+                workspace: {
+                    getConfiguration: () => {
+                        callCount++;
+                        return callCount === 1
+                            ? Promise.reject(new Error('transient failure'))
+                            : Promise.resolve({ maxNumberOfProblems: 99 });
+                    },
+                },
+            };
+            initSettings(mockConnection as never, true);
+            clearDocumentSettings();
+
+            // First call fails — must resolve to defaults instead of rejecting,
+            // and must NOT leave a permanently-rejected promise cached.
+            const first = await getDocumentSettings('file:///flaky.dita');
+            assert.strictEqual(first.autoValidate, true, 'falls back to defaults on failure');
+
+            // Second call must retry (not reuse a cached rejection) and succeed.
+            const second = await getDocumentSettings('file:///flaky.dita');
+            assert.strictEqual(second.maxNumberOfProblems, 99, 'should retry and get the real config');
+
+            assert.strictEqual(callCount, 2, 'the failed call must not be cached — a retry should occur');
+
+            initSettings({
+                workspace: { getConfiguration: () => Promise.resolve({}) },
+            } as never, false);
+            updateGlobalSettings({});
+        });
+    });
 });

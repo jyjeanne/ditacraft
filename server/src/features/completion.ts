@@ -144,10 +144,15 @@ function findParentElement(text: string, beforePos: number): string {
 
         const tagName = match[1];
         if (match[0].startsWith('</')) {
-            // Closing tag — pop from stack
+            // Closing tag — pop from stack, discarding this entry and every
+            // intervening never-closed entry above it too (same stack-desync
+            // bug class fixed in contentModelValidation.ts, symbols.ts, and
+            // folding.ts: removing only the matched entry would leave stale
+            // ancestors on the stack and corrupt the parent lookup for the
+            // rest of the document).
             const idx = stack.lastIndexOf(tagName);
             if (idx >= 0) {
-                stack.splice(idx, 1);
+                stack.splice(idx);
             }
         } else {
             // Opening tag — check if self-closing

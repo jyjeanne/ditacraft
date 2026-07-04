@@ -95,7 +95,14 @@ export function getDocumentSettings(resource: string): Thenable<DitaCraftSetting
         }).then((conf: Partial<DitaCraftSettings>) => ({
             ...defaultSettings,
             ...conf,
-        }));
+        })).catch(() => {
+            // A transient failure (client error, timeout, malformed response)
+            // must not permanently poison this resource's cache entry with a
+            // forever-rejected promise — evict it so the next call retries,
+            // and fall back to defaults for this call.
+            documentSettings.delete(resource);
+            return defaultSettings;
+        });
         documentSettings.set(resource, result);
     }
     return result;
