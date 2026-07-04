@@ -130,9 +130,14 @@ export function isPathWithinWorkspace(absolutePath: string, workspaceFolders: re
         return true;
     }
 
-    const normalizedPath = path.normalize(absolutePath);
+    // Use normalizeFsPath (not a bare path.normalize) so this comparison is
+    // case-insensitive on Windows — otherwise two paths that refer to the
+    // same file but were derived through different code paths (e.g. one via
+    // a file:// URI round-trip, which vscode-uri lowercases the drive letter
+    // of, and one from a raw fs path) would wrongly compare as different.
+    const normalizedPath = normalizeFsPath(absolutePath);
     return workspaceFolders.some(folder => {
-        const normalizedWorkspace = path.normalize(folder);
+        const normalizedWorkspace = normalizeFsPath(folder);
         return normalizedPath === normalizedWorkspace ||
             normalizedPath.startsWith(normalizedWorkspace + path.sep);
     });

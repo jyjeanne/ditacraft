@@ -20,7 +20,7 @@ import {
 } from '../utils/referenceParser';
 
 import { collectDitaFiles } from '../utils/workspaceScanner';
-import { offsetToPosition, uriToPath } from '../utils/textUtils';
+import { offsetToPosition, uriToPath, normalizeFsPath } from '../utils/textUtils';
 import { KeySpaceService } from '../services/keySpaceService';
 
 /**
@@ -84,7 +84,7 @@ export async function handleRename(
     // in this file may reference a *different* file's element that merely
     // shares the same id text, and must not be rewritten.
     const targetFilePath = uriToPath(document.uri);
-    const normalizedTargetPath = path.normalize(targetFilePath);
+    const normalizedTargetPath = normalizeFsPath(targetFilePath);
     const refs = findReferencesToId(text, oldId);
     const selfEdits = await collectMatchingEdits(
         refs, text, targetFilePath, normalizedTargetPath, oldId, newId, keySpaceService
@@ -156,18 +156,18 @@ async function collectMatchingEdits(
         if (ref.type === 'href' || ref.type === 'conref') {
             const parsed = parseReference(ref.value);
             if (parsed.filePath) {
-                const resolvedPath = path.normalize(path.resolve(contextDir, parsed.filePath));
+                const resolvedPath = normalizeFsPath(path.resolve(contextDir, parsed.filePath));
                 if (resolvedPath !== normalizedTargetPath) continue;
             } else {
                 // Fragment-only ref: only relevant when this file is the target file
-                if (path.normalize(contextFilePath) !== normalizedTargetPath) continue;
+                if (normalizeFsPath(contextFilePath) !== normalizedTargetPath) continue;
             }
         } else if (ref.type === 'conkeyref') {
             if (!keySpaceService) continue;
             const slashIdx = ref.value.indexOf('/');
             const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
             const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);
-            const resolvedTarget = keyDef?.targetFile ? path.normalize(keyDef.targetFile) : null;
+            const resolvedTarget = keyDef?.targetFile ? normalizeFsPath(keyDef.targetFile) : null;
             if (resolvedTarget !== normalizedTargetPath) continue;
         }
 

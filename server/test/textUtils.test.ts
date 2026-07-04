@@ -1,10 +1,24 @@
 import * as assert from 'assert';
+import * as path from 'path';
 import {
     stripCommentsAndCDATA,
     stripCommentsAndCodeContent,
     offsetToRange,
     escapeRegex,
+    isPathWithinWorkspace,
+    normalizeFsPath,
 } from '../src/utils/textUtils';
+
+/** Temporarily override process.platform for a single test. */
+function withPlatform(platform: NodeJS.Platform, fn: () => void): void {
+    const original = Object.getOwnPropertyDescriptor(process, 'platform')!;
+    Object.defineProperty(process, 'platform', { value: platform });
+    try {
+        fn();
+    } finally {
+        Object.defineProperty(process, 'platform', original);
+    }
+}
 
 suite('textUtils', () => {
 
@@ -282,6 +296,73 @@ suite('textUtils', () => {
             const input = 'price: $1.99 (sale)';
             const pattern = new RegExp(escapeRegex(input));
             assert.ok(pattern.test(input));
+        });
+    });
+
+    // -------------------------------------------------------------------------
+    suite('normalizeFsPath', () => {
+        test('is case-insensitive when platform is win32', () => {
+            withPlatform('win32', () => {
+                const a = normalizeFsPath('/Workspace/Topic.dita');
+                const b = normalizeFsPath('/workspace/topic.dita');
+                assert.strictEqual(a, b);
+            });
+        });
+
+        test('is case-sensitive on non-Windows platforms', () => {
+            withPlatform('linux', () => {
+                const a = normalizeFsPath('/Workspace/Topic.dita');
+                const b = normalizeFsPath('/workspace/topic.dita');
+                assert.notStrictEqual(a, b);
+            });
+        });
+    });
+
+    // -------------------------------------------------------------------------
+    suite('isPathWithinWorkspace', () => {
+        test('empty workspaceFolders means single-file mode (always true)', () => {
+            assert.strictEqual(isPathWithinWorkspace('/any/path.dita', []), true);
+        });
+
+        test('path inside a workspace folder is within it', () => {
+            const workspaceFolders = [path.resolve('/workspace/project')];
+            const targetPath = path.resolve('/workspace/project/topics/topic.dita');
+            assert.strictEqual(isPathWithinWorkspace(targetPath, workspaceFolders), true);
+        });
+
+        test('path escaping the workspace folder is not within it', () => {
+            const workspaceFolders = [path.resolve('/workspace/project')];
+            const targetPath = path.resolve('/workspace/other/topic.dita');
+            assert.strictEqual(isPathWithinWorkspace(targetPath, workspaceFolders), false);
+        });
+
+        test('a sibling folder with a matching name prefix is not within it', () => {
+            // "/workspace/project-other" must not be considered inside
+            // "/workspace/project" just because the string starts with it.
+            const workspaceFolders = [path.resolve('/workspace/project')];
+            const targetPath = path.resolve('/workspace/project-other/topic.dita');
+            assert.strictEqual(isPathWithinWorkspace(targetPath, workspaceFolders), false);
+        });
+
+        test('matches despite case differences on win32 (regression)', () => {
+            // Reproduces the real Windows CI failure: vscode-uri's URI.file()
+            // lowercases the drive letter (and Windows paths are inherently
+            // case-insensitive), so a path derived via a file:// URI round-trip
+            // can differ in case from a workspace folder path taken as-is —
+            // they must still compare equal on win32.
+            withPlatform('win32', () => {
+                const workspaceFolders = ['/Workspace/Project'];
+                const targetPath = '/workspace/project/topic.dita';
+                assert.strictEqual(isPathWithinWorkspace(targetPath, workspaceFolders), true);
+            });
+        });
+
+        test('is case-sensitive on non-Windows platforms', () => {
+            withPlatform('linux', () => {
+                const workspaceFolders = ['/Workspace/Project'];
+                const targetPath = '/workspace/project/topic.dita';
+                assert.strictEqual(isPathWithinWorkspace(targetPath, workspaceFolders), false);
+            });
         });
     });
 });

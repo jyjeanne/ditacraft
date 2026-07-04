@@ -5,7 +5,7 @@ import { Location, TextDocuments } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { findReferencesToId, parseReference } from './referenceParser';
-import { offsetToPosition } from './textUtils';
+import { offsetToPosition, normalizeFsPath } from './textUtils';
 import { KeySpaceService } from '../services/keySpaceService';
 
 /** File extensions considered DITA files. */
@@ -103,7 +103,7 @@ export async function findCrossFileReferences(
 ): Promise<Location[]> {
     const results: Location[] = [];
     const ditaFiles = collectDitaFiles(workspaceFolders);
-    const normalizedTargetPath = path.normalize(targetFilePath);
+    const normalizedTargetPath = normalizeFsPath(targetFilePath);
 
     for (const filePath of ditaFiles) {
         const fileUri = URI.file(filePath).toString();
@@ -136,7 +136,7 @@ export async function findCrossFileReferences(
                 const parsed = parseReference(ref.value);
                 if (parsed.filePath) {
                     // Cross-file ref: check path resolves to target
-                    const resolvedPath = path.normalize(
+                    const resolvedPath = normalizeFsPath(
                         path.resolve(fileDir, parsed.filePath)
                     );
                     if (resolvedPath !== normalizedTargetPath) {
@@ -144,7 +144,7 @@ export async function findCrossFileReferences(
                     }
                 } else {
                     // Fragment-only ref: only relevant if in the target file itself
-                    if (path.normalize(filePath) !== normalizedTargetPath) {
+                    if (normalizeFsPath(filePath) !== normalizedTargetPath) {
                         continue;
                     }
                 }
@@ -153,7 +153,7 @@ export async function findCrossFileReferences(
                 const slashIdx = ref.value.indexOf('/');
                 const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
                 const keyDef = await keySpaceService.resolveKey(keyName, filePath);
-                const resolvedTarget = keyDef?.targetFile ? path.normalize(keyDef.targetFile) : null;
+                const resolvedTarget = keyDef?.targetFile ? normalizeFsPath(keyDef.targetFile) : null;
                 if (resolvedTarget !== normalizedTargetPath) continue;
             }
 
