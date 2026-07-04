@@ -206,6 +206,40 @@ suite('Content Model Validation (server-side)', () => {
     });
 
     // -----------------------------------------------------------------------
+    suite('Mismatched closing tags', () => {
+
+        test('stray mismatched closing tag does not desync sibling validation', () => {
+            // </wrongname> has no matching ancestor on the stack (root is <topic>,
+            // then <body>) so it must be ignored rather than popping <body> off
+            // the stack. If it desynced, the real <body> content below would be
+            // misattributed as a child of <topic> and the <p> shouldn't be flagged.
+            const xml =
+                '<topic id="t"><title>T</title><body></wrongname><p>Ok</p></body></topic>';
+            const diags = validateContentModel(xml);
+            const parseErrors = diags.filter(d => d.code === 'DITA-CM-PARSE');
+            assert.ok(parseErrors.length > 0, 'should report the mismatched closing tag');
+
+            const cmErrors = diags.filter(d => d.code === 'DITA-CM-001');
+            assert.strictEqual(cmErrors.length, 0, '<p> inside <body> should remain valid after resync');
+        });
+
+        test('mismatched closing tag resyncs to matching ancestor instead of desyncing the tree', () => {
+            // <note> is closed with </p> by mistake (matching ancestor is <p>,
+            // two levels down: body > p > note). Resync should pop through <p>,
+            // closing both <note> and <p>, then <ul> should still validate as a
+            // child of <body>, not get nested under a corrupted <p>.
+            const xml =
+                '<topic id="t"><title>T</title><body><p><note>N</p><ul><li>x</li></ul></body></topic>';
+            const diags = validateContentModel(xml);
+            const parseErrors = diags.filter(d => d.code === 'DITA-CM-PARSE');
+            assert.ok(parseErrors.length > 0, 'should report the mismatched closing tag');
+
+            const cmErrors = diags.filter(d => d.code === 'DITA-CM-001');
+            assert.strictEqual(cmErrors.length, 0, '<ul> should validate as a child of <body>, not <p>');
+        });
+    });
+
+    // -----------------------------------------------------------------------
     suite('Glossentry', () => {
 
         test('glossentry with <body> reports error', () => {

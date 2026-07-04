@@ -343,6 +343,35 @@ suite('KeySpaceService', () => {
             }
         });
 
+        test('diamond-shaped mapref: same submap reached via two different keyscopes registers keys under both', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <mapref href="shared.ditamap" keyscope="prodA"/>
+  <mapref href="shared.ditamap" keyscope="prodB"/>
+</map>`, 'utf-8');
+
+                const sharedPath = path.join(tmpDir, 'shared.ditamap');
+                fs.writeFileSync(sharedPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="widget" href="widget.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.ok(keySpace.keys.has('widget'), 'unqualified key should exist');
+                assert.ok(keySpace.keys.has('prodA.widget'),
+                    'key should resolve under the first keyscope that reaches the shared submap');
+                assert.ok(keySpace.keys.has('prodB.widget'),
+                    'key should also resolve under the second keyscope reaching the same shared submap');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
         test('keyscope on submap root element is applied', async () => {
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);

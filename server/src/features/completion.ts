@@ -25,7 +25,7 @@ import {
 import { KeySpaceService } from '../services/keySpaceService';
 import { SubjectSchemeService } from '../services/subjectSchemeService';
 import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
-import { uriToPath } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
 
 const enum Context {
     ElementName,
@@ -325,12 +325,13 @@ async function getAttributeValueCompletions(
 
     // --- Href / Conref completion ---
     if (attrName === 'href' || attrName === 'conref') {
+        const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
         if (ctx.prefix.includes('#')) {
             // Fragment completion: topic/element IDs in target file
-            return getHrefFragmentCompletions(ctx, documentUri);
+            return getHrefFragmentCompletions(ctx, documentUri, workspaceFolders);
         }
         // File path completion: list .dita/.ditamap files relative to current doc
-        return getHrefFileCompletions(ctx, documentUri);
+        return getHrefFileCompletions(ctx, documentUri, workspaceFolders);
     }
 
     // --- Subject scheme controlled values ---
@@ -461,7 +462,8 @@ async function getKeyrefCompletions(
  */
 async function getHrefFragmentCompletions(
     ctx: CompletionContext,
-    documentUri: string
+    documentUri: string,
+    workspaceFolders: readonly string[]
 ): Promise<CompletionItem[]> {
     const currentValue = ctx.prefix;
     const hashPos = currentValue.indexOf('#');
@@ -473,6 +475,8 @@ async function getHrefFragmentCompletions(
     const targetPath = filePart
         ? path.resolve(currentDir, filePart)
         : currentFilePath; // same-file reference
+
+    if (!isPathWithinWorkspace(targetPath, workspaceFolders)) return [];
 
     let targetContent: string;
     try {
@@ -516,7 +520,8 @@ const MAX_DIR_ENTRIES = 200;
  */
 async function getHrefFileCompletions(
     ctx: CompletionContext,
-    documentUri: string
+    documentUri: string,
+    workspaceFolders: readonly string[]
 ): Promise<CompletionItem[]> {
     const currentFilePath = uriToPath(documentUri);
     const currentDir = path.dirname(currentFilePath);
@@ -534,6 +539,8 @@ async function getHrefFileCompletions(
     } else {
         searchDir = currentDir;
     }
+
+    if (!isPathWithinWorkspace(searchDir, workspaceFolders)) return [];
 
     let entries: Dirent[];
     try {

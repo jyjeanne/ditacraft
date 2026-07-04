@@ -59,6 +59,34 @@ suite('detectCircularReferences', () => {
         }
     });
 
+    test('reference escaping the workspace is not followed even if it would close a cycle', async () => {
+        // A.ditamap (inside workspaceRoot/docs) references "../../outside.ditamap",
+        // which escapes workspaceRoot into a sibling directory. outside.ditamap
+        // references back to A.ditamap, which would form a cycle if the escaping
+        // reference were followed. With a workspace boundary supplied, DFS must
+        // never leave the workspace, so no cycle should be reported.
+        const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-'));
+        const docsDir = path.join(workspaceRoot, 'docs');
+        fs.mkdirSync(docsDir);
+        const fileA = path.join(docsDir, 'A.ditamap');
+        const outsideFile = path.join(os.tmpdir(), 'outside.ditamap');
+
+        fs.writeFileSync(fileA, '<map><topicref href="../../outside.ditamap"/></map>');
+        fs.writeFileSync(outsideFile, `<map><topicref href="${fileA.replace(/\\/g, '/')}"/></map>`);
+
+        const textA = fs.readFileSync(fileA, 'utf-8');
+        const uriA = URI.file(fileA).toString();
+
+        try {
+            const diags = await detectCircularReferences(textA, uriA, [workspaceRoot]);
+            const cycleDiags = diags.filter(d => d.code === CYCLE_CODES.CIRCULAR_REF);
+            assert.strictEqual(cycleDiags.length, 0, 'escaping reference must not be followed');
+        } finally {
+            fs.rmSync(workspaceRoot, { recursive: true, force: true });
+            fs.rmSync(outsideFile, { force: true });
+        }
+    });
+
     test('self-reference via href produces CIRCULAR_REF diagnostic', async () => {
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
         const fileA = path.join(tmpDir, 'self.ditamap');

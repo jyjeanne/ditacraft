@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { URI } from 'vscode-uri';
 import { handleGetContextGraph } from '../src/features/contextGraph';
+import { IKeySpaceService } from '../src/services/interfaces';
 
 function makeTmpDir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ctxgraph-'));
@@ -43,6 +44,44 @@ suite('handleGetContextGraph', () => {
                 assert.strictEqual(graph.rootMap.children.length, 2, 'root should have 2 children');
             } finally {
                 cleanup(tmpDir);
+            }
+        });
+
+        test('topicref escaping the workspace is not resolved into a child', () => {
+            // root.ditamap (inside workspaceRoot/docs) references
+            // "../../outside.dita", which escapes workspaceRoot entirely. The
+            // file genuinely exists on disk, so without a workspace-boundary
+            // check resolveHref's ">8 levels" heuristic alone would not catch a
+            // shallow escape like this, and it would be resolved and read.
+            const workspaceRoot = makeTmpDir();
+            const docsDir = path.join(workspaceRoot, 'docs');
+            fs.mkdirSync(docsDir);
+            const outsideFile = path.join(os.tmpdir(), 'outside.dita');
+            fs.writeFileSync(outsideFile, '<topic id="o"><title>Outside</title></topic>', 'utf-8');
+
+            const mapPath = path.join(docsDir, 'root.ditamap');
+            fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map title="My Map">
+  <topicref href="../../outside.dita"/>
+</map>`, 'utf-8');
+
+            const mockKeySpaceService = {
+                getWorkspaceFolders: () => [workspaceRoot],
+            } as unknown as IKeySpaceService;
+
+            try {
+                const graph = handleGetContextGraph({
+                    uri: URI.file(mapPath).toString(),
+                    depth: 2,
+                    includeMetadata: false,
+                }, mockKeySpaceService);
+
+                assert.strictEqual(graph.rootMap.children.length, 0,
+                    'escaping topicref should not be resolved into a child');
+                assert.strictEqual(graph.topics.length, 0, 'no topic outside the workspace should be indexed');
+            } finally {
+                cleanup(workspaceRoot);
+                fs.rmSync(outsideFile, { force: true });
             }
         });
 

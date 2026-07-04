@@ -8,13 +8,14 @@ import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService'
 
 function createMockKeySpaceService(
     keys: Map<string, KeyDefinition>,
-    duplicateKeys?: Map<string, KeyDefinition[]>
+    duplicateKeys?: Map<string, KeyDefinition[]>,
+    workspaceFolders: readonly string[] = []
 ): KeySpaceService {
     return {
         getAllKeys: async () => keys,
         resolveKey: async (keyName: string) => keys.get(keyName) ?? null,
         getDuplicateKeys: async () => duplicateKeys ?? new Map(),
-        getWorkspaceFolders: () => [],
+        getWorkspaceFolders: () => workspaceFolders,
         buildKeySpace: async () => ({
             rootMap: '',
             keys,
@@ -62,6 +63,32 @@ suite('validateCrossReferences', () => {
                 assert.strictEqual(missing.length, 0);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('href escaping the workspace is treated as missing, not read', async () => {
+            // workspaceRoot/docs/source.dita references "../../secret.dita", which
+            // escapes workspaceRoot entirely into a sibling directory. The file
+            // genuinely exists on disk, so without a workspace-boundary guard the
+            // validator would happily fs.access/read it. It must be reported as
+            // missing instead, and never actually read.
+            const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-'));
+            const docsDir = path.join(workspaceRoot, 'docs');
+            fs.mkdirSync(docsDir);
+            const secretFile = path.join(os.tmpdir(), 'secret.dita');
+            fs.writeFileSync(secretFile, '<topic id="s"><title>Secret</title></topic>');
+
+            try {
+                const text = '<xref href="../../secret.dita">link</xref>';
+                const testUri = URI.file(path.join(docsDir, 'source.dita')).toString();
+                const keySpaceService = createMockKeySpaceService(new Map(), undefined, [workspaceRoot]);
+
+                const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
+                const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
+                assert.strictEqual(missing.length, 1, 'href escaping the workspace should be reported as missing');
+            } finally {
+                fs.rmSync(workspaceRoot, { recursive: true, force: true });
+                fs.rmSync(secretFile, { force: true });
             }
         });
 

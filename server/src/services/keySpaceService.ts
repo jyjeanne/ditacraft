@@ -11,7 +11,7 @@ import { promises as fsPromises } from 'fs';
 
 import { XMLParser } from 'fast-xml-parser';
 import { TAG_ATTRS } from '../utils/patterns';
-import { stripCommentsAndCDATA } from '../utils/textUtils';
+import { stripCommentsAndCDATA, isPathWithinWorkspace } from '../utils/textUtils';
 import { IKeySpaceService } from './interfaces';
 
 // --- Interfaces ---
@@ -615,11 +615,26 @@ export class KeySpaceService implements IKeySpaceService {
         // descendant scope namespaces (e.g. "product.lib.version" from "product.version").
         const scopeDirectKeys = new Map<string, KeyDefinition[]>();
 
+        // Caches each map's own key definitions (and root @keyscope) the first time
+        // it is traversed, so a later encounter of the same map via a *different*
+        // mapref @keyscope (diamond-shaped scope graph) can still register that
+        // map's keys under the new scope namespace without re-parsing the file or
+        // re-queueing its submaps (which would already have been queued once).
+        const mapDirectKeysCache = new Map<string, { keys: KeyDefinition[]; rootScopes: string[] }>();
+
         while (queue.length > 0) {
             const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
             const normalizedPath = path.normalize(currentMap);
 
-            if (visited.has(normalizedPath)) continue;
+            if (visited.has(normalizedPath)) {
+                const cached = mapDirectKeysCache.get(normalizedPath);
+                if (cached) {
+                    this.registerKeysForAdditionalScope(
+                        keySpace, scopeDirectKeys, cached.keys, scopePrefixes, cached.rootScopes
+                    );
+                }
+                continue;
+            }
 
             const fileExists = await this.fileExistsAsync(currentMap);
             if (!fileExists) continue;
@@ -656,6 +671,7 @@ export class KeySpaceService implements IKeySpaceService {
                 );
 
                 const keys = this.extractKeyDefinitions(maskedContent, currentMap, maxLinkMatches);
+                mapDirectKeysCache.set(normalizedPath, { keys, rootScopes });
                 for (const keyDef of keys) {
                     // Record as a direct key of every scope alias (first per key name wins).
                     for (const prefix of allScopePrefixes) {
@@ -1384,15 +1400,43 @@ export class KeySpaceService implements IKeySpaceService {
     }
 
     private isPathWithinWorkspace(absolutePath: string): boolean {
-        if (this.workspaceFolders.length === 0) {
-            return true; // No workspace — single file mode
+        return isPathWithinWorkspace(absolutePath, this.workspaceFolders);
+    }
+
+    /**
+     * Register a map's already-extracted key definitions under an additional
+     * scope-prefix combination reached via a second mapref in a diamond-shaped
+     * scope graph (e.g. the same submap included under both @keyscope="prodA"
+     * and @keyscope="prodB"). Only populates scope-qualified aliases — the
+     * unqualified `keySpace.keys`/`duplicateKeys` bookkeeping already happened
+     * when the map was first traversed and must not be repeated here.
+     */
+    private registerKeysForAdditionalScope(
+        keySpace: KeySpace,
+        scopeDirectKeys: Map<string, KeyDefinition[]>,
+        keys: KeyDefinition[],
+        scopePrefixes: string[],
+        rootScopes: string[]
+    ): void {
+        const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, rootScopes);
+        if (effectivePrefixes.length === 0) return;
+
+        for (const prefix of effectivePrefixes) {
+            if (!scopeDirectKeys.has(prefix)) {
+                scopeDirectKeys.set(prefix, []);
+            }
         }
 
-        const normalizedPath = path.normalize(absolutePath);
-        return this.workspaceFolders.some(folder => {
-            const normalizedWorkspace = path.normalize(folder);
-            return normalizedPath.startsWith(normalizedWorkspace + path.sep);
-        });
+        for (const keyDef of keys) {
+            for (const prefix of effectivePrefixes) {
+                const directKeys = scopeDirectKeys.get(prefix)!;
+                if (!directKeys.some(k => k.keyName === keyDef.keyName)) {
+                    directKeys.push(keyDef);
+                }
+                const qualifiedName = `${prefix}.${keyDef.keyName}`;
+                this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+            }
+        }
     }
 
     /**

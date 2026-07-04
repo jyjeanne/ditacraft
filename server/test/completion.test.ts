@@ -493,6 +493,39 @@ suite('handleCompletion', () => {
             }
         });
 
+        test('href traversal escaping the workspace returns no completions', async () => {
+            // workspaceRoot/docs/source.dita, with href="../../" attempting to list
+            // the directory two levels up (outside workspaceRoot entirely). A
+            // workspace-scoped KeySpaceService must block the readdir rather than
+            // enumerate files outside the workspace.
+            const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-'));
+            const docsDir = path.join(workspaceRoot, 'docs');
+            fs.mkdirSync(docsDir);
+            fs.writeFileSync(path.join(os.tmpdir(), 'outside-secret.dita'), '<topic id="s"/>');
+
+            try {
+                const testUri = URI.file(path.join(docsDir, 'source.dita')).toString();
+                const content = '<xref href="../../">';
+                const doc = createDoc(content, testUri);
+                const docs = createDocs(doc);
+
+                const mockKeySpaceService = {
+                    getWorkspaceFolders: () => [workspaceRoot],
+                } as unknown as KeySpaceService;
+
+                const items = await handleCompletion(
+                    { textDocument: { uri: testUri }, position: { line: 0, character: 18 } },
+                    docs,
+                    mockKeySpaceService
+                );
+
+                assert.strictEqual(items.length, 0, 'escaping traversal should yield no completions');
+            } finally {
+                fs.rmSync(workspaceRoot, { recursive: true, force: true });
+                fs.rmSync(path.join(os.tmpdir(), 'outside-secret.dita'), { force: true });
+            }
+        });
+
         test('conref lists .dita files too', async () => {
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             fs.writeFileSync(path.join(tmpDir, 'shared.dita'), '<topic id="t1"/>');
