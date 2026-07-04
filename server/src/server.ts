@@ -427,7 +427,7 @@ connection.onRenameRequest((params: RenameParams) => {
 connection.onFoldingRanges((params: FoldingRangeParams) => handleFoldingRanges(params, documents));
 
 // Document Links handler
-connection.onDocumentLinks((params: DocumentLinkParams) => handleDocumentLinks(params, documents));
+connection.onDocumentLinks((params: DocumentLinkParams) => handleDocumentLinks(params, documents, keySpaceService));
 
 // Document Link Resolve handler
 connection.onDocumentLinkResolve((link: DocumentLink) => handleDocumentLinkResolve(link, keySpaceService));

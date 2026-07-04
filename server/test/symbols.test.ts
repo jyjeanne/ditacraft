@@ -109,6 +109,30 @@ suite('handleDocumentSymbol', () => {
         });
     });
 
+    suite('Mismatched closing tags (regression)', () => {
+        test('stray closing tag closes intervening unclosed ancestors too', () => {
+            // <section> is never explicitly closed; </body> is a mismatch that
+            // should resync by closing both <section> and <body>. The <table>
+            // that follows must land as a direct child of <topic>, not get
+            // nested inside the stuck-open <section>.
+            const content =
+                '<topic id="t1"><title>T</title>' +
+                '<body><section><title>Sec</title></body>' +
+                '<table><title>Tbl</title></table></topic>';
+            const result = symbols(content);
+            const topic = result[0];
+            assert.ok(topic.children, 'topic should have children');
+
+            const body = topic.children!.find(c => c.name.startsWith('body'));
+            assert.ok(body, 'body should be a child of topic');
+            const section = body!.children?.find(c => c.name.includes('Sec'));
+            assert.ok(section, 'section should be nested inside body');
+
+            const table = topic.children!.find(c => c.name.includes('Tbl'));
+            assert.ok(table, 'table must be a direct child of topic, not nested inside the stuck section');
+        });
+    });
+
     suite('Edge cases', () => {
         test('empty document returns empty', () => {
             const result = symbols('');
@@ -213,5 +237,22 @@ suite('handleWorkspaceSymbol', () => {
         );
         assert.ok(results.some(s => s.name.includes('In Memory')),
             'should find in-memory content');
+    });
+
+    test('mismatched closing tag does not corrupt containerName of later symbols (regression)', () => {
+        // <section> is never explicitly closed; </body> is a mismatch that
+        // should resync by closing both <section> and <body>, so <table>
+        // (which follows) must get containerName "Root" (the topic), not the
+        // stuck-open <section>'s name "Sec".
+        fs.writeFileSync(path.join(tmpDir, 'mismatch.dita'),
+            '<topic id="t1"><title>Root</title>' +
+            '<body><section><title>Sec</title></body>' +
+            '<table><title>Tbl</title></table></topic>');
+
+        const results = wsSymbols('Tbl');
+        const table = results.find(s => s.name.includes('Tbl'));
+        assert.ok(table, 'should find the table symbol');
+        assert.strictEqual(table!.containerName, 'Root',
+            'table should be attributed to topic ("Root"), not stuck inside section ("Sec")');
     });
 });

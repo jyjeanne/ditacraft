@@ -9,7 +9,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { KeySpaceService } from '../services/keySpaceService';
-import { uriToPath } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
 
 // --- Types ---
 
@@ -27,7 +27,8 @@ interface LinkData {
  */
 export async function handleDocumentLinks(
     params: DocumentLinkParams,
-    documents: TextDocuments<TextDocument>
+    documents: TextDocuments<TextDocument>,
+    keySpaceService?: KeySpaceService
 ): Promise<DocumentLink[]> {
     const document = documents.get(params.textDocument.uri);
     if (!document) return [];
@@ -36,6 +37,7 @@ export async function handleDocumentLinks(
     const documentUri = params.textDocument.uri;
     const documentDir = path.dirname(uriToPath(documentUri));
     const contextFilePath = uriToPath(documentUri);
+    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
     const links: DocumentLink[] = [];
 
     // Regex patterns (created per-call to avoid shared stateful /g flag)
@@ -50,10 +52,10 @@ export async function handleDocumentLinks(
     const commentRanges = getCommentRanges(text);
 
     // Process file-based references (resolve target immediately)
-    processFileRefs(text, document, documentDir, links, commentRanges, HREF_REGEX);
-    processFileRefs(text, document, documentDir, links, commentRanges, CONREF_REGEX);
-    processFileRefs(text, document, documentDir, links, commentRanges, XREF_HREF_REGEX);
-    processFileRefs(text, document, documentDir, links, commentRanges, LINK_HREF_REGEX);
+    processFileRefs(text, document, documentDir, links, commentRanges, HREF_REGEX, workspaceFolders);
+    processFileRefs(text, document, documentDir, links, commentRanges, CONREF_REGEX, workspaceFolders);
+    processFileRefs(text, document, documentDir, links, commentRanges, XREF_HREF_REGEX, workspaceFolders);
+    processFileRefs(text, document, documentDir, links, commentRanges, LINK_HREF_REGEX, workspaceFolders);
 
     // Process key-based references (deferred resolution via resolveDocumentLink)
     // KEYREF_REGEX covers all elements including xref (no separate xref keyref pattern needed)
@@ -166,7 +168,8 @@ function processFileRefs(
     documentDir: string,
     links: DocumentLink[],
     commentRanges: [number, number][],
-    pattern: RegExp
+    pattern: RegExp,
+    workspaceFolders: readonly string[]
 ): void {
     pattern.lastIndex = 0;
     let match;
@@ -197,6 +200,7 @@ function processFileRefs(
         }
 
         const targetPath = path.resolve(documentDir, filePart);
+        if (!isPathWithinWorkspace(targetPath, workspaceFolders)) continue;
         const targetUri = URI.file(targetPath).toString();
 
         links.push({

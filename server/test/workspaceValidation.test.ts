@@ -96,6 +96,27 @@ suite('workspaceValidation', () => {
             }
         });
 
+        test('does not misattribute a nested child id as the root id (regression)', async () => {
+            // The root <topic> has no id, but a nested <p> does. The file must
+            // not be indexed under the child's id — that would cause bogus
+            // cross-file duplicate-ID diagnostics if another file's unrelated
+            // element happened to share that id.
+            const tmpDir = makeTmpDir();
+            try {
+                fs.writeFileSync(
+                    path.join(tmpDir, 'child-id.dita'),
+                    '<topic><title>No root ID</title><body><p id="para1">text</p></body></topic>'
+                );
+
+                const idx = new WorkspaceIndex();
+                await idx.buildFull([tmpDir]);
+                assert.strictEqual(idx.rootIdIndex.size, 0,
+                    'file must not be indexed under a nested child element\'s id');
+            } finally {
+                cleanup(tmpDir);
+            }
+        });
+
         test('empty workspace returns empty index', async () => {
             const tmpDir = makeTmpDir();
             try {

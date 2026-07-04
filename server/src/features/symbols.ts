@@ -123,16 +123,24 @@ function buildSymbolTree(tags: ParsedTag[], document: TextDocument): DocumentSym
         const tag = tags[i];
 
         if (tag.isClosing) {
-            // Find matching opening tag on the stack
+            // Find matching opening tag on the stack, searching from the top down.
+            let matchIdx = -1;
             for (let j = stack.length - 1; j >= 0; j--) {
-                if (stack[j].name === tag.name) {
-                    // Update the range end to include the closing tag
-                    const entry = stack[j];
-                    entry.symbol.range.end = document.positionAt(tag.endOffset);
+                if (stack[j].name === tag.name) { matchIdx = j; break; }
+            }
+            if (matchIdx >= 0) {
+                // Finalize every entry from the top down through the match.
+                // Intervening entries (mismatched/missing closing tags) were
+                // never properly closed — leaving them on the stack would
+                // corrupt nesting for the rest of the document, so close them
+                // here too instead of only removing the matched entry.
+                const endPos = document.positionAt(tag.endOffset);
+                for (let k = stack.length - 1; k >= matchIdx; k--) {
+                    const entry = stack[k];
+                    entry.symbol.range.end = endPos;
                     entry.symbol.children = entry.children;
-                    stack.splice(j, 1);
-                    break;
                 }
+                stack.length = matchIdx;
             }
             continue;
         }
@@ -279,10 +287,12 @@ function extractWorkspaceSymbols(
 
     for (const tag of tags) {
         if (tag.isClosing) {
-            // Pop matching element from stack
+            // Pop matching element from stack, closing any intervening
+            // (mismatched/missing closing tag) entries above it too — leaving
+            // them stuck would misattribute containerName for the rest of the file.
             for (let j = openStack.length - 1; j >= 0; j--) {
                 if (openStack[j].name === tag.name) {
-                    openStack.splice(j, 1);
+                    openStack.length = j;
                     break;
                 }
             }
