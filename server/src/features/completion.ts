@@ -26,6 +26,7 @@ import { KeySpaceService } from '../services/keySpaceService';
 import { SubjectSchemeService } from '../services/subjectSchemeService';
 import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
 import { uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
+import { resyncStackToMatch } from '../utils/tagStack';
 
 const enum Context {
     ElementName,
@@ -150,10 +151,7 @@ function findParentElement(text: string, beforePos: number): string {
             // folding.ts: removing only the matched entry would leave stale
             // ancestors on the stack and corrupt the parent lookup for the
             // rest of the document).
-            const idx = stack.lastIndexOf(tagName);
-            if (idx >= 0) {
-                stack.splice(idx);
-            }
+            resyncStackToMatch(stack, tagName, name => name);
         } else {
             // Opening tag — check if self-closing
             const closeAngle = text.indexOf('>', match.index);

@@ -6,6 +6,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { resyncStackToMatch } from '../utils/tagStack';
 
 // --- Types ---
 
@@ -65,26 +66,21 @@ export function computeFoldingRanges(text: string): FoldingRange[] {
         } else if (match[3]) {
             // Closing tag — match[4] is the tag name
             const closeName = match[4];
-            for (let j = tagStack.length - 1; j >= 0; j--) {
-                if (tagStack[j].name === closeName) {
-                    const openLine = tagStack[j].line;
-                    const closeLine = lineAtOffset(lineOffsets, match.index);
-                    // Resync: drop this entry and every intervening entry
-                    // above it (never-closed ancestors from a mismatched or
-                    // missing closing tag) instead of removing only the
-                    // matched one, which would leave them stuck in the stack
-                    // and corrupt fold ranges for the rest of the document.
-                    tagStack.length = j;
-                    if (closeLine > openLine) {
-                        ranges.push({
-                            startLine: openLine,
-                            endLine: closeLine,
-                            kind: FoldingRangeKind.Region,
-                        });
-                    }
-                    break;
+            const closeLine = lineAtOffset(lineOffsets, match.index);
+            // Resync: drop this entry and every intervening entry above it
+            // (never-closed ancestors from a mismatched or missing closing
+            // tag) instead of removing only the matched one, which would
+            // leave them stuck in the stack and corrupt fold ranges for the
+            // rest of the document.
+            resyncStackToMatch(tagStack, closeName, e => e.name, (entry, _index, isMatch) => {
+                if (isMatch && closeLine > entry.line) {
+                    ranges.push({
+                        startLine: entry.line,
+                        endLine: closeLine,
+                        kind: FoldingRangeKind.Region,
+                    });
                 }
-            }
+            });
         } else if (match[5]) {
             // Self-closing — no folding range
         } else if (match[7]) {

@@ -14,6 +14,7 @@ import { URI } from 'vscode-uri';
 
 import { collectDitaFiles } from '../utils/workspaceScanner';
 import { offsetToPosition } from '../utils/textUtils';
+import { resyncStackToMatch } from '../utils/tagStack';
 
 /** Map DITA element names to LSP SymbolKind */
 const SYMBOL_KIND_MAP: Record<string, SymbolKind> = {
@@ -123,25 +124,16 @@ function buildSymbolTree(tags: ParsedTag[], document: TextDocument): DocumentSym
         const tag = tags[i];
 
         if (tag.isClosing) {
-            // Find matching opening tag on the stack, searching from the top down.
-            let matchIdx = -1;
-            for (let j = stack.length - 1; j >= 0; j--) {
-                if (stack[j].name === tag.name) { matchIdx = j; break; }
-            }
-            if (matchIdx >= 0) {
-                // Finalize every entry from the top down through the match.
-                // Intervening entries (mismatched/missing closing tags) were
-                // never properly closed — leaving them on the stack would
-                // corrupt nesting for the rest of the document, so close them
-                // here too instead of only removing the matched entry.
-                const endPos = document.positionAt(tag.endOffset);
-                for (let k = stack.length - 1; k >= matchIdx; k--) {
-                    const entry = stack[k];
-                    entry.symbol.range.end = endPos;
-                    entry.symbol.children = entry.children;
-                }
-                stack.length = matchIdx;
-            }
+            // Finalize every entry from the top down through the matching
+            // opening tag. Intervening entries (mismatched/missing closing
+            // tags) were never properly closed — leaving them on the stack
+            // would corrupt nesting for the rest of the document, so close
+            // them here too instead of only removing the matched entry.
+            const endPos = document.positionAt(tag.endOffset);
+            resyncStackToMatch(stack, tag.name, e => e.name, (entry) => {
+                entry.symbol.range.end = endPos;
+                entry.symbol.children = entry.children;
+            });
             continue;
         }
 
@@ -290,12 +282,7 @@ function extractWorkspaceSymbols(
             // Pop matching element from stack, closing any intervening
             // (mismatched/missing closing tag) entries above it too — leaving
             // them stuck would misattribute containerName for the rest of the file.
-            for (let j = openStack.length - 1; j >= 0; j--) {
-                if (openStack[j].name === tag.name) {
-                    openStack.length = j;
-                    break;
-                }
-            }
+            resyncStackToMatch(openStack, tag.name, e => e.name);
             continue;
         }
 

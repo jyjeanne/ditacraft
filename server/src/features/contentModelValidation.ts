@@ -12,6 +12,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/node';
+import { resyncStackToMatch } from '../utils/tagStack';
 
 // ---------------------------------------------------------------------------
 // Content model definitions
@@ -309,14 +310,6 @@ interface XmlElement {
     column: number;
 }
 
-/** Find the topmost stack entry with the given name, searching from the top down. */
-function findLastIndexByName(stack: XmlElement[], name: string): number {
-    for (let i = stack.length - 1; i >= 0; i--) {
-        if (stack[i].name === name) return i;
-    }
-    return -1;
-}
-
 /**
  * Parse XML text into a lightweight element tree.
  * This is NOT a full XML parser — it only extracts element nesting for
@@ -382,10 +375,7 @@ function parseElementTree(content: string): { root: XmlElement | null; parseDiag
                     // instead of blindly popping, which would desync the tree
                     // for the rest of the document. If no ancestor matches,
                     // treat this as a stray closing tag and leave the stack intact.
-                    const matchIdx = findLastIndexByName(stack, tagName);
-                    if (matchIdx >= 0) {
-                        stack.length = matchIdx;
-                    }
+                    resyncStackToMatch(stack, tagName, e => e.name);
                 } else {
                     stack.pop();
                 }
