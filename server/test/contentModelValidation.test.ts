@@ -101,6 +101,23 @@ suite('Content Model Validation (server-side)', () => {
             assert.strictEqual(cmErrors.length, 0);
         });
 
+        test('body with <parml>, <screen>, <syntaxdiagram> is valid (regression)', () => {
+            // These are all listed as valid <body>/<section> children in
+            // ditaSchema.ts (DITA_ELEMENTS), which drives autocomplete — the
+            // content model validator must agree, or accepting the tool's own
+            // completion suggestion immediately produces a false-positive
+            // DITA-CM-001/003 diagnostic.
+            const xml =
+                '<topic id="t1"><title>T</title><body>' +
+                '<parml><plentry><pt>x</pt><pd>y</pd></plentry></parml>' +
+                '<screen>code</screen>' +
+                '<syntaxdiagram>diagram</syntaxdiagram>' +
+                '</body></topic>';
+            const diags = validateContentModel(xml);
+            const cmErrors = diags.filter(d => d.code === 'DITA-CM-001' || d.code === 'DITA-CM-003');
+            assert.deepStrictEqual(cmErrors, []);
+        });
+
         test('body with <topicref> reports error', () => {
             const xml = '<topic id="t1"><title>T</title><body><topicref href="a.dita"/></body></topic>';
             const diags = validateContentModel(xml);
@@ -144,6 +161,18 @@ suite('Content Model Validation (server-side)', () => {
             const diags = validateContentModel(xml);
             const cmErrors = diags.filter(d => d.code === 'DITA-CM-001');
             assert.strictEqual(cmErrors.length, 0);
+        });
+
+        test('section with <parml>, <screen>, <syntaxdiagram> is valid (regression)', () => {
+            const xml =
+                '<topic id="t1"><title>T</title><body><section><title>S</title>' +
+                '<parml><plentry><pt>x</pt><pd>y</pd></plentry></parml>' +
+                '<screen>code</screen>' +
+                '<syntaxdiagram>diagram</syntaxdiagram>' +
+                '</section></body></topic>';
+            const diags = validateContentModel(xml);
+            const cmErrors = diags.filter(d => d.code === 'DITA-CM-001' || d.code === 'DITA-CM-003');
+            assert.deepStrictEqual(cmErrors, []);
         });
     });
 
