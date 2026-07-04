@@ -12,7 +12,10 @@ import { KeySpaceService } from '../services/keySpaceService';
 import { parseReference } from '../utils/referenceParser';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { t } from '../utils/i18n';
-import { stripCommentsAndCodeContent, offsetToRange, escapeRegex, normalizeFsPath, uriToPath } from '../utils/textUtils';
+import {
+    stripCommentsAndCodeContent, offsetToRange, escapeRegex, normalizeFsPath, uriToPath,
+    isPathWithinWorkspace,
+} from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -48,6 +51,7 @@ export async function validateCrossReferences(
     const diagnostics: Diagnostic[] = [];
     const filePath = uriToPath(documentUri);
     const currentDir = path.dirname(filePath);
+    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
 
     // Strip comments/CDATA to avoid matching inside them
     const cleanText = stripCommentsAndCodeContent(text);
@@ -110,6 +114,16 @@ export async function validateCrossReferences(
         // Check file existence
         if (parsed.filePath) {
             const targetPath = path.resolve(currentDir, parsed.filePath);
+            if (!isPathWithinWorkspace(targetPath, workspaceFolders)) {
+                diagnostics.push({
+                    severity: DiagnosticSeverity.Warning,
+                    range,
+                    message: t('xref.missingFile', parsed.filePath),
+                    code: XREF_CODES.MISSING_FILE,
+                    source: SOURCE,
+                });
+                continue;
+            }
             try {
                 await fsp.access(targetPath);
             } catch {

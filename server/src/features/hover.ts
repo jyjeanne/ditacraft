@@ -14,7 +14,7 @@ import { ELEMENT_DOCS, DITA_ELEMENTS } from '../data/ditaSchema';
 import { findReferenceAtOffset, parseReference } from '../utils/referenceParser';
 import { KeySpaceService } from '../services/keySpaceService';
 import { TAG_ATTRS } from '../utils/patterns';
-import { uriToPath } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
 
 /**
  * Handle hover requests.
@@ -43,7 +43,8 @@ export async function handleHover(
         }
 
         if (refAtOffset.type === 'href' || refAtOffset.type === 'conref') {
-            const hover = await getHrefHover(refAtOffset, params.textDocument.uri);
+            const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
+            const hover = await getHrefHover(refAtOffset, params.textDocument.uri, workspaceFolders);
             if (hover) return hover;
         }
     }
@@ -155,7 +156,8 @@ async function getKeyrefHover(
  */
 async function getHrefHover(
     ref: { type: string; value: string },
-    documentUri: string
+    documentUri: string,
+    workspaceFolders: readonly string[]
 ): Promise<Hover | null> {
     if (!ref.value) return null;
 
@@ -179,13 +181,19 @@ async function getHrefHover(
     const contents: string[] = [];
     contents.push(`**${ref.type}:** \`${ref.value}\``);
 
+    const outsideWorkspace = !!parsed.filePath && !isPathWithinWorkspace(resolvedPath, workspaceFolders);
+
     try {
         if (parsed.filePath) {
             contents.push(`**Resolved:** ${resolvedPath}`);
-            try {
-                await fs.access(resolvedPath);
-            } catch {
-                contents.push('**Warning:** Target file not found');
+            if (outsideWorkspace) {
+                contents.push('**Warning:** Target path resolves outside the workspace');
+            } else {
+                try {
+                    await fs.access(resolvedPath);
+                } catch {
+                    contents.push('**Warning:** Target file not found');
+                }
             }
         } else {
             contents.push('**Same-file reference**');
@@ -196,7 +204,7 @@ async function getHrefHover(
         }
 
         // Conref content preview — show the referenced element's content
-        if (ref.type === 'conref' && parsed.fragment) {
+        if (ref.type === 'conref' && parsed.fragment && !outsideWorkspace) {
             const preview = await getConrefPreview(resolvedPath, parsed.fragment);
             if (preview) {
                 contents.push(`---\n\n**Preview:**\n\n\`\`\`xml\n${preview}\n\`\`\``);

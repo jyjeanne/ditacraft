@@ -562,7 +562,7 @@ export class ValidationPipeline {
                 try {
                     const cycleDiags = await timePhaseAsync('CircularRef', () =>
                         withTimeout(
-                            detectCircularReferences(text, uri),
+                            detectCircularReferences(text, uri, keySpaceService?.getWorkspaceFolders() ?? []),
                             phaseTimeoutMs, 'CircularRef', [] as Diagnostic[], this.log, token,
                         )
                     );

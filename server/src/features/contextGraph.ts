@@ -9,7 +9,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { IKeySpaceService } from '../services/interfaces';
-import { uriToPath } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
 import { URI } from 'vscode-uri';
 
 // ── Request / Response types (mirrored on the client) ─────────────────────
@@ -105,7 +105,7 @@ function countElements(filePath: string): number {
     }
 }
 
-function resolveHref(href: string, baseDir: string): string | null {
+function resolveHref(href: string, baseDir: string, workspaceFolders: readonly string[]): string | null {
     if (!href || href.startsWith('http://') || href.startsWith('https://')) {
         return null;
     }
@@ -121,6 +121,10 @@ function resolveHref(href: string, baseDir: string): string | null {
     if (upCount > 8) { return null; }
 
     const resolved = path.resolve(baseDir, normalized);
+    // Hard boundary check — the upward-traversal count above is only a
+    // heuristic and does not guarantee the resolved path stays inside the
+    // workspace (e.g. a deeply nested workspace root vs. a shallow one).
+    if (!isPathWithinWorkspace(resolved, workspaceFolders)) { return null; }
     return fs.existsSync(resolved) ? resolved : null;
 }
 
@@ -132,7 +136,8 @@ function buildMapNode(
     visited: Set<string>,
     topics: Map<string, TopicNode>,
     relations: RelationNode[],
-    keyDefs: Map<string, KeyDef>
+    keyDefs: Map<string, KeyDef>,
+    workspaceFolders: readonly string[]
 ): MapNode {
     const node: MapNode = {
         uri: URI.file(mapPath).toString(),
@@ -160,7 +165,7 @@ function buildMapNode(
         const hrefMatch = attrs.match(/href="([^"]*)"/);
         if (!hrefMatch) { continue; }
         const href = hrefMatch[1];
-        const resolved = resolveHref(href, path.dirname(mapPath));
+        const resolved = resolveHref(href, path.dirname(mapPath), workspaceFolders);
         if (!resolved) { continue; }
 
         const fromUri = URI.file(mapPath).toString();
@@ -169,7 +174,10 @@ function buildMapNode(
 
         if (isMap) {
             relations.push({ fromUri, toUri, relType: 'mapref' });
-            const child = buildMapNode(resolved, path.dirname(resolved), depth + 1, maxDepth, visited, topics, relations, keyDefs);
+            const child = buildMapNode(
+                resolved, path.dirname(resolved), depth + 1, maxDepth, visited, topics, relations,
+                keyDefs, workspaceFolders
+            );
             node.children.push(child);
         } else {
             relations.push({ fromUri, toUri, relType: 'topicref' });
@@ -220,10 +228,11 @@ function buildMapNode(
 
 export function handleGetContextGraph(
     params: GetContextGraphParams,
-    _keySpaceService?: IKeySpaceService
+    keySpaceService?: IKeySpaceService
 ): ContextGraph {
     const mapPath = uriToPath(params.uri);
     const maxDepth = params.depth ?? 3;
+    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
 
     const topicsMap = new Map<string, TopicNode>();
     const relations: RelationNode[] = [];
@@ -238,7 +247,8 @@ export function handleGetContextGraph(
         visited,
         topicsMap,
         relations,
-        keyDefsMap
+        keyDefsMap,
+        workspaceFolders
     );
 
     const topics = Array.from(topicsMap.values());

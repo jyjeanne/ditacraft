@@ -16,7 +16,7 @@ import {
     findElementByIdOffset,
 } from '../utils/referenceParser';
 
-import { offsetToPosition, uriToPath } from '../utils/textUtils';
+import { offsetToPosition, uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
 
 import { KeySpaceService } from '../services/keySpaceService';
 
@@ -36,6 +36,7 @@ export async function handleDefinition(
 
     const text = document.getText();
     const offset = document.offsetAt(params.position);
+    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
 
     // Find the reference attribute at the cursor
     const ref = findReferenceAtOffset(text, offset);
@@ -55,6 +56,7 @@ export async function handleDefinition(
             return resolveElementInFile(
                 keyDef.targetFile,
                 URI.file(keyDef.targetFile).toString(),
+                workspaceFolders,
                 keyDef.elementId
             );
         }
@@ -79,6 +81,7 @@ export async function handleDefinition(
                 return resolveElementInFile(
                     keyDef.targetFile,
                     URI.file(keyDef.targetFile).toString(),
+                    workspaceFolders,
                     elementId || keyDef.elementId
                 );
             }
@@ -103,7 +106,9 @@ export async function handleDefinition(
     // Cross-file reference
     const currentDir = path.dirname(uriToPath(document.uri));
     const targetPath = path.resolve(currentDir, parsed.filePath);
-    return resolveElementInFile(targetPath, URI.file(targetPath).toString(), targetId || undefined);
+    return resolveElementInFile(
+        targetPath, URI.file(targetPath).toString(), workspaceFolders, targetId || undefined
+    );
 }
 
 /**
@@ -131,9 +136,11 @@ function resolveInDocument(
 function resolveElementInFile(
     filePath: string,
     fileUri: string,
+    workspaceFolders: readonly string[],
     elementId?: string
 ): Location | null {
     try {
+        if (!isPathWithinWorkspace(filePath, workspaceFolders)) return null;
         if (!fs.existsSync(filePath)) return null;
 
         if (!elementId) {

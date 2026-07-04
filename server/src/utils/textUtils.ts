@@ -115,6 +115,30 @@ export function normalizeFsPath(filePath: string): string {
 }
 
 /**
+ * Check whether an absolute path resolves inside one of the given workspace
+ * folders. Use this after every `path.resolve()` of a user-authored `href`,
+ * `conref`, `conkeyref`, or similar reference before touching the filesystem
+ * (`fs.readFile`, `fs.readdir`, `fs.access`, etc.), so a relative path that
+ * escapes the workspace (e.g. `href="../../../../etc/passwd"`) cannot be used
+ * to read or list files outside it.
+ *
+ * Returns `true` when `workspaceFolders` is empty (single-file mode, no
+ * workspace boundary to enforce).
+ */
+export function isPathWithinWorkspace(absolutePath: string, workspaceFolders: readonly string[]): boolean {
+    if (workspaceFolders.length === 0) {
+        return true;
+    }
+
+    const normalizedPath = path.normalize(absolutePath);
+    return workspaceFolders.some(folder => {
+        const normalizedWorkspace = path.normalize(folder);
+        return normalizedPath === normalizedWorkspace ||
+            normalizedPath.startsWith(normalizedWorkspace + path.sep);
+    });
+}
+
+/**
  * Escape special regex characters in a string for use in `new RegExp(...)`.
  */
 export function escapeRegex(str: string): string {
