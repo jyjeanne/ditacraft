@@ -402,7 +402,7 @@ connection.onDefinition((params: DefinitionParams) => handleDefinition(params, d
 // Find References handler (cross-file via workspace folders)
 connection.onReferences((params: ReferenceParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
-    return handleReferences(params, documents, folders);
+    return handleReferences(params, documents, folders, keySpaceService);
 });
 
 // Document formatting handler

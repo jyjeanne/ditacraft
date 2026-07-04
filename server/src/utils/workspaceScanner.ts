@@ -6,6 +6,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { findReferencesToId, parseReference } from './referenceParser';
 import { offsetToPosition } from './textUtils';
+import { KeySpaceService } from '../services/keySpaceService';
 
 /** File extensions considered DITA files. */
 const DITA_EXTENSIONS = new Set(['.dita', '.ditamap', '.bookmap']);
@@ -87,15 +88,19 @@ export async function collectDitaFilesAsync(workspaceFolders: readonly string[])
  * Filtering:
  * - href/conref with file path: only included if the path resolves to targetFilePath
  * - href/conref fragment-only: only included if found in the target file itself
- * - conkeyref: included by element ID match (cannot resolve key synchronously)
+ * - conkeyref: only included if its key resolves (via keySpaceService) to targetFilePath;
+ *   without a keySpaceService this cannot be verified, so conkeyref matches are excluded
+ *   rather than reported by element-ID text match alone (which can false-positive on an
+ *   unrelated file whose element merely shares the same id)
  */
-export function findCrossFileReferences(
+export async function findCrossFileReferences(
     targetId: string,
     targetFilePath: string,
     workspaceFolders: readonly string[],
     excludeUri?: string,
-    documents?: TextDocuments<TextDocument>
-): Location[] {
+    documents?: TextDocuments<TextDocument>,
+    keySpaceService?: KeySpaceService
+): Promise<Location[]> {
     const results: Location[] = [];
     const ditaFiles = collectDitaFiles(workspaceFolders);
     const normalizedTargetPath = path.normalize(targetFilePath);
@@ -143,8 +148,14 @@ export function findCrossFileReferences(
                         continue;
                     }
                 }
+            } else if (ref.type === 'conkeyref') {
+                if (!keySpaceService) continue;
+                const slashIdx = ref.value.indexOf('/');
+                const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
+                const keyDef = await keySpaceService.resolveKey(keyName, filePath);
+                const resolvedTarget = keyDef?.targetFile ? path.normalize(keyDef.targetFile) : null;
+                if (resolvedTarget !== normalizedTargetPath) continue;
             }
-            // conkeyref: include all matches by element ID
 
             const startPos = offsetToPosition(content, ref.valueStart);
             const endPos = offsetToPosition(content, ref.valueEnd);
