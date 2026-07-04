@@ -144,6 +144,30 @@ export function isPathWithinWorkspace(absolutePath: string, workspaceFolders: re
 }
 
 /**
+ * Compute the workspace-folder list to actually enforce boundaries against
+ * for a given document.
+ *
+ * If the document itself isn't inside any of the configured workspace
+ * folders (e.g. a loose file opened via File > Open while a different
+ * project folder is the active workspace), there is no workspace boundary
+ * to enforce for *that document* — treating it as bounded by folders it
+ * isn't even part of would block every relative reference it makes,
+ * including trivial same-directory siblings. In that case this returns an
+ * empty list, which isPathWithinWorkspace treats as single-file mode
+ * (always permissive), matching how the document would behave if no
+ * workspace were open at all.
+ */
+export function effectiveWorkspaceFolders(
+    documentPath: string,
+    workspaceFolders: readonly string[]
+): readonly string[] {
+    if (workspaceFolders.length === 0) {
+        return workspaceFolders;
+    }
+    return isPathWithinWorkspace(documentPath, workspaceFolders) ? workspaceFolders : [];
+}
+
+/**
  * Escape special regex characters in a string for use in `new RegExp(...)`.
  */
 export function escapeRegex(str: string): string {

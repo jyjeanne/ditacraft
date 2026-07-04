@@ -14,7 +14,7 @@ import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { t } from '../utils/i18n';
 import {
     stripCommentsAndCodeContent, offsetToRange, escapeRegex, normalizeFsPath, uriToPath,
-    isPathWithinWorkspace,
+    isPathWithinWorkspace, effectiveWorkspaceFolders,
 } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
@@ -51,7 +51,7 @@ export async function validateCrossReferences(
     const diagnostics: Diagnostic[] = [];
     const filePath = uriToPath(documentUri);
     const currentDir = path.dirname(filePath);
-    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
+    const workspaceFolders = effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? []);
 
     // Strip comments/CDATA to avoid matching inside them
     const cleanText = stripCommentsAndCodeContent(text);

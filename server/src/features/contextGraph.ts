@@ -9,7 +9,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { IKeySpaceService } from '../services/interfaces';
-import { uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
+import { uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
 import { URI } from 'vscode-uri';
 
 // ── Request / Response types (mirrored on the client) ─────────────────────
@@ -232,7 +232,7 @@ export function handleGetContextGraph(
 ): ContextGraph {
     const mapPath = uriToPath(params.uri);
     const maxDepth = params.depth ?? 3;
-    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
+    const workspaceFolders = effectiveWorkspaceFolders(mapPath, keySpaceService?.getWorkspaceFolders() ?? []);
 
     const topicsMap = new Map<string, TopicNode>();
     const relations: RelationNode[] = [];

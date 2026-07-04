@@ -16,7 +16,7 @@ import {
     findElementByIdOffset,
 } from '../utils/referenceParser';
 
-import { offsetToPosition, uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
+import { offsetToPosition, uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
 
 import { KeySpaceService } from '../services/keySpaceService';
 
@@ -36,7 +36,9 @@ export async function handleDefinition(
 
     const text = document.getText();
     const offset = document.offsetAt(params.position);
-    const workspaceFolders = keySpaceService?.getWorkspaceFolders() ?? [];
+    const workspaceFolders = effectiveWorkspaceFolders(
+        uriToPath(document.uri), keySpaceService?.getWorkspaceFolders() ?? []
+    );
 
     // Find the reference attribute at the cursor
     const ref = findReferenceAtOffset(text, offset);
