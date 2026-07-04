@@ -3,8 +3,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { URI } from 'vscode-uri';
-import { collectDitaFiles, findCrossFileReferences } from '../src/utils/workspaceScanner';
-import { offsetToPosition } from '../src/utils/textUtils';
+import { collectDitaFiles, findCrossFileReferences, referenceMatchesTarget } from '../src/utils/workspaceScanner';
+import { offsetToPosition, normalizeFsPath } from '../src/utils/textUtils';
+import { ReferenceOccurrence } from '../src/utils/referenceParser';
 import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService';
 
 function mockKeySpaceService(resolve: (keyName: string, contextFilePath: string) => KeyDefinition | null): KeySpaceService {
@@ -12,6 +13,78 @@ function mockKeySpaceService(resolve: (keyName: string, contextFilePath: string)
         resolveKey: async (keyName: string, contextFilePath: string) => resolve(keyName, contextFilePath),
     } as unknown as KeySpaceService;
 }
+
+function makeRef(type: ReferenceOccurrence['type'], value: string): ReferenceOccurrence {
+    return { type, value, valueStart: 0, valueEnd: value.length };
+}
+
+suite('referenceMatchesTarget', () => {
+    const contextFile = path.join(path.sep, 'ws', 'referencer.dita');
+    const targetFile = path.join(path.sep, 'ws', 'target.dita');
+    const normalizedTarget = normalizeFsPath(targetFile);
+
+    test('href resolving to the target file matches', async () => {
+        const matches = await referenceMatchesTarget(
+            makeRef('href', 'target.dita'), contextFile, normalizedTarget, undefined
+        );
+        assert.strictEqual(matches, true);
+    });
+
+    test('href resolving elsewhere does not match', async () => {
+        const matches = await referenceMatchesTarget(
+            makeRef('href', 'other.dita'), contextFile, normalizedTarget, undefined
+        );
+        assert.strictEqual(matches, false);
+    });
+
+    test('fragment-only href matches only when contextFile is the target itself', async () => {
+        const inTarget = await referenceMatchesTarget(
+            makeRef('href', '#someId'), targetFile, normalizedTarget, undefined
+        );
+        assert.strictEqual(inTarget, true);
+
+        const inOther = await referenceMatchesTarget(
+            makeRef('href', '#someId'), contextFile, normalizedTarget, undefined
+        );
+        assert.strictEqual(inOther, false);
+    });
+
+    test('conkeyref resolving to the target file matches', async () => {
+        const keySpaceService = mockKeySpaceService(() => ({
+            keyName: 'mykey', targetFile, sourceMap: targetFile,
+        }));
+        const matches = await referenceMatchesTarget(
+            makeRef('conkeyref', 'mykey/elemId'), contextFile, normalizedTarget, keySpaceService
+        );
+        assert.strictEqual(matches, true);
+    });
+
+    test('conkeyref resolving elsewhere does not match', async () => {
+        const keySpaceService = mockKeySpaceService(() => ({
+            keyName: 'mykey', targetFile: path.join(path.sep, 'ws', 'unrelated.dita'), sourceMap: contextFile,
+        }));
+        const matches = await referenceMatchesTarget(
+            makeRef('conkeyref', 'mykey/elemId'), contextFile, normalizedTarget, keySpaceService
+        );
+        assert.strictEqual(matches, false);
+    });
+
+    test('conkeyref without a KeySpaceService is excluded and logged', async () => {
+        const logs: string[] = [];
+        const matches = await referenceMatchesTarget(
+            makeRef('conkeyref', 'mykey/elemId'), contextFile, normalizedTarget, undefined, (msg) => logs.push(msg)
+        );
+        assert.strictEqual(matches, false);
+        assert.ok(logs.some(m => m.includes('mykey/elemId')));
+    });
+
+    test('keyref (no file part to verify) always matches', async () => {
+        const matches = await referenceMatchesTarget(
+            makeRef('keyref', 'somekey'), contextFile, normalizedTarget, undefined
+        );
+        assert.strictEqual(matches, true);
+    });
+});
 
 suite('offsetToPosition', () => {
     test('offset 0 is line 0 character 0', () => {

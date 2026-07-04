@@ -4,7 +4,7 @@ import * as path from 'path';
 import { Location, TextDocuments } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { findReferencesToId, parseReference } from './referenceParser';
+import { findReferencesToId, parseReference, ReferenceOccurrence } from './referenceParser';
 import { offsetToPosition, normalizeFsPath } from './textUtils';
 import { KeySpaceService } from '../services/keySpaceService';
 
@@ -83,6 +83,56 @@ export async function collectDitaFilesAsync(workspaceFolders: readonly string[])
 }
 
 /**
+ * Test whether a single reference occurrence found in `contextFilePath`
+ * actually targets `normalizedTargetPath`.
+ *
+ * - href/conref with a file part: matches only if that path resolves to the target.
+ * - href/conref fragment-only (e.g. "#topicid"): matches only if contextFilePath
+ *   IS the target file itself.
+ * - conkeyref: the key must be resolved via keySpaceService to know which file it
+ *   targets; without one this cannot be verified, so it's excluded (and logged via
+ *   `log`, if given) rather than matched by element-ID text alone, which can
+ *   false-positive on an unrelated file whose element merely shares the same id.
+ * - keyref (no element-id sub-part): always matches — there is no file part to
+ *   verify against.
+ *
+ * Shared by rename.ts, references.ts, and findCrossFileReferences below so the
+ * same matching rules apply consistently across Rename, Find All References,
+ * and cross-file reference scanning.
+ */
+export async function referenceMatchesTarget(
+    ref: ReferenceOccurrence,
+    contextFilePath: string,
+    normalizedTargetPath: string,
+    keySpaceService: KeySpaceService | undefined,
+    log?: (msg: string) => void
+): Promise<boolean> {
+    if (ref.type === 'href' || ref.type === 'conref') {
+        const parsed = parseReference(ref.value);
+        if (parsed.filePath) {
+            const resolvedPath = normalizeFsPath(path.resolve(path.dirname(contextFilePath), parsed.filePath));
+            return resolvedPath === normalizedTargetPath;
+        }
+        return normalizeFsPath(contextFilePath) === normalizedTargetPath;
+    }
+    if (ref.type === 'conkeyref') {
+        if (!keySpaceService) {
+            log?.(
+                `Skipping unverifiable conkeyref "${ref.value}" in ${contextFilePath} ` +
+                '(no KeySpaceService available to resolve the key target)'
+            );
+            return false;
+        }
+        const slashIdx = ref.value.indexOf('/');
+        const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
+        const keyDef = await keySpaceService.resolveKey(keyName, contextFilePath);
+        const resolvedTarget = keyDef?.targetFile ? normalizeFsPath(keyDef.targetFile) : null;
+        return resolvedTarget === normalizedTargetPath;
+    }
+    return true;
+}
+
+/**
  * Find all references to a target ID across all DITA files in the workspace.
  *
  * Filtering:
@@ -130,39 +180,11 @@ export async function findCrossFileReferences(
         const refs = findReferencesToId(content, targetId);
         if (refs.length === 0) continue;
 
-        const fileDir = path.dirname(filePath);
-
         for (const ref of refs) {
-            if (ref.type === 'href' || ref.type === 'conref') {
-                const parsed = parseReference(ref.value);
-                if (parsed.filePath) {
-                    // Cross-file ref: check path resolves to target
-                    const resolvedPath = normalizeFsPath(
-                        path.resolve(fileDir, parsed.filePath)
-                    );
-                    if (resolvedPath !== normalizedTargetPath) {
-                        continue;
-                    }
-                } else {
-                    // Fragment-only ref: only relevant if in the target file itself
-                    if (normalizeFsPath(filePath) !== normalizedTargetPath) {
-                        continue;
-                    }
-                }
-            } else if (ref.type === 'conkeyref') {
-                if (!keySpaceService) {
-                    log?.(
-                        `Skipping unverifiable conkeyref "${ref.value}" in ${filePath} ` +
-                        '(no KeySpaceService available to resolve the key target)'
-                    );
-                    continue;
-                }
-                const slashIdx = ref.value.indexOf('/');
-                const keyName = slashIdx >= 0 ? ref.value.slice(0, slashIdx) : ref.value;
-                const keyDef = await keySpaceService.resolveKey(keyName, filePath);
-                const resolvedTarget = keyDef?.targetFile ? normalizeFsPath(keyDef.targetFile) : null;
-                if (resolvedTarget !== normalizedTargetPath) continue;
-            }
+            const matches = await referenceMatchesTarget(
+                ref, filePath, normalizedTargetPath, keySpaceService, log
+            );
+            if (!matches) continue;
 
             const startPos = offsetToPosition(content, ref.valueStart);
             const endPos = offsetToPosition(content, ref.valueEnd);
