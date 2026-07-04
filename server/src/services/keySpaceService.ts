@@ -615,12 +615,25 @@ export class KeySpaceService implements IKeySpaceService {
         // descendant scope namespaces (e.g. "product.lib.version" from "product.version").
         const scopeDirectKeys = new Map<string, KeyDefinition[]>();
 
-        // Caches each map's own key definitions (and root @keyscope) the first time
-        // it is traversed, so a later encounter of the same map via a *different*
-        // mapref @keyscope (diamond-shaped scope graph) can still register that
-        // map's keys under the new scope namespace without re-parsing the file or
-        // re-queueing its submaps (which would already have been queued once).
-        const mapDirectKeysCache = new Map<string, { keys: KeyDefinition[]; rootScopes: string[] }>();
+        // Caches each map's own key definitions, root @keyscope, and submap
+        // references the first time it is traversed, so a later encounter of
+        // the same map via a *different* mapref @keyscope (diamond-shaped
+        // scope graph) can still register that map's keys — and re-queue its
+        // submaps — under the new scope namespace without re-parsing the file.
+        const mapDirectKeysCache = new Map<string, {
+            keys: KeyDefinition[];
+            rootScopes: string[];
+            submaps: { path: string; keyscopes: string[]; inlineKeys: string[]; isPeer: boolean }[];
+        }>();
+
+        // Tracks which effective scope-prefix combinations have already been
+        // registered for each map path, so a diamond graph that reaches the
+        // same map+scope combination more than once (including via cycles
+        // introduced by re-queueing submaps below) doesn't redo the same work
+        // or loop forever.
+        const registeredScopeSignatures = new Map<string, Set<string>>();
+        const scopeSignature = (prefixes: readonly string[]): string =>
+            [...prefixes].sort().join(' ');
 
         while (queue.length > 0) {
             const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
@@ -628,10 +641,32 @@ export class KeySpaceService implements IKeySpaceService {
 
             if (visited.has(normalizedPath)) {
                 const cached = mapDirectKeysCache.get(normalizedPath);
-                if (cached) {
-                    this.registerKeysForAdditionalScope(
-                        keySpace, scopeDirectKeys, cached.keys, scopePrefixes, cached.rootScopes
+                if (!cached) continue;
+
+                const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, cached.rootScopes);
+                const signature = scopeSignature(effectivePrefixes);
+                let seenSignatures = registeredScopeSignatures.get(normalizedPath);
+                if (!seenSignatures) {
+                    seenSignatures = new Set();
+                    registeredScopeSignatures.set(normalizedPath, seenSignatures);
+                }
+                if (seenSignatures.has(signature)) continue;
+                seenSignatures.add(signature);
+
+                this.registerKeysForAdditionalScope(
+                    keySpace, scopeDirectKeys, cached.keys, scopePrefixes, cached.rootScopes
+                );
+
+                // Re-queue this map's submaps under the new scope too — otherwise
+                // nested maps stay unresolvable under the second scope path even
+                // though they were already reachable under the first.
+                for (const submap of cached.submaps) {
+                    if (submap.isPeer) continue;
+                    const childPrefixes = this.combineScopePrefixes(effectivePrefixes, submap.keyscopes);
+                    this.registerInlineMaprefKeys(
+                        keySpace, scopeDirectKeys, submap.inlineKeys, currentMap, submap.path, childPrefixes
                     );
+                    queue.push({ mapPath: submap.path, scopePrefixes: childPrefixes });
                 }
                 continue;
             }
@@ -671,7 +706,12 @@ export class KeySpaceService implements IKeySpaceService {
                 );
 
                 const keys = this.extractKeyDefinitions(maskedContent, currentMap, maxLinkMatches);
-                mapDirectKeysCache.set(normalizedPath, { keys, rootScopes });
+                let seenSignatures = registeredScopeSignatures.get(normalizedPath);
+                if (!seenSignatures) {
+                    seenSignatures = new Set();
+                    registeredScopeSignatures.set(normalizedPath, seenSignatures);
+                }
+                seenSignatures.add(scopeSignature(effectivePrefixes));
                 for (const keyDef of keys) {
                     // Record as a direct key of every scope alias (first per key name wins).
                     for (const prefix of allScopePrefixes) {
@@ -714,6 +754,7 @@ export class KeySpaceService implements IKeySpaceService {
                 // queued again (processInlineScopeBlocks already queued them with the
                 // correct child scope prefix).
                 const submaps = this.extractMapReferences(maskedContent, currentMap, maxLinkMatches);
+                mapDirectKeysCache.set(normalizedPath, { keys, rootScopes, submaps });
                 for (const submap of submaps) {
                     // Peer maps are not inlined; register them for lazy resolution on key miss.
                     if (submap.isPeer) {
@@ -729,29 +770,9 @@ export class KeySpaceService implements IKeySpaceService {
 
                     // Register @keys defined on the mapref element itself under the child scope prefix.
                     // The mapref element is included in the child scope it creates (DITA spec §2.4.4.1).
-                    if (submap.inlineKeys.length > 0 && childPrefixes.length > 0) {
-                        for (const inlineKeyName of submap.inlineKeys) {
-                            const inlineDef: KeyDefinition = {
-                                keyName: inlineKeyName,
-                                sourceMap: currentMap,
-                                targetFile: submap.path,
-                            };
-                            for (const prefix of childPrefixes) {
-                                if (!scopeDirectKeys.has(prefix)) {
-                                    scopeDirectKeys.set(prefix, []);
-                                }
-                                const directKeys = scopeDirectKeys.get(prefix)!;
-                                if (!directKeys.some(k => k.keyName === inlineKeyName)) {
-                                    directKeys.push(inlineDef);
-                                }
-                                const qualifiedName = `${prefix}.${inlineKeyName}`;
-                                this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
-                            }
-                            if (!keySpace.keys.has(inlineKeyName)) {
-                                keySpace.keys.set(inlineKeyName, inlineDef);
-                            }
-                        }
-                    }
+                    this.registerInlineMaprefKeys(
+                        keySpace, scopeDirectKeys, submap.inlineKeys, currentMap, submap.path, childPrefixes
+                    );
 
                     queue.push({ mapPath: submap.path, scopePrefixes: childPrefixes });
                 }
@@ -1401,6 +1422,46 @@ export class KeySpaceService implements IKeySpaceService {
 
     private isPathWithinWorkspace(absolutePath: string): boolean {
         return isPathWithinWorkspace(absolutePath, this.workspaceFolders);
+    }
+
+    /**
+     * Register the @keys defined directly on a `<mapref>` element (the
+     * mapref itself is included in the child scope it creates, per DITA spec
+     * §2.4.4.1) under the given child scope prefixes. Shared between the
+     * first traversal of a submap and any later diamond-shaped-scope-graph
+     * re-registration under a different scope path.
+     */
+    private registerInlineMaprefKeys(
+        keySpace: KeySpace,
+        scopeDirectKeys: Map<string, KeyDefinition[]>,
+        inlineKeys: string[],
+        sourceMap: string,
+        targetFile: string,
+        childPrefixes: string[]
+    ): void {
+        if (inlineKeys.length === 0 || childPrefixes.length === 0) return;
+
+        for (const inlineKeyName of inlineKeys) {
+            const inlineDef: KeyDefinition = {
+                keyName: inlineKeyName,
+                sourceMap,
+                targetFile,
+            };
+            for (const prefix of childPrefixes) {
+                if (!scopeDirectKeys.has(prefix)) {
+                    scopeDirectKeys.set(prefix, []);
+                }
+                const directKeys = scopeDirectKeys.get(prefix)!;
+                if (!directKeys.some(k => k.keyName === inlineKeyName)) {
+                    directKeys.push(inlineDef);
+                }
+                const qualifiedName = `${prefix}.${inlineKeyName}`;
+                this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+            }
+            if (!keySpace.keys.has(inlineKeyName)) {
+                keySpace.keys.set(inlineKeyName, inlineDef);
+            }
+        }
     }
 
     /**

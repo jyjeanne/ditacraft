@@ -111,6 +111,41 @@ suite('KeySpaceService', () => {
                 cleanup(tmpDir);
             }
         });
+
+        test('cyclic map references (A -> B -> A) terminate instead of hanging (regression)', async () => {
+            // Guards the diamond-scope submap re-queueing fix: a genuine cycle
+            // back to an already-visited map+scope combination must be
+            // recognized as already-registered and skipped, not re-queued
+            // forever.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapAPath = path.join(tmpDir, 'a.ditamap');
+                const mapBPath = path.join(tmpDir, 'b.ditamap');
+                fs.writeFileSync(mapAPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="keyA" href="a.dita"/>
+  <mapref href="b.ditamap"/>
+</map>`, 'utf-8');
+                fs.writeFileSync(mapBPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="keyB" href="b.dita"/>
+  <mapref href="a.ditamap"/>
+</map>`, 'utf-8');
+
+                const buildPromise = service.buildKeySpace(mapAPath);
+                const timeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('buildKeySpace did not terminate')), 5000)
+                );
+                const keySpace = await Promise.race([buildPromise, timeout]) as Awaited<typeof buildPromise>;
+
+                assert.ok(keySpace.keys.has('keyA'));
+                assert.ok(keySpace.keys.has('keyB'));
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
     });
 
     suite('resolveKey', () => {
@@ -366,6 +401,48 @@ suite('KeySpaceService', () => {
                     'key should resolve under the first keyscope that reaches the shared submap');
                 assert.ok(keySpace.keys.has('prodB.widget'),
                     'key should also resolve under the second keyscope reaching the same shared submap');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('diamond-shaped mapref: nested submaps are re-queued and resolve under both scopes (regression)', async () => {
+            // shared.ditamap is reached via two different keyscopes, and itself
+            // references a nested child.ditamap. Before this fix, only
+            // shared.ditamap's own direct keys were re-registered on the second
+            // visit — child.ditamap's keys stayed unresolvable under the
+            // second scope even though child.ditamap is logically included
+            // under it too.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <mapref href="shared.ditamap" keyscope="prodA"/>
+  <mapref href="shared.ditamap" keyscope="prodB"/>
+</map>`, 'utf-8');
+
+                const sharedPath = path.join(tmpDir, 'shared.ditamap');
+                fs.writeFileSync(sharedPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="widget" href="widget.dita"/>
+  <mapref href="child.ditamap"/>
+</map>`, 'utf-8');
+
+                const childPath = path.join(tmpDir, 'child.ditamap');
+                fs.writeFileSync(childPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="gadget" href="gadget.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.ok(keySpace.keys.has('gadget'), 'unqualified nested key should exist');
+                assert.ok(keySpace.keys.has('prodA.gadget'),
+                    'nested submap key should resolve under the first keyscope');
+                assert.ok(keySpace.keys.has('prodB.gadget'),
+                    'nested submap key should also resolve under the second keyscope reaching it via the shared parent');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
