@@ -11,7 +11,7 @@ import { promises as fsPromises } from 'fs';
 
 import { XMLParser } from 'fast-xml-parser';
 import { TAG_ATTRS } from '../utils/patterns';
-import { stripCommentsAndCDATA, isPathWithinWorkspace } from '../utils/textUtils';
+import { stripCommentsAndCDATA, isPathWithinWorkspace, normalizeFsPath } from '../utils/textUtils';
 import { IKeySpaceService } from './interfaces';
 
 // --- Interfaces ---
@@ -213,7 +213,7 @@ export class KeySpaceService implements IKeySpaceService {
         // the root-level unqualified key ("version").  The PushDown pass has already
         // added inherited ancestor keys under the child scope namespace, so a child
         // scope override always beats an ancestor definition at this lookup point.
-        const scopePrefix = keySpace.topicToScope.get(path.normalize(contextFilePath));
+        const scopePrefix = keySpace.topicToScope.get(normalizeFsPath(contextFilePath));
         if (scopePrefix) {
             const qualifiedName = `${scopePrefix}.${keyName}`;
             const scopedDef = keySpace.keys.get(qualifiedName);
@@ -289,7 +289,7 @@ export class KeySpaceService implements IKeySpaceService {
         const keySpace = await this.buildKeySpace(rootMap);
 
         // Step 1 — context-aware scope lookup
-        const scopePrefix = keySpace.topicToScope.get(path.normalize(contextFilePath));
+        const scopePrefix = keySpace.topicToScope.get(normalizeFsPath(contextFilePath));
         if (scopePrefix) {
             report.contextScope = scopePrefix;
             const qualifiedName = `${scopePrefix}.${keyName}`;
@@ -637,7 +637,7 @@ export class KeySpaceService implements IKeySpaceService {
 
         while (queue.length > 0) {
             const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
-            const normalizedPath = path.normalize(currentMap);
+            const normalizedPath = normalizeFsPath(currentMap);
 
             if (visited.has(normalizedPath)) {
                 const cached = mapDirectKeysCache.get(normalizedPath);
@@ -1289,7 +1289,7 @@ export class KeySpaceService implements IKeySpaceService {
             if (href.startsWith('http://') || href.startsWith('https://')) continue;
             const resolved = path.resolve(mapDir, href);
             if (!this.isPathWithinWorkspace(resolved)) continue;
-            const normalized = path.normalize(resolved);
+            const normalized = normalizeFsPath(resolved);
             if (!topicToScope.has(normalized)) {
                 topicToScope.set(normalized, scopePrefix);
             }
@@ -1406,14 +1406,14 @@ export class KeySpaceService implements IKeySpaceService {
     // --- Internal: Helpers ---
 
     private doInvalidate(changedFile: string): void {
-        const normalizedPath = path.normalize(changedFile);
+        const normalizedPath = normalizeFsPath(changedFile);
         const changedDir = path.dirname(normalizedPath);
 
         this.rootMapCache.delete(changedDir);
 
         const toDelete: string[] = [];
         for (const [rootMap, keySpace] of this.keySpaceCache.entries()) {
-            if (keySpace.mapHierarchy.some(m => path.normalize(m) === normalizedPath)) {
+            if (keySpace.mapHierarchy.some(m => normalizeFsPath(m) === normalizedPath)) {
                 toDelete.push(rootMap);
             }
         }
