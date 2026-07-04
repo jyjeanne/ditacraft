@@ -25,9 +25,19 @@ function extractRootId(text: string): { tagName: string; id: string; index: numb
     const stripped = stripCommentsAndCDATA(text)
         .replace(/<\?[\s\S]*?\?>/g, (m) => ' '.repeat(m.length))
         .replace(/<!DOCTYPE[\s\S]*?>/g, (m) => ' '.repeat(m.length));
-    const rootMatch = stripped.match(/<(\w[\w.-]*)\s[^>]*\bid\s*=\s*["']([^"']+)["']/);
-    if (!rootMatch || rootMatch.index === undefined) return null;
-    return { tagName: rootMatch[1], id: rootMatch[2], index: rootMatch.index };
+
+    // Find the first real element — the document root — then look for an id
+    // attribute only within that specific tag's attributes. Searching the
+    // whole file for the first "id=" anywhere (the previous approach) could
+    // pick up a nested child's id when the root itself has none, misusing it
+    // as this file's "root ID" for cross-file duplicate detection.
+    const rootTagMatch = stripped.match(/<(\w[\w.-]*)([^>]*)>/);
+    if (!rootTagMatch || rootTagMatch.index === undefined) return null;
+
+    const idMatch = rootTagMatch[2].match(/\bid\s*=\s*["']([^"']+)["']/);
+    if (!idMatch) return null;
+
+    return { tagName: rootTagMatch[1], id: idMatch[1], index: rootTagMatch.index };
 }
 
 /** Max concurrent file reads to avoid exhausting file descriptors. */

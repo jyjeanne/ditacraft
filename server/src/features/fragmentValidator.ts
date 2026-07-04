@@ -9,7 +9,7 @@
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { ValidationPipeline } from '../services/validationPipeline';
-import { getGlobalSettings } from '../settings';
+import { getDocumentSettings } from '../settings';
 
 // ── Request / Response types (mirrored on the client) ─────────────────────
 
@@ -47,7 +47,7 @@ function wrapFragment(fragment: string, fragmentType: ValidateFragmentParams['fr
             return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">\n<topic id="_frag">\n<title>Fragment</title>\n<body>\n${trimmed}\n</body>\n</topic>`;
         case 'map':
             return trimmed.startsWith('<map') ? trimmed :
-                `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">\n${trimmed}`;
+                `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">\n<map>\n${trimmed}\n</map>`;
         default:
             return trimmed;
     }
@@ -69,7 +69,11 @@ export async function handleValidateFragment(
     const syntheticUri = `ditacraft-fragment:///fragment.${langId}`;
     const doc = TextDocument.create(syntheticUri, langId, 0, wrapped);
 
-    const settings = getGlobalSettings();
+    // Use the real parent document's settings (respects per-scope config from the
+    // client) instead of the module-level global, which only gets populated when
+    // the client lacks configuration-pull capability and otherwise stays at
+    // hardcoded defaults for the whole session.
+    const settings = await getDocumentSettings(params.contextUri);
     // For fragment validation, skip heavy workspace-level phases
     const lightSettings = {
         ...settings,
