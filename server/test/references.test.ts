@@ -107,6 +107,41 @@ suite('handleReferences', () => {
         }
     });
 
+    test('skipping an unverifiable conkeyref without a KeySpaceService is logged (regression)', async () => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+        try {
+            const targetPath = path.join(tmpDir, 'target.dita');
+            const referencerPath = path.join(tmpDir, 'referencer.dita');
+
+            fs.writeFileSync(targetPath, '<topic id="t1"><title>T</title></topic>');
+            fs.writeFileSync(referencerPath,
+                '<topic id="r1"><title>R</title><body><p conkeyref="mykey/t1">x</p></body></topic>');
+
+            const doc = createDoc(fs.readFileSync(targetPath, 'utf-8'), URI.file(targetPath).toString());
+            const docs = createDocs(doc);
+
+            const logs: string[] = [];
+            const results = await handleReferences(
+                { textDocument: { uri: doc.uri }, position: { line: 0, character: 12 }, context: { includeDeclaration: false } },
+                docs,
+                [tmpDir],
+                // no keySpaceService
+                undefined,
+                (msg) => logs.push(msg)
+            );
+
+            const referencerUri = URI.file(referencerPath).toString();
+            assert.ok(!results.some(r => r.uri === referencerUri),
+                'without a KeySpaceService, an unverifiable conkeyref must not be reported as a match');
+            assert.ok(
+                logs.some(m => m.includes('mykey/t1')),
+                'skipping an unverifiable conkeyref should be logged so it is not silently dropped'
+            );
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
     test('cursor not on an id attribute returns empty', async () => {
         const doc = createDoc('<topic id="t1"><title>T</title></topic>');
         const docs = createDocs(doc);
