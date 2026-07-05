@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import { KeySpaceService, formatResolutionReport, reportKeySpace } from '../src/services/keySpaceService';
+import { normalizeFsPath } from '../src/utils/textUtils';
 
 function makeTmpDir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
@@ -859,7 +860,7 @@ suite('KeySpaceService', () => {
                 fs.writeFileSync(guidePath, '', 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                const scopePrefix = keySpace.topicToScope.get(path.normalize(guidePath));
+                const scopePrefix = keySpace.topicToScope.get(normalizeFsPath(guidePath));
                 assert.strictEqual(scopePrefix, 'lib',
                     'lib-guide.dita should be recorded in the "lib" scope');
             } finally {
@@ -972,7 +973,7 @@ suite('KeySpaceService', () => {
                 const keySpace = await service.buildKeySpace(rootPath);
                 // guide.dita is referenced in the root reltable AND in child scope.
                 // The reltable reference (root scope) must NOT win — guide.dita belongs to child scope.
-                const scopePrefix = keySpace.topicToScope.get(path.normalize(guidePath));
+                const scopePrefix = keySpace.topicToScope.get(normalizeFsPath(guidePath));
                 assert.strictEqual(scopePrefix, 'child',
                     'reltable href must not claim scope — child scope topicref should win');
             } finally {
@@ -1124,7 +1125,7 @@ suite('KeySpaceService', () => {
                 fs.writeFileSync(guidePath, '', 'utf-8');
 
                 const keySpace = await service.buildKeySpace(mapPath);
-                const scopePrefix = keySpace.topicToScope.get(path.normalize(guidePath));
+                const scopePrefix = keySpace.topicToScope.get(normalizeFsPath(guidePath));
                 assert.strictEqual(scopePrefix, 'branch',
                     'topic inside inline scope branch should map to that scope');
             } finally {
