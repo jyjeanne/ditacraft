@@ -45,7 +45,10 @@ function runGraphify(args, options = {}) {
 
 function rebuildGraph() {
     // Code-only rebuild: AST extraction + Louvain clustering, no LLM stages.
-    runGraphify(['update', '.', '--no-description', '--no-label']);
+    // --force: without it graphify refuses rebuilds that shrink the graph
+    // (e.g. after deleting source files). Our graph is fully derived and
+    // git-versioned, so a bad rebuild shows up in the diff and is revertible.
+    runGraphify(['update', '.', '--no-description', '--no-label', '--force']);
 }
 
 function publishOutputs() {

@@ -106,6 +106,13 @@ export function isDitaFilePath(fsPath: string): boolean {
 }
 
 /**
+ * Check whether a VS Code URI points to a DITA file (including .ditaval).
+ */
+export function isDitaUri(uri: import('vscode').Uri): boolean {
+    return isDitaFilePath(uri.fsPath);
+}
+
+/**
  * Common DITA element names
  * Used for validation and parsing
  */
