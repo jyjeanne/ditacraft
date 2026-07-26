@@ -6131,7 +6131,7 @@
   <circle cx="935.9735061888737" cy="415.78062336892924" r="4.060301507537688" fill="#BAB0AC" opacity="0.9"/>
   <text x="935.9735061888737" y="429.84092487646694" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">deactivate()</text>
   <circle cx="935.9882248868619" cy="417.1870411706654" r="16" fill="#BAB0AC" opacity="0.9"/>
-  <text x="935.9882248868619" y="443.1870411706654" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">6615e5a Fix follow-up review findings: bounded findRootMap walk, scoped invalidation, snapshot memoization</text>
+  <text x="935.9882248868619" y="443.1870411706654" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">2aa08be Update README and ROADMAP for the 0.8.2 release</text>
   <circle cx="935.9970562088198" cy="418.5935082626601" r="4.060301507537688" fill="#BAB0AC" opacity="0.9"/>
   <text x="935.9970562088198" y="432.6538097701978" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">main</text>
   <circle cx="20" cy="20" r="5" fill="#4E79A7"/>

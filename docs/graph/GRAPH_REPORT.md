@@ -1,7 +1,7 @@
 # Graph Report - .  (2026-07-26)
 
 ## Corpus Check
-- 324 files · ~403,007 words
+- 324 files · ~404,959 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -19,7 +19,7 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `6615e5a`
+- Built from Git commit: `2aa08be`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 72 edges
@@ -125,7 +125,7 @@ Nodes (12): RngValidationService, ROOT_TO_SCHEMA, SalveConvertResult, SalveGramm
 
 ### Community 19 - "Community 19"
 Cohesion: 0.09
-Nodes (4): main, 6615e5a Fix follow-up review findings: bounded findRootMap walk, scoped invalidation, snapshot memoization, DitaCraftAPI, vscode
+Nodes (4): main, 2aa08be Update README and ROADMAP for the 0.8.2 release, DitaCraftAPI, vscode
 
 ### Community 20 - "Community 20"
 Cohesion: 0.19
