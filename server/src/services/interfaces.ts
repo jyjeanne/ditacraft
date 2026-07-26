@@ -63,7 +63,7 @@ export interface IKeySpaceService {
     updateWorkspaceFolders(added: string[], removed: string[]): void;
 
     /** Invalidate cache entries for a changed file. */
-    invalidateForFile(changedFile: string): void;
+    invalidateForFile(changedFile: string, pathChanged?: boolean): void;
 
     /** Reload cache configuration from settings. */
     reloadCacheConfig(): Promise<void>;

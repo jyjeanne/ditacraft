@@ -36,6 +36,25 @@ export interface PublishProgress {
     message: string;
 }
 
+/**
+ * Adapt PublishProgress callbacks to a VS Code progress reporter.
+ * PublishProgress.percentage is absolute (0/10/30/50/80/100 per stage and can
+ * repeat), while vscode Progress.report expects cumulative deltas — this
+ * converts, clamping so the bar never exceeds 100% or moves backward.
+ */
+export function toVsCodeProgressReporter(
+    progress: vscode.Progress<{ increment?: number; message?: string }>
+): (publishProgress: PublishProgress) => void {
+    let lastPercentage = 0;
+    return (publishProgress) => {
+        progress.report({
+            increment: Math.max(0, publishProgress.percentage - lastPercentage),
+            message: publishProgress.message,
+        });
+        lastPercentage = Math.max(lastPercentage, publishProgress.percentage);
+    };
+}
+
 export interface PublishResult {
     success: boolean;
     outputPath: string;

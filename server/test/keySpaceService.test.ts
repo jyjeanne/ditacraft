@@ -2214,4 +2214,52 @@ suite('KeySpaceService', () => {
             }
         });
     });
+
+    // -----------------------------------------------------------------------
+    suite('findRootMap outside workspace folders', () => {
+
+        test('finds a nearby map within the bounded walk', async () => {
+            // File at tmp/a/b/c/topic.dita, map at tmp/a/b — 2 levels up,
+            // inside the 3-level bound. Workspace points elsewhere.
+            const tmpDir = makeTmpDir();
+            const deep = path.join(tmpDir, 'a', 'b', 'c');
+            fs.mkdirSync(deep, { recursive: true });
+            fs.writeFileSync(path.join(tmpDir, 'a', 'b', 'nearby.ditamap'), '<map/>');
+            const unrelatedWs = makeTmpDir();
+            const service = createService(unrelatedWs);
+            try {
+                const topic = path.join(deep, 'topic.dita');
+                fs.writeFileSync(topic, '<topic id="t"/>');
+                const rootMap = await service.findRootMap(topic);
+                assert.strictEqual(rootMap, path.join(tmpDir, 'a', 'b', 'nearby.ditamap'));
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+                cleanup(unrelatedWs);
+            }
+        });
+
+        test('does not adopt maps beyond the bounded walk', async () => {
+            // Map at tmp (4 levels above the file) must NOT be discovered —
+            // previously the walk continued to the filesystem root and a stray
+            // high-level map would hijack root-map discovery.
+            const tmpDir = makeTmpDir();
+            const deep = path.join(tmpDir, 'a', 'b', 'c');
+            fs.mkdirSync(deep, { recursive: true });
+            fs.writeFileSync(path.join(tmpDir, 'stray.ditamap'), '<map/>');
+            const unrelatedWs = makeTmpDir();
+            const service = createService(unrelatedWs);
+            try {
+                const topic = path.join(deep, 'topic.dita');
+                fs.writeFileSync(topic, '<topic id="t"/>');
+                const rootMap = await service.findRootMap(topic);
+                assert.strictEqual(rootMap, null,
+                    'a map beyond the bounded outside-workspace walk must not be adopted');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+                cleanup(unrelatedWs);
+            }
+        });
+    });
 });

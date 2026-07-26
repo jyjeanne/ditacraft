@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { DitaOtWrapper } from '../utils/ditaOtWrapper';
+import { DitaOtWrapper, toVsCodeProgressReporter } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
 import { DitaPreviewPanel } from '../providers/previewPanel';
 
@@ -211,19 +211,11 @@ async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: stri
             title: "Generating HTML5 preview",
             cancellable: false
         }, async (progress) => {
-            // publishProgress.percentage is absolute; progress.report expects a delta
-            let lastPercentage = 0;
             const result = await ditaOt.publish({
                 inputFile: filePath,
                 transtype: 'html5',
                 outputDir: outputDir
-            }, (publishProgress) => {
-                progress.report({
-                    increment: Math.max(0, publishProgress.percentage - lastPercentage),
-                    message: publishProgress.message
-                });
-                lastPercentage = Math.max(lastPercentage, publishProgress.percentage);
-            });
+            }, toVsCodeProgressReporter(progress));
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to generate preview');
