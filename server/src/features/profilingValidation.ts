@@ -7,7 +7,7 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
-import { SubjectSchemeService } from '../services/subjectSchemeService';
+import { SubjectSchemeQueries } from '../services/subjectSchemeService';
 import { t } from '../utils/i18n';
 import { stripCommentsAndCodeContent, offsetToRange, escapeRegex } from '../utils/textUtils';
 
@@ -30,7 +30,7 @@ const PROFILING_ATTRIBUTES = [
  */
 export function validateProfilingAttributes(
     text: string,
-    subjectSchemeService: SubjectSchemeService,
+    subjectSchemeService: SubjectSchemeQueries,
     maxProblems: number
 ): Diagnostic[] {
     if (!subjectSchemeService.hasSchemeData()) {

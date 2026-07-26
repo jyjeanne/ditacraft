@@ -25,6 +25,57 @@ export interface SubjectSchemeData {
 
 const ANY_ELEMENT = '*';
 
+/**
+ * Read-only query surface over subject scheme data. Implemented both by the
+ * shared service (global registered state) and by per-document snapshots
+ * returned from snapshotFor(), which are immune to concurrent re-registration.
+ */
+export interface SubjectSchemeQueries {
+    hasSchemeData(): boolean;
+    isControlledAttribute(attributeName: string): boolean;
+    getValidValues(attributeName: string, elementName?: string): Set<string> | null;
+    getDefaultValue(attributeName: string, elementName?: string): string | null;
+    getHierarchyPath(key: string): string | null;
+}
+
+/** Immutable view over an explicitly merged scheme set. */
+class SubjectSchemeSnapshot implements SubjectSchemeQueries {
+    constructor(
+        private readonly data: SubjectSchemeData,
+        private readonly schemeCount: number,
+    ) {}
+
+    hasSchemeData(): boolean {
+        return this.schemeCount > 0;
+    }
+
+    isControlledAttribute(attributeName: string): boolean {
+        return this.data.validValuesMap.has(attributeName);
+    }
+
+    getValidValues(attributeName: string, elementName?: string): Set<string> | null {
+        const elements = this.data.validValuesMap.get(attributeName);
+        if (!elements) return null;
+        if (elementName) {
+            return elements.get(elementName) || elements.get(ANY_ELEMENT) || null;
+        }
+        return elements.get(ANY_ELEMENT) || null;
+    }
+
+    getDefaultValue(attributeName: string, elementName?: string): string | null {
+        const elements = this.data.defaultValueMap.get(attributeName);
+        if (!elements) return null;
+        if (elementName) {
+            return elements.get(elementName) ?? elements.get(ANY_ELEMENT) ?? null;
+        }
+        return elements.get(ANY_ELEMENT) ?? null;
+    }
+
+    getHierarchyPath(key: string): string | null {
+        return this.data.hierarchyPaths.get(key) ?? null;
+    }
+}
+
 // --- Service ---
 
 export class SubjectSchemeService implements ISubjectSchemeService {
@@ -101,14 +152,29 @@ export class SubjectSchemeService implements ISubjectSchemeService {
         if (this.mergedData) {
             return this.mergedData;
         }
+        this.mergedData = this.mergeSchemes(this.registeredSchemes);
+        return this.mergedData;
+    }
 
+    /**
+     * Build a read-only snapshot for an explicit scheme set. Unlike the
+     * service's own query methods, the snapshot is not affected by later
+     * registerSchemes() calls from concurrently validating documents.
+     * Per-file parse results are shared via the internal cache, so this is cheap.
+     */
+    snapshotFor(schemePaths: string[]): SubjectSchemeQueries {
+        return new SubjectSchemeSnapshot(this.mergeSchemes(schemePaths), schemePaths.length);
+    }
+
+    /** Parse and merge an explicit list of scheme maps (pure — no service state mutation). */
+    private mergeSchemes(schemePaths: string[]): SubjectSchemeData {
         const merged: SubjectSchemeData = {
             validValuesMap: new Map(),
             defaultValueMap: new Map(),
             hierarchyPaths: new Map(),
         };
 
-        for (const schemePath of this.registeredSchemes) {
+        for (const schemePath of schemePaths) {
             const data = this.parseSubjectScheme(schemePath);
             // Merge hierarchy paths (first-definition-wins)
             for (const [key, pathStr] of data.hierarchyPaths) {
@@ -144,7 +210,6 @@ export class SubjectSchemeService implements ISubjectSchemeService {
             }
         }
 
-        this.mergedData = merged;
         return merged;
     }
 

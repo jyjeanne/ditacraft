@@ -139,6 +139,8 @@ async function executeValidation(context: vscode.ExtensionContext): Promise<void
                 cancellable: false,
             },
             async (progress) => {
+                // publishProgress.percentage is absolute; progress.report expects a delta
+                let lastPercentage = 0;
                 return await ditaOt.publish(
                     {
                         inputFile: rootMapPath,
@@ -147,9 +149,10 @@ async function executeValidation(context: vscode.ExtensionContext): Promise<void
                     },
                     (publishProgress) => {
                         progress.report({
-                            increment: publishProgress.percentage,
+                            increment: Math.max(0, publishProgress.percentage - lastPercentage),
                             message: publishProgress.message,
                         });
+                        lastPercentage = Math.max(lastPercentage, publishProgress.percentage);
                     }
                 );
             }

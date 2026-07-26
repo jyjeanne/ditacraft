@@ -153,6 +153,8 @@ async function executePublish(
     }, async (progress) => {
 
         // Publish using DITA-OT
+        // publishProgress.percentage is absolute; progress.report expects a delta
+        let lastPercentage = 0;
         const result = await ditaOt.publish({
             inputFile: inputFile,
             transtype: transtype,
@@ -160,9 +162,10 @@ async function executePublish(
         }, (publishProgress) => {
             // Update VS Code progress
             progress.report({
-                increment: publishProgress.percentage,
+                increment: Math.max(0, publishProgress.percentage - lastPercentage),
                 message: publishProgress.message
             });
+            lastPercentage = Math.max(lastPercentage, publishProgress.percentage);
         });
 
         if (result.success) {

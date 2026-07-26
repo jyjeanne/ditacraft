@@ -1,4 +1,8 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { URI } from 'vscode-uri';
 import { ValidationPipeline, ValidationPhase, WorkspaceContext } from '../src/services/validationPipeline';
 import { CatalogValidationService } from '../src/services/catalogValidationService';
 import { RngValidationService } from '../src/services/rngValidationService';
@@ -1003,6 +1007,81 @@ suite('ValidationPipeline', () => {
             // With 30s budget, DITA rules (SCH-003 for indextermref) should run
             const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
             assert.ok(sch003.length > 0, 'all phases should run within normal budget');
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Finalization on early exit', () => {
+
+        test('severity override "off" still suppresses when pipeline budget is exceeded', async () => {
+            const settings: DitaCraftSettings = {
+                ...defaultSettings,
+                pipelineBudgetMs: 0, // trips the budget right after the base phase
+                validationSeverityOverrides: { 'DITA-XML-001': 'off' },
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc('<topic id="t1"><title>T</title>'); // malformed XML
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            assert.strictEqual(
+                diags.filter(d => d.code === 'DITA-XML-001').length, 0,
+                'overridden-off diagnostics must not resurface on budget-exceeded runs',
+            );
+        });
+
+        test('comment suppression still applies when pipeline budget is exceeded', async () => {
+            const settings: DitaCraftSettings = { ...defaultSettings, pipelineBudgetMs: 0 };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc(
+                '<!-- ditacraft-disable-file DITA-XML-001 -->\n<topic id="t1"><title>T</title>',
+            );
+            const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
+            assert.strictEqual(
+                diags.filter(d => d.code === 'DITA-XML-001').length, 0,
+                'comment-suppressed diagnostics must not resurface on budget-exceeded runs',
+            );
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Timeout results are not cached', () => {
+
+        test('timed-out cross-ref phase does not cache empty results', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-pipeline-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+            try {
+                const pipeline = new ValidationPipeline(
+                    makeCatalogService(),
+                    makeRngService(),
+                    makeSubjectSchemeService(),
+                );
+                const content =
+                    '<topic id="t1"><title>T</title><body>' +
+                    '<p><xref href="nonexistent.dita">x</xref></p></body></topic>';
+                const doc = createDoc(content, testUri);
+
+                // First run with a 0ms phase timeout: async phases time out.
+                // Whatever this run reports, it must NOT poison the phase cache.
+                await pipeline.validate(doc, defaultSettings, undefined, emptyWorkspace, undefined, 0);
+
+                // Second run with the normal timeout must surface the broken href
+                // (before the fix, the timed-out run cached [] for CrossRef and
+                // this returned no cross-ref diagnostics).
+                const diags = await pipeline.validate(doc, defaultSettings, undefined, emptyWorkspace);
+                assert.strictEqual(
+                    diags.filter(d => d.code === 'DITA-XREF-001').length, 1,
+                    'cross-ref diagnostics must reappear after a timed-out run',
+                );
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
         });
     });
 });

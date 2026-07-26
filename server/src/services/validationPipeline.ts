@@ -29,7 +29,7 @@ import { detectDitaVersion } from '../utils/ditaVersionDetector';
 import { CatalogValidationService } from './catalogValidationService';
 import { RngValidationService } from './rngValidationService';
 import { KeySpaceService } from './keySpaceService';
-import { SubjectSchemeService } from './subjectSchemeService';
+import { SubjectSchemeService, SubjectSchemeQueries } from './subjectSchemeService';
 import { applySuppressions } from './suppressionEngine';
 
 /** External state passed from the server for workspace-level checks. */
@@ -121,23 +121,23 @@ function formatError(e: unknown): string {
 }
 
 /**
- * Run a promise with a timeout. Returns the promise result or the fallback
- * if it times out. Logs a warning on timeout.
+ * Run a promise with a timeout. Returns the promise result, or null when the
+ * phase timed out or was cancelled. A null result must never be cached or
+ * reported — it means "no usable result", not "no diagnostics".
  */
 async function withTimeout<T>(
     promise: Promise<T>,
     timeoutMs: number,
     phaseName: string,
-    fallback: T,
     log: (msg: string) => void,
     token?: CancellationToken,
-): Promise<T> {
-    if (token?.isCancellationRequested) return fallback;
+): Promise<T | null> {
+    if (token?.isCancellationRequested) return null;
     let timer: ReturnType<typeof setTimeout>;
-    const timeoutPromise = new Promise<T>((resolve) => {
+    const timeoutPromise = new Promise<null>((resolve) => {
         timer = setTimeout(() => {
             log(`[validation] ${phaseName} timed out after ${timeoutMs}ms — skipped`);
-            resolve(fallback);
+            resolve(null);
         }, timeoutMs);
     });
     try {
@@ -407,7 +407,7 @@ export class ValidationPipeline {
             } catch (e) { this.log(`[validation] base validation failed: ${formatError(e)}`); }
         }
 
-        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return this.finalizeDiagnostics(diagnostics, settings, text);
 
         // Phase 4: Content model validation (skip when TypesXML DTD covers it)
         const useRng = this.rngValidation.isAvailable && settings.schemaFormat === 'rng';
@@ -427,7 +427,7 @@ export class ValidationPipeline {
             }
         }
 
-        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return this.finalizeDiagnostics(diagnostics, settings, text);
 
         // Phase 5: Schema validation — DTD or RNG (mutually exclusive)
         if (useTypesXml) {
@@ -470,16 +470,18 @@ export class ValidationPipeline {
                     const rngDiags = await timePhaseAsync('RNG', () =>
                         withTimeout(
                             this.rngValidation.validate(text),
-                            phaseTimeoutMs, 'RNG', [] as Diagnostic[], this.log, token,
+                            phaseTimeoutMs, 'RNG', this.log, token,
                         )
                     );
-                    diagnostics.push(...rngDiags);
-                    this.setCache(uri, ValidationPhase.Schema, docVersion, settingsHash, rngDiags);
+                    if (rngDiags !== null) {
+                        diagnostics.push(...rngDiags);
+                        this.setCache(uri, ValidationPhase.Schema, docVersion, settingsHash, rngDiags);
+                    }
                 } catch (e) { this.log(`[validation] RNG validation failed: ${formatError(e)}`); }
             }
         }
 
-        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return this.finalizeDiagnostics(diagnostics, settings, text);
 
         // Phases 6, 9, 10: Cross-refs, DITA rules, and circular refs are independent — run in parallel
         // Skip these heavy phases for large files
@@ -509,11 +511,13 @@ export class ValidationPipeline {
                     const xrefDiags = await timePhaseAsync('CrossRef', () =>
                         withTimeout(
                             validateCrossReferences(text, uri, keySpaceService, settings.maxNumberOfProblems),
-                            phaseTimeoutMs, 'CrossRef', [] as Diagnostic[], this.log, token,
+                            phaseTimeoutMs, 'CrossRef', this.log, token,
                         )
                     );
-                    diagnostics.push(...xrefDiags);
-                    this.setCache(uri, ValidationPhase.CrossRef, docVersion, settingsHash, xrefDiags);
+                    if (xrefDiags !== null) {
+                        diagnostics.push(...xrefDiags);
+                        this.setCache(uri, ValidationPhase.CrossRef, docVersion, settingsHash, xrefDiags);
+                    }
                 } catch (e) { this.log(`[validation] cross-ref validation failed: ${formatError(e)}`); }
             })());
         }
@@ -566,35 +570,48 @@ export class ValidationPipeline {
                                 text, uri,
                                 effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? [])
                             ),
-                            phaseTimeoutMs, 'CircularRef', [] as Diagnostic[], this.log, token,
+                            phaseTimeoutMs, 'CircularRef', this.log, token,
                         )
                     );
-                    diagnostics.push(...cycleDiags);
-                    this.setCache(uri, ValidationPhase.CircularRef, docVersion, settingsHash, cycleDiags);
+                    if (cycleDiags !== null) {
+                        diagnostics.push(...cycleDiags);
+                        this.setCache(uri, ValidationPhase.CircularRef, docVersion, settingsHash, cycleDiags);
+                    }
                 } catch (e) { this.log(`[validation] circular ref detection failed: ${formatError(e)}`); }
             })());
         }
 
         await Promise.all(parallelPhases);
 
-        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return this.finalizeDiagnostics(diagnostics, settings, text);
 
-        // Phase 7: Register subject scheme maps (must run before profiling, skip for large files)
-        // Not cached — has side effects (registerSchemes mutates service state)
+        // Phase 7: Resolve subject scheme maps (must run before profiling, skip for large files)
+        // Not cached. registerSchemes keeps the shared service state fresh for
+        // completion/hover; profiling itself validates against a per-document
+        // snapshot so concurrent pipelines can't swap schemes under each other.
+        let schemeQueries: SubjectSchemeQueries = this.subjectSchemeService;
+        let schemeResolutionFailed = false;
         if (keySpaceService && !isLargeFile) {
             try {
                 await timePhaseAsync('SubjectScheme', async () => {
                     const schemePaths = await withTimeout(
                         keySpaceService.getSubjectSchemePaths(filePath),
-                        phaseTimeoutMs, 'SubjectScheme', [] as string[], this.log, token,
+                        phaseTimeoutMs, 'SubjectScheme', this.log, token,
                     );
+                    if (schemePaths === null) {
+                        schemeResolutionFailed = true;
+                        return;
+                    }
                     this.subjectSchemeService.registerSchemes(schemePaths);
+                    schemeQueries = this.subjectSchemeService.snapshotFor(schemePaths);
                 });
             } catch (e) { this.log(`[validation] subject scheme registration failed: ${formatError(e)}`); }
         }
 
-        // Phase 8: Profiling attribute validation (depends on phase 7, skip for large files)
-        if (settings.subjectSchemeValidationEnabled !== false && !isLargeFile) {
+        // Phase 8: Profiling attribute validation (depends on phase 7, skip for large files).
+        // Skipped entirely when scheme resolution timed out — validating against
+        // missing constraints would cache false negatives.
+        if (settings.subjectSchemeValidationEnabled !== false && !isLargeFile && !schemeResolutionFailed) {
             const cachedProf = this.getCached(uri, ValidationPhase.Profiling, docVersion, settingsHash);
             if (cachedProf) {
                 diagnostics.push(...cachedProf);
@@ -602,7 +619,7 @@ export class ValidationPipeline {
             } else {
                 try {
                     const profDiags = timePhase('Profiling', () =>
-                        validateProfilingAttributes(text, this.subjectSchemeService, settings.maxNumberOfProblems)
+                        validateProfilingAttributes(text, schemeQueries, settings.maxNumberOfProblems)
                     );
                     diagnostics.push(...profDiags);
                     this.setCache(uri, ValidationPhase.Profiling, docVersion, settingsHash, profDiags);
@@ -610,7 +627,7 @@ export class ValidationPipeline {
             }
         }
 
-        if (token?.isCancellationRequested || budgetExceeded()) return diagnostics;
+        if (token?.isCancellationRequested || budgetExceeded()) return this.finalizeDiagnostics(diagnostics, settings, text);
 
         // Phase 11: Workspace-level checks (skip for large files)
         // Not cached — depends on external indices (rootIdIndex, unusedTopicPaths)
@@ -643,7 +660,26 @@ export class ValidationPipeline {
             }
         } catch (e) { this.log(`[validation] custom rules failed: ${formatError(e)}`); }
 
-        // Apply per-rule severity overrides
+        // Log phase timings at debug level
+        const totalMs = Date.now() - startTime;
+        const timingStr = Object.entries(timings).map(([k, v]) => `${k}=${v}ms`).join(' ');
+        const cacheStr = cacheHits > 0 ? ` cache=${cacheHits}` : '';
+        this.log(`[validation] ${filePath.split(/[\\/]/).pop()} Total=${totalMs}ms${cacheStr} ${timingStr}`);
+
+        return this.finalizeDiagnostics(diagnostics, settings, text);
+    }
+
+    /**
+     * Apply per-rule severity overrides, comment-based suppression, and the
+     * total diagnostics cap. Every pipeline exit that reports diagnostics —
+     * including cancellation and budget-exceeded early returns — must go
+     * through this, so rules the user disabled never resurface on slow runs.
+     */
+    private finalizeDiagnostics(
+        diagnostics: Diagnostic[],
+        settings: DitaCraftSettings,
+        text: string,
+    ): Diagnostic[] {
         const overrides = settings.validationSeverityOverrides;
         let finalDiags = diagnostics;
         if (overrides && Object.keys(overrides).length > 0) {
@@ -665,12 +701,6 @@ export class ValidationPipeline {
 
         // Apply comment-based suppression (Phase 5.2)
         finalDiags = applySuppressions(finalDiags, text);
-
-        // Log phase timings at debug level
-        const totalMs = Date.now() - startTime;
-        const timingStr = Object.entries(timings).map(([k, v]) => `${k}=${v}ms`).join(' ');
-        const cacheStr = cacheHits > 0 ? ` cache=${cacheHits}` : '';
-        this.log(`[validation] ${filePath.split(/[\\/]/).pop()} Total=${totalMs}ms${cacheStr} ${timingStr}`);
 
         // Cap total diagnostics
         const maxProblems = settings.maxNumberOfProblems ?? 100;
