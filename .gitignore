@@ -3,6 +3,11 @@ out
 dist
 *.vsix
 
+# Stray compiled JS next to TypeScript sources (build output belongs in out/ and dist/)
+src/**/*.js
+server/src/**/*.js
+mcp/src/**/*.js
+
 # Node modules
 node_modules
 

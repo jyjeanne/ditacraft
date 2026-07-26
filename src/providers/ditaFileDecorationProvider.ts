@@ -4,11 +4,7 @@
  */
 
 import * as vscode from 'vscode';
-import { isDitaFilePath } from '../utils/constants';
-
-function isDitaUri(uri: vscode.Uri): boolean {
-    return isDitaFilePath(uri.fsPath);
-}
+import { isDitaUri } from '../utils/constants';
 
 /**
  * Provides file decorations based on diagnostic counts for DITA files.

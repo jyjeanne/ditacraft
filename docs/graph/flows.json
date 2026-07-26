@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-26T12:10:27.348Z",
+  "generatedAt": "2026-07-26T12:36:04.135Z",
   "graphPath": "/home/user/ditacraft/.graphify/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -630,52 +630,6 @@
         "server/src/services/catalogValidationService.ts"
       ],
       "criticality": 0.2433,
-      "warnings": []
-    },
-    {
-      "id": "flow:tools_ditakeyspace_handleditakeyspace",
-      "name": "handleDitaKeySpace",
-      "entryPoint": "tools_ditakeyspace_handleditakeyspace",
-      "entryPointId": "tools_ditakeyspace_handleditakeyspace",
-      "path": [
-        "tools_ditakeyspace_handleditakeyspace",
-        "tools_ditakeyspace_discoverrootmap"
-      ],
-      "qualifiedPath": [
-        "tools_ditakeyspace_handleditakeyspace",
-        "tools_ditakeyspace_discoverrootmap"
-      ],
-      "depth": 1,
-      "nodeCount": 2,
-      "fileCount": 2,
-      "files": [
-        "mcp/src/tools/ditaKeySpace.js",
-        "mcp/src/tools/ditaKeySpace.ts"
-      ],
-      "criticality": 0.235,
-      "warnings": []
-    },
-    {
-      "id": "flow:resources_keys_readkeysresource",
-      "name": "readKeysResource",
-      "entryPoint": "resources_keys_readkeysresource",
-      "entryPointId": "resources_keys_readkeysresource",
-      "path": [
-        "resources_keys_readkeysresource",
-        "resources_keys_discoverrootmap"
-      ],
-      "qualifiedPath": [
-        "resources_keys_readkeysresource",
-        "resources_keys_discoverrootmap"
-      ],
-      "depth": 1,
-      "nodeCount": 2,
-      "fileCount": 2,
-      "files": [
-        "mcp/src/resources/keys.js",
-        "mcp/src/resources/keys.ts"
-      ],
-      "criticality": 0.235,
       "warnings": []
     },
     {
@@ -4034,6 +3988,28 @@
       "fileCount": 1,
       "files": [
         "server/src/features/rename.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_constants_isditauri",
+      "name": "isDitaUri",
+      "entryPoint": "utils_constants_isditauri",
+      "entryPointId": "utils_constants_isditauri",
+      "path": [
+        "utils_constants_isditauri",
+        "utils_constants_isditafilepath"
+      ],
+      "qualifiedPath": [
+        "utils_constants_isditauri",
+        "utils_constants_isditafilepath"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/constants.ts"
       ],
       "criticality": 0.16,
       "warnings": []

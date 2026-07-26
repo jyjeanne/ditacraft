@@ -5,15 +5,11 @@
 
 import * as vscode from 'vscode';
 import { createDebounced } from '../utils/debounceUtils';
-import { isDitaFilePath } from '../utils/constants';
+import { isDitaUri } from '../utils/constants';
 
 const DITA_SOURCES = new Set(['dita', 'dita-lsp']);
 
 type GroupMode = 'byFile' | 'byType';
-
-function isDitaUri(uri: vscode.Uri): boolean {
-    return isDitaFilePath(uri.fsPath);
-}
 
 /**
  * Tree item for the Diagnostics view.
