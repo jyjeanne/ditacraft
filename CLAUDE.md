@@ -219,6 +219,54 @@ docs/                         # Architecture docs
 
 ---
 
+## Using the Knowledge Graph
+
+A pre-built, always-up-to-date knowledge graph of the codebase lives in `docs/graph/graph.json` (1,600+ nodes: classes, functions, files, and their imports/calls/contains relationships, clustered into communities). **Query it before grepping** when you need architectural understanding — it answers "what connects to what" questions in one command instead of many file reads.
+
+### Query Commands
+
+All commands run offline against the committed graph — no API keys needed:
+
+```bash
+# Orientation: top hubs, key communities, graph stats (start here)
+npx graphify summary docs/graph/graph.json
+
+# Ask a question — BFS traversal returns the relevant subgraph
+npx graphify query "how does key space resolution work" --graph docs/graph/graph.json
+
+# Everything about one symbol: role, edges, neighbors, source file
+npx graphify explain "ValidationPipeline" --graph docs/graph/graph.json
+
+# How are two components connected?
+npx graphify path "KeySpaceService" "ValidationPipeline" --graph docs/graph/graph.json
+
+# Dependency tree from one node
+npx graphify tree "SubjectSchemeService" --graph docs/graph/graph.json
+```
+
+### Impact Analysis Before/After Changes
+
+```bash
+# Which execution flows does a change to these files affect? (blast radius)
+npx graphify affected-flows server/src/services/keySpaceService.ts --graph docs/graph/graph.json --flows docs/graph/flows.json
+
+# Focused review context for a set of changed files
+npx graphify review-context src/extension.ts server/src/server.ts --graph docs/graph/graph.json
+```
+
+Use `affected-flows` before refactoring a shared service or utility to see what could break, and `review-context` when reviewing or summarizing a diff.
+
+### When to Use Graph vs. Grep
+
+- **Graph:** "what depends on X", "how do A and B connect", "what's the blast radius of this change", "give me an overview of subsystem Y"
+- **Grep/Glob:** exact string lookups, finding a specific diagnostic code, locating a config key
+
+### Keeping It Fresh
+
+The graph regenerates automatically (`watch:graph` inside `npm run watch` locally; the `knowledge-graph` workflow on pushes to `main`). If you've made large local changes without watch running, refresh manually with `npm run graph`. See [Knowledge Graph (graphify)](#knowledge-graph-graphify) for the generation pipeline; the interactive viewer is `docs/graph/studio/studio.html`.
+
+---
+
 ## Configuration & Settings
 
 Core settings (in `package.json` `contributes.configuration`):

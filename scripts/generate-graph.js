@@ -58,6 +58,7 @@ function publishOutputs() {
 
     runGraphify(['studio', 'export', path.join(OUT_DIR, 'studio'), '--state', STATE_DIR, '--full-offline']);
     runGraphify(['export', 'svg', '--graph', graphJson, '--out', path.join(OUT_DIR, 'graph.svg')]);
+    runGraphify(['flows', 'build', '--graph', graphJson, '--out', path.join(OUT_DIR, 'flows.json')]);
 
     fs.copyFileSync(graphJson, path.join(OUT_DIR, 'graph.json'));
     fs.copyFileSync(path.join(STATE_DIR, 'GRAPH_REPORT.md'), path.join(OUT_DIR, 'GRAPH_REPORT.md'));
@@ -75,6 +76,7 @@ DitaCraft codebase (client extension, LSP server, MCP server, docs). Do not edit
 | Artifact | Description |
 |----------|-------------|
 | \`graph.json\` | Queryable knowledge graph (nodes, edges, Louvain communities) |
+| \`flows.json\` | Execution flows derived from CALLS edges (for impact analysis) |
 | \`GRAPH_REPORT.md\` | Findings, statistics, and suggested queries |
 | \`graph.svg\` | Static graph visualization |
 | \`studio/studio.html\` | Self-contained interactive viewer - open directly in a browser |

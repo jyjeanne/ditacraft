@@ -1,0 +1,4264 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-26T12:10:27.348Z",
+  "graphPath": "/home/user/ditacraft/.graphify/graph.json",
+  "maxDepth": 15,
+  "includeTests": false,
+  "warnings": [],
+  "flows": [
+    {
+      "id": "flow:commands_validateguidecommand_validateguidecommand",
+      "name": "validateGuideCommand",
+      "entryPoint": "commands_validateguidecommand_validateguidecommand",
+      "entryPointId": "commands_validateguidecommand_validateguidecommand",
+      "path": [
+        "commands_validateguidecommand_validateguidecommand",
+        "commands_validateguidecommand_executevalidation",
+        "commands_validateguidecommand_maptovalidationissues",
+        "commands_validateguidecommand_validateguideprerequisites"
+      ],
+      "qualifiedPath": [
+        "commands_validateguidecommand_validateguidecommand",
+        "commands_validateguidecommand_executevalidation",
+        "commands_validateguidecommand_maptovalidationissues",
+        "commands_validateguidecommand_validateguideprerequisites"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/commands/validateGuideCommand.ts"
+      ],
+      "criticality": 0.42,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_aiquickfixprovider_safeexecuteaiquickfix",
+      "name": "safeExecuteAiQuickFix",
+      "entryPoint": "providers_aiquickfixprovider_safeexecuteaiquickfix",
+      "entryPointId": "providers_aiquickfixprovider_safeexecuteaiquickfix",
+      "path": [
+        "providers_aiquickfixprovider_safeexecuteaiquickfix",
+        "providers_aiquickfixprovider_executeaiquickfix"
+      ],
+      "qualifiedPath": [
+        "providers_aiquickfixprovider_safeexecuteaiquickfix",
+        "providers_aiquickfixprovider_executeaiquickfix"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/aiQuickFixProvider.ts"
+      ],
+      "criticality": 0.41,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_validationpipeline_validationpipeline_invalidateforfilesave",
+      "name": ".invalidateForFileSave",
+      "entryPoint": "services_validationpipeline_validationpipeline_invalidateforfilesave",
+      "entryPointId": "services_validationpipeline_validationpipeline_invalidateforfilesave",
+      "path": [
+        "services_validationpipeline_validationpipeline_invalidateforfilesave",
+        "services_validationpipeline_validationpipeline_invalidatephases",
+        "services_validationpipeline_validationpipeline_cachekey"
+      ],
+      "qualifiedPath": [
+        "services_validationpipeline_validationpipeline_invalidateforfilesave",
+        "services_validationpipeline_validationpipeline_invalidatephases",
+        "services_validationpipeline_validationpipeline_cachekey"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/validationPipeline.ts"
+      ],
+      "criticality": 0.3367,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_validationpipeline_validationpipeline_invalidatefortextedit",
+      "name": ".invalidateForTextEdit",
+      "entryPoint": "services_validationpipeline_validationpipeline_invalidatefortextedit",
+      "entryPointId": "services_validationpipeline_validationpipeline_invalidatefortextedit",
+      "path": [
+        "services_validationpipeline_validationpipeline_invalidatefortextedit",
+        "services_validationpipeline_validationpipeline_invalidatephases",
+        "services_validationpipeline_validationpipeline_cachekey"
+      ],
+      "qualifiedPath": [
+        "services_validationpipeline_validationpipeline_invalidatefortextedit",
+        "services_validationpipeline_validationpipeline_invalidatephases",
+        "services_validationpipeline_validationpipeline_cachekey"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/validationPipeline.ts"
+      ],
+      "criticality": 0.3367,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_publishcommand_publishcommand",
+      "name": "publishCommand",
+      "entryPoint": "commands_publishcommand_publishcommand",
+      "entryPointId": "commands_publishcommand_publishcommand",
+      "path": [
+        "commands_publishcommand_publishcommand",
+        "commands_publishcommand_executepublish",
+        "commands_publishcommand_validateandprepareforpublish"
+      ],
+      "qualifiedPath": [
+        "commands_publishcommand_publishcommand",
+        "commands_publishcommand_executepublish",
+        "commands_publishcommand_validateandprepareforpublish"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/commands/publishCommand.ts"
+      ],
+      "criticality": 0.3267,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_publishcommand_publishhtml5command",
+      "name": "publishHTML5Command",
+      "entryPoint": "commands_publishcommand_publishhtml5command",
+      "entryPointId": "commands_publishcommand_publishhtml5command",
+      "path": [
+        "commands_publishcommand_publishhtml5command",
+        "commands_publishcommand_executepublish",
+        "commands_publishcommand_validateandprepareforpublish"
+      ],
+      "qualifiedPath": [
+        "commands_publishcommand_publishhtml5command",
+        "commands_publishcommand_executepublish",
+        "commands_publishcommand_validateandprepareforpublish"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/commands/publishCommand.ts"
+      ],
+      "criticality": 0.3267,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_contentmodelvalidation_validatecontentmodel",
+      "name": "validateContentModel",
+      "entryPoint": "features_contentmodelvalidation_validatecontentmodel",
+      "entryPointId": "features_contentmodelvalidation_validatecontentmodel",
+      "path": [
+        "features_contentmodelvalidation_validatecontentmodel",
+        "features_contentmodelvalidation_parseelementtree",
+        "features_contentmodelvalidation_validateelement"
+      ],
+      "qualifiedPath": [
+        "features_contentmodelvalidation_validatecontentmodel",
+        "features_contentmodelvalidation_parseelementtree",
+        "features_contentmodelvalidation_validateelement"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/contentModelValidation.ts"
+      ],
+      "criticality": 0.3267,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_validation_validateditadocument",
+      "name": "validateDITADocument",
+      "entryPoint": "features_validation_validateditadocument",
+      "entryPointId": "features_validation_validateditadocument",
+      "path": [
+        "features_validation_validateditadocument",
+        "features_validation_checkentityexpansion",
+        "features_validation_validateditastructure",
+        "features_validation_validateids",
+        "features_validation_validatexml",
+        "features_validation_entityrange",
+        "features_validation_hasnonpredefinedentityref",
+        "features_validation_checkemptyelements",
+        "features_validation_createrange",
+        "features_validation_getfileextension",
+        "features_validation_validatebookmapstructure",
+        "features_validation_validateditavalstructure",
+        "features_validation_validatemapstructure",
+        "features_validation_validatetopicstructure",
+        "features_validation_getenclosingelement",
+        "features_validation_checktopicrefswithouthref"
+      ],
+      "qualifiedPath": [
+        "features_validation_validateditadocument",
+        "features_validation_checkentityexpansion",
+        "features_validation_validateditastructure",
+        "features_validation_validateids",
+        "features_validation_validatexml",
+        "features_validation_entityrange",
+        "features_validation_hasnonpredefinedentityref",
+        "features_validation_checkemptyelements",
+        "features_validation_createrange",
+        "features_validation_getfileextension",
+        "features_validation_validatebookmapstructure",
+        "features_validation_validateditavalstructure",
+        "features_validation_validatemapstructure",
+        "features_validation_validatetopicstructure",
+        "features_validation_getenclosingelement",
+        "features_validation_checktopicrefswithouthref"
+      ],
+      "depth": 3,
+      "nodeCount": 16,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/validation.ts"
+      ],
+      "criticality": 0.305,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_aiserviceorchestrator_aiserviceorchestrator_explaindiagnostic",
+      "name": ".explainDiagnostic",
+      "entryPoint": "llm_aiserviceorchestrator_aiserviceorchestrator_explaindiagnostic",
+      "entryPointId": "llm_aiserviceorchestrator_aiserviceorchestrator_explaindiagnostic",
+      "path": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_explaindiagnostic",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "qualifiedPath": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_explaindiagnostic",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/aiServiceOrchestrator.ts"
+      ],
+      "criticality": 0.285,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_aiserviceorchestrator_aiserviceorchestrator_fixfragment",
+      "name": ".fixFragment",
+      "entryPoint": "llm_aiserviceorchestrator_aiserviceorchestrator_fixfragment",
+      "entryPointId": "llm_aiserviceorchestrator_aiserviceorchestrator_fixfragment",
+      "path": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_fixfragment",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_validatefragment",
+        "llm_aiserviceorchestrator_extractxml",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "qualifiedPath": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_fixfragment",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_validatefragment",
+        "llm_aiserviceorchestrator_extractxml",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "depth": 1,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/llm/aiServiceOrchestrator.ts"
+      ],
+      "criticality": 0.285,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_aiserviceorchestrator_aiserviceorchestrator_streamraw",
+      "name": ".streamRaw",
+      "entryPoint": "llm_aiserviceorchestrator_aiserviceorchestrator_streamraw",
+      "entryPointId": "llm_aiserviceorchestrator_aiserviceorchestrator_streamraw",
+      "path": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_streamraw",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "qualifiedPath": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_streamraw",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/aiServiceOrchestrator.ts"
+      ],
+      "criticality": 0.285,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ratelimiter_ratelimiter_tryexecute",
+      "name": ".tryExecute",
+      "entryPoint": "utils_ratelimiter_ratelimiter_tryexecute",
+      "entryPointId": "utils_ratelimiter_ratelimiter_tryexecute",
+      "path": [
+        "utils_ratelimiter_ratelimiter_tryexecute",
+        "utils_ratelimiter_ratelimiter_isallowed"
+      ],
+      "qualifiedPath": [
+        "utils_ratelimiter_ratelimiter_tryexecute",
+        "utils_ratelimiter_ratelimiter_isallowed"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/rateLimiter.ts"
+      ],
+      "criticality": 0.285,
+      "warnings": []
+    },
+    {
+      "id": "flow:src_extension_handleconfigurationchange",
+      "name": "handleConfigurationChange",
+      "entryPoint": "src_extension_handleconfigurationchange",
+      "entryPointId": "src_extension_handleconfigurationchange",
+      "path": [
+        "src_extension_handleconfigurationchange",
+        "src_extension_verifyditaotinstallation"
+      ],
+      "qualifiedPath": [
+        "src_extension_handleconfigurationchange",
+        "src_extension_verifyditaotinstallation"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/extension.ts"
+      ],
+      "criticality": 0.285,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_fragmentvalidator_handlevalidatefragment",
+      "name": "handleValidateFragment",
+      "entryPoint": "features_fragmentvalidator_handlevalidatefragment",
+      "entryPointId": "features_fragmentvalidator_handlevalidatefragment",
+      "path": [
+        "features_fragmentvalidator_handlevalidatefragment",
+        "features_fragmentvalidator_wrapfragment"
+      ],
+      "qualifiedPath": [
+        "features_fragmentvalidator_handlevalidatefragment",
+        "features_fragmentvalidator_wrapfragment"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/fragmentValidator.ts"
+      ],
+      "criticality": 0.285,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_previewcommand_previewhtml5command",
+      "name": "previewHTML5Command",
+      "entryPoint": "commands_previewcommand_previewhtml5command",
+      "entryPointId": "commands_previewcommand_previewhtml5command",
+      "path": [
+        "commands_previewcommand_previewhtml5command",
+        "commands_previewcommand_displaypreview",
+        "commands_previewcommand_generatehtml5outputifneeded",
+        "commands_previewcommand_getandvalidatefileuri",
+        "commands_previewcommand_handlepreviewerror",
+        "commands_previewcommand_initializeandvalidateditaot",
+        "commands_previewcommand_validatefilepath",
+        "commands_previewcommand_validateinputfile",
+        "commands_previewcommand_findmainhtmlfile"
+      ],
+      "qualifiedPath": [
+        "commands_previewcommand_previewhtml5command",
+        "commands_previewcommand_displaypreview",
+        "commands_previewcommand_generatehtml5outputifneeded",
+        "commands_previewcommand_getandvalidatefileuri",
+        "commands_previewcommand_handlepreviewerror",
+        "commands_previewcommand_initializeandvalidateditaot",
+        "commands_previewcommand_validatefilepath",
+        "commands_previewcommand_validateinputfile",
+        "commands_previewcommand_findmainhtmlfile"
+      ],
+      "depth": 2,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "src/commands/previewCommand.ts"
+      ],
+      "criticality": 0.2811,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_crossrefvalidation_validatecrossreferences",
+      "name": "validateCrossReferences",
+      "entryPoint": "features_crossrefvalidation_validatecrossreferences",
+      "entryPointId": "features_crossrefvalidation_validatecrossreferences",
+      "path": [
+        "features_crossrefvalidation_validatecrossreferences",
+        "features_crossrefvalidation_areconrefcompatible",
+        "features_crossrefvalidation_findtargetelementbyidonly",
+        "features_crossrefvalidation_getcontainingelementname",
+        "features_crossrefvalidation_getscopevalue",
+        "features_crossrefvalidation_validateconrefcompatibility",
+        "features_crossrefvalidation_validatefragment",
+        "features_crossrefvalidation_findtargetelementname"
+      ],
+      "qualifiedPath": [
+        "features_crossrefvalidation_validatecrossreferences",
+        "features_crossrefvalidation_areconrefcompatible",
+        "features_crossrefvalidation_findtargetelementbyidonly",
+        "features_crossrefvalidation_getcontainingelementname",
+        "features_crossrefvalidation_getscopevalue",
+        "features_crossrefvalidation_validateconrefcompatibility",
+        "features_crossrefvalidation_validatefragment",
+        "features_crossrefvalidation_findtargetelementname"
+      ],
+      "depth": 2,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/crossRefValidation.ts"
+      ],
+      "criticality": 0.2638,
+      "warnings": []
+    },
+    {
+      "id": "flow:chat_ditacraftparticipant_handlerequest",
+      "name": "handleRequest",
+      "entryPoint": "chat_ditacraftparticipant_handlerequest",
+      "entryPointId": "chat_ditacraftparticipant_handlerequest",
+      "path": [
+        "chat_ditacraftparticipant_handlerequest",
+        "chat_ditacraftparticipant_handleexplain",
+        "chat_ditacraftparticipant_handlerestructure",
+        "chat_ditacraftparticipant_handlesuggestreuse",
+        "chat_ditacraftparticipant_handlevalidate"
+      ],
+      "qualifiedPath": [
+        "chat_ditacraftparticipant_handlerequest",
+        "chat_ditacraftparticipant_handleexplain",
+        "chat_ditacraftparticipant_handlerestructure",
+        "chat_ditacraftparticipant_handlesuggestreuse",
+        "chat_ditacraftparticipant_handlevalidate"
+      ],
+      "depth": 1,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/chat/ditacraftParticipant.ts"
+      ],
+      "criticality": 0.26,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_rngvalidationservice_rngvalidationservice_validate",
+      "name": ".validate",
+      "entryPoint": "services_rngvalidationservice_rngvalidationservice_validate",
+      "entryPointId": "services_rngvalidationservice_rngvalidationservice_validate",
+      "path": [
+        "services_rngvalidationservice_rngvalidationservice_validate",
+        "services_rngvalidationservice_rngvalidationservice_getgrammar",
+        "services_rngvalidationservice_rngvalidationservice_resolveschemapath",
+        "services_rngvalidationservice_rngvalidationservice_validatewithgrammar",
+        "services_rngvalidationservice_rngvalidationservice_compilegrammar",
+        "services_rngvalidationservice_saxesparser"
+      ],
+      "qualifiedPath": [
+        "services_rngvalidationservice_rngvalidationservice_validate",
+        "services_rngvalidationservice_rngvalidationservice_getgrammar",
+        "services_rngvalidationservice_rngvalidationservice_resolveschemapath",
+        "services_rngvalidationservice_rngvalidationservice_validatewithgrammar",
+        "services_rngvalidationservice_rngvalidationservice_compilegrammar",
+        "services_rngvalidationservice_saxesparser"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/rngValidationService.ts"
+      ],
+      "criticality": 0.2533,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_anthropicprovider_anthropicllmprovider_complete",
+      "name": ".complete",
+      "entryPoint": "providers_anthropicprovider_anthropicllmprovider_complete",
+      "entryPointId": "providers_anthropicprovider_anthropicllmprovider_complete",
+      "path": [
+        "providers_anthropicprovider_anthropicllmprovider_complete",
+        "providers_anthropicprovider_anthropicllmprovider_estimatetokencount",
+        "providers_anthropicprovider_anthropicllmprovider_stream"
+      ],
+      "qualifiedPath": [
+        "providers_anthropicprovider_anthropicllmprovider_complete",
+        "providers_anthropicprovider_anthropicllmprovider_estimatetokencount",
+        "providers_anthropicprovider_anthropicllmprovider_stream"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/llm/providers/anthropicProvider.ts"
+      ],
+      "criticality": 0.2433,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_copilotprovider_copilotllmprovider_complete",
+      "name": ".complete",
+      "entryPoint": "providers_copilotprovider_copilotllmprovider_complete",
+      "entryPointId": "providers_copilotprovider_copilotllmprovider_complete",
+      "path": [
+        "providers_copilotprovider_copilotllmprovider_complete",
+        "providers_copilotprovider_copilotllmprovider_estimatetokencount",
+        "providers_copilotprovider_copilotllmprovider_stream"
+      ],
+      "qualifiedPath": [
+        "providers_copilotprovider_copilotllmprovider_complete",
+        "providers_copilotprovider_copilotllmprovider_estimatetokencount",
+        "providers_copilotprovider_copilotllmprovider_stream"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/llm/providers/copilotProvider.ts"
+      ],
+      "criticality": 0.2433,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_openaiprovider_openaillmprovider_complete",
+      "name": ".complete",
+      "entryPoint": "providers_openaiprovider_openaillmprovider_complete",
+      "entryPointId": "providers_openaiprovider_openaillmprovider_complete",
+      "path": [
+        "providers_openaiprovider_openaillmprovider_complete",
+        "providers_openaiprovider_openaillmprovider_estimatetokencount",
+        "providers_openaiprovider_openaillmprovider_stream"
+      ],
+      "qualifiedPath": [
+        "providers_openaiprovider_openaillmprovider_complete",
+        "providers_openaiprovider_openaillmprovider_estimatetokencount",
+        "providers_openaiprovider_openaillmprovider_stream"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/llm/providers/openaiProvider.ts"
+      ],
+      "criticality": 0.2433,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_aiserviceorchestrator_aiserviceorchestrator_explainelement",
+      "name": ".explainElement",
+      "entryPoint": "llm_aiserviceorchestrator_aiserviceorchestrator_explainelement",
+      "entryPointId": "llm_aiserviceorchestrator_aiserviceorchestrator_explainelement",
+      "path": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_explainelement",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_buildsnapshot",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "qualifiedPath": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_explainelement",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_buildsnapshot",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/llm/aiServiceOrchestrator.ts"
+      ],
+      "criticality": 0.2433,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_aiserviceorchestrator_aiserviceorchestrator_suggestreuse",
+      "name": ".suggestReuse",
+      "entryPoint": "llm_aiserviceorchestrator_aiserviceorchestrator_suggestreuse",
+      "entryPointId": "llm_aiserviceorchestrator_aiserviceorchestrator_suggestreuse",
+      "path": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_suggestreuse",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_buildsnapshot",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "qualifiedPath": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_suggestreuse",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_buildsnapshot",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/llm/aiServiceOrchestrator.ts"
+      ],
+      "criticality": 0.2433,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_catalogvalidationservice_catalogvalidationservice_validate",
+      "name": ".validate",
+      "entryPoint": "services_catalogvalidationservice_catalogvalidationservice_validate",
+      "entryPointId": "services_catalogvalidationservice_catalogvalidationservice_validate",
+      "path": [
+        "services_catalogvalidationservice_catalogvalidationservice_validate",
+        "services_catalogvalidationservice_catalogvalidationservice_createparser",
+        "services_catalogvalidationservice_catalogvalidationservice_errortodiagnostic"
+      ],
+      "qualifiedPath": [
+        "services_catalogvalidationservice_catalogvalidationservice_validate",
+        "services_catalogvalidationservice_catalogvalidationservice_createparser",
+        "services_catalogvalidationservice_catalogvalidationservice_errortodiagnostic"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/catalogValidationService.ts"
+      ],
+      "criticality": 0.2433,
+      "warnings": []
+    },
+    {
+      "id": "flow:tools_ditakeyspace_handleditakeyspace",
+      "name": "handleDitaKeySpace",
+      "entryPoint": "tools_ditakeyspace_handleditakeyspace",
+      "entryPointId": "tools_ditakeyspace_handleditakeyspace",
+      "path": [
+        "tools_ditakeyspace_handleditakeyspace",
+        "tools_ditakeyspace_discoverrootmap"
+      ],
+      "qualifiedPath": [
+        "tools_ditakeyspace_handleditakeyspace",
+        "tools_ditakeyspace_discoverrootmap"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 2,
+      "files": [
+        "mcp/src/tools/ditaKeySpace.js",
+        "mcp/src/tools/ditaKeySpace.ts"
+      ],
+      "criticality": 0.235,
+      "warnings": []
+    },
+    {
+      "id": "flow:resources_keys_readkeysresource",
+      "name": "readKeysResource",
+      "entryPoint": "resources_keys_readkeysresource",
+      "entryPointId": "resources_keys_readkeysresource",
+      "path": [
+        "resources_keys_readkeysresource",
+        "resources_keys_discoverrootmap"
+      ],
+      "qualifiedPath": [
+        "resources_keys_readkeysresource",
+        "resources_keys_discoverrootmap"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 2,
+      "files": [
+        "mcp/src/resources/keys.js",
+        "mcp/src/resources/keys.ts"
+      ],
+      "criticality": 0.235,
+      "warnings": []
+    },
+    {
+      "id": "flow:src_diagnosticsstore_diagnosticsstore_query",
+      "name": ".query",
+      "entryPoint": "src_diagnosticsstore_diagnosticsstore_query",
+      "entryPointId": "src_diagnosticsstore_diagnosticsstore_query",
+      "path": [
+        "src_diagnosticsstore_diagnosticsstore_query",
+        "src_diagnosticsstore_diagnosticseveritylabel",
+        "src_diagnosticsstore_matchglob",
+        "src_diagnosticsstore_globtoregex"
+      ],
+      "qualifiedPath": [
+        "src_diagnosticsstore_diagnosticsstore_query",
+        "src_diagnosticsstore_diagnosticseveritylabel",
+        "src_diagnosticsstore_matchglob",
+        "src_diagnosticsstore_globtoregex"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/diagnosticsStore.ts"
+      ],
+      "criticality": 0.2325,
+      "warnings": []
+    },
+    {
+      "id": "flow:src_workspace_fileexists",
+      "name": "fileExists",
+      "entryPoint": "src_workspace_fileexists",
+      "entryPointId": "src_workspace_fileexists",
+      "path": [
+        "src_workspace_fileexists",
+        "src_workspace_fileuritofspath",
+        "src_workspace_resolvepath",
+        "src_workspace_validatewithinworkspace"
+      ],
+      "qualifiedPath": [
+        "src_workspace_fileexists",
+        "src_workspace_fileuritofspath",
+        "src_workspace_resolvepath",
+        "src_workspace_validatewithinworkspace"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/workspace.ts"
+      ],
+      "criticality": 0.2325,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_customrulesvalidator_validatecustomrules",
+      "name": "validateCustomRules",
+      "entryPoint": "features_customrulesvalidator_validatecustomrules",
+      "entryPointId": "features_customrulesvalidator_validatecustomrules",
+      "path": [
+        "features_customrulesvalidator_validatecustomrules",
+        "features_customrulesvalidator_detectfiletype",
+        "features_customrulesvalidator_loadrules",
+        "features_customrulesvalidator_issaferegex"
+      ],
+      "qualifiedPath": [
+        "features_customrulesvalidator_validatecustomrules",
+        "features_customrulesvalidator_detectfiletype",
+        "features_customrulesvalidator_loadrules",
+        "features_customrulesvalidator_issaferegex"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/customRulesValidator.ts"
+      ],
+      "criticality": 0.2325,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_validationpipeline_validationpipeline_validate",
+      "name": ".validate",
+      "entryPoint": "services_validationpipeline_validationpipeline_validate",
+      "entryPointId": "services_validationpipeline_validationpipeline_validate",
+      "path": [
+        "services_validationpipeline_validationpipeline_validate",
+        "services_validationpipeline_semaphore_acquire",
+        "services_validationpipeline_semaphore_release",
+        "services_validationpipeline_validationpipeline_runpipeline",
+        "services_validationpipeline_formaterror",
+        "services_validationpipeline_validationpipeline_getcached",
+        "services_validationpipeline_validationpipeline_hashsettings",
+        "services_validationpipeline_validationpipeline_setcache",
+        "services_validationpipeline_validationpipeline_cachekey",
+        "services_validationpipeline_validationpipeline_evictoldest"
+      ],
+      "qualifiedPath": [
+        "services_validationpipeline_validationpipeline_validate",
+        "services_validationpipeline_semaphore_acquire",
+        "services_validationpipeline_semaphore_release",
+        "services_validationpipeline_validationpipeline_runpipeline",
+        "services_validationpipeline_formaterror",
+        "services_validationpipeline_validationpipeline_getcached",
+        "services_validationpipeline_validationpipeline_hashsettings",
+        "services_validationpipeline_validationpipeline_setcache",
+        "services_validationpipeline_validationpipeline_cachekey",
+        "services_validationpipeline_validationpipeline_evictoldest"
+      ],
+      "depth": 3,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/validationPipeline.ts"
+      ],
+      "criticality": 0.23,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_aiserviceorchestrator_aiserviceorchestrator_restructuremap",
+      "name": ".restructureMap",
+      "entryPoint": "llm_aiserviceorchestrator_aiserviceorchestrator_restructuremap",
+      "entryPointId": "llm_aiserviceorchestrator_aiserviceorchestrator_restructuremap",
+      "path": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_restructuremap",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_buildsnapshot",
+        "llm_aiserviceorchestrator_extractxml",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "qualifiedPath": [
+        "llm_aiserviceorchestrator_aiserviceorchestrator_restructuremap",
+        "llm_aiserviceorchestrator_aiserviceorchestrator_buildsnapshot",
+        "llm_aiserviceorchestrator_extractxml",
+        "llm_aiserviceorchestrator_tokentosignal"
+      ],
+      "depth": 1,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/llm/aiServiceOrchestrator.ts"
+      ],
+      "criticality": 0.2225,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_configurationmanager_configurationmanager_constructor",
+      "name": ".constructor",
+      "entryPoint": "utils_configurationmanager_configurationmanager_constructor",
+      "entryPointId": "utils_configurationmanager_configurationmanager_constructor",
+      "path": [
+        "utils_configurationmanager_configurationmanager_constructor",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_validatenumericconfig",
+        "utils_configurationmanager_configurationmanager_getconfiguration"
+      ],
+      "qualifiedPath": [
+        "utils_configurationmanager_configurationmanager_constructor",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_validatenumericconfig",
+        "utils_configurationmanager_configurationmanager_getconfiguration"
+      ],
+      "depth": 3,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "src/utils/configurationManager.ts"
+      ],
+      "criticality": 0.2217,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_configurationmanager_configurationmanager_reloadconfiguration",
+      "name": ".reloadConfiguration",
+      "entryPoint": "utils_configurationmanager_configurationmanager_reloadconfiguration",
+      "entryPointId": "utils_configurationmanager_configurationmanager_reloadconfiguration",
+      "path": [
+        "utils_configurationmanager_configurationmanager_reloadconfiguration",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_validatenumericconfig",
+        "utils_configurationmanager_configurationmanager_getconfiguration"
+      ],
+      "qualifiedPath": [
+        "utils_configurationmanager_configurationmanager_reloadconfiguration",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_validatenumericconfig",
+        "utils_configurationmanager_configurationmanager_getconfiguration"
+      ],
+      "depth": 3,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "src/utils/configurationManager.ts"
+      ],
+      "criticality": 0.2217,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_formatting_handleformatting",
+      "name": "handleFormatting",
+      "entryPoint": "features_formatting_handleformatting",
+      "entryPointId": "features_formatting_handleformatting",
+      "path": [
+        "features_formatting_handleformatting",
+        "features_formatting_formatxml",
+        "features_formatting_detecteol",
+        "features_formatting_getsimpletextcontent",
+        "features_formatting_tokenize"
+      ],
+      "qualifiedPath": [
+        "features_formatting_handleformatting",
+        "features_formatting_formatxml",
+        "features_formatting_detecteol",
+        "features_formatting_getsimpletextcontent",
+        "features_formatting_tokenize"
+      ],
+      "depth": 2,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/formatting.ts"
+      ],
+      "criticality": 0.22,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_formatting_handlerangeformatting",
+      "name": "handleRangeFormatting",
+      "entryPoint": "features_formatting_handlerangeformatting",
+      "entryPointId": "features_formatting_handlerangeformatting",
+      "path": [
+        "features_formatting_handlerangeformatting",
+        "features_formatting_formatxml",
+        "features_formatting_detecteol",
+        "features_formatting_getsimpletextcontent",
+        "features_formatting_tokenize"
+      ],
+      "qualifiedPath": [
+        "features_formatting_handlerangeformatting",
+        "features_formatting_formatxml",
+        "features_formatting_detecteol",
+        "features_formatting_getsimpletextcontent",
+        "features_formatting_tokenize"
+      ],
+      "depth": 2,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/formatting.ts"
+      ],
+      "criticality": 0.22,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotwrapper_ditaotwrapper_configureotpath",
+      "name": ".configureOtPath",
+      "entryPoint": "utils_ditaotwrapper_ditaotwrapper_configureotpath",
+      "entryPointId": "utils_ditaotwrapper_ditaotwrapper_configureotpath",
+      "path": [
+        "utils_ditaotwrapper_ditaotwrapper_configureotpath",
+        "utils_ditaotwrapper_ditaotwrapper_reloadconfiguration",
+        "utils_ditaotwrapper_ditaotwrapper_verifyinstallation",
+        "utils_ditaotwrapper_ditaotwrapper_detectditaotcommand",
+        "utils_ditaotwrapper_ditaotwrapper_loadconfiguration",
+        "utils_ditaotwrapper_execfileasync",
+        "utils_ditaotwrapper_ditaotwrapper_isvalidpath"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotwrapper_ditaotwrapper_configureotpath",
+        "utils_ditaotwrapper_ditaotwrapper_reloadconfiguration",
+        "utils_ditaotwrapper_ditaotwrapper_verifyinstallation",
+        "utils_ditaotwrapper_ditaotwrapper_detectditaotcommand",
+        "utils_ditaotwrapper_ditaotwrapper_loadconfiguration",
+        "utils_ditaotwrapper_execfileasync",
+        "utils_ditaotwrapper_ditaotwrapper_isvalidpath"
+      ],
+      "depth": 3,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtWrapper.ts"
+      ],
+      "criticality": 0.2157,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_configurationmanager_configurationmanager_handleconfigurationchange",
+      "name": ".handleConfigurationChange",
+      "entryPoint": "utils_configurationmanager_configurationmanager_handleconfigurationchange",
+      "entryPointId": "utils_configurationmanager_configurationmanager_handleconfigurationchange",
+      "path": [
+        "utils_configurationmanager_configurationmanager_handleconfigurationchange",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_getconfiguration",
+        "utils_configurationmanager_validatenumericconfig"
+      ],
+      "qualifiedPath": [
+        "utils_configurationmanager_configurationmanager_handleconfigurationchange",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_getconfiguration",
+        "utils_configurationmanager_validatenumericconfig"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "src/utils/configurationManager.ts"
+      ],
+      "criticality": 0.2117,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_previewpanel_ditapreviewpanel_gethtmlforwebviewasync",
+      "name": "._getHtmlForWebviewAsync",
+      "entryPoint": "providers_previewpanel_ditapreviewpanel_gethtmlforwebviewasync",
+      "entryPointId": "providers_previewpanel_ditapreviewpanel_gethtmlforwebviewasync",
+      "path": [
+        "providers_previewpanel_ditapreviewpanel_gethtmlforwebviewasync",
+        "providers_previewpanel_ditapreviewpanel_convertlocalresourcesasync",
+        "providers_previewpanel_ditapreviewpanel_geterrorhtml",
+        "providers_previewpanel_ditapreviewpanel_getnocontenthtml",
+        "providers_previewpanel_ditapreviewpanel_injectpreviewenhancementsasync",
+        "providers_previewpanel_ditapreviewpanel_escapehtml",
+        "providers_previewpanel_ditapreviewpanel_loadcustomcssasync",
+        "providers_previewpanel_ditapreviewpanel_sanitizecss"
+      ],
+      "qualifiedPath": [
+        "providers_previewpanel_ditapreviewpanel_gethtmlforwebviewasync",
+        "providers_previewpanel_ditapreviewpanel_convertlocalresourcesasync",
+        "providers_previewpanel_ditapreviewpanel_geterrorhtml",
+        "providers_previewpanel_ditapreviewpanel_getnocontenthtml",
+        "providers_previewpanel_ditapreviewpanel_injectpreviewenhancementsasync",
+        "providers_previewpanel_ditapreviewpanel_escapehtml",
+        "providers_previewpanel_ditapreviewpanel_loadcustomcssasync",
+        "providers_previewpanel_ditapreviewpanel_sanitizecss"
+      ],
+      "depth": 3,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "src/providers/previewPanel.ts"
+      ],
+      "criticality": 0.2113,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_contextsnapshot_handlebuildcontextsnapshot",
+      "name": "handleBuildContextSnapshot",
+      "entryPoint": "features_contextsnapshot_handlebuildcontextsnapshot",
+      "entryPointId": "features_contextsnapshot_handlebuildcontextsnapshot",
+      "path": [
+        "features_contextsnapshot_handlebuildcontextsnapshot",
+        "features_contextsnapshot_buildlevel1",
+        "features_contextsnapshot_buildlevel2",
+        "features_contextsnapshot_buildlevel3",
+        "features_contextsnapshot_estimatetokens",
+        "features_contextsnapshot_rendermapnodexml",
+        "features_contextsnapshot_rendermapnodetext",
+        "features_contextsnapshot_counttopicrefs",
+        "features_contextsnapshot_escapexml",
+        "features_contextsnapshot_istopicrefnode"
+      ],
+      "qualifiedPath": [
+        "features_contextsnapshot_handlebuildcontextsnapshot",
+        "features_contextsnapshot_buildlevel1",
+        "features_contextsnapshot_buildlevel2",
+        "features_contextsnapshot_buildlevel3",
+        "features_contextsnapshot_estimatetokens",
+        "features_contextsnapshot_rendermapnodexml",
+        "features_contextsnapshot_rendermapnodetext",
+        "features_contextsnapshot_counttopicrefs",
+        "features_contextsnapshot_escapexml",
+        "features_contextsnapshot_istopicrefnode"
+      ],
+      "depth": 3,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/contextSnapshot.ts"
+      ],
+      "criticality": 0.205,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_mapvisualizerpanel_mapvisualizerpanel_handlemessage",
+      "name": "._handleMessage",
+      "entryPoint": "providers_mapvisualizerpanel_mapvisualizerpanel_handlemessage",
+      "entryPointId": "providers_mapvisualizerpanel_mapvisualizerpanel_handlemessage",
+      "path": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_handlemessage",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_openfile",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_update",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updateasync",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_gethtmlcontent",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_rendertreenode",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "qualifiedPath": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_handlemessage",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_openfile",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_update",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updateasync",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_gethtmlcontent",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_rendertreenode",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "depth": 5,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/providers/mapVisualizerPanel.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_mapvisualizerpanel_mapvisualizerpanel_constructor",
+      "name": ".constructor",
+      "entryPoint": "providers_mapvisualizerpanel_mapvisualizerpanel_constructor",
+      "entryPointId": "providers_mapvisualizerpanel_mapvisualizerpanel_constructor",
+      "path": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_constructor",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_update",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updatetitle",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updateasync",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_gethtmlcontent",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_rendertreenode",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "qualifiedPath": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_constructor",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_update",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updatetitle",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updateasync",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_gethtmlcontent",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_rendertreenode",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "depth": 5,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/providers/mapVisualizerPanel.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_mapvisualizerpanel_mapvisualizerpanel_createorshow",
+      "name": ".createOrShow",
+      "entryPoint": "providers_mapvisualizerpanel_mapvisualizerpanel_createorshow",
+      "entryPointId": "providers_mapvisualizerpanel_mapvisualizerpanel_createorshow",
+      "path": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_createorshow",
+        "providers_mapvisualizerpanel_mapvisualizerpanel",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_update",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updatetitle",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updateasync",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_gethtmlcontent",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_rendertreenode",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "qualifiedPath": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_createorshow",
+        "providers_mapvisualizerpanel_mapvisualizerpanel",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_update",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updatetitle",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_updateasync",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_gethtmlcontent",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_rendertreenode",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "depth": 5,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "src/providers/mapVisualizerPanel.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_explainkey",
+      "name": ".explainKey",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_explainkey",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_explainkey",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_explainkey",
+        "services_keyspaceservice_keyspaceservice_appendkeyrefsteps",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchainwithtrace",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_explainkey",
+        "services_keyspaceservice_keyspaceservice_appendkeyrefsteps",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchainwithtrace",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 31,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_getallkeys",
+      "name": ".getAllKeys",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_getallkeys",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_getallkeys",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_getallkeys",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_getallkeys",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 29,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+      "name": ".getDefaultValue",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "depth": 5,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_getduplicatekeys",
+      "name": ".getDuplicateKeys",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 29,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+      "name": ".getHierarchyPath",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "depth": 5,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+      "name": ".getSubjectSchemePaths",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 29,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+      "name": ".getValidValues",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "depth": 5,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+      "name": ".isControlledAttribute",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "depth": 5,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_resolvekey",
+      "name": ".resolveKey",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_resolvekey",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_resolvekey",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_resolvekey",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchain",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_resolvekey",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchain",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 30,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:src_extension_activate",
+      "name": "activate",
+      "entryPoint": "src_extension_activate",
+      "entryPointId": "src_extension_activate",
+      "path": [
+        "src_extension_activate",
+        "src_extension_registercommands",
+        "src_extension_registerconfigurationlistener",
+        "src_extension_registerloggercommands",
+        "src_extension_registerpreviewautorefresh",
+        "src_extension_registerrootmapfeature",
+        "src_extension_showwelcomemessage",
+        "src_extension_suggestcspellsetup",
+        "src_extension_verifyditaotinstallation",
+        "src_extension_updaterootmapstatusbar"
+      ],
+      "qualifiedPath": [
+        "src_extension_activate",
+        "src_extension_registercommands",
+        "src_extension_registerconfigurationlistener",
+        "src_extension_registerloggercommands",
+        "src_extension_registerpreviewautorefresh",
+        "src_extension_registerrootmapfeature",
+        "src_extension_showwelcomemessage",
+        "src_extension_suggestcspellsetup",
+        "src_extension_verifyditaotinstallation",
+        "src_extension_updaterootmapstatusbar"
+      ],
+      "depth": 2,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "src/extension.ts"
+      ],
+      "criticality": 0.195,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_logger_logger_dispose",
+      "name": ".dispose",
+      "entryPoint": "utils_logger_logger_dispose",
+      "entryPointId": "utils_logger_logger_dispose",
+      "path": [
+        "utils_logger_logger_dispose",
+        "utils_logger_logger_info",
+        "utils_logger_logger_log",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile",
+        "utils_logger_logger_error"
+      ],
+      "qualifiedPath": [
+        "utils_logger_logger_dispose",
+        "utils_logger_logger_info",
+        "utils_logger_logger_log",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile",
+        "utils_logger_logger_error"
+      ],
+      "depth": 4,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "src/utils/logger.ts"
+      ],
+      "criticality": 0.19,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_keyspaceresolver_keyspaceresolver_resolvekey",
+      "name": ".resolveKey",
+      "entryPoint": "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+      "entryPointId": "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+      "path": [
+        "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+        "utils_keyspaceresolver_keyspaceresolver_buildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_findrootmap",
+        "utils_keyspaceresolver_keyspaceresolver_followkeyrefchain",
+        "utils_keyspaceresolver_keyspaceresolver_dobuildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_cachekeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_extractkeydefinitions",
+        "utils_keyspaceresolver_keyspaceresolver_extractmapreferences",
+        "utils_keyspaceresolver_keyspaceresolver_fileexistsasync",
+        "utils_keyspaceresolver_keyspaceresolver_readfileasync",
+        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
+        "utils_keyspaceresolver_keyspaceresolver_extractinlinecontent",
+        "utils_keyspaceresolver_keyspaceresolver_getmaxmatches",
+        "utils_keyspaceresolver_keyspaceresolver_ispathwithinworkspace"
+      ],
+      "qualifiedPath": [
+        "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+        "utils_keyspaceresolver_keyspaceresolver_buildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_findrootmap",
+        "utils_keyspaceresolver_keyspaceresolver_followkeyrefchain",
+        "utils_keyspaceresolver_keyspaceresolver_dobuildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_cachekeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_extractkeydefinitions",
+        "utils_keyspaceresolver_keyspaceresolver_extractmapreferences",
+        "utils_keyspaceresolver_keyspaceresolver_fileexistsasync",
+        "utils_keyspaceresolver_keyspaceresolver_readfileasync",
+        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
+        "utils_keyspaceresolver_keyspaceresolver_extractinlinecontent",
+        "utils_keyspaceresolver_keyspaceresolver_getmaxmatches",
+        "utils_keyspaceresolver_keyspaceresolver_ispathwithinworkspace"
+      ],
+      "depth": 4,
+      "nodeCount": 14,
+      "fileCount": 1,
+      "files": [
+        "src/utils/keySpaceResolver.ts"
+      ],
+      "criticality": 0.19,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_logger_logger_clearoldlogs",
+      "name": ".clearOldLogs",
+      "entryPoint": "utils_logger_logger_clearoldlogs",
+      "entryPointId": "utils_logger_logger_clearoldlogs",
+      "path": [
+        "utils_logger_logger_clearoldlogs",
+        "utils_logger_logger_error",
+        "utils_logger_logger_info",
+        "utils_logger_logger_log",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "qualifiedPath": [
+        "utils_logger_logger_clearoldlogs",
+        "utils_logger_logger_error",
+        "utils_logger_logger_info",
+        "utils_logger_logger_log",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "depth": 3,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "src/utils/logger.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_validationreportpanel_validationreportpanel_constructor",
+      "name": ".constructor",
+      "entryPoint": "providers_validationreportpanel_validationreportpanel_constructor",
+      "entryPointId": "providers_validationreportpanel_validationreportpanel_constructor",
+      "path": [
+        "providers_validationreportpanel_validationreportpanel_constructor",
+        "providers_validationreportpanel_validationreportpanel_update",
+        "providers_validationreportpanel_validationreportpanel_gethtmlforwebview",
+        "providers_validationreportpanel_validationreportpanel_getnonce"
+      ],
+      "qualifiedPath": [
+        "providers_validationreportpanel_validationreportpanel_constructor",
+        "providers_validationreportpanel_validationreportpanel_update",
+        "providers_validationreportpanel_validationreportpanel_gethtmlforwebview",
+        "providers_validationreportpanel_validationreportpanel_getnonce"
+      ],
+      "depth": 3,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/providers/validationReportPanel.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_keyspaceresolver_keyspaceresolver_constructor",
+      "name": ".constructor",
+      "entryPoint": "utils_keyspaceresolver_keyspaceresolver_constructor",
+      "entryPointId": "utils_keyspaceresolver_keyspaceresolver_constructor",
+      "path": [
+        "utils_keyspaceresolver_keyspaceresolver_constructor",
+        "utils_keyspaceresolver_keyspaceresolver_loadcacheconfig",
+        "utils_keyspaceresolver_keyspaceresolver_setupfilewatcher",
+        "utils_keyspaceresolver_keyspaceresolver_setupperiodiccleanup",
+        "utils_keyspaceresolver_keyspaceresolver_dispose",
+        "utils_keyspaceresolver_keyspaceresolver_clearcache"
+      ],
+      "qualifiedPath": [
+        "utils_keyspaceresolver_keyspaceresolver_constructor",
+        "utils_keyspaceresolver_keyspaceresolver_loadcacheconfig",
+        "utils_keyspaceresolver_keyspaceresolver_setupfilewatcher",
+        "utils_keyspaceresolver_keyspaceresolver_setupperiodiccleanup",
+        "utils_keyspaceresolver_keyspaceresolver_dispose",
+        "utils_keyspaceresolver_keyspaceresolver_clearcache"
+      ],
+      "depth": 3,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "src/utils/keySpaceResolver.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_logger_logger_constructor",
+      "name": ".constructor",
+      "entryPoint": "utils_logger_logger_constructor",
+      "entryPointId": "utils_logger_logger_constructor",
+      "path": [
+        "utils_logger_logger_constructor",
+        "utils_logger_logger_info",
+        "utils_logger_logger_loadconfiguration",
+        "utils_logger_logger_log",
+        "utils_logger_logger_error",
+        "utils_logger_logger_parseloglevel",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "qualifiedPath": [
+        "utils_logger_logger_constructor",
+        "utils_logger_logger_info",
+        "utils_logger_logger_loadconfiguration",
+        "utils_logger_logger_log",
+        "utils_logger_logger_error",
+        "utils_logger_logger_parseloglevel",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "depth": 3,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "src/utils/logger.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_validationreportpanel_validationreportpanel_createorshow",
+      "name": ".createOrShow",
+      "entryPoint": "providers_validationreportpanel_validationreportpanel_createorshow",
+      "entryPointId": "providers_validationreportpanel_validationreportpanel_createorshow",
+      "path": [
+        "providers_validationreportpanel_validationreportpanel_createorshow",
+        "providers_validationreportpanel_validationreportpanel",
+        "providers_validationreportpanel_validationreportpanel_update",
+        "providers_validationreportpanel_validationreportpanel_gethtmlforwebview",
+        "providers_validationreportpanel_validationreportpanel_getnonce"
+      ],
+      "qualifiedPath": [
+        "providers_validationreportpanel_validationreportpanel_createorshow",
+        "providers_validationreportpanel_validationreportpanel",
+        "providers_validationreportpanel_validationreportpanel_update",
+        "providers_validationreportpanel_validationreportpanel_gethtmlforwebview",
+        "providers_validationreportpanel_validationreportpanel_getnonce"
+      ],
+      "depth": 3,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/providers/validationReportPanel.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_logger_logger_debug",
+      "name": ".debug",
+      "entryPoint": "utils_logger_logger_debug",
+      "entryPointId": "utils_logger_logger_debug",
+      "path": [
+        "utils_logger_logger_debug",
+        "utils_logger_logger_log",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile",
+        "utils_logger_logger_error"
+      ],
+      "qualifiedPath": [
+        "utils_logger_logger_debug",
+        "utils_logger_logger_log",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile",
+        "utils_logger_logger_error"
+      ],
+      "depth": 3,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/utils/logger.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_aicompletionprovider_aicompletionprovider_providecompletionitems",
+      "name": ".provideCompletionItems",
+      "entryPoint": "providers_aicompletionprovider_aicompletionprovider_providecompletionitems",
+      "entryPointId": "providers_aicompletionprovider_aicompletionprovider_providecompletionitems",
+      "path": [
+        "providers_aicompletionprovider_aicompletionprovider_providecompletionitems",
+        "providers_aicompletionprovider_aicompletionprovider_fetchwithtimeout",
+        "providers_aicompletionprovider_aicompletionprovider_getaicompletions",
+        "providers_aicompletionprovider_aicompletionprovider_insertcursor"
+      ],
+      "qualifiedPath": [
+        "providers_aicompletionprovider_aicompletionprovider_providecompletionitems",
+        "providers_aicompletionprovider_aicompletionprovider_fetchwithtimeout",
+        "providers_aicompletionprovider_aicompletionprovider_getaicompletions",
+        "providers_aicompletionprovider_aicompletionprovider_insertcursor"
+      ],
+      "depth": 3,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/providers/aiCompletionProvider.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditalinkprovider_ditalinkprovider_providedocumentlinks",
+      "name": ".provideDocumentLinks",
+      "entryPoint": "providers_ditalinkprovider_ditalinkprovider_providedocumentlinks",
+      "entryPointId": "providers_ditalinkprovider_ditalinkprovider_providedocumentlinks",
+      "path": [
+        "providers_ditalinkprovider_ditalinkprovider_providedocumentlinks",
+        "providers_ditalinkprovider_ditalinkprovider_processconkeyrefattributeswithkeyspace",
+        "providers_ditalinkprovider_ditalinkprovider_processconrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processhrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processkeyrefattributeswithkeyspace",
+        "providers_ditalinkprovider_ditalinkprovider_processlinkattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processxrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processxrefkeyrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_getmaxmatches",
+        "providers_ditalinkprovider_ditalinkprovider_getvaluestartoffset",
+        "providers_ditalinkprovider_ditalinkprovider_resolvereference",
+        "providers_ditalinkprovider_ditalinkprovider_createelementnavigationlink",
+        "providers_ditalinkprovider_ditalinkprovider_resolvereferencewithfragment",
+        "providers_ditalinkprovider_ditalinkprovider_buildenhancedtooltip",
+        "providers_ditalinkprovider_ditalinkprovider_extractformat",
+        "providers_ditalinkprovider_ditalinkprovider_extractlinktext",
+        "providers_ditalinkprovider_ditalinkprovider_extractrev",
+        "providers_ditalinkprovider_ditalinkprovider_extractscope",
+        "providers_ditalinkprovider_ditalinkprovider_extracttype"
+      ],
+      "qualifiedPath": [
+        "providers_ditalinkprovider_ditalinkprovider_providedocumentlinks",
+        "providers_ditalinkprovider_ditalinkprovider_processconkeyrefattributeswithkeyspace",
+        "providers_ditalinkprovider_ditalinkprovider_processconrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processhrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processkeyrefattributeswithkeyspace",
+        "providers_ditalinkprovider_ditalinkprovider_processlinkattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processxrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_processxrefkeyrefattributes",
+        "providers_ditalinkprovider_ditalinkprovider_getmaxmatches",
+        "providers_ditalinkprovider_ditalinkprovider_getvaluestartoffset",
+        "providers_ditalinkprovider_ditalinkprovider_resolvereference",
+        "providers_ditalinkprovider_ditalinkprovider_createelementnavigationlink",
+        "providers_ditalinkprovider_ditalinkprovider_resolvereferencewithfragment",
+        "providers_ditalinkprovider_ditalinkprovider_buildenhancedtooltip",
+        "providers_ditalinkprovider_ditalinkprovider_extractformat",
+        "providers_ditalinkprovider_ditalinkprovider_extractlinktext",
+        "providers_ditalinkprovider_ditalinkprovider_extractrev",
+        "providers_ditalinkprovider_ditalinkprovider_extractscope",
+        "providers_ditalinkprovider_ditalinkprovider_extracttype"
+      ],
+      "depth": 3,
+      "nodeCount": 19,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditaLinkProvider.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_catalogvalidationservice_catalogvalidationservice_reinitialize",
+      "name": ".reinitialize",
+      "entryPoint": "services_catalogvalidationservice_catalogvalidationservice_reinitialize",
+      "entryPointId": "services_catalogvalidationservice_catalogvalidationservice_reinitialize",
+      "path": [
+        "services_catalogvalidationservice_catalogvalidationservice_reinitialize",
+        "services_catalogvalidationservice_catalogvalidationservice_initialize",
+        "services_catalogvalidationservice_catalogvalidationservice_createparserpair",
+        "services_catalogvalidationservice_catalogvalidationservice_createparser"
+      ],
+      "qualifiedPath": [
+        "services_catalogvalidationservice_catalogvalidationservice_reinitialize",
+        "services_catalogvalidationservice_catalogvalidationservice_initialize",
+        "services_catalogvalidationservice_catalogvalidationservice_createparserpair",
+        "services_catalogvalidationservice_catalogvalidationservice_createparser"
+      ],
+      "depth": 3,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/catalogValidationService.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_logger_logger_reloadconfiguration",
+      "name": ".reloadConfiguration",
+      "entryPoint": "utils_logger_logger_reloadconfiguration",
+      "entryPointId": "utils_logger_logger_reloadconfiguration",
+      "path": [
+        "utils_logger_logger_reloadconfiguration",
+        "utils_logger_logger_info",
+        "utils_logger_logger_loadconfiguration",
+        "utils_logger_logger_log",
+        "utils_logger_logger_error",
+        "utils_logger_logger_parseloglevel",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "qualifiedPath": [
+        "utils_logger_logger_reloadconfiguration",
+        "utils_logger_logger_info",
+        "utils_logger_logger_loadconfiguration",
+        "utils_logger_logger_log",
+        "utils_logger_logger_error",
+        "utils_logger_logger_parseloglevel",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "depth": 3,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "src/utils/logger.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_circularrefdetection_detectcircularreferences",
+      "name": "detectCircularReferences",
+      "entryPoint": "features_circularrefdetection_detectcircularreferences",
+      "entryPointId": "features_circularrefdetection_detectcircularreferences",
+      "path": [
+        "features_circularrefdetection_detectcircularreferences",
+        "features_circularrefdetection_canonicalizecycle",
+        "features_circularrefdetection_dfsdetectanycycle",
+        "features_circularrefdetection_extractfilereferences",
+        "features_circularrefdetection_normalizepath",
+        "features_circularrefdetection_resolveref",
+        "features_circularrefdetection_isditafile"
+      ],
+      "qualifiedPath": [
+        "features_circularrefdetection_detectcircularreferences",
+        "features_circularrefdetection_canonicalizecycle",
+        "features_circularrefdetection_dfsdetectanycycle",
+        "features_circularrefdetection_extractfilereferences",
+        "features_circularrefdetection_normalizepath",
+        "features_circularrefdetection_resolveref",
+        "features_circularrefdetection_isditafile"
+      ],
+      "depth": 3,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/circularRefDetection.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_completion_handlecompletion",
+      "name": "handleCompletion",
+      "entryPoint": "features_completion_handlecompletion",
+      "entryPointId": "features_completion_handlecompletion",
+      "path": [
+        "features_completion_handlecompletion",
+        "features_completion_detectcontext",
+        "features_completion_getattributecompletions",
+        "features_completion_getattributevaluecompletions",
+        "features_completion_getelementcompletions",
+        "features_completion_findattributecontext",
+        "features_completion_findattributevaluecontext",
+        "features_completion_findparentelement",
+        "features_completion_gethreffilecompletions",
+        "features_completion_gethreffragmentcompletions",
+        "features_completion_getkeyrefcompletions",
+        "features_completion_findcurrentelement",
+        "features_completion_extractelementidsintopic",
+        "features_completion_extracttopicids",
+        "features_completion_extractallids"
+      ],
+      "qualifiedPath": [
+        "features_completion_handlecompletion",
+        "features_completion_detectcontext",
+        "features_completion_getattributecompletions",
+        "features_completion_getattributevaluecompletions",
+        "features_completion_getelementcompletions",
+        "features_completion_findattributecontext",
+        "features_completion_findattributevaluecontext",
+        "features_completion_findparentelement",
+        "features_completion_gethreffilecompletions",
+        "features_completion_gethreffragmentcompletions",
+        "features_completion_getkeyrefcompletions",
+        "features_completion_findcurrentelement",
+        "features_completion_extractelementidsintopic",
+        "features_completion_extracttopicids",
+        "features_completion_extractallids"
+      ],
+      "depth": 3,
+      "nodeCount": 15,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/completion.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_constructor",
+      "name": ".constructor",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_constructor",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_constructor",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_constructor",
+        "services_keyspaceservice_keyspaceservice_reloadcacheconfig",
+        "services_keyspaceservice_keyspaceservice_startperiodiccleanup",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_constructor",
+        "services_keyspaceservice_keyspaceservice_reloadcacheconfig",
+        "services_keyspaceservice_keyspaceservice_startperiodiccleanup",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotwrapper_ditaotwrapper_constructor",
+      "name": ".constructor",
+      "entryPoint": "utils_ditaotwrapper_ditaotwrapper_constructor",
+      "entryPointId": "utils_ditaotwrapper_ditaotwrapper_constructor",
+      "path": [
+        "utils_ditaotwrapper_ditaotwrapper_constructor",
+        "utils_ditaotwrapper_ditaotwrapper_detectditaotcommand",
+        "utils_ditaotwrapper_ditaotwrapper_loadconfiguration",
+        "utils_ditaotwrapper_ditaotwrapper_isvalidpath"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotwrapper_ditaotwrapper_constructor",
+        "utils_ditaotwrapper_ditaotwrapper_detectditaotcommand",
+        "utils_ditaotwrapper_ditaotwrapper_loadconfiguration",
+        "utils_ditaotwrapper_ditaotwrapper_isvalidpath"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtWrapper.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_previewpanel_ditapreviewpanel_createorshow",
+      "name": ".createOrShow",
+      "entryPoint": "providers_previewpanel_ditapreviewpanel_createorshow",
+      "entryPointId": "providers_previewpanel_ditapreviewpanel_createorshow",
+      "path": [
+        "providers_previewpanel_ditapreviewpanel_createorshow",
+        "providers_previewpanel_ditapreviewpanel",
+        "providers_previewpanel_ditapreviewpanel_update",
+        "providers_previewpanel_ditapreviewpanel_getnocontenthtml"
+      ],
+      "qualifiedPath": [
+        "providers_previewpanel_ditapreviewpanel_createorshow",
+        "providers_previewpanel_ditapreviewpanel",
+        "providers_previewpanel_ditapreviewpanel_update",
+        "providers_previewpanel_ditapreviewpanel_getnocontenthtml"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/providers/previewPanel.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_diagnosticsviewprovider_diagnosticsviewprovider_getchildren",
+      "name": ".getChildren",
+      "entryPoint": "providers_diagnosticsviewprovider_diagnosticsviewprovider_getchildren",
+      "entryPointId": "providers_diagnosticsviewprovider_diagnosticsviewprovider_getchildren",
+      "path": [
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_getchildren",
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_collectditadiagnostics",
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_groupbyfile",
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_groupbytype",
+        "providers_diagnosticsviewprovider_isditauri",
+        "providers_diagnosticsviewprovider_diagnosticitem"
+      ],
+      "qualifiedPath": [
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_getchildren",
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_collectditadiagnostics",
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_groupbyfile",
+        "providers_diagnosticsviewprovider_diagnosticsviewprovider_groupbytype",
+        "providers_diagnosticsviewprovider_isditauri",
+        "providers_diagnosticsviewprovider_diagnosticitem"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "src/providers/diagnosticsViewProvider.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_keyspaceviewprovider_keyspaceviewprovider_getchildren",
+      "name": ".getChildren",
+      "entryPoint": "providers_keyspaceviewprovider_keyspaceviewprovider_getchildren",
+      "entryPointId": "providers_keyspaceviewprovider_keyspaceviewprovider_getchildren",
+      "path": [
+        "providers_keyspaceviewprovider_keyspaceviewprovider_getchildren",
+        "providers_keyspaceviewprovider_keyspaceviewprovider_buildtree",
+        "providers_keyspaceviewprovider_keyspaceitem"
+      ],
+      "qualifiedPath": [
+        "providers_keyspaceviewprovider_keyspaceviewprovider_getchildren",
+        "providers_keyspaceviewprovider_keyspaceviewprovider_buildtree",
+        "providers_keyspaceviewprovider_keyspaceitem"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/providers/keySpaceViewProvider.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_llmrouterservice_llmrouterservice_initialize",
+      "name": ".initialize",
+      "entryPoint": "llm_llmrouterservice_llmrouterservice_initialize",
+      "entryPointId": "llm_llmrouterservice_llmrouterservice_initialize",
+      "path": [
+        "llm_llmrouterservice_llmrouterservice_initialize",
+        "llm_llmrouterservice_breakerwrappedprovider_isavailable",
+        "llm_llmrouterservice_llmrouterservice_buildproviders",
+        "llm_llmrouterservice_breakerwrappedprovider"
+      ],
+      "qualifiedPath": [
+        "llm_llmrouterservice_llmrouterservice_initialize",
+        "llm_llmrouterservice_breakerwrappedprovider_isavailable",
+        "llm_llmrouterservice_llmrouterservice_buildproviders",
+        "llm_llmrouterservice_breakerwrappedprovider"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/llm/llmRouterService.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotoutputchannel_ditaotoutputchannel_logoutput",
+      "name": ".logOutput",
+      "entryPoint": "utils_ditaotoutputchannel_ditaotoutputchannel_logoutput",
+      "entryPointId": "utils_ditaotoutputchannel_ditaotoutputchannel_logoutput",
+      "path": [
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logoutput",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logline",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_detectloglevel"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logoutput",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logline",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_detectloglevel"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtOutputChannel.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_workspacevalidation_workspaceindex_updatefile",
+      "name": ".updateFile",
+      "entryPoint": "features_workspacevalidation_workspaceindex_updatefile",
+      "entryPointId": "features_workspacevalidation_workspaceindex_updatefile",
+      "path": [
+        "features_workspacevalidation_workspaceindex_updatefile",
+        "features_workspacevalidation_workspaceindex_indexfile",
+        "features_workspacevalidation_workspaceindex_removefile",
+        "features_workspacevalidation_extractrootid"
+      ],
+      "qualifiedPath": [
+        "features_workspacevalidation_workspaceindex_updatefile",
+        "features_workspacevalidation_workspaceindex_indexfile",
+        "features_workspacevalidation_workspaceindex_removefile",
+        "features_workspacevalidation_extractrootid"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/workspaceValidation.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_configureaicommand_configureaicommand",
+      "name": "configureAICommand",
+      "entryPoint": "commands_configureaicommand_configureaicommand",
+      "entryPointId": "commands_configureaicommand_configureaicommand",
+      "path": [
+        "commands_configureaicommand_configureaicommand",
+        "commands_configureaicommand_buildsettingshtml",
+        "commands_configureaicommand_escapehtml"
+      ],
+      "qualifiedPath": [
+        "commands_configureaicommand_configureaicommand",
+        "commands_configureaicommand_buildsettingshtml",
+        "commands_configureaicommand_escapehtml"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/commands/configureAICommand.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotoutputchannel_disposeditaotoutputchannel",
+      "name": "disposeDitaOtOutputChannel",
+      "entryPoint": "utils_ditaotoutputchannel_disposeditaotoutputchannel",
+      "entryPointId": "utils_ditaotoutputchannel_disposeditaotoutputchannel",
+      "path": [
+        "utils_ditaotoutputchannel_disposeditaotoutputchannel",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_resetinstance",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_dispose"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotoutputchannel_disposeditaotoutputchannel",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_resetinstance",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_dispose"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtOutputChannel.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_textutils_effectiveworkspacefolders",
+      "name": "effectiveWorkspaceFolders",
+      "entryPoint": "utils_textutils_effectiveworkspacefolders",
+      "entryPointId": "utils_textutils_effectiveworkspacefolders",
+      "path": [
+        "utils_textutils_effectiveworkspacefolders",
+        "utils_textutils_ispathwithinworkspace",
+        "utils_textutils_normalizefspath"
+      ],
+      "qualifiedPath": [
+        "utils_textutils_effectiveworkspacefolders",
+        "utils_textutils_ispathwithinworkspace",
+        "utils_textutils_normalizefspath"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/textUtils.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_referenceparser_findreferencestoid",
+      "name": "findReferencesToId",
+      "entryPoint": "utils_referenceparser_findreferencestoid",
+      "entryPointId": "utils_referenceparser_findreferencestoid",
+      "path": [
+        "utils_referenceparser_findreferencestoid",
+        "utils_referenceparser_referencematchesid",
+        "utils_referenceparser_gettargetid",
+        "utils_referenceparser_parsereference"
+      ],
+      "qualifiedPath": [
+        "utils_referenceparser_findreferencestoid",
+        "utils_referenceparser_referencematchesid",
+        "utils_referenceparser_gettargetid",
+        "utils_referenceparser_parsereference"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/referenceParser.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_configurationmanager_getconfigmanager",
+      "name": "getConfigManager",
+      "entryPoint": "utils_configurationmanager_getconfigmanager",
+      "entryPointId": "utils_configurationmanager_getconfigmanager",
+      "path": [
+        "utils_configurationmanager_getconfigmanager",
+        "utils_configurationmanager_configurationmanager_getinstance",
+        "utils_configurationmanager_configurationmanager"
+      ],
+      "qualifiedPath": [
+        "utils_configurationmanager_getconfigmanager",
+        "utils_configurationmanager_configurationmanager_getinstance",
+        "utils_configurationmanager_configurationmanager"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/configurationManager.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotoutputchannel_getditaotoutputchannel",
+      "name": "getDitaOtOutputChannel",
+      "entryPoint": "utils_ditaotoutputchannel_getditaotoutputchannel",
+      "entryPointId": "utils_ditaotoutputchannel_getditaotoutputchannel",
+      "path": [
+        "utils_ditaotoutputchannel_getditaotoutputchannel",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_getinstance",
+        "utils_ditaotoutputchannel_ditaotoutputchannel"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotoutputchannel_getditaotoutputchannel",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_getinstance",
+        "utils_ditaotoutputchannel_ditaotoutputchannel"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtOutputChannel.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_codeactions_handlecodeactions",
+      "name": "handleCodeActions",
+      "entryPoint": "features_codeactions_handlecodeactions",
+      "entryPointId": "features_codeactions_handlecodeactions",
+      "path": [
+        "features_codeactions_handlecodeactions",
+        "features_codeactions_getfixesfordiagnostic",
+        "features_codeactions_fixdeprecatedaltattr",
+        "features_codeactions_fixdeprecatedindextermref",
+        "features_codeactions_fixduplicateid",
+        "features_codeactions_fixemptyelement",
+        "features_codeactions_fixinvalididformat",
+        "features_codeactions_fixmissingalt",
+        "features_codeactions_fixmissingbooktitle",
+        "features_codeactions_fixmissingdoctype",
+        "features_codeactions_fixmissingid",
+        "features_codeactions_fixmissingmainbooktitle",
+        "features_codeactions_fixmissingotherrole",
+        "features_codeactions_fixmissingtitle"
+      ],
+      "qualifiedPath": [
+        "features_codeactions_handlecodeactions",
+        "features_codeactions_getfixesfordiagnostic",
+        "features_codeactions_fixdeprecatedaltattr",
+        "features_codeactions_fixdeprecatedindextermref",
+        "features_codeactions_fixduplicateid",
+        "features_codeactions_fixemptyelement",
+        "features_codeactions_fixinvalididformat",
+        "features_codeactions_fixmissingalt",
+        "features_codeactions_fixmissingbooktitle",
+        "features_codeactions_fixmissingdoctype",
+        "features_codeactions_fixmissingid",
+        "features_codeactions_fixmissingmainbooktitle",
+        "features_codeactions_fixmissingotherrole",
+        "features_codeactions_fixmissingtitle"
+      ],
+      "depth": 2,
+      "nodeCount": 14,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/codeActions.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:tools_ditaresolvereference_handleditaresolvereference",
+      "name": "handleDitaResolveReference",
+      "entryPoint": "tools_ditaresolvereference_handleditaresolvereference",
+      "entryPointId": "tools_ditaresolvereference_handleditaresolvereference",
+      "path": [
+        "tools_ditaresolvereference_handleditaresolvereference",
+        "tools_ditaresolvereference_resolveconkeyref",
+        "tools_ditaresolvereference_resolvehreforconref",
+        "tools_ditaresolvereference_resolvekeyref",
+        "tools_ditaresolvereference_detecttopictype",
+        "tools_ditaresolvereference_extracttitle"
+      ],
+      "qualifiedPath": [
+        "tools_ditaresolvereference_handleditaresolvereference",
+        "tools_ditaresolvereference_resolveconkeyref",
+        "tools_ditaresolvereference_resolvehreforconref",
+        "tools_ditaresolvereference_resolvekeyref",
+        "tools_ditaresolvereference_detecttopictype",
+        "tools_ditaresolvereference_extracttitle"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/tools/ditaResolveReference.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_documentlinks_handledocumentlinks",
+      "name": "handleDocumentLinks",
+      "entryPoint": "features_documentlinks_handledocumentlinks",
+      "entryPointId": "features_documentlinks_handledocumentlinks",
+      "path": [
+        "features_documentlinks_handledocumentlinks",
+        "features_documentlinks_getcommentranges",
+        "features_documentlinks_processfilerefs",
+        "features_documentlinks_processkeyrefs",
+        "features_documentlinks_getvaluestartoffset",
+        "features_documentlinks_isinsidecomment",
+        "features_documentlinks_shouldskip"
+      ],
+      "qualifiedPath": [
+        "features_documentlinks_handledocumentlinks",
+        "features_documentlinks_getcommentranges",
+        "features_documentlinks_processfilerefs",
+        "features_documentlinks_processkeyrefs",
+        "features_documentlinks_getvaluestartoffset",
+        "features_documentlinks_isinsidecomment",
+        "features_documentlinks_shouldskip"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/documentLinks.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_symbols_handledocumentsymbol",
+      "name": "handleDocumentSymbol",
+      "entryPoint": "features_symbols_handledocumentsymbol",
+      "entryPointId": "features_symbols_handledocumentsymbol",
+      "path": [
+        "features_symbols_handledocumentsymbol",
+        "features_symbols_buildsymboltree",
+        "features_symbols_parsetags",
+        "features_symbols_extracttextcontent"
+      ],
+      "qualifiedPath": [
+        "features_symbols_handledocumentsymbol",
+        "features_symbols_buildsymboltree",
+        "features_symbols_parsetags",
+        "features_symbols_extracttextcontent"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/symbols.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_folding_handlefoldingranges",
+      "name": "handleFoldingRanges",
+      "entryPoint": "features_folding_handlefoldingranges",
+      "entryPointId": "features_folding_handlefoldingranges",
+      "path": [
+        "features_folding_handlefoldingranges",
+        "features_folding_computefoldingranges",
+        "features_folding_buildlineoffsets",
+        "features_folding_lineatoffset"
+      ],
+      "qualifiedPath": [
+        "features_folding_handlefoldingranges",
+        "features_folding_computefoldingranges",
+        "features_folding_buildlineoffsets",
+        "features_folding_lineatoffset"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/folding.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_contextgraph_handlegetcontextgraph",
+      "name": "handleGetContextGraph",
+      "entryPoint": "features_contextgraph_handlegetcontextgraph",
+      "entryPointId": "features_contextgraph_handlegetcontextgraph",
+      "path": [
+        "features_contextgraph_handlegetcontextgraph",
+        "features_contextgraph_buildmapnode",
+        "features_contextgraph_countelements",
+        "features_contextgraph_readshortdesc",
+        "features_contextgraph_readtitle",
+        "features_contextgraph_readtopictype",
+        "features_contextgraph_resolvehref"
+      ],
+      "qualifiedPath": [
+        "features_contextgraph_handlegetcontextgraph",
+        "features_contextgraph_buildmapnode",
+        "features_contextgraph_countelements",
+        "features_contextgraph_readshortdesc",
+        "features_contextgraph_readtitle",
+        "features_contextgraph_readtopictype",
+        "features_contextgraph_resolvehref"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/contextGraph.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_hover_handlehover",
+      "name": "handleHover",
+      "entryPoint": "features_hover_handlehover",
+      "entryPointId": "features_hover_handlehover",
+      "path": [
+        "features_hover_handlehover",
+        "features_hover_gethrefhover",
+        "features_hover_getkeyrefhover",
+        "features_hover_getwordat",
+        "features_hover_isinsidetag",
+        "features_hover_getconrefpreview"
+      ],
+      "qualifiedPath": [
+        "features_hover_handlehover",
+        "features_hover_gethrefhover",
+        "features_hover_getkeyrefhover",
+        "features_hover_getwordat",
+        "features_hover_isinsidetag",
+        "features_hover_getconrefpreview"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/hover.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_linkedediting_handlelinkededitingrange",
+      "name": "handleLinkedEditingRange",
+      "entryPoint": "features_linkedediting_handlelinkededitingrange",
+      "entryPointId": "features_linkedediting_handlelinkededitingrange",
+      "path": [
+        "features_linkedediting_handlelinkededitingrange",
+        "features_linkedediting_findclosingtag",
+        "features_linkedediting_findopeningtag",
+        "features_linkedediting_findtagatoffset",
+        "features_linkedediting_escaperegexp"
+      ],
+      "qualifiedPath": [
+        "features_linkedediting_handlelinkededitingrange",
+        "features_linkedediting_findclosingtag",
+        "features_linkedediting_findopeningtag",
+        "features_linkedediting_findtagatoffset",
+        "features_linkedediting_escaperegexp"
+      ],
+      "depth": 2,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/linkedEditing.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_symbols_handleworkspacesymbol",
+      "name": "handleWorkspaceSymbol",
+      "entryPoint": "features_symbols_handleworkspacesymbol",
+      "entryPointId": "features_symbols_handleworkspacesymbol",
+      "path": [
+        "features_symbols_handleworkspacesymbol",
+        "features_symbols_extractworkspacesymbols",
+        "features_symbols_parsetags",
+        "features_symbols_extracttextcontent"
+      ],
+      "qualifiedPath": [
+        "features_symbols_handleworkspacesymbol",
+        "features_symbols_extractworkspacesymbols",
+        "features_symbols_parsetags",
+        "features_symbols_extracttextcontent"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/symbols.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:scripts_generate_graph_main",
+      "name": "main",
+      "entryPoint": "scripts_generate_graph_main",
+      "entryPointId": "scripts_generate_graph_main",
+      "path": [
+        "scripts_generate_graph_main",
+        "scripts_generate_graph_publishoutputs",
+        "scripts_generate_graph_rebuildgraph",
+        "scripts_generate_graph_watchandpublish",
+        "scripts_generate_graph_folderreadme",
+        "scripts_generate_graph_rungraphify"
+      ],
+      "qualifiedPath": [
+        "scripts_generate_graph_main",
+        "scripts_generate_graph_publishoutputs",
+        "scripts_generate_graph_rebuildgraph",
+        "scripts_generate_graph_watchandpublish",
+        "scripts_generate_graph_folderreadme",
+        "scripts_generate_graph_rungraphify"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "scripts/generate-graph.js"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_elementnavigator_navigatetoelement",
+      "name": "navigateToElement",
+      "entryPoint": "utils_elementnavigator_navigatetoelement",
+      "entryPointId": "utils_elementnavigator_navigatetoelement",
+      "path": [
+        "utils_elementnavigator_navigatetoelement",
+        "utils_elementnavigator_findelementbyid",
+        "utils_elementnavigator_showdocumentatline",
+        "utils_elementnavigator_escaperegexp"
+      ],
+      "qualifiedPath": [
+        "utils_elementnavigator_navigatetoelement",
+        "utils_elementnavigator_findelementbyid",
+        "utils_elementnavigator_showdocumentatline",
+        "utils_elementnavigator_escaperegexp"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/utils/elementNavigator.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_filecreationcommands_newbookmapcommand",
+      "name": "newBookmapCommand",
+      "entryPoint": "commands_filecreationcommands_newbookmapcommand",
+      "entryPointId": "commands_filecreationcommands_newbookmapcommand",
+      "path": [
+        "commands_filecreationcommands_newbookmapcommand",
+        "commands_filecreationcommands_createditafile",
+        "commands_filecreationcommands_generatebookmapcontent",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_getworkspacefolder"
+      ],
+      "qualifiedPath": [
+        "commands_filecreationcommands_newbookmapcommand",
+        "commands_filecreationcommands_createditafile",
+        "commands_filecreationcommands_generatebookmapcontent",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_getworkspacefolder"
+      ],
+      "depth": 2,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/commands/fileCreationCommands.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_filecreationcommands_newmapcommand",
+      "name": "newMapCommand",
+      "entryPoint": "commands_filecreationcommands_newmapcommand",
+      "entryPointId": "commands_filecreationcommands_newmapcommand",
+      "path": [
+        "commands_filecreationcommands_newmapcommand",
+        "commands_filecreationcommands_createditafile",
+        "commands_filecreationcommands_generatemapcontent",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_getworkspacefolder"
+      ],
+      "qualifiedPath": [
+        "commands_filecreationcommands_newmapcommand",
+        "commands_filecreationcommands_createditafile",
+        "commands_filecreationcommands_generatemapcontent",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_getworkspacefolder"
+      ],
+      "depth": 2,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/commands/fileCreationCommands.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_filecreationcommands_newtopiccommand",
+      "name": "newTopicCommand",
+      "entryPoint": "commands_filecreationcommands_newtopiccommand",
+      "entryPointId": "commands_filecreationcommands_newtopiccommand",
+      "path": [
+        "commands_filecreationcommands_newtopiccommand",
+        "commands_filecreationcommands_createditafile",
+        "commands_filecreationcommands_generatetopiccontent",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_getworkspacefolder"
+      ],
+      "qualifiedPath": [
+        "commands_filecreationcommands_newtopiccommand",
+        "commands_filecreationcommands_createditafile",
+        "commands_filecreationcommands_generatetopiccontent",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_getworkspacefolder"
+      ],
+      "depth": 2,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/commands/fileCreationCommands.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaoterrorparser_parseditaotoutput",
+      "name": "parseDitaOtOutput",
+      "entryPoint": "utils_ditaoterrorparser_parseditaotoutput",
+      "entryPointId": "utils_ditaoterrorparser_parseditaotoutput",
+      "path": [
+        "utils_ditaoterrorparser_parseditaotoutput",
+        "utils_ditaoterrorparser_iserrorline",
+        "utils_ditaoterrorparser_parseerrorline",
+        "utils_ditaoterrorparser_mapseverity"
+      ],
+      "qualifiedPath": [
+        "utils_ditaoterrorparser_parseditaotoutput",
+        "utils_ditaoterrorparser_iserrorline",
+        "utils_ditaoterrorparser_parseerrorline",
+        "utils_ditaoterrorparser_mapseverity"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtErrorParser.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_maphierarchyparser_parsemaphierarchy",
+      "name": "parseMapHierarchy",
+      "entryPoint": "utils_maphierarchyparser_parsemaphierarchy",
+      "entryPointId": "utils_maphierarchyparser_parsemaphierarchy",
+      "path": [
+        "utils_maphierarchyparser_parsemaphierarchy",
+        "utils_maphierarchyparser_detectmaptype",
+        "utils_maphierarchyparser_parsereferences",
+        "utils_maphierarchyparser_extractattribute"
+      ],
+      "qualifiedPath": [
+        "utils_maphierarchyparser_parsemaphierarchy",
+        "utils_maphierarchyparser_detectmaptype",
+        "utils_maphierarchyparser_parsereferences",
+        "utils_maphierarchyparser_extractattribute"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/utils/mapHierarchyParser.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_mapvisualizerpanel_mapvisualizerpanel_geterrorhtml",
+      "name": "._getErrorHtml",
+      "entryPoint": "providers_mapvisualizerpanel_mapvisualizerpanel_geterrorhtml",
+      "entryPointId": "providers_mapvisualizerpanel_mapvisualizerpanel_geterrorhtml",
+      "path": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_geterrorhtml",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "qualifiedPath": [
+        "providers_mapvisualizerpanel_mapvisualizerpanel_geterrorhtml",
+        "providers_mapvisualizerpanel_mapvisualizerpanel_escapehtml"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/mapVisualizerPanel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_workspacevalidation_workspaceindex_buildfull",
+      "name": ".buildFull",
+      "entryPoint": "features_workspacevalidation_workspaceindex_buildfull",
+      "entryPointId": "features_workspacevalidation_workspaceindex_buildfull",
+      "path": [
+        "features_workspacevalidation_workspaceindex_buildfull",
+        "features_workspacevalidation_mapwithconcurrency",
+        "features_workspacevalidation_workspaceindex_clear"
+      ],
+      "qualifiedPath": [
+        "features_workspacevalidation_workspaceindex_buildfull",
+        "features_workspacevalidation_mapwithconcurrency",
+        "features_workspacevalidation_workspaceindex_clear"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/workspaceValidation.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_llmrouterservice_breakerwrappedprovider_complete",
+      "name": ".complete",
+      "entryPoint": "llm_llmrouterservice_breakerwrappedprovider_complete",
+      "entryPointId": "llm_llmrouterservice_breakerwrappedprovider_complete",
+      "path": [
+        "llm_llmrouterservice_breakerwrappedprovider_complete",
+        "llm_llmrouterservice_isaborterror"
+      ],
+      "qualifiedPath": [
+        "llm_llmrouterservice_breakerwrappedprovider_complete",
+        "llm_llmrouterservice_isaborterror"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/llmRouterService.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ollamaprovider_ollamallmprovider_complete",
+      "name": ".complete",
+      "entryPoint": "providers_ollamaprovider_ollamallmprovider_complete",
+      "entryPointId": "providers_ollamaprovider_ollamallmprovider_complete",
+      "path": [
+        "providers_ollamaprovider_ollamallmprovider_complete",
+        "providers_ollamaprovider_ollamallmprovider_buildmessages"
+      ],
+      "qualifiedPath": [
+        "providers_ollamaprovider_ollamallmprovider_complete",
+        "providers_ollamaprovider_ollamallmprovider_buildmessages"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/providers/ollamaProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditaexplorerprovider_ditaexploreritem_constructor",
+      "name": ".constructor",
+      "entryPoint": "providers_ditaexplorerprovider_ditaexploreritem_constructor",
+      "entryPointId": "providers_ditaexplorerprovider_ditaexploreritem_constructor",
+      "path": [
+        "providers_ditaexplorerprovider_ditaexploreritem_constructor",
+        "providers_ditaexplorerprovider_ditaexploreritem_buildtooltip"
+      ],
+      "qualifiedPath": [
+        "providers_ditaexplorerprovider_ditaexploreritem_constructor",
+        "providers_ditaexplorerprovider_ditaexploreritem_buildtooltip"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditaExplorerProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_keyspaceviewprovider_keyspaceitem_constructor",
+      "name": ".constructor",
+      "entryPoint": "providers_keyspaceviewprovider_keyspaceitem_constructor",
+      "entryPointId": "providers_keyspaceviewprovider_keyspaceitem_constructor",
+      "path": [
+        "providers_keyspaceviewprovider_keyspaceitem_constructor",
+        "providers_keyspaceviewprovider_keyspaceitem_buildkeytooltip"
+      ],
+      "qualifiedPath": [
+        "providers_keyspaceviewprovider_keyspaceitem_constructor",
+        "providers_keyspaceviewprovider_keyspaceitem_buildkeytooltip"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/keySpaceViewProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_previewpanel_ditapreviewpanel_constructor",
+      "name": ".constructor",
+      "entryPoint": "providers_previewpanel_ditapreviewpanel_constructor",
+      "entryPointId": "providers_previewpanel_ditapreviewpanel_constructor",
+      "path": [
+        "providers_previewpanel_ditapreviewpanel_constructor",
+        "providers_previewpanel_ditapreviewpanel_setupeditorscrollsync"
+      ],
+      "qualifiedPath": [
+        "providers_previewpanel_ditapreviewpanel_constructor",
+        "providers_previewpanel_ditapreviewpanel_setupeditorscrollsync"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/previewPanel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_validationpipeline_validationpipeline_constructor",
+      "name": ".constructor",
+      "entryPoint": "services_validationpipeline_validationpipeline_constructor",
+      "entryPointId": "services_validationpipeline_validationpipeline_constructor",
+      "path": [
+        "services_validationpipeline_validationpipeline_constructor",
+        "services_validationpipeline_semaphore"
+      ],
+      "qualifiedPath": [
+        "services_validationpipeline_validationpipeline_constructor",
+        "services_validationpipeline_semaphore"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/validationPipeline.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_dtdresolver_dtdresolver_constructor",
+      "name": ".constructor",
+      "entryPoint": "utils_dtdresolver_dtdresolver_constructor",
+      "entryPointId": "utils_dtdresolver_dtdresolver_constructor",
+      "path": [
+        "utils_dtdresolver_dtdresolver_constructor",
+        "utils_dtdresolver_dtdresolver_loadcatalog"
+      ],
+      "qualifiedPath": [
+        "utils_dtdresolver_dtdresolver_constructor",
+        "utils_dtdresolver_dtdresolver_loadcatalog"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/dtdResolver.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_llmrouterservice_llmrouterservice_forceprovider",
+      "name": ".forceProvider",
+      "entryPoint": "llm_llmrouterservice_llmrouterservice_forceprovider",
+      "entryPointId": "llm_llmrouterservice_llmrouterservice_forceprovider",
+      "path": [
+        "llm_llmrouterservice_llmrouterservice_forceprovider",
+        "llm_llmrouterservice_breakerwrappedprovider_isavailable"
+      ],
+      "qualifiedPath": [
+        "llm_llmrouterservice_llmrouterservice_forceprovider",
+        "llm_llmrouterservice_breakerwrappedprovider_isavailable"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/llmRouterService.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotwrapper_ditaotwrapper_getavailabletranstypes",
+      "name": ".getAvailableTranstypes",
+      "entryPoint": "utils_ditaotwrapper_ditaotwrapper_getavailabletranstypes",
+      "entryPointId": "utils_ditaotwrapper_ditaotwrapper_getavailabletranstypes",
+      "path": [
+        "utils_ditaotwrapper_ditaotwrapper_getavailabletranstypes",
+        "utils_ditaotwrapper_execfileasync"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotwrapper_ditaotwrapper_getavailabletranstypes",
+        "utils_ditaotwrapper_execfileasync"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtWrapper.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_dtdresolver_dtdresolver_getdtdcontent",
+      "name": ".getDtdContent",
+      "entryPoint": "utils_dtdresolver_dtdresolver_getdtdcontent",
+      "entryPointId": "utils_dtdresolver_dtdresolver_getdtdcontent",
+      "path": [
+        "utils_dtdresolver_dtdresolver_getdtdcontent",
+        "utils_dtdresolver_dtdresolver_resolvepublicid"
+      ],
+      "qualifiedPath": [
+        "utils_dtdresolver_dtdresolver_getdtdcontent",
+        "utils_dtdresolver_dtdresolver_resolvepublicid"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/dtdResolver.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_logger_logger_getinstance",
+      "name": ".getInstance",
+      "entryPoint": "utils_logger_logger_getinstance",
+      "entryPointId": "utils_logger_logger_getinstance",
+      "path": [
+        "utils_logger_logger_getinstance",
+        "utils_logger_logger"
+      ],
+      "qualifiedPath": [
+        "utils_logger_logger_getinstance",
+        "utils_logger_logger"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/logger.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_circuitbreaker_circuitbreaker_isopen",
+      "name": ".isOpen",
+      "entryPoint": "llm_circuitbreaker_circuitbreaker_isopen",
+      "entryPointId": "llm_circuitbreaker_circuitbreaker_isopen",
+      "path": [
+        "llm_circuitbreaker_circuitbreaker_isopen",
+        "llm_circuitbreaker_circuitbreaker_tick"
+      ],
+      "qualifiedPath": [
+        "llm_circuitbreaker_circuitbreaker_isopen",
+        "llm_circuitbreaker_circuitbreaker_tick"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/circuitBreaker.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
+      "name": ".logBuildComplete",
+      "entryPoint": "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
+      "entryPointId": "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
+      "path": [
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtOutputChannel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
+      "name": ".logBuildStart",
+      "entryPoint": "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
+      "entryPointId": "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
+      "path": [
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtOutputChannel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditafiledecorationprovider_ditafiledecorationprovider_providefiledecoration",
+      "name": ".provideFileDecoration",
+      "entryPoint": "providers_ditafiledecorationprovider_ditafiledecorationprovider_providefiledecoration",
+      "entryPointId": "providers_ditafiledecorationprovider_ditafiledecorationprovider_providefiledecoration",
+      "path": [
+        "providers_ditafiledecorationprovider_ditafiledecorationprovider_providefiledecoration",
+        "providers_ditafiledecorationprovider_isditauri"
+      ],
+      "qualifiedPath": [
+        "providers_ditafiledecorationprovider_ditafiledecorationprovider_providefiledecoration",
+        "providers_ditafiledecorationprovider_isditauri"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditaFileDecorationProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_circuitbreaker_circuitbreaker_recordfailure",
+      "name": ".recordFailure",
+      "entryPoint": "llm_circuitbreaker_circuitbreaker_recordfailure",
+      "entryPointId": "llm_circuitbreaker_circuitbreaker_recordfailure",
+      "path": [
+        "llm_circuitbreaker_circuitbreaker_recordfailure",
+        "llm_circuitbreaker_circuitbreaker_tick"
+      ],
+      "qualifiedPath": [
+        "llm_circuitbreaker_circuitbreaker_recordfailure",
+        "llm_circuitbreaker_circuitbreaker_tick"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/circuitBreaker.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_providerfactory_providerfactory_registerallproviders",
+      "name": ".registerAllProviders",
+      "entryPoint": "utils_providerfactory_providerfactory_registerallproviders",
+      "entryPointId": "utils_providerfactory_providerfactory_registerallproviders",
+      "path": [
+        "utils_providerfactory_providerfactory_registerallproviders",
+        "utils_providerfactory_providerfactory_getkeyspaceresolver",
+        "utils_providerfactory_providerfactory_getlinkprovider",
+        "utils_providerfactory_providerfactory_registerlinkprovider"
+      ],
+      "qualifiedPath": [
+        "utils_providerfactory_providerfactory_registerallproviders",
+        "utils_providerfactory_providerfactory_getkeyspaceresolver",
+        "utils_providerfactory_providerfactory_getlinkprovider",
+        "utils_providerfactory_providerfactory_registerlinkprovider"
+      ],
+      "depth": 1,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/utils/providerFactory.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_keyspaceresolver_keyspaceresolver_reloadcacheconfig",
+      "name": ".reloadCacheConfig",
+      "entryPoint": "utils_keyspaceresolver_keyspaceresolver_reloadcacheconfig",
+      "entryPointId": "utils_keyspaceresolver_keyspaceresolver_reloadcacheconfig",
+      "path": [
+        "utils_keyspaceresolver_keyspaceresolver_reloadcacheconfig",
+        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
+        "utils_keyspaceresolver_keyspaceresolver_loadcacheconfig"
+      ],
+      "qualifiedPath": [
+        "utils_keyspaceresolver_keyspaceresolver_reloadcacheconfig",
+        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
+        "utils_keyspaceresolver_keyspaceresolver_loadcacheconfig"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/keySpaceResolver.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_configurationmanager_configurationmanager_resetinstance",
+      "name": ".resetInstance",
+      "entryPoint": "utils_configurationmanager_configurationmanager_resetinstance",
+      "entryPointId": "utils_configurationmanager_configurationmanager_resetinstance",
+      "path": [
+        "utils_configurationmanager_configurationmanager_resetinstance",
+        "utils_configurationmanager_configurationmanager_dispose"
+      ],
+      "qualifiedPath": [
+        "utils_configurationmanager_configurationmanager_resetinstance",
+        "utils_configurationmanager_configurationmanager_dispose"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/configurationManager.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_dtdresolver_dtdresolver_resolveentity",
+      "name": ".resolveEntity",
+      "entryPoint": "utils_dtdresolver_dtdresolver_resolveentity",
+      "entryPointId": "utils_dtdresolver_dtdresolver_resolveentity",
+      "path": [
+        "utils_dtdresolver_dtdresolver_resolveentity",
+        "utils_dtdresolver_dtdresolver_resolvepublicid"
+      ],
+      "qualifiedPath": [
+        "utils_dtdresolver_dtdresolver_resolveentity",
+        "utils_dtdresolver_dtdresolver_resolvepublicid"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/dtdResolver.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_previewpanel_ditapreviewpanel_revive",
+      "name": ".revive",
+      "entryPoint": "providers_previewpanel_ditapreviewpanel_revive",
+      "entryPointId": "providers_previewpanel_ditapreviewpanel_revive",
+      "path": [
+        "providers_previewpanel_ditapreviewpanel_revive",
+        "providers_previewpanel_ditapreviewpanel"
+      ],
+      "qualifiedPath": [
+        "providers_previewpanel_ditapreviewpanel_revive",
+        "providers_previewpanel_ditapreviewpanel"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/previewPanel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_circuitbreaker_circuitbreaker_state",
+      "name": ".state",
+      "entryPoint": "llm_circuitbreaker_circuitbreaker_state",
+      "entryPointId": "llm_circuitbreaker_circuitbreaker_state",
+      "path": [
+        "llm_circuitbreaker_circuitbreaker_state",
+        "llm_circuitbreaker_circuitbreaker_tick"
+      ],
+      "qualifiedPath": [
+        "llm_circuitbreaker_circuitbreaker_state",
+        "llm_circuitbreaker_circuitbreaker_tick"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/circuitBreaker.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:llm_llmrouterservice_breakerwrappedprovider_stream",
+      "name": ".stream",
+      "entryPoint": "llm_llmrouterservice_breakerwrappedprovider_stream",
+      "entryPointId": "llm_llmrouterservice_breakerwrappedprovider_stream",
+      "path": [
+        "llm_llmrouterservice_breakerwrappedprovider_stream",
+        "llm_llmrouterservice_isaborterror"
+      ],
+      "qualifiedPath": [
+        "llm_llmrouterservice_breakerwrappedprovider_stream",
+        "llm_llmrouterservice_isaborterror"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/llmRouterService.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ollamaprovider_ollamallmprovider_stream",
+      "name": ".stream",
+      "entryPoint": "providers_ollamaprovider_ollamallmprovider_stream",
+      "entryPointId": "providers_ollamaprovider_ollamallmprovider_stream",
+      "path": [
+        "providers_ollamaprovider_ollamallmprovider_stream",
+        "providers_ollamaprovider_ollamallmprovider_buildmessages"
+      ],
+      "qualifiedPath": [
+        "providers_ollamaprovider_ollamallmprovider_stream",
+        "providers_ollamaprovider_ollamallmprovider_buildmessages"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/llm/providers/ollamaProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaoterrorparser_ditaotdiagnostics_updatefromparsedoutput",
+      "name": ".updateFromParsedOutput",
+      "entryPoint": "utils_ditaoterrorparser_ditaotdiagnostics_updatefromparsedoutput",
+      "entryPointId": "utils_ditaoterrorparser_ditaotdiagnostics_updatefromparsedoutput",
+      "path": [
+        "utils_ditaoterrorparser_ditaotdiagnostics_updatefromparsedoutput",
+        "utils_ditaoterrorparser_ditaotdiagnostics_clear",
+        "utils_ditaoterrorparser_ditaotdiagnostics_creatediagnostickey"
+      ],
+      "qualifiedPath": [
+        "utils_ditaoterrorparser_ditaotdiagnostics_updatefromparsedoutput",
+        "utils_ditaoterrorparser_ditaotdiagnostics_clear",
+        "utils_ditaoterrorparser_ditaotdiagnostics_creatediagnostickey"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtErrorParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_suppressionengine_applysuppressions",
+      "name": "applySuppressions",
+      "entryPoint": "services_suppressionengine_applysuppressions",
+      "entryPointId": "services_suppressionengine_applysuppressions",
+      "path": [
+        "services_suppressionengine_applysuppressions",
+        "services_suppressionengine_parsesuppressions"
+      ],
+      "qualifiedPath": [
+        "services_suppressionengine_applysuppressions",
+        "services_suppressionengine_parsesuppressions"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/suppressionEngine.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ratelimiter_createcustomratelimiter",
+      "name": "createCustomRateLimiter",
+      "entryPoint": "utils_ratelimiter_createcustomratelimiter",
+      "entryPointId": "utils_ratelimiter_createcustomratelimiter",
+      "path": [
+        "utils_ratelimiter_createcustomratelimiter",
+        "utils_ratelimiter_ratelimiter"
+      ],
+      "qualifiedPath": [
+        "utils_ratelimiter_createcustomratelimiter",
+        "utils_ratelimiter_ratelimiter"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/rateLimiter.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_errorutils_createenhancederror",
+      "name": "createEnhancedError",
+      "entryPoint": "utils_errorutils_createenhancederror",
+      "entryPointId": "utils_errorutils_createenhancederror",
+      "path": [
+        "utils_errorutils_createenhancederror",
+        "utils_errorutils_geterrormessage"
+      ],
+      "qualifiedPath": [
+        "utils_errorutils_createenhancederror",
+        "utils_errorutils_geterrormessage"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/errorUtils.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ratelimiter_createratelimiter",
+      "name": "createRateLimiter",
+      "entryPoint": "utils_ratelimiter_createratelimiter",
+      "entryPointId": "utils_ratelimiter_createratelimiter",
+      "path": [
+        "utils_ratelimiter_createratelimiter",
+        "utils_ratelimiter_ratelimiter"
+      ],
+      "qualifiedPath": [
+        "utils_ratelimiter_createratelimiter",
+        "utils_ratelimiter_ratelimiter"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/rateLimiter.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_workspacevalidation_detectcrossfileduplicateids",
+      "name": "detectCrossFileDuplicateIds",
+      "entryPoint": "features_workspacevalidation_detectcrossfileduplicateids",
+      "entryPointId": "features_workspacevalidation_detectcrossfileduplicateids",
+      "path": [
+        "features_workspacevalidation_detectcrossfileduplicateids",
+        "features_workspacevalidation_extractrootid"
+      ],
+      "qualifiedPath": [
+        "features_workspacevalidation_detectcrossfileduplicateids",
+        "features_workspacevalidation_extractrootid"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/workspaceValidation.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_workspacevalidation_detectunusedtopics",
+      "name": "detectUnusedTopics",
+      "entryPoint": "features_workspacevalidation_detectunusedtopics",
+      "entryPointId": "features_workspacevalidation_detectunusedtopics",
+      "path": [
+        "features_workspacevalidation_detectunusedtopics",
+        "features_workspacevalidation_mapwithconcurrency"
+      ],
+      "qualifiedPath": [
+        "features_workspacevalidation_detectunusedtopics",
+        "features_workspacevalidation_mapwithconcurrency"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/workspaceValidation.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaoterrorparser_disposeditaotdiagnostics",
+      "name": "disposeDitaOtDiagnostics",
+      "entryPoint": "utils_ditaoterrorparser_disposeditaotdiagnostics",
+      "entryPointId": "utils_ditaoterrorparser_disposeditaotdiagnostics",
+      "path": [
+        "utils_ditaoterrorparser_disposeditaotdiagnostics",
+        "utils_ditaoterrorparser_ditaotdiagnostics_dispose"
+      ],
+      "qualifiedPath": [
+        "utils_ditaoterrorparser_disposeditaotdiagnostics",
+        "utils_ditaoterrorparser_ditaotdiagnostics_dispose"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtErrorParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_providerfactory_disposeproviderfactory",
+      "name": "disposeProviderFactory",
+      "entryPoint": "utils_providerfactory_disposeproviderfactory",
+      "entryPointId": "utils_providerfactory_disposeproviderfactory",
+      "path": [
+        "utils_providerfactory_disposeproviderfactory",
+        "utils_providerfactory_providerfactory_dispose"
+      ],
+      "qualifiedPath": [
+        "utils_providerfactory_disposeproviderfactory",
+        "utils_providerfactory_providerfactory_dispose"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/providerFactory.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_workspacescanner_findcrossfilereferences",
+      "name": "findCrossFileReferences",
+      "entryPoint": "utils_workspacescanner_findcrossfilereferences",
+      "entryPointId": "utils_workspacescanner_findcrossfilereferences",
+      "path": [
+        "utils_workspacescanner_findcrossfilereferences",
+        "utils_workspacescanner_collectditafiles"
+      ],
+      "qualifiedPath": [
+        "utils_workspacescanner_findcrossfilereferences",
+        "utils_workspacescanner_collectditafiles"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/workspaceScanner.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_referenceparser_findreferenceatoffset",
+      "name": "findReferenceAtOffset",
+      "entryPoint": "utils_referenceparser_findreferenceatoffset",
+      "entryPointId": "utils_referenceparser_findreferenceatoffset",
+      "path": [
+        "utils_referenceparser_findreferenceatoffset",
+        "utils_referenceparser_isrefattr"
+      ],
+      "qualifiedPath": [
+        "utils_referenceparser_findreferenceatoffset",
+        "utils_referenceparser_isrefattr"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/referenceParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_errorutils_formatditaerror",
+      "name": "formatDitaError",
+      "entryPoint": "utils_errorutils_formatditaerror",
+      "entryPointId": "utils_errorutils_formatditaerror",
+      "path": [
+        "utils_errorutils_formatditaerror",
+        "utils_errorutils_formaterrormessage",
+        "utils_errorutils_geterrormessage"
+      ],
+      "qualifiedPath": [
+        "utils_errorutils_formatditaerror",
+        "utils_errorutils_formaterrormessage",
+        "utils_errorutils_geterrormessage"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/errorUtils.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaoterrorparser_getditaotdiagnostics",
+      "name": "getDitaOtDiagnostics",
+      "entryPoint": "utils_ditaoterrorparser_getditaotdiagnostics",
+      "entryPointId": "utils_ditaoterrorparser_getditaotdiagnostics",
+      "path": [
+        "utils_ditaoterrorparser_getditaotdiagnostics",
+        "utils_ditaoterrorparser_ditaotdiagnostics"
+      ],
+      "qualifiedPath": [
+        "utils_ditaoterrorparser_getditaotdiagnostics",
+        "utils_ditaoterrorparser_ditaotdiagnostics"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtErrorParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_providerfactory_getproviderfactory",
+      "name": "getProviderFactory",
+      "entryPoint": "utils_providerfactory_getproviderfactory",
+      "entryPointId": "utils_providerfactory_getproviderfactory",
+      "path": [
+        "utils_providerfactory_getproviderfactory",
+        "utils_providerfactory_providerfactory"
+      ],
+      "qualifiedPath": [
+        "utils_providerfactory_getproviderfactory",
+        "utils_providerfactory_providerfactory"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/providerFactory.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_definition_handledefinition",
+      "name": "handleDefinition",
+      "entryPoint": "features_definition_handledefinition",
+      "entryPointId": "features_definition_handledefinition",
+      "path": [
+        "features_definition_handledefinition",
+        "features_definition_locationatfilestart",
+        "features_definition_resolveelementinfile",
+        "features_definition_resolveindocument"
+      ],
+      "qualifiedPath": [
+        "features_definition_handledefinition",
+        "features_definition_locationatfilestart",
+        "features_definition_resolveelementinfile",
+        "features_definition_resolveindocument"
+      ],
+      "depth": 1,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/definition.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:tools_ditamapstructure_handleditamapstructure",
+      "name": "handleDitaMapStructure",
+      "entryPoint": "tools_ditamapstructure_handleditamapstructure",
+      "entryPointId": "tools_ditamapstructure_handleditamapstructure",
+      "path": [
+        "tools_ditamapstructure_handleditamapstructure",
+        "tools_ditamapstructure_formatascsv",
+        "tools_ditamapstructure_formatastree"
+      ],
+      "qualifiedPath": [
+        "tools_ditamapstructure_handleditamapstructure",
+        "tools_ditamapstructure_formatascsv",
+        "tools_ditamapstructure_formatastree"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/tools/ditaMapStructure.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_references_handlereferences",
+      "name": "handleReferences",
+      "entryPoint": "features_references_handlereferences",
+      "entryPointId": "features_references_handlereferences",
+      "path": [
+        "features_references_handlereferences",
+        "features_references_filtermatchingrefs"
+      ],
+      "qualifiedPath": [
+        "features_references_handlereferences",
+        "features_references_filtermatchingrefs"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/references.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_rename_handlerename",
+      "name": "handleRename",
+      "entryPoint": "features_rename_handlerename",
+      "entryPointId": "features_rename_handlerename",
+      "path": [
+        "features_rename_handlerename",
+        "features_rename_collectmatchingedits"
+      ],
+      "qualifiedPath": [
+        "features_rename_handlerename",
+        "features_rename_collectmatchingedits"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/rename.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_crossrefvalidation_isexternalscope",
+      "name": "isExternalScope",
+      "entryPoint": "features_crossrefvalidation_isexternalscope",
+      "entryPointId": "features_crossrefvalidation_isexternalscope",
+      "path": [
+        "features_crossrefvalidation_isexternalscope",
+        "features_crossrefvalidation_getscopevalue"
+      ],
+      "qualifiedPath": [
+        "features_crossrefvalidation_isexternalscope",
+        "features_crossrefvalidation_getscopevalue"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/crossRefValidation.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_errorutils_isfilenotfounderror",
+      "name": "isFileNotFoundError",
+      "entryPoint": "utils_errorutils_isfilenotfounderror",
+      "entryPointId": "utils_errorutils_isfilenotfounderror",
+      "path": [
+        "utils_errorutils_isfilenotfounderror",
+        "utils_errorutils_geterrormessage"
+      ],
+      "qualifiedPath": [
+        "utils_errorutils_isfilenotfounderror",
+        "utils_errorutils_geterrormessage"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/errorUtils.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:esbuild_main",
+      "name": "main",
+      "entryPoint": "esbuild_main",
+      "entryPointId": "esbuild_main",
+      "path": [
+        "esbuild_main",
+        "esbuild_watch"
+      ],
+      "qualifiedPath": [
+        "esbuild_main",
+        "esbuild_watch"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "esbuild.js"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_aicompletionprovider_registeraicompletionprovider",
+      "name": "registerAICompletionProvider",
+      "entryPoint": "providers_aicompletionprovider_registeraicompletionprovider",
+      "entryPointId": "providers_aicompletionprovider_registeraicompletionprovider",
+      "path": [
+        "providers_aicompletionprovider_registeraicompletionprovider",
+        "providers_aicompletionprovider_aicompletionprovider"
+      ],
+      "qualifiedPath": [
+        "providers_aicompletionprovider_registeraicompletionprovider",
+        "providers_aicompletionprovider_aicompletionprovider"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/aiCompletionProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditalinkprovider_registerditalinkprovider",
+      "name": "registerDitaLinkProvider",
+      "entryPoint": "providers_ditalinkprovider_registerditalinkprovider",
+      "entryPointId": "providers_ditalinkprovider_registerditalinkprovider",
+      "path": [
+        "providers_ditalinkprovider_registerditalinkprovider",
+        "providers_ditalinkprovider_ditalinkprovider",
+        "providers_ditalinkprovider_getglobalkeyspaceresolver"
+      ],
+      "qualifiedPath": [
+        "providers_ditalinkprovider_registerditalinkprovider",
+        "providers_ditalinkprovider_ditalinkprovider",
+        "providers_ditalinkprovider_getglobalkeyspaceresolver"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditaLinkProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_restructuremapcommand_restructuremapcommand",
+      "name": "restructureMapCommand",
+      "entryPoint": "commands_restructuremapcommand_restructuremapcommand",
+      "entryPointId": "commands_restructuremapcommand_restructuremapcommand",
+      "path": [
+        "commands_restructuremapcommand_restructuremapcommand",
+        "commands_restructuremapcommand_isditamap"
+      ],
+      "qualifiedPath": [
+        "commands_restructuremapcommand_restructuremapcommand",
+        "commands_restructuremapcommand_isditamap"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/commands/restructureMapCommand.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_keyusagescanner_scankeyusages",
+      "name": "scanKeyUsages",
+      "entryPoint": "utils_keyusagescanner_scankeyusages",
+      "entryPointId": "utils_keyusagescanner_scankeyusages",
+      "path": [
+        "utils_keyusagescanner_scankeyusages",
+        "utils_keyusagescanner_offsettoposition"
+      ],
+      "qualifiedPath": [
+        "utils_keyusagescanner_scankeyusages",
+        "utils_keyusagescanner_offsettoposition"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/keyUsageScanner.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:src_extension_sendinitialrootmapsetting",
+      "name": "sendInitialRootMapSetting",
+      "entryPoint": "src_extension_sendinitialrootmapsetting",
+      "entryPointId": "src_extension_sendinitialrootmapsetting",
+      "path": [
+        "src_extension_sendinitialrootmapsetting",
+        "src_extension_updaterootmapstatusbar"
+      ],
+      "qualifiedPath": [
+        "src_extension_sendinitialrootmapsetting",
+        "src_extension_updaterootmapstatusbar"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/extension.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_previewcommand_shouldautorefreshpreview",
+      "name": "shouldAutoRefreshPreview",
+      "entryPoint": "commands_previewcommand_shouldautorefreshpreview",
+      "entryPointId": "commands_previewcommand_shouldautorefreshpreview",
+      "path": [
+        "commands_previewcommand_shouldautorefreshpreview",
+        "commands_previewcommand_pathsequal"
+      ],
+      "qualifiedPath": [
+        "commands_previewcommand_shouldautorefreshpreview",
+        "commands_previewcommand_pathsequal"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/commands/previewCommand.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_textutils_stripcommentsandcodecontent",
+      "name": "stripCommentsAndCodeContent",
+      "entryPoint": "utils_textutils_stripcommentsandcodecontent",
+      "entryPointId": "utils_textutils_stripcommentsandcodecontent",
+      "path": [
+        "utils_textutils_stripcommentsandcodecontent",
+        "utils_textutils_stripcommentsandcdata"
+      ],
+      "qualifiedPath": [
+        "utils_textutils_stripcommentsandcodecontent",
+        "utils_textutils_stripcommentsandcdata"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/textUtils.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    }
+  ]
+}

@@ -6,6 +6,7 @@ DitaCraft codebase (client extension, LSP server, MCP server, docs). Do not edit
 | Artifact | Description |
 |----------|-------------|
 | `graph.json` | Queryable knowledge graph (nodes, edges, Louvain communities) |
+| `flows.json` | Execution flows derived from CALLS edges (for impact analysis) |
 | `GRAPH_REPORT.md` | Findings, statistics, and suggested queries |
 | `graph.svg` | Static graph visualization |
 | `studio/studio.html` | Self-contained interactive viewer - open directly in a browser |
