@@ -1,0 +1,13 @@
+# Files excluded from graphify knowledge-graph extraction
+
+# Generated graph output (never feed the graph back into itself)
+docs/graph/
+
+# Build output
+out/
+dist/
+coverage/
+
+# No tree-sitter grammar available for Kotlin gradle scripts
+docs/user-guide/build.gradle.kts
+docs/user-guide/settings.gradle.kts

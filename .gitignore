@@ -52,3 +52,6 @@ yarn.lock
 
 # Claude AI config (local only)
 .claude/
+
+# Graphify working state (committed output lives in docs/graph)
+.graphify/
