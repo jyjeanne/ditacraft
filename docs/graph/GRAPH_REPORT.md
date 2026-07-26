@@ -19,7 +19,7 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `2aa08be`
+- Built from Git commit: `a5896a6`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 72 edges
@@ -125,7 +125,7 @@ Nodes (12): RngValidationService, ROOT_TO_SCHEMA, SalveConvertResult, SalveGramm
 
 ### Community 19 - "Community 19"
 Cohesion: 0.09
-Nodes (4): main, 2aa08be Update README and ROADMAP for the 0.8.2 release, DitaCraftAPI, vscode
+Nodes (4): main, a5896a6 chore: lower engines.vscode and @types/vscode for local dev compatibility, DitaCraftAPI, vscode
 
 ### Community 20 - "Community 20"
 Cohesion: 0.19
