@@ -84,6 +84,12 @@ export interface ISubjectSchemeService {
     registerSchemes(schemePaths: string[]): void;
 
     /**
+     * Build a read-only snapshot for an explicit scheme set, immune to
+     * concurrent registerSchemes() calls from other validating documents.
+     */
+    snapshotFor(schemePaths: string[]): import('./subjectSchemeService').SubjectSchemeQueries;
+
+    /**
      * Look up valid values for an attribute on an element.
      * Falls back to wildcard '*' if no element-specific binding exists.
      */

@@ -211,15 +211,18 @@ async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: stri
             title: "Generating HTML5 preview",
             cancellable: false
         }, async (progress) => {
+            // publishProgress.percentage is absolute; progress.report expects a delta
+            let lastPercentage = 0;
             const result = await ditaOt.publish({
                 inputFile: filePath,
                 transtype: 'html5',
                 outputDir: outputDir
             }, (publishProgress) => {
                 progress.report({
-                    increment: publishProgress.percentage,
+                    increment: Math.max(0, publishProgress.percentage - lastPercentage),
                     message: publishProgress.message
                 });
+                lastPercentage = Math.max(lastPercentage, publishProgress.percentage);
             });
 
             if (!result.success) {

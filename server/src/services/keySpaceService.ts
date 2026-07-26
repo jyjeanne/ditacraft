@@ -140,6 +140,9 @@ export class KeySpaceService implements IKeySpaceService {
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
     private cacheConfig: CacheConfig;
     private pendingBuilds: Map<string, Promise<KeySpace>> = new Map();
+    /** Bumped on every invalidation; in-flight builds that started under an
+     *  older generation drop their cache write so stale data can't resurrect. */
+    private cacheGeneration = 0;
     private debounceTimer: ReturnType<typeof setTimeout> | undefined;
     private pendingInvalidations: Set<string> = new Set();
     private cleanupTimer: ReturnType<typeof setInterval> | undefined;
@@ -184,6 +187,7 @@ export class KeySpaceService implements IKeySpaceService {
         this.explicitRootMapPath = rootMapPath;
         // Clear both caches so findRootMap uses the new explicit path
         // and key space is rebuilt from the new root map
+        this.cacheGeneration++;
         this.rootMapCache.clear();
         this.keySpaceCache.clear();
     }
@@ -443,11 +447,18 @@ export class KeySpaceService implements IKeySpaceService {
             return pendingBuild;
         }
 
+        const generationAtStart = this.cacheGeneration;
         const buildPromise = this.doBuildKeySpace(absoluteRootPath);
         this.pendingBuilds.set(absoluteRootPath, buildPromise);
 
         try {
-            return await buildPromise;
+            const keySpace = await buildPromise;
+            if (generationAtStart !== this.cacheGeneration) {
+                // An invalidation raced with this build: the result may be based
+                // on pre-change file reads. Serve it once but don't keep it.
+                this.keySpaceCache.delete(absoluteRootPath);
+            }
+            return keySpace;
         } finally {
             this.pendingBuilds.delete(absoluteRootPath);
         }
@@ -477,7 +488,15 @@ export class KeySpaceService implements IKeySpaceService {
         }
 
         let currentDir = path.dirname(absolutePath);
-        const stopDir = this.workspaceFolders[0] || path.parse(currentDir).root;
+        // Stop at the workspace folder that actually contains the file
+        // (multi-root safe). Files outside every folder walk to the fs root,
+        // matching their not-workspace-bound handling elsewhere.
+        const normalizedDir = normalizeFsPath(currentDir);
+        const containingFolder = this.workspaceFolders.find(f => {
+            const nf = normalizeFsPath(f);
+            return normalizedDir === nf || normalizedDir.startsWith(nf + path.sep);
+        });
+        const stopDir = containingFolder ?? path.parse(currentDir).root;
 
         // Search all the way up to workspace root.
         // Root maps are typically at the project root, so prefer maps at
@@ -485,7 +504,7 @@ export class KeySpaceService implements IKeySpaceService {
         const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
         let bestMap: string | null = null;
 
-        while (currentDir && currentDir.length >= stopDir.length) {
+        while (currentDir) {
             try {
                 const files = await fsPromises.readdir(currentDir);
                 const mapFiles = files.filter(f =>
@@ -513,6 +532,7 @@ export class KeySpaceService implements IKeySpaceService {
                 // Directory not readable
             }
 
+            if (normalizeFsPath(currentDir) === normalizeFsPath(stopDir)) break;
             const parentDir = path.dirname(currentDir);
             if (parentDir === currentDir) break;
             currentDir = parentDir;
@@ -548,6 +568,7 @@ export class KeySpaceService implements IKeySpaceService {
         this.workspaceFolders.push(...added);
 
         // Invalidate all caches since workspace context changed
+        this.cacheGeneration++;
         this.keySpaceCache.clear();
         this.rootMapCache.clear();
     }
@@ -633,7 +654,7 @@ export class KeySpaceService implements IKeySpaceService {
         // or loop forever.
         const registeredScopeSignatures = new Map<string, Set<string>>();
         const scopeSignature = (prefixes: readonly string[]): string =>
-            [...prefixes].sort().join(' ');
+            [...prefixes].sort().join('\u0000');
 
         while (queue.length > 0) {
             const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
@@ -1407,9 +1428,12 @@ export class KeySpaceService implements IKeySpaceService {
 
     private doInvalidate(changedFile: string): void {
         const normalizedPath = normalizeFsPath(changedFile);
-        const changedDir = path.dirname(normalizedPath);
+        this.cacheGeneration++;
 
-        this.rootMapCache.delete(changedDir);
+        // A changed map can alter root-map discovery for any directory
+        // (preferred-name and highest-level rules), not just its own — clear
+        // the whole cache; it is small and rebuilt on demand.
+        this.rootMapCache.clear();
 
         const toDelete: string[] = [];
         for (const [rootMap, keySpace] of this.keySpaceCache.entries()) {

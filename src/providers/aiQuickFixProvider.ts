@@ -81,6 +81,10 @@ export async function executeAiQuickFix(
         new vscode.Range(new vscode.Position(startLine, 0), document.lineAt(endLine).range.end)
     );
 
+    // The LLM call below takes seconds; the replacement range is only valid
+    // against this exact document state.
+    const versionBefore = document.version;
+
     const result = await vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
@@ -94,6 +98,13 @@ export async function executeAiQuickFix(
     if (!result.success || !result.fixedXml) {
         vscode.window.showErrorMessage(
             `DitaCraft AI Quick Fix: ${result.error ?? 'Unable to generate a fix.'}`
+        );
+        return;
+    }
+
+    if (document.version !== versionBefore) {
+        vscode.window.showWarningMessage(
+            'DitaCraft AI: The document changed while the fix was being generated — fix not applied. Run the quick fix again.'
         );
         return;
     }
