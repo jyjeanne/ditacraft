@@ -797,6 +797,8 @@
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "watch:graph": "node scripts/generate-graph.js --watch",
+    "graph": "node scripts/generate-graph.js",
     "package": "vsce package",
     "esbuild-base": "node esbuild.js",
     "build-standalone": "node esbuild-standalone.js",
@@ -861,6 +863,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@sentropic/graphify": "^0.17.1",
     "@types/mocha": "^10.0.1",
     "@types/node": "^26.1.1",
     "@types/sinon": "^22.0.0",
