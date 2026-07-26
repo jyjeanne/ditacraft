@@ -5,6 +5,54 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-07-26
+
+### Added
+- **Knowledge Graph (graphify)** — `npm run graph` generates a queryable knowledge graph of the codebase into `docs/graph/` (`graph.json`, `GRAPH_REPORT.md`, `graph.svg`, an interactive studio viewer, and `flows.json` for execution-flow impact analysis) using local tree-sitter AST extraction (no LLM/API keys). Auto-regenerates during `npm run watch` and on every push to `main` via the `knowledge-graph` GitHub Actions workflow. See "Using the Knowledge Graph" in `CLAUDE.md`.
+
+### Fixed
+
+**Security / path traversal:**
+- Extracted a shared `isPathWithinWorkspace()` guard and applied it consistently across hover, completion, definition, cross-reference validation, circular-reference detection, document links, and the MCP context-graph handler — several of these previously resolved user-authored `href` values without checking they stayed inside the workspace.
+- Documents opened outside every configured workspace folder (e.g. via File > Open) no longer have workspace-boundary checks incorrectly applied to their same-directory sibling references.
+
+**Key space / cross-file references:**
+- Diamond-shaped `@keyscope` map graphs (a submap reached twice via different scope chains) no longer lose keys defined further down the re-visited submap's tree.
+- Fixed Windows case-mismatch in key-space path comparisons (`resolveKey`, `explainKey`, BFS visited-set, cache invalidation) that could silently miss scope-aware key lookups and cache invalidation on Windows.
+- Rename and Find All References now verify `conkeyref` matches actually resolve to the target file via the key space before rewriting/reporting them, instead of matching on element-ID text alone across the whole workspace; unverifiable matches are now logged instead of silently skipped.
+- `resolveKey` calls in cross-file reference and rename loops are now parallelized instead of awaited one at a time.
+
+**Validation pipeline races and caching:**
+- A timed-out or cancelled async validation phase (cross-reference, circular-reference, RNG) no longer caches its empty fallback as a valid result, which had been able to mask broken links for up to 5 minutes.
+- Cancellation/budget-exceeded early exits now still apply severity overrides, comment suppression, and the diagnostics cap.
+- Profiling validation now validates against an immutable per-document subject-scheme snapshot instead of shared, possibly cross-document, service state.
+- A key-space build racing with a file invalidation no longer re-caches stale data after the invalidation ran.
+- The AI Quick Fix feature now checks the document version (and closed state) before applying its edit, so a multi-second LLM call can no longer apply a fix against stale line coordinates.
+- `getDocumentSettings()` no longer permanently poisons a document's settings cache after a single transient configuration-fetch failure.
+- Saving a `.dita` topic file now correctly invalidates cached cross-reference diagnostics in other open documents, not just when a map file changes.
+
+**Editing / navigation:**
+- Fixed a recurring bug class where a stray or mismatched closing tag desynced a name-keyed element stack, corrupting later lookups — found and fixed across `contentModelValidation.ts`, `symbols.ts` (Outline and workspace symbols), `folding.ts`, and `completion.ts`; consolidated into a shared `resyncStackToMatch()` helper.
+- `fragmentValidator.ts` (used by AI Quick Fix) now reads per-document settings instead of stale global defaults.
+- Fixed the DITA-SCH-011 quick fix rewriting the wrong `<image>` element's `alt` attribute when a later image existed in the document.
+- Added missing `parml`, `screen`, and `syntaxdiagram` to the `body`/`conbody`/`section` content models, which had been rejecting elements the completion provider itself suggested.
+- `workspaceValidation.ts`'s root-ID extraction no longer matches a nested child's `id` instead of the topic's actual root element.
+- DITA-OT progress percentages (absolute) are no longer misapplied as cumulative increments in publish/preview/validate-guide, which had overshot the progress bar.
+
+### Changed
+- Consolidated duplicated reference-matching, tag-stack resync, and progress-reporting logic into shared helpers to keep the fixes above from re-diverging.
+- Removed 41 stale compiled `.js`/`.js.map` files that had been committed alongside their TypeScript sources; `.gitignore` now guards against recommitting them.
+
+### Dependencies
+- **@anthropic-ai/sdk** 0.105.0 → 0.112.4
+- **openai** → 6.48.0
+- **vscode-languageclient** 10.0.0 → 10.0.1
+- **fast-xml-parser** → 5.10.1
+- **typesxml** 2.2.0 → 2.2.1
+- **c8** 11.0.0 → 12.0.0
+- **@types/node**, **eslint**, **typescript-eslint**, **sinon**, **@types/sinon** and other dev-dependency group bumps
+- **actions/setup-node** GitHub Action 6 → 7
+
 ## [0.8.1] - 2026-06-24
 
 ### Fixed
