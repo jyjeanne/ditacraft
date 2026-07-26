@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.8.0)
+## Current Status (v0.8.2)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -147,8 +147,66 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **LSP: contextGraph Handler** | Complete | 100% |
 | **LSP: fragmentValidator Handler** | Complete | 100% |
 | **LSP: contextSnapshot Handler (Levels 1/2/3)** | Complete | 100% |
+| **Knowledge Graph (graphify)** | Complete | 100% |
+| **Shared isPathWithinWorkspace() Guard (all LSP handlers)** | Complete | 100% |
+| **Key Space: Diamond-Scope Revisit Fix** | Complete | 100% |
+| **Windows Path Case-Fold Normalization** | Complete | 100% |
+| **Conkeyref-Verified Rename/Find-References** | Complete | 100% |
+| **Validation Cache-Poisoning Fixes (timeout/cancel/race)** | Complete | 100% |
+| **Per-Document Subject-Scheme Snapshot Isolation** | Complete | 100% |
+| **AI Quick Fix Stale-Edit Guard** | Complete | 100% |
+| **Shared resyncStackToMatch() Tag-Desync Fix** | Complete | 100% |
 
-### Recent Changes (v0.8.0)
+### Recent Changes (v0.8.2)
+
+**Security & Path Traversal:**
+- Extracted a shared `isPathWithinWorkspace()` guard and applied it at every previously-unguarded `href`-resolution site: hover, completion, definition, cross-reference validation, circular-reference detection, document links, and the MCP `dita_map_structure`/context-graph handler
+- Documents opened outside every configured workspace folder no longer have workspace-boundary checks incorrectly applied to their same-directory sibling references (new `effectiveWorkspaceFolders()` permissive fallback)
+
+**Key Space & Cross-File References:**
+- Diamond-shaped `@keyscope` map graphs (a submap reached twice via different scope chains) no longer lose keys defined further down the re-visited submap's tree
+- Fixed Windows case-mismatch in key-space path comparisons (`resolveKey`, `explainKey`, BFS visited-set, cache invalidation) via consistent `normalizeFsPath()` usage
+- Rename and Find All References now verify `conkeyref` matches actually resolve to the target file via the key space before rewriting/reporting, instead of matching on element-ID text alone across the workspace
+- `resolveKey` calls in cross-file reference/rename loops now run in parallel via `Promise.all`
+
+**Validation Pipeline Race & Cache Fixes (deep code review, 2 passes):**
+- A timed-out or cancelled async validation phase (cross-reference, circular-reference, RNG) no longer caches its empty fallback as a valid result — previously could mask broken links for up to 5 minutes
+- Cancellation/budget-exceeded early exits now still apply severity overrides, comment suppression, and the diagnostics cap via a single `finalizeDiagnostics` path
+- Profiling validation now validates against an immutable per-document subject-scheme snapshot (`SubjectSchemeService.snapshotFor()`, memoized) instead of shared, possibly cross-document, service state
+- A key-space build racing with invalidation no longer re-caches stale data; `rootMapCache` writes respect the same generation guard as the key space cache
+- AI Quick Fix now records `document.version` (and checks `isClosed`) before a multi-second LLM call and refuses to apply a stale edit
+- `getDocumentSettings()` no longer permanently poisons a document's settings cache after a single transient configuration-fetch failure
+- Saving a `.dita` topic file now correctly invalidates cached cross-reference diagnostics in other open documents, not just when a map file changes
+- `findRootMap` bounded to 3 levels for files outside every workspace folder (was walking to the filesystem root)
+
+**Editing / Navigation:**
+- Consolidated a recurring mismatched-closing-tag stack-desync bug — independently found and fixed across `contentModelValidation.ts`, `symbols.ts` (Outline + workspace symbols), `folding.ts`, and `completion.ts` — into a shared `resyncStackToMatch()` primitive in `utils/tagStack.ts`
+- Fixed the DITA-SCH-011 quick fix rewriting the wrong `<image>` element's `alt` attribute
+- Added missing `parml`, `screen`, `syntaxdiagram` to the `body`/`conbody`/`section` content models
+- Fixed `workspaceValidation.ts` root-ID extraction matching a nested child's `id` instead of the topic's actual root element
+- DITA-OT progress percentages (absolute) no longer misapplied as cumulative increments in publish/preview/validate-guide
+
+**Added — Knowledge Graph:**
+- `@sentropic/graphify` devDependency (local tree-sitter AST extraction, no LLM/API keys); `npm run graph` publishes `graph.json`, `GRAPH_REPORT.md`, `graph.svg`, an interactive studio viewer, and `flows.json` to `docs/graph/`
+- Auto-regenerates via `watch:graph` (included in `npm run watch`) and the `knowledge-graph` GitHub Actions workflow on every push to `main`
+
+**Hygiene:**
+- Removed 41 stale compiled `.js`/`.js.map` files committed alongside their TypeScript sources; `.gitignore` now guards against recommitting them
+- Deduplicated `isDitaUri()` into `src/utils/constants.ts`
+
+**Dependencies:** `@anthropic-ai/sdk` 0.105.0 → 0.112.4, `openai` → 6.48.0, `vscode-languageclient` 10.0.0 → 10.0.1, `fast-xml-parser` → 5.10.1, `typesxml` 2.2.0 → 2.2.1, `c8` 11.0.0 → 12.0.0, plus dev-dependency group bumps and `actions/setup-node` 6 → 7
+
+**1770+ Total Tests** — Client (710) + Server (977) + MCP (83)
+
+### Previous Changes (v0.8.1)
+
+- **Preview auto-refresh on save** (#96) — `ditacraft.previewAutoRefresh` was read from configuration but never wired to a save event; the preview now re-renders when the previewed source file is saved. Rapid saves are debounced (500ms) and refreshes are serialized so only one DITA-OT publish runs at a time; refresh preserves editor focus and updates the panel without pulling it to the foreground. Path matching is case-insensitive on Windows/macOS.
+- **CommonJS test build fix** — `tsc -p ./` now emits CommonJS again (Node16 module resolution), fixing a `MODULE_TYPELESS_PACKAGE_JSON` failure in the test runner
+- **vscode-languageclient 10 resolution fix** — switched TypeScript `moduleResolution` so the client's `exports`-based `vscode-languageclient/node` entrypoint resolves under the new package layout
+- **Minimum VS Code version raised to 1.125.0** (`engines.vscode`) to match the bumped `@types/vscode`, restoring `vsce package`
+- **Dependencies** — `vscode-languageclient` 9.0.1 → 10.0.0, `@vscode/test-electron` 2.5.2 → 3.0.0, `@types/node` 25.9.3 → 26.0.0, `actions/checkout` 6 → 7
+
+### Previous Changes (v0.8.0)
 
 **MCP Server & Standalone Distribution:**
 - **MCP Server** — Standalone process exposing 6 MCP tools (`dita_validate`, `dita_context_snapshot`, `dita_key_space`, `dita_map_structure`, `dita_resolve_reference`, `dita_explain_key`) and 3 MCP resources (`dita://workspace/maps`, `dita://workspace/diagnostics`, `dita://workspace/keys`) over stdio JSON-RPC. No VS Code dependency — agents spawn `node dist/mcp-server.js`.
@@ -579,7 +637,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] npm run build-standalone command
 - [x] LSP smoke test via stdio
 
-### Refactoring Tools (deferred to v0.8.1)
+### Refactoring Tools (deferred to v0.9.0)
 - [ ] Rename key across all usages
 - [ ] Rename element ID with reference updates
 - [ ] Move topic with reference updates
@@ -731,9 +789,11 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.7.2 | Severity overrides, custom rules, architecture improvements, 1375+ Tests | Released |
 | v0.7.3 | Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TS 6.0, TypesXML 2.0, 1537+ Tests | Released |
 | v0.7.4 | AI integration (Phases 1-3): LLM router, circuit breaker, @ditacraft chat, F2/F3/F4 AI features, 1537+ Tests | Released |
-| v0.8.0 | MCP server (6 tools, 3 resources), standalone LSP distribution, 1591+ Tests | **Current** |
+| v0.8.0 | MCP server (6 tools, 3 resources), standalone LSP distribution, 1591+ Tests | Released |
+| v0.8.1 | Preview auto-refresh fix, build/dependency tooling fixes | Released |
+| v0.8.2 | Security hardening, key space/validation race fixes, knowledge graph, 1770+ Tests | **Current** |
 | v0.9.0 | Refactoring & publishing enhancements | Planned |
 
 ---
 
-*Last updated: June 2026 (v0.8.0 — MCP server with 6 tools/3 resources, standalone LSP distribution, 67 MCP tests, 1591+ total tests)*
+*Last updated: July 2026 (v0.8.2 — security hardening, key space/validation race fixes, knowledge graph tooling, 1770+ total tests)*
