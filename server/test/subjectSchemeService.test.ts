@@ -490,4 +490,66 @@ suite('SubjectSchemeService', () => {
             }
         });
     });
+
+    suite('snapshotFor', () => {
+        const SCHEME = `<?xml version="1.0"?>
+<subjectScheme>
+  <subjectdef keys="os">
+    <subjectdef keys="linux"/>
+  </subjectdef>
+  <enumerationdef>
+    <attributedef name="platform"/>
+    <subjectdef keyref="os"/>
+  </enumerationdef>
+</subjectScheme>`;
+
+        test('snapshot is isolated from later registerSchemes calls', () => {
+            const { dir, filePath } = createTmpScheme(SCHEME);
+            try {
+                const service = new SubjectSchemeService();
+                const snapshot = service.snapshotFor([filePath]);
+                assert.ok(snapshot.isControlledAttribute('platform'));
+
+                // Another document swaps the registered scheme set
+                service.registerSchemes([]);
+
+                assert.ok(snapshot.isControlledAttribute('platform'),
+                    'snapshot must keep its own scheme set after re-registration');
+                assert.ok(snapshot.getValidValues('platform')!.has('linux'));
+            } finally {
+                cleanup(dir);
+            }
+        });
+
+        test('same scheme set returns the memoized snapshot instance', () => {
+            const { dir, filePath } = createTmpScheme(SCHEME);
+            try {
+                const service = new SubjectSchemeService();
+                const first = service.snapshotFor([filePath]);
+                const second = service.snapshotFor([filePath]);
+                assert.strictEqual(first, second, 'snapshotFor should memoize per scheme set');
+            } finally {
+                cleanup(dir);
+            }
+        });
+
+        test('service query methods agree with the snapshot implementation', () => {
+            const { dir, filePath } = createTmpScheme(SCHEME);
+            try {
+                const service = new SubjectSchemeService();
+                service.registerSchemes([filePath]);
+                const snapshot = service.snapshotFor([filePath]);
+                assert.strictEqual(
+                    service.isControlledAttribute('platform'),
+                    snapshot.isControlledAttribute('platform'),
+                );
+                assert.deepStrictEqual(
+                    [...service.getValidValues('platform')!],
+                    [...snapshot.getValidValues('platform')!],
+                );
+            } finally {
+                cleanup(dir);
+            }
+        });
+    });
 });

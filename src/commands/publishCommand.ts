@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { DitaOtWrapper } from '../utils/ditaOtWrapper';
+import { DitaOtWrapper, toVsCodeProgressReporter } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
 import { fireAndForget } from '../utils/errorUtils';
 import { parseDitaOtOutput, getDitaOtDiagnostics } from '../utils/ditaOtErrorParser';
@@ -153,20 +153,11 @@ async function executePublish(
     }, async (progress) => {
 
         // Publish using DITA-OT
-        // publishProgress.percentage is absolute; progress.report expects a delta
-        let lastPercentage = 0;
         const result = await ditaOt.publish({
             inputFile: inputFile,
             transtype: transtype,
             outputDir: outputDir
-        }, (publishProgress) => {
-            // Update VS Code progress
-            progress.report({
-                increment: Math.max(0, publishProgress.percentage - lastPercentage),
-                message: publishProgress.message
-            });
-            lastPercentage = Math.max(lastPercentage, publishProgress.percentage);
-        });
+        }, toVsCodeProgressReporter(progress));
 
         if (result.success) {
             // Clear any previous publishing errors

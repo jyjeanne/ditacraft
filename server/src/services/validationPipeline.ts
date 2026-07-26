@@ -589,8 +589,10 @@ export class ValidationPipeline {
         // Not cached. registerSchemes keeps the shared service state fresh for
         // completion/hover; profiling itself validates against a per-document
         // snapshot so concurrent pipelines can't swap schemes under each other.
-        let schemeQueries: SubjectSchemeQueries = this.subjectSchemeService;
-        let schemeResolutionFailed = false;
+        // schemeQueries === null means resolution failed (timeout, cancel, or
+        // throw) — a single variable so no path can fall back to the shared
+        // mutable service by accident.
+        let schemeQueries: SubjectSchemeQueries | null = this.subjectSchemeService;
         if (keySpaceService && !isLargeFile) {
             try {
                 await timePhaseAsync('SubjectScheme', async () => {
@@ -599,27 +601,33 @@ export class ValidationPipeline {
                         phaseTimeoutMs, 'SubjectScheme', this.log, token,
                     );
                     if (schemePaths === null) {
-                        schemeResolutionFailed = true;
+                        schemeQueries = null;
                         return;
                     }
                     this.subjectSchemeService.registerSchemes(schemePaths);
                     schemeQueries = this.subjectSchemeService.snapshotFor(schemePaths);
                 });
-            } catch (e) { this.log(`[validation] subject scheme registration failed: ${formatError(e)}`); }
+            } catch (e) {
+                schemeQueries = null;
+                this.log(`[validation] subject scheme registration failed: ${formatError(e)}`);
+            }
         }
 
         // Phase 8: Profiling attribute validation (depends on phase 7, skip for large files).
-        // Skipped entirely when scheme resolution timed out — validating against
-        // missing constraints would cache false negatives.
-        if (settings.subjectSchemeValidationEnabled !== false && !isLargeFile && !schemeResolutionFailed) {
+        // Cached results are always served; only fresh computation (and caching)
+        // is skipped when scheme resolution failed — computing against missing
+        // constraints would cache false negatives, but hiding still-valid cached
+        // diagnostics would make them flicker.
+        if (settings.subjectSchemeValidationEnabled !== false && !isLargeFile) {
             const cachedProf = this.getCached(uri, ValidationPhase.Profiling, docVersion, settingsHash);
             if (cachedProf) {
                 diagnostics.push(...cachedProf);
                 cacheHits++;
-            } else {
+            } else if (schemeQueries !== null) {
                 try {
+                    const queries = schemeQueries;
                     const profDiags = timePhase('Profiling', () =>
-                        validateProfilingAttributes(text, schemeQueries, settings.maxNumberOfProblems)
+                        validateProfilingAttributes(text, queries, settings.maxNumberOfProblems)
                     );
                     diagnostics.push(...profDiags);
                     this.setCache(uri, ValidationPhase.Profiling, docVersion, settingsHash, profDiags);

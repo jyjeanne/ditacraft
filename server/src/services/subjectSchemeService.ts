@@ -38,15 +38,21 @@ export interface SubjectSchemeQueries {
     getHierarchyPath(key: string): string | null;
 }
 
-/** Immutable view over an explicitly merged scheme set. */
+/**
+ * Immutable view over an explicitly merged scheme set.
+ * This is the single implementation of the scheme lookups — the service's own
+ * query methods delegate to a lazily built snapshot of its registered state,
+ * so validation (per-document snapshots) and completion/hover (shared state)
+ * can never drift apart.
+ */
 class SubjectSchemeSnapshot implements SubjectSchemeQueries {
     constructor(
         private readonly data: SubjectSchemeData,
-        private readonly schemeCount: number,
+        private readonly hasSchemes: boolean,
     ) {}
 
     hasSchemeData(): boolean {
-        return this.schemeCount > 0;
+        return this.hasSchemes;
     }
 
     isControlledAttribute(attributeName: string): boolean {
@@ -88,6 +94,12 @@ export class SubjectSchemeService implements ISubjectSchemeService {
     /** Merged scheme data from all registered schemes. */
     private mergedData: SubjectSchemeData | null = null;
 
+    /** Lazily built snapshot over mergedData; the service's query methods delegate to it. */
+    private mergedSnapshot: SubjectSchemeSnapshot | null = null;
+
+    /** Memoized per-scheme-set snapshots, keyed by the path list. */
+    private snapshotCache: Map<string, { snapshot: SubjectSchemeSnapshot; timestamp: number }> = new Map();
+
     /**
      * Register subject scheme map paths discovered during key space build.
      * Clears merged cache so next lookup re-merges.
@@ -98,7 +110,9 @@ export class SubjectSchemeService implements ISubjectSchemeService {
         if (changed) {
             this.registeredSchemes = [...schemePaths];
             this.mergedData = null; // force re-merge
+            this.mergedSnapshot = null;
             this.cache.clear(); // clear per-file cache to avoid stale data from old scheme paths
+            this.snapshotCache.clear(); // memoized snapshots were built from that cache
         }
     }
 
@@ -163,7 +177,17 @@ export class SubjectSchemeService implements ISubjectSchemeService {
      * Per-file parse results are shared via the internal cache, so this is cheap.
      */
     snapshotFor(schemePaths: string[]): SubjectSchemeQueries {
-        return new SubjectSchemeSnapshot(this.mergeSchemes(schemePaths), schemePaths.length);
+        const key = schemePaths.join('\u0000');
+        const hit = this.snapshotCache.get(key);
+        if (hit && (Date.now() - hit.timestamp) < this.cacheTtlMs) {
+            return hit.snapshot;
+        }
+        const snapshot = new SubjectSchemeSnapshot(this.mergeSchemes(schemePaths), schemePaths.length > 0);
+        if (this.snapshotCache.size >= 20) {
+            this.snapshotCache.clear(); // tiny cache; wholesale reset is fine
+        }
+        this.snapshotCache.set(key, { snapshot, timestamp: Date.now() });
+        return snapshot;
     }
 
     /** Parse and merge an explicit list of scheme maps (pure — no service state mutation). */
@@ -213,50 +237,45 @@ export class SubjectSchemeService implements ISubjectSchemeService {
         return merged;
     }
 
+    /** Lazily built snapshot over the registered scheme state; the single
+     *  implementation of the lookups lives in SubjectSchemeSnapshot. */
+    private getMergedSnapshot(): SubjectSchemeSnapshot {
+        if (!this.mergedSnapshot) {
+            this.mergedSnapshot = new SubjectSchemeSnapshot(
+                this.getMergedSchemeData(),
+                this.registeredSchemes.length > 0,
+            );
+        }
+        return this.mergedSnapshot;
+    }
+
     /**
      * Look up valid values for an attribute on an element.
      * Falls back to wildcard '*' if no element-specific binding exists.
      */
-    getValidValues(
-        attributeName: string,
-        elementName?: string
-    ): Set<string> | null {
-        const data = this.getMergedSchemeData();
-        const elements = data.validValuesMap.get(attributeName);
-        if (!elements) return null;
-        if (elementName) {
-            return elements.get(elementName) || elements.get(ANY_ELEMENT) || null;
-        }
-        return elements.get(ANY_ELEMENT) || null;
+    getValidValues(attributeName: string, elementName?: string): Set<string> | null {
+        return this.getMergedSnapshot().getValidValues(attributeName, elementName);
     }
 
     /**
      * Check if an attribute is controlled by a subject scheme.
      */
     isControlledAttribute(attributeName: string): boolean {
-        const data = this.getMergedSchemeData();
-        return data.validValuesMap.has(attributeName);
+        return this.getMergedSnapshot().isControlledAttribute(attributeName);
     }
 
     /**
      * Get the hierarchy path for a subject key (e.g., "Platform > Linux > Ubuntu").
      */
     getHierarchyPath(key: string): string | null {
-        const data = this.getMergedSchemeData();
-        return data.hierarchyPaths.get(key) ?? null;
+        return this.getMergedSnapshot().getHierarchyPath(key);
     }
 
     /**
      * Get the default value for an attribute on an element.
      */
     getDefaultValue(attributeName: string, elementName?: string): string | null {
-        const data = this.getMergedSchemeData();
-        const elements = data.defaultValueMap.get(attributeName);
-        if (!elements) return null;
-        if (elementName) {
-            return elements.get(elementName) ?? elements.get(ANY_ELEMENT) ?? null;
-        }
-        return elements.get(ANY_ELEMENT) ?? null;
+        return this.getMergedSnapshot().getDefaultValue(attributeName, elementName);
     }
 
     /** Check if any scheme data is available. */
@@ -268,6 +287,8 @@ export class SubjectSchemeService implements ISubjectSchemeService {
     invalidate(filePath: string): void {
         this.cache.delete(filePath);
         this.mergedData = null;
+        this.mergedSnapshot = null;
+        this.snapshotCache.clear();
     }
 
     /** Clear all caches. */
@@ -275,6 +296,8 @@ export class SubjectSchemeService implements ISubjectSchemeService {
         this.cache.clear();
         this.registeredSchemes = [];
         this.mergedData = null;
+        this.mergedSnapshot = null;
+        this.snapshotCache.clear();
     }
 
     // --- Internal: Parsing ---

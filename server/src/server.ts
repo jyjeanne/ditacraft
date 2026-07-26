@@ -300,7 +300,9 @@ connection.onDidChangeWatchedFiles(async (params: DidChangeWatchedFilesParams) =
 
     for (const change of classification.changes) {
         if (change.isMap) {
-            keySpaceService?.invalidateForFile(change.fsPath);
+            // Created (1) / Deleted (3) can change root-map discovery; a
+            // content change (2) only affects key definitions.
+            keySpaceService?.invalidateForFile(change.fsPath, change.type !== 2);
             subjectSchemeService.invalidate(change.fsPath);
         }
     }

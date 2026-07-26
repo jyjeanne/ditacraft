@@ -221,7 +221,7 @@ docs/                         # Architecture docs
 
 ## Using the Knowledge Graph
 
-A pre-built, always-up-to-date knowledge graph of the codebase lives in `docs/graph/graph.json` (1,600+ nodes: classes, functions, files, and their imports/calls/contains relationships, clustered into communities). **Query it before grepping** when you need architectural understanding — it answers "what connects to what" questions in one command instead of many file reads.
+A pre-built, always-up-to-date knowledge graph of the codebase lives in `docs/graph/graph.json` (~1,500 nodes: classes, functions, files, and their imports/calls/contains relationships, clustered into communities). **Query it before grepping** when you need architectural understanding — it answers "what connects to what" questions in one command instead of many file reads.
 
 ### Query Commands
 

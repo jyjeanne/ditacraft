@@ -41,7 +41,16 @@ function makeSubjectSchemeService(overrides: Partial<SubjectSchemeService> = {})
         hasSchemeData: () => false,
         registerSchemes: () => {},
         getValidValues: () => null,
+        getDefaultValue: () => null,
+        getHierarchyPath: () => null,
         isControlledAttribute: () => false,
+        snapshotFor: () => ({
+            hasSchemeData: () => false,
+            isControlledAttribute: () => false,
+            getValidValues: () => null,
+            getDefaultValue: () => null,
+            getHierarchyPath: () => null,
+        }),
         invalidate: () => {},
         shutdown: () => {},
         ...overrides,
@@ -1047,6 +1056,80 @@ suite('ValidationPipeline', () => {
                 diags.filter(d => d.code === 'DITA-XML-001').length, 0,
                 'comment-suppressed diagnostics must not resurface on budget-exceeded runs',
             );
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    suite('Subject scheme resolution failure handling', () => {
+
+        /** Query surface that flags a "platform" constraint violating any value. */
+        function strictQueries() {
+            return {
+                hasSchemeData: () => true,
+                isControlledAttribute: (attr: string) => attr === 'platform',
+                getValidValues: () => new Set(['linux']),
+                getDefaultValue: () => null,
+                getHierarchyPath: () => null,
+            };
+        }
+
+        const PROFILED_TOPIC =
+            '<topic id="t1"><title>T</title><body><p platform="windows">x</p></body></topic>';
+
+        test('rejected scheme resolution must not validate against the shared service', async () => {
+            // Shared service claims constraints exist — if the pipeline wrongly
+            // falls back to it after a rejection, profiling would produce and
+            // cache a diagnostic. It must not.
+            const sharedService = makeSubjectSchemeService(strictQueries() as Partial<SubjectSchemeService>);
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                sharedService,
+            );
+            const rejectingKeySpace = {
+                getSubjectSchemePaths: () => Promise.reject(new Error('fs exploded')),
+                getWorkspaceFolders: () => [] as string[],
+            } as unknown as import('../src/services/keySpaceService').KeySpaceService;
+
+            const settings: DitaCraftSettings = { ...defaultSettings, crossRefValidationEnabled: false };
+            const doc = createDoc(PROFILED_TOPIC);
+            const diags = await pipeline.validate(doc, settings, rejectingKeySpace, emptyWorkspace);
+            assert.strictEqual(
+                diags.filter(d => d.code === 'DITA-PROF-001').length, 0,
+                'profiling must be skipped (not run against shared state) when scheme resolution throws',
+            );
+        });
+
+        test('cached profiling diagnostics survive a later scheme-resolution failure', async () => {
+            const sharedService = makeSubjectSchemeService({
+                snapshotFor: () => strictQueries(),
+            } as Partial<SubjectSchemeService>);
+            const pipeline = new ValidationPipeline(
+                makeCatalogService(),
+                makeRngService(),
+                sharedService,
+            );
+            const settings: DitaCraftSettings = { ...defaultSettings, crossRefValidationEnabled: false };
+            const doc = createDoc(PROFILED_TOPIC);
+
+            // Run 1: scheme resolution succeeds; profiling diagnostic produced and cached.
+            const okKeySpace = {
+                getSubjectSchemePaths: async () => ['/schemes/s.ditamap'],
+                getWorkspaceFolders: () => [] as string[],
+            } as unknown as import('../src/services/keySpaceService').KeySpaceService;
+            const first = await pipeline.validate(doc, settings, okKeySpace, emptyWorkspace);
+            assert.strictEqual(first.filter(d => d.code === 'DITA-PROF-001').length, 1,
+                'run 1 should produce the profiling diagnostic');
+
+            // Run 2: same doc version, but scheme resolution now rejects. The
+            // cached diagnostic must still be reported (no flicker).
+            const rejectingKeySpace = {
+                getSubjectSchemePaths: () => Promise.reject(new Error('slow disk')),
+                getWorkspaceFolders: () => [] as string[],
+            } as unknown as import('../src/services/keySpaceService').KeySpaceService;
+            const second = await pipeline.validate(doc, settings, rejectingKeySpace, emptyWorkspace);
+            assert.strictEqual(second.filter(d => d.code === 'DITA-PROF-001').length, 1,
+                'run 2 must serve the cached profiling diagnostic despite the resolution failure');
         });
     });
 

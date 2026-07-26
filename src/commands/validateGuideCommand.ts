@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
 import { promises as fsPromises } from 'fs';
-import { DitaOtWrapper } from '../utils/ditaOtWrapper';
+import { DitaOtWrapper, toVsCodeProgressReporter } from '../utils/ditaOtWrapper';
 import { parseDitaOtOutput, getDitaOtDiagnostics } from '../utils/ditaOtErrorParser';
 import { logger } from '../utils/logger';
 import { ValidationReportPanel, ValidationReport, ValidationIssue } from '../providers/validationReportPanel';
@@ -139,21 +139,13 @@ async function executeValidation(context: vscode.ExtensionContext): Promise<void
                 cancellable: false,
             },
             async (progress) => {
-                // publishProgress.percentage is absolute; progress.report expects a delta
-                let lastPercentage = 0;
                 return await ditaOt.publish(
                     {
                         inputFile: rootMapPath,
                         transtype,
                         outputDir: tempDir,
                     },
-                    (publishProgress) => {
-                        progress.report({
-                            increment: Math.max(0, publishProgress.percentage - lastPercentage),
-                            message: publishProgress.message,
-                        });
-                        lastPercentage = Math.max(lastPercentage, publishProgress.percentage);
-                    }
+                    toVsCodeProgressReporter(progress)
                 );
             }
         );

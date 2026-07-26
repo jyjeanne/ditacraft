@@ -31,7 +31,16 @@ function makeSubjectSchemeService(): SubjectSchemeService {
         hasSchemeData: () => false,
         registerSchemes: () => {},
         getValidValues: () => null,
+        getDefaultValue: () => null,
+        getHierarchyPath: () => null,
         isControlledAttribute: () => false,
+        snapshotFor: () => ({
+            hasSchemeData: () => false,
+            isControlledAttribute: () => false,
+            getValidValues: () => null,
+            getDefaultValue: () => null,
+            getHierarchyPath: () => null,
+        }),
         invalidate: () => {},
         shutdown: () => {},
     } as unknown as SubjectSchemeService;

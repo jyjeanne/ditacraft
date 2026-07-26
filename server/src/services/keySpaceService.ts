@@ -11,7 +11,7 @@ import { promises as fsPromises } from 'fs';
 
 import { XMLParser } from 'fast-xml-parser';
 import { TAG_ATTRS } from '../utils/patterns';
-import { stripCommentsAndCDATA, isPathWithinWorkspace, normalizeFsPath } from '../utils/textUtils';
+import { stripCommentsAndCDATA, isPathWithinWorkspace, findContainingWorkspaceFolder, normalizeFsPath } from '../utils/textUtils';
 import { IKeySpaceService } from './interfaces';
 
 // --- Interfaces ---
@@ -116,6 +116,14 @@ const MAX_INLINE_SCOPE_DEPTH = 10;
 /** Cap on total qualified scope-alias entries to guard against combinatorial explosion. */
 const MAX_KEY_SPACE_ENTRIES = 50_000;
 const ROOT_MAP_CACHE_TTL_MS = ONE_MINUTE_MS;
+
+/**
+ * How many directory levels findRootMap scans upward for files that live
+ * outside every workspace folder (the file's own directory counts as 1).
+ * Keeps nearby-map discovery for loose files without ever scanning $HOME
+ * or the filesystem root.
+ */
+const OUTSIDE_WORKSPACE_MAX_WALK_LEVELS = 3;
 const FILE_WATCHER_DEBOUNCE_MS = 300;
 const MIN_CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
 const CACHE_CLEANUP_RATIO = 3;
@@ -140,11 +148,19 @@ export class KeySpaceService implements IKeySpaceService {
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
     private cacheConfig: CacheConfig;
     private pendingBuilds: Map<string, Promise<KeySpace>> = new Map();
-    /** Bumped on every invalidation; in-flight builds that started under an
-     *  older generation drop their cache write so stale data can't resurrect. */
+    /** Bumped on structural invalidations (workspace/root-map/path changes);
+     *  in-flight builds and root-map lookups that started under an older
+     *  generation drop their cache write so stale data can't resurrect. */
     private cacheGeneration = 0;
+    /** Files invalidated while builds are in flight. Each build captures the
+     *  log length at start; on completion it drops its cache write only if a
+     *  logged file is in ITS map hierarchy — so unrelated builds keep caching. */
+    private invalidationLog: string[] = [];
+    /** Count of builds currently executing (owners of pendingBuilds entries). */
+    private inFlightBuilds = 0;
     private debounceTimer: ReturnType<typeof setTimeout> | undefined;
-    private pendingInvalidations: Set<string> = new Set();
+    /** changed file → pathChanged (true when created/deleted/renamed). */
+    private pendingInvalidations: Map<string, boolean> = new Map();
     private cleanupTimer: ReturnType<typeof setInterval> | undefined;
 
     /** Explicitly set root map path (overrides auto-discovery). */
@@ -185,11 +201,21 @@ export class KeySpaceService implements IKeySpaceService {
      */
     public setExplicitRootMap(rootMapPath: string | null): void {
         this.explicitRootMapPath = rootMapPath;
-        // Clear both caches so findRootMap uses the new explicit path
+        // Full invalidation so findRootMap uses the new explicit path
         // and key space is rebuilt from the new root map
+        this.invalidateAllCaches();
+    }
+
+    /**
+     * Structural invalidation: bump the generation and clear every cache, so
+     * in-flight builds and root-map lookups can't write stale results back,
+     * and new callers can't join pre-invalidation builds.
+     */
+    private invalidateAllCaches(): void {
         this.cacheGeneration++;
-        this.rootMapCache.clear();
         this.keySpaceCache.clear();
+        this.rootMapCache.clear();
+        this.pendingBuilds.clear();
     }
 
     /** Get the current explicit root map path (null if auto-discovering). */
@@ -448,20 +474,46 @@ export class KeySpaceService implements IKeySpaceService {
         }
 
         const generationAtStart = this.cacheGeneration;
+        const invalidationLogStart = this.invalidationLog.length;
+        this.inFlightBuilds++;
         const buildPromise = this.doBuildKeySpace(absoluteRootPath);
         this.pendingBuilds.set(absoluteRootPath, buildPromise);
 
         try {
             const keySpace = await buildPromise;
-            if (generationAtStart !== this.cacheGeneration) {
-                // An invalidation raced with this build: the result may be based
-                // on pre-change file reads. Serve it once but don't keep it.
+            if (this.isBuildStale(generationAtStart, invalidationLogStart, keySpace)) {
+                // An invalidation affecting this build raced with it: the result
+                // may be based on pre-change file reads. Serve it once but don't keep it.
                 this.keySpaceCache.delete(absoluteRootPath);
             }
             return keySpace;
         } finally {
-            this.pendingBuilds.delete(absoluteRootPath);
+            this.inFlightBuilds--;
+            // Invalidation may have cleared our entry (so newer callers rebuild);
+            // only remove it if it is still ours.
+            if (this.pendingBuilds.get(absoluteRootPath) === buildPromise) {
+                this.pendingBuilds.delete(absoluteRootPath);
+            }
+            if (this.inFlightBuilds === 0) {
+                this.invalidationLog.length = 0;
+            }
         }
+    }
+
+    /**
+     * Did an invalidation that affects THIS build happen while it ran?
+     * Structural invalidations (generation bump) affect every build; per-file
+     * invalidations only affect builds whose map hierarchy contains the file.
+     */
+    private isBuildStale(
+        generationAtStart: number,
+        invalidationLogStart: number,
+        keySpace: KeySpace,
+    ): boolean {
+        if (generationAtStart !== this.cacheGeneration) return true;
+        if (invalidationLogStart >= this.invalidationLog.length) return false;
+        const changed = new Set(this.invalidationLog.slice(invalidationLogStart));
+        return keySpace.mapHierarchy.some(m => changed.has(normalizeFsPath(m)));
     }
 
     /**
@@ -489,20 +541,25 @@ export class KeySpaceService implements IKeySpaceService {
 
         let currentDir = path.dirname(absolutePath);
         // Stop at the workspace folder that actually contains the file
-        // (multi-root safe). Files outside every folder walk to the fs root,
-        // matching their not-workspace-bound handling elsewhere.
-        const normalizedDir = normalizeFsPath(currentDir);
-        const containingFolder = this.workspaceFolders.find(f => {
-            const nf = normalizeFsPath(f);
-            return normalizedDir === nf || normalizedDir.startsWith(nf + path.sep);
-        });
-        const stopDir = containingFolder ?? path.parse(currentDir).root;
+        // (multi-root safe). Deliberate: a root map living ABOVE a workspace
+        // folder is outside the workspace and is not discovered.
+        // Files outside every folder get a short bounded walk instead —
+        // never up to $HOME or the fs root, where a stray .ditamap would
+        // hijack root-map discovery ("higher directories overwrite lower").
+        const containingFolder = findContainingWorkspaceFolder(currentDir, this.workspaceFolders);
+        const stopDir = containingFolder ?? null;
+        const maxLevels = stopDir === null ? OUTSIDE_WORKSPACE_MAX_WALK_LEVELS : Number.POSITIVE_INFINITY;
 
-        // Search all the way up to workspace root.
+        // Skip the rootMapCache write below if any invalidation runs while we
+        // are awaiting readdir — same stale-write guard as buildKeySpace.
+        const generationAtStart = this.cacheGeneration;
+
+        // Search up to the stop directory.
         // Root maps are typically at the project root, so prefer maps at
         // the highest level (closest to workspace root).
         const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
         let bestMap: string | null = null;
+        let level = 0;
 
         while (currentDir) {
             try {
@@ -532,27 +589,37 @@ export class KeySpaceService implements IKeySpaceService {
                 // Directory not readable
             }
 
-            if (normalizeFsPath(currentDir) === normalizeFsPath(stopDir)) break;
+            level++;
+            if (stopDir !== null && normalizeFsPath(currentDir) === normalizeFsPath(stopDir)) break;
+            if (level >= maxLevels) break;
             const parentDir = path.dirname(currentDir);
             if (parentDir === currentDir) break;
             currentDir = parentDir;
         }
 
-        this.rootMapCache.set(cacheKey, { rootMap: bestMap, timestamp: Date.now() });
+        if (generationAtStart === this.cacheGeneration) {
+            this.rootMapCache.set(cacheKey, { rootMap: bestMap, timestamp: Date.now() });
+        }
         return bestMap;
     }
 
-    /** Invalidate cache entries for a changed file. */
-    public invalidateForFile(changedFile: string): void {
-        this.pendingInvalidations.add(changedFile);
+    /**
+     * Invalidate cache entries for a changed file (debounced).
+     * @param pathChanged true when the file was created, deleted, or renamed —
+     *   only such changes can alter name-based root-map discovery, so plain
+     *   content edits keep the root-map cache intact.
+     */
+    public invalidateForFile(changedFile: string, pathChanged = false): void {
+        const existing = this.pendingInvalidations.get(changedFile) ?? false;
+        this.pendingInvalidations.set(changedFile, existing || pathChanged);
 
         if (this.debounceTimer) {
             clearTimeout(this.debounceTimer);
         }
 
         this.debounceTimer = setTimeout(() => {
-            for (const file of this.pendingInvalidations) {
-                this.doInvalidate(file);
+            for (const [file, pc] of this.pendingInvalidations) {
+                this.doInvalidate(file, pc);
             }
             this.pendingInvalidations.clear();
             this.debounceTimer = undefined;
@@ -568,9 +635,7 @@ export class KeySpaceService implements IKeySpaceService {
         this.workspaceFolders.push(...added);
 
         // Invalidate all caches since workspace context changed
-        this.cacheGeneration++;
-        this.keySpaceCache.clear();
-        this.rootMapCache.clear();
+        this.invalidateAllCaches();
     }
 
     /** Reload cache configuration from settings. */
@@ -1426,14 +1491,26 @@ export class KeySpaceService implements IKeySpaceService {
 
     // --- Internal: Helpers ---
 
-    private doInvalidate(changedFile: string): void {
+    private doInvalidate(changedFile: string, pathChanged: boolean): void {
         const normalizedPath = normalizeFsPath(changedFile);
-        this.cacheGeneration++;
 
-        // A changed map can alter root-map discovery for any directory
-        // (preferred-name and highest-level rules), not just its own — clear
-        // the whole cache; it is small and rebuilt on demand.
-        this.rootMapCache.clear();
+        // Let in-flight builds detect whether THIS file affects them (scoped
+        // staleness check in isBuildStale — unrelated builds keep caching).
+        if (this.inFlightBuilds > 0) {
+            this.invalidationLog.push(normalizedPath);
+        }
+        // New callers must not join possibly-stale in-flight builds; the
+        // builds themselves still resolve for their current awaiters.
+        this.pendingBuilds.clear();
+
+        if (pathChanged) {
+            // A created/deleted/renamed map can alter name-based root-map
+            // discovery for any directory (preferred-name and highest-level
+            // rules) — clear the whole cache and fail in-flight lookups.
+            // Content edits cannot change discovery, so they skip this.
+            this.cacheGeneration++;
+            this.rootMapCache.clear();
+        }
 
         const toDelete: string[] = [];
         for (const [rootMap, keySpace] of this.keySpaceCache.entries()) {

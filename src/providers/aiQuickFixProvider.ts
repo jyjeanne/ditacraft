@@ -102,7 +102,9 @@ export async function executeAiQuickFix(
         return;
     }
 
-    if (document.version !== versionBefore) {
+    // isClosed matters too: a closed document detaches and its version freezes,
+    // so a version compare alone would pass against a file modified after closing.
+    if (document.isClosed || document.version !== versionBefore) {
         vscode.window.showWarningMessage(
             'DitaCraft AI: The document changed while the fix was being generated — fix not applied. Run the quick fix again.'
         );
