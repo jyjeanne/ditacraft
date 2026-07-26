@@ -2,7 +2,7 @@
 
 name: ai-spec-review
 description: Review a markdown specification across business logic, architecture, performance, security, testing, DevOps/CI/CD, dependencies, standards, UX, documentation, code quality, and maintainability. Generates a structured review, risk register, test plan, implementation tasks, and dimension scores (0–10).
-version: 2.0.0
+version: 2.1.0
 author: senior-dev-ai
 tags:
   - code-review
@@ -75,6 +75,7 @@ summary:
 issues:
   - title:
     severity: low|medium|high|critical
+    confidence: high|medium|low
     category: spec|business_logic|architecture|performance|security|testing|devops|dependencies|standards|ux|documentation|code_quality|maintainability
     description:
     impact:
@@ -126,6 +127,8 @@ security_review:
   authn_authz: null
   data_protection: null
   secrets_and_key_management: null
+  data_flow_analysis: null
+  rate_limiting_and_abuse_prevention: null
   auditability_and_abuse_cases: []
 
 testing_review:
@@ -155,6 +158,7 @@ dependency_review:
   supply_chain_risks: []
   licensing_or_compliance: []
   replacement_or_isolation_strategy: []
+  vulnerable_packages: []
 
 standards_review:
   applicable_standards: []
@@ -287,6 +291,7 @@ Use `score` values as integers from `0` to `10`.
 * `tasks.epics[].addresses` and `tasks.items[].addresses` — reference to `risk_register` ids (e.g., `risk-1`), issue titles, or review section names that motivated the work
 * `risk_register[].owner` — role or team responsible for the mitigation (e.g., `spec_author`, `backend_team`, `security_team`, `devops_team`)
 * `issues[].source_section` — the specification section heading or document area where the evidence was found; use `"automated_preflight"` for script-generated issues
+* `issues[].confidence` — how certain the reviewer is that the finding is a genuine gap: `high` (unambiguous gap), `medium` (likely gap, depends on context), `low` (suspicious but may be a false positive)
 * `security_review.owasp` — list of OWASP Top 10 category ids that are relevant (e.g., `A01`, `A03`), each with a brief finding note
 
 ### Null and empty conventions
@@ -300,6 +305,30 @@ Use `score` values as integers from `0` to `10`.
 * `business_logic_review.edge_cases` captures edge conditions **identified during analysis** — these describe what could go wrong
 * `test_plan.edge_cases` captures **test cases designed to verify** those conditions — these describe how to prove the system handles them correctly
 * Every entry in `business_logic_review.edge_cases` should have a corresponding entry in `test_plan.edge_cases` unless the edge case is explicitly accepted as out of scope
+
+---
+
+## Step 0 - Scope Resolution and Context Loading
+
+Before beginning the review, establish context for the specification under review.
+
+### Identify
+
+* the technology stack (languages, frameworks, platforms) named or implied by the specification
+* existing project guidelines (e.g., `.github/instructions/*.md`, `.github/copilot-instructions.md`, coding standards documents) — load and apply them during the review
+* the specification format and structure (single document, multi-part, with or without diagrams)
+* whether the specification targets a new system, an enhancement to an existing system, or a migration
+
+### Determine review scope
+
+* If a specific focus was requested (e.g., "focus on security and performance"), prioritize those dimensions but still assess all others at a lighter level
+* If the specification is part of a larger system, note the boundaries of what is and is not covered
+* Load language-specific and framework-specific review signals from `references/language_security_patterns.md` based on the identified technology stack
+
+### Constraints
+
+* Do not reorganize or split the specification document — review it as provided
+* If the specification references external documents, note what was and was not available for review
 
 ---
 
@@ -378,7 +407,7 @@ You are a senior architect.
 * missing integration contracts
 * architecture that blocks future change
 
-Ground architecture feedback in `references/architecture_review.md`, using `clean_code.md` and `design_patterns.md` as supporting material.
+Ground architecture feedback in `references/architecture_review.md`, using `references/clean_code.md` and `references/design_patterns.md` as supporting material.
 
 ---
 
@@ -416,12 +445,32 @@ You are a senior security reviewer.
 
 * authentication and authorization boundaries
 * data classification and exposure risks
-* input validation and injection risks
-* cryptographic requirements
-* secrets handling
+* input validation and injection risks (SQL, XSS, command, SSRF, LDAP, XPath, header, log injection, XXE, SSTI)
+* cryptographic requirements (algorithms, key management, randomness)
+* secrets handling and credential management lifecycle
 * tenant isolation or data partitioning
 * logging, auditability, and incident response hooks
 * external service trust boundaries
+* session management (fixation, timeout, CSRF)
+* rate limiting on sensitive endpoints (login, 2FA, recovery, email/SMS sending)
+
+### Assess secrets and credential management
+
+* secret storage strategy (vault, KMS, environment variables)
+* secret rotation requirements and schedule
+* CI/CD and infrastructure secret handling (no secrets in images, build args, or env blocks)
+* files that must never be committed (.env, *.pem, *.key, credentials.json)
+* secret detection and prevention in development workflow (pre-commit hooks, CI gates)
+* incident response procedure for exposed secrets
+
+Ground secrets management assessment in `references/secret_management_checklist.md`.
+
+### Evaluate data flow security
+
+* trace user-controlled input from entry points to data sinks (queries, commands, templates, file paths, outbound requests)
+* identify trust boundaries between components, services, and external systems
+* check for second-order vulnerabilities: data stored safely but used unsafely later
+* verify that validation happens at trust boundaries, not just at the UI layer
 
 ### Flag
 
@@ -431,10 +480,17 @@ You are a senior security reviewer.
 * vague data retention or deletion rules
 * integrity failures in workflow approvals or callbacks
 * missing controls for misuse and abuse
+* BOLA/IDOR risks (resource access by ID without ownership verification)
+* JWT weaknesses (algorithm confusion, missing expiry, insecure storage)
+* mass assignment or parameter pollution risks
+* missing rate limiting on authentication or expensive operations
+* predictable resource identifiers (sequential numeric IDs)
+* race conditions in financial or state-changing operations
+* sensitive data in logs, error messages, or API responses
 
 Map findings to OWASP categories where relevant.
 
-Ground security feedback in `references/owasp_top10.md`, including the review signals and abuse cases documented there.
+Ground security feedback in `references/owasp_top10.md`, `references/security_vulnerability_patterns.md`, and `references/language_security_patterns.md` (for stack-specific patterns identified in Step 0).
 
 ---
 
@@ -521,11 +577,20 @@ Review external and internal dependencies as design risks.
 ### Evaluate
 
 * critical libraries, services, and third-party platforms
-* versioning strategy
+* versioning strategy and lockfile integrity
 * upgrade path and compatibility risk
 * lock-in or vendor dependency
 * package trust and supply-chain exposure
 * blast radius if a dependency degrades or disappears
+* ecosystem-specific vulnerability history (check against `references/vulnerable_packages_watchlist.md` for the identified technology stack)
+
+### Assess supply-chain risks
+
+* dependency scanning in CI/CD (automated audit gates)
+* policy for evaluating and approving new dependencies
+* transitive dependency tree size and risk concentration
+* typosquatting indicators (names one character off from popular packages, forks from unknown publishers, recently transferred packages)
+* deprecated or end-of-life dependencies still in use
 
 ### Flag
 
@@ -533,8 +598,11 @@ Review external and internal dependencies as design risks.
 * no isolation layer around critical providers
 * no fallback or degradation strategy
 * use of immature or unmaintained dependencies
+* dependencies with known critical CVEs in the specified or implied version range
+* no dependency scanning or audit gate in the CI pipeline
+* missing lockfile integrity verification
 
-Ground dependency feedback in `references/dependency_review.md`.
+Ground dependency feedback in `references/dependency_review.md` and `references/vulnerable_packages_watchlist.md`.
 
 ---
 
@@ -719,6 +787,40 @@ Tasks should be implementation-oriented, prioritized by risk, and traceable to r
 
 ---
 
+## Step 15 - Self-Verification Pass
+
+Before producing the final output, re-examine every finding and risk.
+
+### For each issue
+
+1. Re-read the relevant specification section with fresh eyes
+2. Ask: "Is this actually a gap, or did I miss context elsewhere in the spec?"
+3. Check if another section of the spec already addresses the concern
+4. Verify the severity is justified — downgrade or discard findings that are not genuine gaps
+5. Assign a final confidence rating: `high`, `medium`, or `low`
+
+### Confidence ratings guide
+
+| Confidence | When to use |
+|------------|-------------|
+| **high** | The gap is unambiguous. The spec clearly lacks the required control or definition. |
+| **medium** | The gap likely exists but depends on context not fully visible in the spec (e.g., handled by an external system or convention). |
+| **low** | Suspicious pattern but could be a false positive. Flag for author clarification. |
+
+### For each risk register entry
+
+* Verify the trigger is specific and actionable
+* Verify the mitigation is concrete, not generic
+* Remove duplicate risks that are better captured as issues
+
+### Final checks
+
+* Ensure every entry in `business_logic_review.edge_cases` has a corresponding entry in `test_plan.edge_cases` (or is explicitly noted as out of scope)
+* Ensure every CRITICAL or HIGH issue has a concrete, actionable recommendation
+* Verify that `tasks` trace back to `risk_register` entries or review findings via `addresses`
+
+---
+
 ## Behavior Rules
 
 * be critical about missing information and contradictions
@@ -729,7 +831,11 @@ Tasks should be implementation-oriented, prioritized by risk, and traceable to r
 * treat operability, security, and maintainability as first-class review dimensions
 * do not hide uncertainty — state what cannot be assessed from the current specification
 * populate the `risk_register` with every material risk surfaced during Steps 1–12; each entry must have a severity, likelihood, trigger, and mitigation
+* assign a `confidence` rating (high, medium, low) to every issue; never omit confidence — it helps engineers prioritize review effort
+* perform the self-verification pass (Step 15) before producing final output; downgrade or discard findings that do not survive re-examination
+* when reviewing a specification that names a specific technology stack, load the relevant patterns from `references/language_security_patterns.md` and `references/vulnerable_packages_watchlist.md` to ground stack-specific findings
 * when a review dimension does not apply to the specification (e.g., UX for a pure backend library), set its review section fields to `null` or `[]`, set its score to `null`, and add a brief note in the section explaining why the dimension was skipped
 * if the same problem is relevant to multiple review dimensions, file it as a single issue under the most specific category and cross-reference the affected dimensions in the description
+* read and respect existing project coding guidelines and instructions (e.g., `.github/instructions/*.md`, `.github/copilot-instructions.md`) when they are available — factor them into review findings
 
 ---
