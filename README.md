@@ -5,7 +5,7 @@
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.80+-blue.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-0.8.0-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.8.2-orange.svg)](CHANGELOG.md)
 
 DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, real-time validation, smart navigation, AI-powered assistance, an MCP server for external AI agents, and seamless integration with DITA-OT for multi-format publishing.
 
@@ -47,7 +47,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
 🤖 **AI-Powered Features** - GitHub Copilot integration: `@ditacraft` chat participant, AI Quick Fix, AI Completion, map restructuring, and multi-provider cascade (Copilot → Anthropic → OpenAI → Ollama)
 🔌 **MCP Server** - Standalone Model Context Protocol server for external AI agents (opencode, Claude Desktop, Cursor, Continue) — 6 tools, 3 resources, zero VS Code dependency
-🧪 **1564+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
+🧪 **1770+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
 📚 **DITA User Guide** - Comprehensive documentation written in DITA (~80 files, bookmap structure)
 
 ## Features
@@ -678,7 +678,7 @@ Track progress: see the [Roadmap](ROADMAP.md#milestone-7-publishing-enhancements
 
 DitaCraft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
 
-> **Status:** MCP server is **available** in v0.8.0 (current). Build with `npm run build-standalone` to produce `dist/mcp-server.js` and `dist/lsp-server.js`.
+> **Status:** MCP server is **available** since v0.8.0 (current release: v0.8.2). Build with `npm run build-standalone` to produce `dist/mcp-server.js` and `dist/lsp-server.js`.
 
 ### What is MCP?
 
@@ -1108,7 +1108,49 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.8.0 (Current)
+### Version 0.8.2 (Current)
+**Security Hardening, Key Space & Validation Race Fixes, Knowledge Graph**
+
+**Added:**
+- **Knowledge Graph (graphify)** — `npm run graph` generates a queryable codebase graph (`docs/graph/graph.json`, `GRAPH_REPORT.md`, `graph.svg`, interactive studio viewer, `flows.json`) via local tree-sitter AST extraction — no LLM/API keys. Auto-regenerates in `npm run watch` and on every push to `main`.
+
+**Fixed — Security / path traversal:**
+- Shared `isPathWithinWorkspace()` guard applied consistently across hover, completion, definition, cross-reference validation, circular-reference detection, document links, and the MCP context-graph handler
+- Documents opened outside every workspace folder no longer misapply workspace-boundary checks to same-directory sibling references
+
+**Fixed — Key space / cross-file references:**
+- Diamond-shaped `@keyscope` map graphs no longer lose keys from re-visited submaps
+- Windows case-mismatch in key-space path comparisons resolved (could silently miss key lookups/cache invalidation)
+- Rename and Find All References now verify `conkeyref` matches resolve to the target file via the key space before rewriting/reporting, instead of matching on element-ID text alone
+- Cross-file reference/rename `resolveKey` calls now run in parallel
+
+**Fixed — Validation pipeline races and caching:**
+- Timed-out/cancelled async validation phases no longer cache their empty fallback as a valid result (could mask broken links up to 5 minutes)
+- Cancellation/budget-exceeded exits now still apply severity overrides, comment suppression, and the diagnostics cap
+- Profiling validation now uses an immutable per-document subject-scheme snapshot instead of shared cross-document state
+- AI Quick Fix now checks document version/closed state before applying an edit, preventing stale-edit application after a slow LLM call
+- Settings cache no longer permanently poisoned by a single transient configuration-fetch failure
+- Saving a `.dita` topic now correctly invalidates cross-reference diagnostics cached in other open documents
+
+**Fixed — Editing / navigation:**
+- Consolidated a recurring mismatched-closing-tag stack-desync bug (found across content model validation, symbols, folding, completion) into a shared `resyncStackToMatch()` helper
+- DITA-SCH-011 quick fix no longer rewrites the wrong `<image>` element
+- `body`/`conbody`/`section` content models now accept `parml`, `screen`, `syntaxdiagram`
+- DITA-OT progress percentages no longer misapplied as cumulative increments
+
+**Dependencies:** `@anthropic-ai/sdk` → 0.112.4, `vscode-languageclient` → 10.0.1, `fast-xml-parser` → 5.10.1, `typesxml` → 2.2.1, `c8` → 12.0.0, plus dev-dependency and `actions/setup-node` bumps
+
+**1770+ Total Tests** — Client (710) + Server (977) + MCP (83)
+
+### Version 0.8.1
+**Preview Auto-Refresh Fix & Build Tooling**
+- **Preview auto-refresh on save** (#96) — `ditacraft.previewAutoRefresh` now actually re-renders the preview when the previewed source file is saved (debounced 500ms, serialized refreshes, focus-preserving)
+- **CommonJS test build fix** — resolved a `MODULE_TYPELESS_PACKAGE_JSON` failure in the test runner
+- **vscode-languageclient 10 resolution fix** — corrected `moduleResolution` for the new `exports`-based package layout
+- **Minimum VS Code version raised to 1.125.0** to match the bumped `@types/vscode`, restoring `vsce package`
+- **Dependencies** — `vscode-languageclient` 9.0.1 → 10.0.0, `@vscode/test-electron` 2.5.2 → 3.0.0, `@types/node` 25.9.3 → 26.0.0, `actions/checkout` 6 → 7
+
+### Version 0.8.0
 **MCP Server, Standalone LSP Server & Standalone Bundles**
 
 **MCP Server (`mcp/`):**
@@ -1341,7 +1383,9 @@ We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md]
 - **v0.7.2** - Severity Overrides, Custom Rules, Architecture Improvements (1375+ tests) ✅ **COMPLETE**
 - **v0.7.3** - Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TypeScript 6.0, TypesXML 2.0 (1564+ tests) ✅ **COMPLETE**
 - **v0.7.4** - AI Integration: Copilot, Anthropic, OpenAI, Ollama; @ditacraft chat participant, AI Quick Fix, AI Completion ✅ **COMPLETE**
-- **v0.8.0** - MCP Server (6 tools, 3 resources), Standalone LSP Server, standalone bundles ✅ **CURRENT**
+- **v0.8.0** - MCP Server (6 tools, 3 resources), Standalone LSP Server, standalone bundles ✅ **COMPLETE**
+- **v0.8.1** - Preview auto-refresh fix, build tooling fixes ✅ **COMPLETE**
+- **v0.8.2** - Security hardening, key space & validation race fixes, knowledge graph (1770+ tests) ✅ **CURRENT**
 - **v0.9.0** - Publishing Enhancements (profiles, DITAVAL editor)
 
 ## Contributing
