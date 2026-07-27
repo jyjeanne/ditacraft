@@ -882,8 +882,8 @@
     "typescript-eslint": "^8.65.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.112.4",
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@xmldom/xmldom": "^0.9.10",
     "fast-xml-parser": "^5.10.1",
     "openai": "^6.48.0",
