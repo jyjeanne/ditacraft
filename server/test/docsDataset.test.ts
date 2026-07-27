@@ -76,10 +76,32 @@ const DITA_RULES_SETTINGS: DitaRulesSettings = {
 };
 
 // ---------------------------------------------------------------------------
+// Dataset availability guard
+// ---------------------------------------------------------------------------
+
+// These tests depend on the local docs-develop DITA dataset which is not
+// checked into the repository. Skip gracefully on CI or machines that do
+// not have the dataset checked out at DOCS_ROOT.
+const DATASET_AVAILABLE = fs.existsSync(DOCS_ROOT) && fs.existsSync(ROOT_MAP);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function suiteIfDataset(title: string, fn: (this: any) => void): void {
+    if (DATASET_AVAILABLE) {
+        suite(title, fn);
+    } else {
+        suite(title, function () {
+            test('skipped — docs-develop dataset not present on this machine', function () {
+                this.skip();
+            });
+        });
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Suite 1 — Well-formed real topics produce no XML / structural errors
 // ---------------------------------------------------------------------------
 
-suite('docs-develop dataset — Suite 1: well-formed topics', function () {
+suiteIfDataset('docs-develop dataset — Suite 1: well-formed topics', function () {
     this.timeout(15_000);
 
     const CLEAN_TOPICS = [
