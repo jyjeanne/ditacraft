@@ -5811,7 +5811,7 @@
   <circle cx="935.9694584829383" cy="415.4697718952338" r="4.0606060606060606" fill="#4E79A7" opacity="0.9"/>
   <text x="935.9694584829383" y="429.53037795583987" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">deactivate()</text>
   <circle cx="935.9864258781699" cy="416.979797090756" r="16" fill="#4E79A7" opacity="0.9"/>
-  <text x="935.9864258781699" y="442.979797090756" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">ad76322 fix: update engines.vscode to ^1.125.0 to match @types/vscode devDependency</text>
+  <text x="935.9864258781699" y="442.979797090756" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">d72e335 [npm]: bump the production-dependencies group with 2 updates</text>
   <circle cx="935.9966064524053" cy="418.4898832934346" r="4.0606060606060606" fill="#4E79A7" opacity="0.9"/>
   <text x="935.9966064524053" y="432.5504893540407" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">main</text>
   <circle cx="20" cy="20" r="5" fill="#4E79A7"/>

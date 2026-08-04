@@ -1,4 +1,4 @@
-# Graph Report - .  (2026-07-28)
+# Graph Report - .  (2026-08-04)
 
 ## Corpus Check
 - 306 files · ~397,853 words
@@ -15,11 +15,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 306 · Candidates: 810
-- Excluded: 0 untracked · 50447 ignored · 3 sensitive · 0 missing committed
+- Excluded: 0 untracked · 50456 ignored · 3 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `ad76322`
+- Built from Git commit: `d72e335`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 73 edges
@@ -127,7 +127,7 @@ Nodes (12): RngValidationService, ROOT_TO_SCHEMA, SalveConvertResult, SalveGramm
 
 ### Community 20 - "Community 20"
 Cohesion: 0.09
-Nodes (4): main, ad76322 fix: update engines.vscode to ^1.125.0 to match @types/vscode devDependency, DitaCraftAPI, vscode
+Nodes (4): main, d72e335 [npm]: bump the production-dependencies group with 2 updates, DitaCraftAPI, vscode
 
 ### Community 21 - "Community 21"
 Cohesion: 0.14
