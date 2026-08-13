@@ -121,44 +121,101 @@ export async function handleRename(
     // processed concurrently (KeySpaceService dedupes concurrent builds of
     // the same key space via pendingBuilds) since each file's conkeyref
     // matches otherwise resolve one at a time.
-    if (workspaceFolders && workspaceFolders.length > 0) {
-        const ditaFiles = collectDitaFiles(workspaceFolders);
+    Object.assign(changes, await collectCrossFileEdits(
+        workspaceFolders, document.uri, documents,
+        (content) => findReferencesToId(content, oldId),
+        (fileRefs, content, filePath) => collectMatchingEdits(
+            fileRefs, content, filePath, normalizedTargetPath, oldId, newId, keySpaceService, log
+        )
+    ));
 
-        const perFileEdits = await Promise.all(ditaFiles.map(async (filePath) => {
-            const fileUri = URI.file(filePath).toString();
-            if (fileUri === document.uri) return null;
+    return { changes };
+}
 
-            // Prefer in-memory content for open documents (may have unsaved changes)
-            const openDoc = documents.get(fileUri);
-            let content: string;
-            if (openDoc) {
-                content = openDoc.getText();
-            } else {
-                try {
-                    content = fs.readFileSync(filePath, 'utf-8');
-                } catch {
-                    return null;
-                }
+/**
+ * Shared cross-file traversal shape behind both ID and key rename: walk every
+ * DITA file in the workspace (skipping the document being renamed itself),
+ * read each one (preferring in-memory content for open documents, which may
+ * have unsaved changes), find candidate reference occurrences, and build the
+ * verified text edits for the ones that match — via the caller-supplied
+ * `findRefs`/`buildEdits`, so this owns only the traversal, not what counts
+ * as a match or how a match gets rewritten.
+ */
+async function collectCrossFileEdits(
+    workspaceFolders: readonly string[] | undefined,
+    currentUri: string,
+    documents: TextDocuments<TextDocument>,
+    findRefs: (content: string) => ReferenceOccurrence[],
+    buildEdits: (refs: ReferenceOccurrence[], content: string, filePath: string) => Promise<TextEdit[]>
+): Promise<{ [uri: string]: TextEdit[] }> {
+    const changes: { [uri: string]: TextEdit[] } = {};
+    if (!workspaceFolders || workspaceFolders.length === 0) return changes;
+
+    const ditaFiles = collectDitaFiles(workspaceFolders);
+
+    const perFileEdits = await Promise.all(ditaFiles.map(async (filePath) => {
+        const fileUri = URI.file(filePath).toString();
+        if (fileUri === currentUri) return null;
+
+        const openDoc = documents.get(fileUri);
+        let content: string;
+        if (openDoc) {
+            content = openDoc.getText();
+        } else {
+            try {
+                content = fs.readFileSync(filePath, 'utf-8');
+            } catch {
+                return null;
             }
+        }
 
-            const fileRefs = findReferencesToId(content, oldId);
-            if (fileRefs.length === 0) return null;
+        const fileRefs = findRefs(content);
+        if (fileRefs.length === 0) return null;
 
-            const fileEdits = await collectMatchingEdits(
-                fileRefs, content, filePath, normalizedTargetPath, oldId, newId, keySpaceService, log
-            );
+        const fileEdits = await buildEdits(fileRefs, content, filePath);
+        return fileEdits.length > 0 ? { fileUri, fileEdits } : null;
+    }));
 
-            return fileEdits.length > 0 ? { fileUri, fileEdits } : null;
-        }));
-
-        for (const result of perFileEdits) {
-            if (result) {
-                changes[result.fileUri] = result.fileEdits;
-            }
+    for (const result of perFileEdits) {
+        if (result) {
+            changes[result.fileUri] = result.fileEdits;
         }
     }
 
-    return { changes };
+    return changes;
+}
+
+/**
+ * Resolve which of `refs` actually match (async, e.g. a KeySpaceService
+ * lookup per ref) and build the corresponding text edits for the ones that
+ * do. Shared shape behind `collectMatchingEdits` (ID rename) and
+ * `collectMatchingKeyEdits` (key rename) — they differ only in what counts
+ * as a match and how a matched value gets rewritten, supplied here as
+ * `verify`/`rewrite`.
+ */
+async function buildEditsForVerifiedRefs(
+    refs: ReferenceOccurrence[],
+    content: string,
+    verify: (ref: ReferenceOccurrence) => Promise<boolean>,
+    rewrite: (ref: ReferenceOccurrence) => string
+): Promise<TextEdit[]> {
+    if (refs.length === 0) return [];
+
+    const matchFlags = await Promise.all(refs.map(verify));
+
+    const edits: TextEdit[] = [];
+    refs.forEach((ref, i) => {
+        if (!matchFlags[i]) return;
+
+        const startPos = offsetToPosition(content, ref.valueStart);
+        const endPos = offsetToPosition(content, ref.valueEnd);
+        edits.push({
+            range: Range.create(startPos, endPos),
+            newText: rewrite(ref),
+        });
+    });
+
+    return edits;
 }
 
 /**
@@ -182,24 +239,12 @@ async function collectMatchingEdits(
     keySpaceService: KeySpaceService | undefined,
     log?: (msg: string) => void
 ): Promise<TextEdit[]> {
-    const matchFlags = await Promise.all(
-        refs.map(ref => referenceMatchesTarget(ref, contextFilePath, normalizedTargetPath, keySpaceService, log))
+    return buildEditsForVerifiedRefs(
+        refs,
+        content,
+        (ref) => referenceMatchesTarget(ref, contextFilePath, normalizedTargetPath, keySpaceService, log),
+        (ref) => replaceIdInReference(ref.type, ref.value, oldId, newId)
     );
-
-    const edits: TextEdit[] = [];
-    refs.forEach((ref, i) => {
-        if (!matchFlags[i]) return;
-
-        const newValue = replaceIdInReference(ref.type, ref.value, oldId, newId);
-        const startPos = offsetToPosition(content, ref.valueStart);
-        const endPos = offsetToPosition(content, ref.valueEnd);
-        edits.push({
-            range: Range.create(startPos, endPos),
-            newText: newValue,
-        });
-    });
-
-    return edits;
 }
 
 /**
@@ -272,6 +317,34 @@ async function handleKeyRename(
     log?: (msg: string) => void
 ): Promise<WorkspaceEdit | null> {
     const oldKey = keyResult.key;
+
+    // `keys` is a whitespace-delimited *list* (unlike `id`, a single value) —
+    // splicing a name containing whitespace into one token's range wouldn't
+    // just produce one malformed key, it would silently split into extra
+    // key definitions (`keys="alpha beta gamma"` renaming "beta" to "new name"
+    // would become `keys="alpha new name gamma"`, a 4-key list). Refuse
+    // rather than risk that structural corruption.
+    if (/\s/.test(newKey) || newKey.length === 0) {
+        log?.(`Refusing to rename key "${oldKey}" to "${newKey}": key names cannot contain whitespace`);
+        return null;
+    }
+
+    // Unlike ID rename — where only conkeyref needs KeySpaceService, so href/
+    // conref matches still get rewritten without one — key rename needs it to
+    // verify *every* keyref/conkeyref match, since the reference value itself
+    // is the key name being renamed. Without it there is nothing safe to
+    // verify at all, so refuse the whole rename rather than silently doing
+    // only the definition-site edit and returning an apparently-successful
+    // WorkspaceEdit that actually leaves every usage — same-file or
+    // cross-file — dangling with no signal the editor UI would ever surface.
+    if (!keySpaceService) {
+        log?.(
+            `Refusing to rename key "${oldKey}": no KeySpaceService available to verify ` +
+            'keyref/conkeyref usages, and renaming the definition alone would silently break them'
+        );
+        return null;
+    }
+
     const changes: { [uri: string]: TextEdit[] } = {};
 
     // 1. Rename the key-defining token itself — the one occurrence the
@@ -294,7 +367,7 @@ async function handleKeyRename(
     // 2. Update keyref/conkeyref usages in the current document.
     const refs = findReferencesToKey(text, oldKey);
     const selfEdits = await collectMatchingKeyEdits(
-        refs, text, sourceMapPath, normalizedSourceMap, sourceLine, newKey, keySpaceService, log
+        refs, text, sourceMapPath, normalizedSourceMap, sourceLine, newKey, keySpaceService
     );
     currentEdits.push(...selfEdits);
     changes[document.uri] = currentEdits;
@@ -302,41 +375,13 @@ async function handleKeyRename(
     // 3. Cross-file: same concurrency shape as ID rename (§ handleRename) —
     // KeySpaceService dedupes concurrent builds of the same key space via
     // pendingBuilds, so processing files concurrently is safe.
-    if (workspaceFolders && workspaceFolders.length > 0) {
-        const ditaFiles = collectDitaFiles(workspaceFolders);
-
-        const perFileEdits = await Promise.all(ditaFiles.map(async (filePath) => {
-            const fileUri = URI.file(filePath).toString();
-            if (fileUri === document.uri) return null;
-
-            const openDoc = documents.get(fileUri);
-            let content: string;
-            if (openDoc) {
-                content = openDoc.getText();
-            } else {
-                try {
-                    content = fs.readFileSync(filePath, 'utf-8');
-                } catch {
-                    return null;
-                }
-            }
-
-            const fileRefs = findReferencesToKey(content, oldKey);
-            if (fileRefs.length === 0) return null;
-
-            const fileEdits = await collectMatchingKeyEdits(
-                fileRefs, content, filePath, normalizedSourceMap, sourceLine, newKey, keySpaceService, log
-            );
-
-            return fileEdits.length > 0 ? { fileUri, fileEdits } : null;
-        }));
-
-        for (const result of perFileEdits) {
-            if (result) {
-                changes[result.fileUri] = result.fileEdits;
-            }
-        }
-    }
+    Object.assign(changes, await collectCrossFileEdits(
+        workspaceFolders, document.uri, documents,
+        (content) => findReferencesToKey(content, oldKey),
+        (fileRefs, content, filePath) => collectMatchingKeyEdits(
+            fileRefs, content, filePath, normalizedSourceMap, sourceLine, newKey, keySpaceService
+        )
+    ));
 
     return { changes };
 }
@@ -350,8 +395,11 @@ async function handleKeyRename(
  * `referenceMatchesId`), a `keyref`/`conkeyref` value *is* the key name for
  * key rename, so a same-named-but-different-scope key must be excluded the
  * same way an unrelated conkeyref-target file is excluded for ID rename.
- * Without a KeySpaceService, nothing here is verifiable, so every match is
- * skipped (logged) rather than rewritten on text equality alone.
+ *
+ * `keySpaceService` is required (not optional) here: `handleKeyRename`
+ * refuses the entire rename before calling this when one isn't available,
+ * rather than letting this function silently skip every match while the
+ * caller still reports a normal, apparently-complete rename.
  */
 async function collectMatchingKeyEdits(
     refs: ReferenceOccurrence[],
@@ -360,39 +408,24 @@ async function collectMatchingKeyEdits(
     targetSourceMap: string,
     targetSourceLine: number,
     newKey: string,
-    keySpaceService: KeySpaceService | undefined,
-    log?: (msg: string) => void
+    keySpaceService: KeySpaceService
 ): Promise<TextEdit[]> {
-    if (refs.length === 0) return [];
-
-    if (!keySpaceService) {
-        log?.(
-            `Skipping ${refs.length} unverifiable keyref/conkeyref match(es) in ${contextFilePath} ` +
-            '(no KeySpaceService available to confirm they resolve to the renamed key definition)'
-        );
-        return [];
-    }
-
-    const matchFlags = await Promise.all(refs.map(async (ref) => {
-        const keyName = extractKeyPart(ref.value);
-        const resolved = await keySpaceService.resolveKey(keyName, contextFilePath);
-        return sameKeyDefinition(resolved, targetSourceMap, targetSourceLine);
-    }));
-
-    const edits: TextEdit[] = [];
-    refs.forEach((ref, i) => {
-        if (!matchFlags[i]) return;
-
-        const newValue = replaceKeyInReference(ref.type, ref.value, newKey);
-        const startPos = offsetToPosition(content, ref.valueStart);
-        const endPos = offsetToPosition(content, ref.valueEnd);
-        edits.push({
-            range: Range.create(startPos, endPos),
-            newText: newValue,
-        });
-    });
-
-    return edits;
+    return buildEditsForVerifiedRefs(
+        refs,
+        content,
+        async (ref) => {
+            const keyName = extractKeyPart(ref.value);
+            // resolveKeyEntry(), not resolveKey(): a candidate keyref/conkeyref
+            // might name the definition being renamed even when that definition
+            // is itself an indirect key (keys="alias" keyref="target") — resolveKey()
+            // would follow the chain straight through to "target"'s identity, which
+            // would never match "alias"'s own (sourceMap, sourceLine) and silently
+            // skip every direct usage of the alias being renamed.
+            const resolved = await keySpaceService.resolveKeyEntry(keyName, contextFilePath);
+            return sameKeyDefinition(resolved, targetSourceMap, targetSourceLine);
+        },
+        (ref) => replaceKeyInReference(ref.type, ref.value, newKey)
+    );
 }
 
 /**

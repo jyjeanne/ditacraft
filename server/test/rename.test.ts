@@ -7,9 +7,19 @@ import { handlePrepareRename, handleRename } from '../src/features/rename';
 import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService';
 import { createDoc, createDocs } from './helper';
 
-function mockKeySpaceService(resolve: (keyName: string, contextFilePath: string) => KeyDefinition | null): KeySpaceService {
+/**
+ * `resolveEntry` defaults to `resolve` — most tests don't distinguish
+ * resolveKey() (follows @keyref chains) from resolveKeyEntry() (doesn't);
+ * pass a distinct one only when a test needs to simulate a candidate
+ * resolving through an indirection chain differently than the raw entry.
+ */
+function mockKeySpaceService(
+    resolve: (keyName: string, contextFilePath: string) => KeyDefinition | null,
+    resolveEntry: (keyName: string, contextFilePath: string) => KeyDefinition | null = resolve
+): KeySpaceService {
     return {
         resolveKey: async (keyName: string, contextFilePath: string) => resolve(keyName, contextFilePath),
+        resolveKeyEntry: async (keyName: string, contextFilePath: string) => resolveEntry(keyName, contextFilePath),
     } as unknown as KeySpaceService;
 }
 
@@ -494,7 +504,15 @@ suite('handleRename — key rename', () => {
         assert.ok(edits.every(e => e.newText === 'mykeynew'));
     });
 
-    test('keyref/conkeyref matches are skipped (not rewritten) when no KeySpaceService is available', async () => {
+    test('the whole rename is refused when no KeySpaceService is available (regression)', async () => {
+        // Unlike ID rename (where only conkeyref needs KeySpaceService, so
+        // href/conref matches are still rewritten without one), key rename
+        // needs it to verify *every* keyref/conkeyref match — a bare keyref
+        // value *is* the key name being renamed. Doing just the definition-
+        // site edit and silently skipping every reference would return an
+        // apparently-successful rename that actually leaves every usage
+        // dangling with no signal the editor UI would surface. Refusing the
+        // whole rename is the safe behavior instead.
         const content =
             '<map>' +
             '<keydef keys="mykey" href="target.dita"/>' +
@@ -514,10 +532,9 @@ suite('handleRename — key rename', () => {
             (msg) => logs.push(msg)
         );
 
-        assert.ok(edit?.changes);
-        const edits = edit!.changes![doc.uri];
-        assert.strictEqual(edits.length, 1, 'only the keys token itself should be rewritten without a KeySpaceService');
-        assert.ok(logs.some(m => m.includes('unverifiable')), 'skipping should be logged');
+        assert.strictEqual(edit, null, 'the rename should be refused entirely, not partially applied');
+        assert.ok(logs.some(m => m.includes('Refusing') && m.includes('KeySpaceService')),
+            'refusing should be logged with a clear reason');
     });
 
     test('renaming one token in a multi-key "keys" attribute leaves the other tokens untouched', async () => {
@@ -525,10 +542,14 @@ suite('handleRename — key rename', () => {
         const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
         const docs = createDocs(doc);
 
+        const keySpaceService = mockKeySpaceService(() => null);
+
         const offset = doc.positionAt(content.indexOf('beta') + 1);
         const edit = await handleRename(
             { textDocument: { uri: doc.uri }, position: offset, newName: 'betanew' },
-            docs
+            docs,
+            ['/workspace'],
+            keySpaceService
         );
 
         assert.ok(edit?.changes);
@@ -539,5 +560,68 @@ suite('handleRename — key rename', () => {
         const startOffset = doc.offsetAt(edits[0].range.start);
         const endOffset = doc.offsetAt(edits[0].range.end);
         assert.strictEqual(content.slice(startOffset, endOffset), 'beta');
+    });
+
+    test('a whitespace-containing new name is refused rather than corrupting a multi-key list (regression)', async () => {
+        const content = '<keydef keys="alpha beta gamma" href="target.dita"/>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        const keySpaceService = mockKeySpaceService(() => null);
+        const logs: string[] = [];
+
+        const offset = doc.positionAt(content.indexOf('beta') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'new name' },
+            docs,
+            ['/workspace'],
+            keySpaceService,
+            (msg) => logs.push(msg)
+        );
+
+        assert.strictEqual(edit, null, 'a name containing whitespace must not be spliced into the keys list');
+        assert.ok(logs.some(m => m.includes('whitespace')), 'refusing should be logged with a clear reason');
+    });
+
+    test('renaming an alias key (keys="alias" keyref="target") updates its own direct usages (regression)', async () => {
+        // resolveKey() follows @keyref chains to their ultimate target, so
+        // naively using it to verify a candidate keyref="alias" usage would
+        // resolve past "alias" itself to "target"'s identity and never match
+        // — resolveKeyEntry() (no chain-following) is what makes this work.
+        const content =
+            '<map>' +
+            '<keydef keys="target" href="target.dita"/>' +
+            '<keydef keys="alias" keyref="target"/>' +
+            '<topicref keyref="alias"/>' +
+            '</map>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        const aliasSourceMap = '/workspace/root.ditamap';
+        const aliasKeyDef: KeyDefinition = { keyName: 'alias', keyref: 'target', sourceMap: aliasSourceMap, sourceLine: 1 };
+        const targetKeyDef: KeyDefinition = { keyName: 'target', sourceMap: aliasSourceMap, sourceLine: 1 };
+
+        const keySpaceService = mockKeySpaceService(
+            // resolveKey(): follows the chain past the alias, to "target" — the
+            // wrong identity for verifying a usage of "alias" itself.
+            (keyName) => keyName === 'alias' ? targetKeyDef : keyName === 'target' ? targetKeyDef : null,
+            // resolveKeyEntry(): returns the alias's own raw entry, unresolved.
+            (keyName) => keyName === 'alias' ? aliasKeyDef : keyName === 'target' ? targetKeyDef : null
+        );
+
+        const offset = doc.positionAt(content.indexOf('"alias"') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'alias2' },
+            docs,
+            ['/workspace'],
+            keySpaceService
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        // The alias's own keys="alias" token, plus the topicref's keyref="alias"
+        // usage — both should be rewritten to "alias2".
+        assert.strictEqual(edits.length, 2, 'both the alias definition and its direct usage should be rewritten');
+        assert.ok(edits.every(e => e.newText === 'alias2'));
     });
 });

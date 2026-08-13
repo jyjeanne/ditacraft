@@ -148,6 +148,13 @@ export class KeySpaceService implements IKeySpaceService {
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
     private cacheConfig: CacheConfig;
     private pendingBuilds: Map<string, Promise<KeySpace>> = new Map();
+    /** In-flight dedup for findRootMap(), mirroring pendingBuilds above — keyed
+     *  by the same cacheKey (the queried file's containing directory), since
+     *  concurrent resolveKey() calls for files in the same directory would
+     *  otherwise each fire their own redundant upward-directory walk on a
+     *  cold cache (e.g. every keyref usage of a heavily-referenced key,
+     *  resolved concurrently by rename/find-references). */
+    private pendingRootMapLookups: Map<string, Promise<string | null>> = new Map();
     /** Bumped on structural invalidations (workspace/root-map/path changes);
      *  in-flight builds and root-map lookups that started under an older
      *  generation drop their cache write so stale data can't resurrect. */
@@ -216,6 +223,7 @@ export class KeySpaceService implements IKeySpaceService {
         this.keySpaceCache.clear();
         this.rootMapCache.clear();
         this.pendingBuilds.clear();
+        this.pendingRootMapLookups.clear();
     }
 
     /** Get the current explicit root map path (null if auto-discovering). */
@@ -224,13 +232,51 @@ export class KeySpaceService implements IKeySpaceService {
     }
 
     /**
-     * Resolve a key name to its definition.
+     * Resolve a key name to its definition, following any `@keyref` indirection
+     * chain the matched entry carries to its ultimate target.
      * Finds the root map, builds (or retrieves cached) key space, then looks up key.
      */
     public async resolveKey(
         keyName: string,
         contextFilePath: string
     ): Promise<KeyDefinition | null> {
+        const found = await this.resolveKeyEntryWithScope(keyName, contextFilePath);
+        if (!found) return null;
+        return this.followKeyrefChain(found.def, found.keys, found.scopePrefix);
+    }
+
+    /**
+     * Resolve a key name to its own raw definition, WITHOUT following any
+     * `@keyref` indirection chain that definition itself carries.
+     *
+     * Use this instead of `resolveKey()` when the caller needs to know which
+     * specific `keys="..."` entry a name refers to — e.g. verifying a rename
+     * candidate actually names the definition being renamed — rather than the
+     * content that name ultimately resolves to. `resolveKey()` is right for
+     * every other caller (hover, navigation, preview) that wants the resolved
+     * target; this exists because `resolveKey('alias', ...)` on an indirect
+     * key (`<keydef keys="alias" keyref="target"/>`) returns `target`'s
+     * definition, not `alias`'s own — the wrong identity to compare `alias`
+     * itself against.
+     */
+    public async resolveKeyEntry(
+        keyName: string,
+        contextFilePath: string
+    ): Promise<KeyDefinition | null> {
+        const found = await this.resolveKeyEntryWithScope(keyName, contextFilePath);
+        return found?.def ?? null;
+    }
+
+    /**
+     * Shared scope-aware lookup behind both `resolveKey()` and
+     * `resolveKeyEntry()` — everything `resolveKey()` used to do itself,
+     * except the final `followKeyrefChain()` call, which callers apply (or
+     * don't) themselves.
+     */
+    private async resolveKeyEntryWithScope(
+        keyName: string,
+        contextFilePath: string
+    ): Promise<{ def: KeyDefinition; keys: Map<string, KeyDefinition>; scopePrefix: string } | null> {
         const rootMap = await this.findRootMap(contextFilePath);
         if (!rootMap) {
             return null;
@@ -248,14 +294,14 @@ export class KeySpaceService implements IKeySpaceService {
             const qualifiedName = `${scopePrefix}.${keyName}`;
             const scopedDef = keySpace.keys.get(qualifiedName);
             if (scopedDef) {
-                return this.followKeyrefChain(scopedDef, keySpace.keys, scopePrefix);
+                return { def: scopedDef, keys: keySpace.keys, scopePrefix };
             }
         }
 
         // Fall back to the context-free (root-scope) entry.
         const keyDef = keySpace.keys.get(keyName) ?? null;
         if (keyDef) {
-            return this.followKeyrefChain(keyDef, keySpace.keys, '');
+            return { def: keyDef, keys: keySpace.keys, scopePrefix: '' };
         }
 
         // Gap 4 — deferred peer map resolution.
@@ -276,7 +322,7 @@ export class KeySpaceService implements IKeySpaceService {
                         // e.g. peerKey="inner.realKey" → peerKeyScope="inner"
                         const lastDot = peerKey.lastIndexOf('.');
                         const peerKeyScope = lastDot > 0 ? peerKey.slice(0, lastDot) : '';
-                        return this.followKeyrefChain(peerDef, peerKeySpace.keys, peerKeyScope);
+                        return { def: peerDef, keys: peerKeySpace.keys, scopePrefix: peerKeyScope };
                     }
                 } catch {
                     // peer map not readable — fall through to null
@@ -539,6 +585,32 @@ export class KeySpaceService implements IKeySpaceService {
             return cached.rootMap;
         }
 
+        // In-flight dedup: many concurrent callers for files in the same
+        // directory (e.g. every keyref usage of a key, resolved concurrently
+        // during rename/find-references) share this cacheKey — without this,
+        // each would fire its own redundant upward-directory walk on a cold
+        // cache instead of sharing the one already in progress.
+        const pendingLookup = this.pendingRootMapLookups.get(cacheKey);
+        if (pendingLookup) {
+            return pendingLookup;
+        }
+
+        const lookupPromise = this.doFindRootMap(absolutePath, cacheKey);
+        this.pendingRootMapLookups.set(cacheKey, lookupPromise);
+        try {
+            return await lookupPromise;
+        } finally {
+            // Invalidation may have cleared our entry already; only remove it
+            // if it's still ours, same guard buildKeySpace uses for pendingBuilds.
+            if (this.pendingRootMapLookups.get(cacheKey) === lookupPromise) {
+                this.pendingRootMapLookups.delete(cacheKey);
+            }
+        }
+    }
+
+    /** The actual upward-directory walk behind findRootMap(), run at most once
+     *  per cacheKey concurrently thanks to pendingRootMapLookups above. */
+    private async doFindRootMap(absolutePath: string, cacheKey: string): Promise<string | null> {
         let currentDir = path.dirname(absolutePath);
         // Stop at the workspace folder that actually contains the file
         // (multi-root safe). Deliberate: a root map living ABOVE a workspace
@@ -1044,30 +1116,60 @@ export class KeySpaceService implements IKeySpaceService {
 
             const isSelfClosing = !Object.keys(node).some(k => !k.startsWith('@_') && k !== '#text');
 
-            // Compute the source line by scanning forward from the last match position.
-            // Anchor on 'keys="token' (or single-quote variant) to avoid matching the
-            // bare token inside hrefs, text content, or other attribute values.
-            // Elements are emitted in document order so the scan is monotone O(n) total.
+            // Compute each key token's own source line by scanning forward from the
+            // last match position. Anchor on `keys` [ws] `=` [ws] quote + first token
+            // (whitespace-tolerant, so `keys = "token"` anchors correctly too, not
+            // just the exact-substring `keys="token`) to avoid matching the bare
+            // token inside hrefs, text content, or other attribute values. Elements
+            // are emitted in document order so the scan is monotone O(n) total.
+            //
+            // A multi-key attribute (`keys="a b c"`) can legally contain an embedded
+            // line break (XML normalizes it away in the parsed value, but the raw
+            // text used for line-counting still has it) — each token gets its own
+            // line by locating it within the attribute value's own span, rather than
+            // reusing the first token's line for every key in the list.
             let sourceLine: number | undefined;
-            if (mapContent) {
-                const firstToken = keysValue.split(/\s+/)[0];
-                const anchor1 = `keys="${firstToken}`;
-                const anchor2 = `keys='${firstToken}`;
-                const idx1 = mapContent.indexOf(anchor1, contentSearchPos);
-                const idx2 = mapContent.indexOf(anchor2, contentSearchPos);
-                const foundIdx = idx1 >= 0 && idx2 >= 0
-                    ? Math.min(idx1, idx2)
-                    : Math.max(idx1, idx2);
-                if (foundIdx >= 0) {
+            const perKeySourceLine = new Map<string, number>();
+            const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
+            if (mapContent && keyNames.length > 0) {
+                const firstToken = keyNames[0];
+                const escapedFirst = firstToken.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // Lookahead requires the character right after the token to be either
+                // whitespace (another token follows) or the same quote that opened the
+                // value (\1) — not a `\b` word-boundary check, which would misbehave for
+                // NMTOKEN key names ending in a non-word character like `.` or `-`.
+                const anchorPattern = new RegExp(`keys\\s*=\\s*(["'])${escapedFirst}(?=\\s|\\1)`, 'g');
+                anchorPattern.lastIndex = contentSearchPos;
+                const anchorMatch = anchorPattern.exec(mapContent);
+                if (anchorMatch && anchorMatch.index >= contentSearchPos) {
+                    const foundIdx = anchorMatch.index;
                     sourceLine = this.computeLineNumber(mapContent, foundIdx);
                     contentSearchPos = foundIdx + 1;
+
+                    // Locate the attribute value's own span (between the anchor's
+                    // quote and its matching closing quote) so each token's offset
+                    // — and therefore its own line — can be computed individually.
+                    const quoteChar = anchorMatch[1];
+                    const valueStart = foundIdx + anchorMatch[0].length - firstToken.length;
+                    const valueEnd = mapContent.indexOf(quoteChar, valueStart);
+                    if (valueEnd > valueStart) {
+                        const rawValue = mapContent.slice(valueStart, valueEnd);
+                        const tokenPattern = /\S+/g;
+                        let tokenMatch: RegExpExecArray | null;
+                        while ((tokenMatch = tokenPattern.exec(rawValue)) !== null) {
+                            perKeySourceLine.set(
+                                tokenMatch[0],
+                                this.computeLineNumber(mapContent, valueStart + tokenMatch.index)
+                            );
+                        }
+                    }
                 }
             }
 
-            const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
             for (const keyName of keyNames) {
                 const keyDef: KeyDefinition = { keyName, sourceMap: mapPath };
-                if (sourceLine !== undefined) keyDef.sourceLine = sourceLine;
+                const keyLine = perKeySourceLine.get(keyName) ?? sourceLine;
+                if (keyLine !== undefined) keyDef.sourceLine = keyLine;
 
                 const href = attrs['href'] ?? '';
                 if (href && !href.startsWith('http://') && !href.startsWith('https://')) {
@@ -1510,6 +1612,10 @@ export class KeySpaceService implements IKeySpaceService {
             // Content edits cannot change discovery, so they skip this.
             this.cacheGeneration++;
             this.rootMapCache.clear();
+            // New callers must not join a possibly-stale in-flight lookup;
+            // existing awaiters still resolve for their current callers (same
+            // shape as pendingBuilds.clear() above for buildKeySpace).
+            this.pendingRootMapLookups.clear();
         }
 
         const toDelete: string[] = [];
@@ -1936,7 +2042,16 @@ export class KeySpaceService implements IKeySpaceService {
      * hrefs must not pollute scopeDirectKeys or topicToScope (DITA spec §2.4.4).
      */
     private stripReltables(content: string): string {
-        return content.replace(/<reltable\b[^>]*>[\s\S]*?<\/reltable\s*>/gi, '');
+        // Blank rather than delete: deleting would shift every subsequent line
+        // number (offsets computed against this content, e.g. sourceLine in
+        // extractKeyDefinitionsFromElements, would then undercount for any
+        // keydef appearing after a <reltable> — mirrors the blank-but-preserve-
+        // length approach stripCommentsAndCDATA already uses for this exact
+        // reason).
+        return content.replace(
+            /<reltable\b[^>]*>[\s\S]*?<\/reltable\s*>/gi,
+            (m) => m.replace(/[^\n\r]/g, ' ')
+        );
     }
 
     /** Extract keyscope(s) from the root map/bookmap element. */
