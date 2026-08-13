@@ -248,6 +248,52 @@ suite('KeySpaceService', () => {
                 cleanup(tmpDir);
             }
         });
+
+        test('concurrent lookups for the same directory share one walk (in-flight dedup, regression)', async () => {
+            // Unlike buildKeySpace (which dedupes via pendingBuilds), findRootMap
+            // used to have no in-flight dedup at all — every concurrent caller for
+            // files in the same directory on a cold cache fired its own redundant
+            // upward-directory walk.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>\n<map/>`, 'utf-8');
+
+                const contextFile1 = path.join(tmpDir, 'a.dita');
+                const contextFile2 = path.join(tmpDir, 'b.dita');
+                const contextFile3 = path.join(tmpDir, 'c.dita');
+                fs.writeFileSync(contextFile1, '', 'utf-8');
+                fs.writeFileSync(contextFile2, '', 'utf-8');
+                fs.writeFileSync(contextFile3, '', 'utf-8');
+
+                let walkCount = 0;
+                const serviceAny = service as unknown as {
+                    doFindRootMap: (absolutePath: string, cacheKey: string) => Promise<string | null>;
+                };
+                const original = serviceAny.doFindRootMap.bind(service);
+                serviceAny.doFindRootMap = async (absolutePath: string, cacheKey: string) => {
+                    walkCount++;
+                    return original(absolutePath, cacheKey);
+                };
+
+                // Three concurrent calls for files in the SAME directory (same
+                // cacheKey) must share one walk, not fire three.
+                const [r1, r2, r3] = await Promise.all([
+                    service.findRootMap(contextFile1),
+                    service.findRootMap(contextFile2),
+                    service.findRootMap(contextFile3),
+                ]);
+
+                assert.strictEqual(walkCount, 1, 'concurrent lookups for the same directory should share one walk');
+                assert.strictEqual(r1, mapPath);
+                assert.strictEqual(r2, mapPath);
+                assert.strictEqual(r3, mapPath);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
     });
 
     suite('getSubjectSchemePaths', () => {
@@ -976,6 +1022,139 @@ suite('KeySpaceService', () => {
                 const scopePrefix = keySpace.topicToScope.get(normalizeFsPath(guidePath));
                 assert.strictEqual(scopePrefix, 'child',
                     'reltable href must not claim scope — child scope topicref should win');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('sourceLine of a keydef after a <reltable> matches its real line (regression)', async () => {
+            // stripReltables used to *delete* the reltable block (including its
+            // internal newlines) before line numbers were computed, undercounting
+            // sourceLine for anything after it. It must blank instead, preserving
+            // line structure the way stripCommentsAndCDATA already does.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                // Line 1: <?xml...>, line 2: <map>, lines 3-7: <reltable>...</reltable>,
+                // line 8: the keydef.
+                fs.writeFileSync(mapPath,
+                    '<?xml version="1.0"?>\n' +
+                    '<map>\n' +
+                    '  <reltable>\n' +
+                    '    <relrow>\n' +
+                    '      <relcell><topicref href="a.dita"/></relcell>\n' +
+                    '    </relrow>\n' +
+                    '  </reltable>\n' +
+                    '  <keydef keys="afterReltable" href="a.dita"/>\n' +
+                    '</map>', 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                const def = keySpace.keys.get('afterReltable');
+                assert.ok(def, 'key should be registered');
+                assert.strictEqual(def!.sourceLine, 8,
+                    'keydef on real line 8 must report sourceLine=8, not undercounted by the stripped reltable');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('sourceLine is still correct for a keydef before a <reltable>', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath,
+                    '<?xml version="1.0"?>\n' +
+                    '<map>\n' +
+                    '  <keydef keys="beforeReltable" href="a.dita"/>\n' +
+                    '  <reltable>\n' +
+                    '    <relrow><relcell><topicref href="a.dita"/></relcell></relrow>\n' +
+                    '  </reltable>\n' +
+                    '</map>', 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                const def = keySpace.keys.get('beforeReltable');
+                assert.ok(def);
+                assert.strictEqual(def!.sourceLine, 3);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
+
+    suite('provenance: whitespace-tolerant and multi-line "keys" attributes (regression)', () => {
+
+        test('sourceLine is set correctly when "=" has surrounding whitespace', async () => {
+            // The anchor search used to be an exact-substring match for `keys="`,
+            // silently failing (leaving sourceLine undefined) for `keys = "..."`.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath,
+                    '<?xml version="1.0"?>\n' +
+                    '<map>\n' +
+                    '  <keydef keys = "spacedKey" href="a.dita"/>\n' +
+                    '</map>', 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                const def = keySpace.keys.get('spacedKey');
+                assert.ok(def, 'key should be registered');
+                assert.strictEqual(def!.sourceLine, 3, 'sourceLine must be set even with whitespace around =');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('each key in a multi-key attribute spanning multiple lines gets its own sourceLine', async () => {
+            // A multi-key `keys="a b c"` value can legally contain an embedded
+            // line break (pretty-printed XML). Each token must report the line
+            // it's actually on, not the first token's line reused for all of them.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath,
+                    '<?xml version="1.0"?>\n' +
+                    '<map>\n' +
+                    '  <keydef keys="alpha\n' +
+                    '                beta" href="a.dita"/>\n' +
+                    '</map>', 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                const alpha = keySpace.keys.get('alpha');
+                const beta = keySpace.keys.get('beta');
+                assert.ok(alpha && beta, 'both keys should be registered');
+                assert.strictEqual(alpha!.sourceLine, 3, 'alpha is on line 3');
+                assert.strictEqual(beta!.sourceLine, 4, 'beta is on its own line 4, not alpha\'s line 3');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('multi-key attribute on a single line still gives every token the same, correct line', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath,
+                    '<?xml version="1.0"?>\n' +
+                    '<map>\n' +
+                    '  <keydef keys="one two three" href="a.dita"/>\n' +
+                    '</map>', 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                for (const name of ['one', 'two', 'three']) {
+                    const def = keySpace.keys.get(name);
+                    assert.ok(def, `${name} should be registered`);
+                    assert.strictEqual(def!.sourceLine, 3, `${name} should report line 3`);
+                }
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);

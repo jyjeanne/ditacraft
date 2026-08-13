@@ -32,6 +32,13 @@ export interface IKeySpaceService {
     resolveKey(keyName: string, contextFilePath: string): Promise<KeyDefinition | null>;
 
     /**
+     * Resolve a key name to its own raw definition, without following any
+     * `@keyref` indirection chain that definition itself carries. See the
+     * implementation's doc comment for why this differs from `resolveKey()`.
+     */
+    resolveKeyEntry(keyName: string, contextFilePath: string): Promise<KeyDefinition | null>;
+
+    /**
      * Resolve a key and return a detailed trace explaining which definition
      * was chosen and why, including every lookup step and any keyref chain followed.
      */
