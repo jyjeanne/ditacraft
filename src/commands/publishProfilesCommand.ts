@@ -66,6 +66,24 @@ export function resolveDitavalPath(ditavalPath: string | undefined): string | un
 }
 
 /**
+ * Resolve a profile's `outputDir` the same way `DitaOtWrapper`'s
+ * constructor resolves `ditacraft.outputDirectory` — substituting the
+ * `${workspaceFolder}` placeholder. A profile's `outputDir` is threaded
+ * into `executePublish` as an override of `getOutputDirectory()`
+ * (deliberately, so it doesn't also redirect live-preview's output — see
+ * `executePublish`'s doc comment), which means it never passes through
+ * `DitaOtWrapper.loadConfiguration()` and therefore never gets this
+ * substitution unless it's applied here first. Without it, a profile
+ * literally typed as `${workspaceFolder}/out` would publish into a
+ * directory named `${workspaceFolder}`.
+ */
+export function resolveProfileOutputDir(outputDir: string | undefined): string | undefined {
+    if (!outputDir) return undefined;
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+    return outputDir.replace('${workspaceFolder}', workspaceFolder);
+}
+
+/**
  * Command: ditacraft.managePublishingProfiles
  * Add, edit, or delete saved publishing profiles via a QuickPick-driven
  * flow (cheaper to build and maintain than a WebView for a first cut —
@@ -202,33 +220,72 @@ async function promptForProfile(
  * file and, if so, let the user browse for one — a picker is more
  * discoverable than free-text for a path that must already exist, unlike
  * the profile's own name.
+ *
+ * Loops back to the filter-choice QuickPick if the user backs out of the
+ * file picker (`showOpenDialog` cancelled) rather than treating that the
+ * same as an explicit "No filter" choice — otherwise editing a profile that
+ * already has a filter and then changing your mind mid-browse would
+ * silently wipe it.
  */
 async function promptForDitaval(existingPath?: string): Promise<string | undefined> {
-    const choice = await vscode.window.showQuickPick(
-        [
-            { label: '$(circle-slash) No filter', value: '' },
-            { label: '$(folder-opened) Browse for .ditaval file...', value: 'browse' }
-        ],
-        {
-            title: 'DITAVAL Filter (optional)',
-            placeHolder: existingPath ? `Currently: ${existingPath}` : 'This profile publishes unfiltered by default'
+    for (;;) {
+        const choice = await vscode.window.showQuickPick(
+            [
+                { label: '$(circle-slash) No filter', value: '' },
+                { label: '$(folder-opened) Browse for .ditaval file...', value: 'browse' }
+            ],
+            {
+                title: 'DITAVAL Filter (optional)',
+                placeHolder: existingPath ? `Currently: ${existingPath}` : 'This profile publishes unfiltered by default'
+            }
+        );
+        // Escape cancels the whole profile edit, consistent with every
+        // other step in promptForProfile (name/transtype/outputDir/args).
+        if (!choice) return undefined;
+        if (choice.value !== 'browse') return '';
+
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        const picked = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            filters: { 'DITAVAL Files': ['ditaval'] },
+            defaultUri: workspaceFolders?.[0]?.uri,
+            openLabel: 'Use as filter'
+        });
+        if (!picked || picked.length === 0) {
+            // User backed out of the file dialog without picking a file —
+            // re-show the filter choice instead of falling through to "No
+            // filter", which would otherwise clear an existing value.
+            continue;
         }
-    );
-    if (!choice) return undefined;
-    if (choice.value !== 'browse') return '';
 
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    const picked = await vscode.window.showOpenDialog({
-        canSelectMany: false,
-        filters: { 'DITAVAL Files': ['ditaval'] },
-        defaultUri: workspaceFolders?.[0]?.uri,
-        openLabel: 'Use as filter'
-    });
-    if (!picked || picked.length === 0) return '';
+        return storeDitavalPath(picked[0], workspaceFolders);
+    }
+}
 
-    return workspaceFolders && workspaceFolders.length > 0
-        ? vscode.workspace.asRelativePath(picked[0], false)
-        : picked[0].fsPath;
+/**
+ * Turn a picked `.ditaval` file into the string a profile stores.
+ *
+ * `resolveDitavalPath` always resolves a *relative* stored value against
+ * `workspaceFolders[0]` — so a relative path is only safe to store when the
+ * picked file actually lives under that first folder. In a multi-root
+ * workspace, `vscode.workspace.asRelativePath` would happily resolve
+ * against *whichever* folder contains the file, producing a value that
+ * `resolveDitavalPath` would later re-join against the wrong root. Falling
+ * back to an absolute path when the file isn't under folder[0] (or no
+ * workspace is open) keeps storage and resolution consistent.
+ */
+function storeDitavalPath(
+    uri: vscode.Uri,
+    workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined
+): string {
+    const primary = workspaceFolders?.[0];
+    if (primary) {
+        const rel = path.relative(primary.uri.fsPath, uri.fsPath);
+        if (rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel)) {
+            return rel;
+        }
+    }
+    return uri.fsPath;
 }
 
 /**

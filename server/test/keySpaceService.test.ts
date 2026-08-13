@@ -1160,6 +1160,32 @@ suite('KeySpaceService', () => {
                 cleanup(tmpDir);
             }
         });
+
+        test('a repeated token name within one "keys" attribute keeps the first occurrence\'s line (regression)', async () => {
+            // keys="dup dup" is itself an authoring mistake, but the per-token
+            // line map must not let the *second* occurrence silently overwrite
+            // the first's recorded line — first occurrence wins, matching the
+            // "first definition wins" convention used elsewhere in this class.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath,
+                    '<?xml version="1.0"?>\n' +
+                    '<map>\n' +
+                    '  <keydef keys="dup\n' +
+                    '                dup" href="a.dita"/>\n' +
+                    '</map>', 'utf-8');
+
+                const keySpace = await service.buildKeySpace(mapPath);
+                const def = keySpace.keys.get('dup');
+                assert.ok(def, 'dup should be registered');
+                assert.strictEqual(def!.sourceLine, 3, 'should report the FIRST occurrence\'s line (3), not the second\'s (4)');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
     });
 
     suite('@keys on keyscoped mapref elements', () => {

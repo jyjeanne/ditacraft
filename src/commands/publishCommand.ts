@@ -15,6 +15,7 @@ import {
     getLastUsedProfileName,
     rememberLastUsedProfile,
     resolveDitavalPath,
+    resolveProfileOutputDir,
 } from './publishProfilesCommand';
 
 /**
@@ -89,7 +90,7 @@ export async function publishCommand(uri?: vscode.Uri): Promise<void> {
             if (choice !== null) {
                 await rememberLastUsedProfile(choice.name);
                 await executePublish(filePath, choice.transtype, ditaOt, {
-                    outputDir: choice.outputDir,
+                    outputDir: resolveProfileOutputDir(choice.outputDir),
                     ditavalPath: resolveDitavalPath(choice.ditavalPath),
                     additionalArgs: choice.additionalArgs,
                 });

@@ -15,6 +15,7 @@ import {
     getPublishingProfiles,
     getLastUsedProfileName,
     resolveDitavalPath,
+    resolveProfileOutputDir,
 } from '../../commands/publishProfilesCommand';
 
 suite('Publishing Profiles Test Suite', () => {
@@ -80,6 +81,31 @@ suite('Publishing Profiles Test Suite', () => {
             } else {
                 assert.strictEqual(resolved, undefined);
             }
+        });
+    });
+
+    suite('resolveProfileOutputDir', () => {
+        test('Should return undefined for an undefined or empty outputDir', () => {
+            assert.strictEqual(resolveProfileOutputDir(undefined), undefined);
+            assert.strictEqual(resolveProfileOutputDir(''), undefined);
+        });
+
+        test('Should return a value with no placeholder unchanged', () => {
+            const plain = process.platform === 'win32' ? 'C:\\out\\pdf' : '/out/pdf';
+            assert.strictEqual(resolveProfileOutputDir(plain), plain);
+        });
+
+        test('Should substitute ${workspaceFolder} the same way DitaOtWrapper does (regression)', () => {
+            // Without this substitution, a profile's outputDir bypasses
+            // DitaOtWrapper.loadConfiguration() entirely (it's threaded through
+            // executePublish's overrides, not getOutputDirectory()) and a
+            // literal `${workspaceFolder}/out` value would publish into a
+            // directory literally named `${workspaceFolder}`.
+            const folder = vscode.workspace.workspaceFolders?.[0];
+            const resolved = resolveProfileOutputDir('${workspaceFolder}/build');
+            const expectedBase = folder ? folder.uri.fsPath : '';
+
+            assert.strictEqual(resolved, `${expectedBase}/build`);
         });
     });
 });

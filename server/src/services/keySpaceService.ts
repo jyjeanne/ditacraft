@@ -1157,10 +1157,17 @@ export class KeySpaceService implements IKeySpaceService {
                         const tokenPattern = /\S+/g;
                         let tokenMatch: RegExpExecArray | null;
                         while ((tokenMatch = tokenPattern.exec(rawValue)) !== null) {
-                            perKeySourceLine.set(
-                                tokenMatch[0],
-                                this.computeLineNumber(mapContent, valueStart + tokenMatch.index)
-                            );
+                            // First occurrence wins on a repeated token name
+                            // (e.g. an authoring mistake like `keys="dup dup"`)
+                            // rather than the last, matching the "first
+                            // definition wins" convention used elsewhere in
+                            // this class (e.g. keySpace.keys.has() guards).
+                            if (!perKeySourceLine.has(tokenMatch[0])) {
+                                perKeySourceLine.set(
+                                    tokenMatch[0],
+                                    this.computeLineNumber(mapContent, valueStart + tokenMatch.index)
+                                );
+                            }
                         }
                     }
                 }
