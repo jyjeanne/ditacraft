@@ -6,6 +6,9 @@ import {
     findIdAtOffset,
     findReferencesToId,
     findElementByIdOffset,
+    findKeyAtOffset,
+    findReferencesToKey,
+    extractKeyPart,
 } from '../src/utils/referenceParser';
 
 suite('referenceParser', () => {
@@ -201,6 +204,124 @@ suite('referenceParser', () => {
             const refs = findReferencesToId(text, 'elem1');
             assert.strictEqual(refs.length, 1);
             assert.strictEqual(text.slice(refs[0].valueStart, refs[0].valueEnd), 'file.dita#topic/elem1');
+        });
+    });
+
+    suite('findKeyAtOffset', () => {
+        test('cursor inside a single-key "keys" value', () => {
+            const text = '<keydef keys="mykey" href="target.dita"/>';
+            const offset = 16; // inside "mykey"
+            const result = findKeyAtOffset(text, offset);
+            assert.ok(result);
+            assert.strictEqual(result.key, 'mykey');
+        });
+
+        test('cursor on one token of a multi-key "keys" value returns just that token', () => {
+            const text = '<keydef keys="alpha beta gamma" href="target.dita"/>';
+            const offset = text.indexOf('beta') + 1;
+            const result = findKeyAtOffset(text, offset);
+            assert.ok(result);
+            assert.strictEqual(result.key, 'beta');
+            assert.strictEqual(text.slice(result.valueStart, result.valueEnd), 'beta');
+        });
+
+        test('cursor exactly at the end of a token still matches it', () => {
+            const text = '<keydef keys="alpha beta" href="target.dita"/>';
+            const offset = text.indexOf('alpha') + 'alpha'.length; // right after "alpha", before the space
+            const result = findKeyAtOffset(text, offset);
+            assert.ok(result);
+            assert.strictEqual(result.key, 'alpha');
+        });
+
+        test('cursor in the whitespace between two tokens returns null', () => {
+            // Two-space gap so there's a position that isn't the boundary of
+            // either adjacent token (a single-space gap has none — position
+            // `tokenEnd` of "alpha" and `tokenStart` of "beta" would coincide).
+            const text = '<keydef keys="alpha  beta" href="target.dita"/>';
+            const offset = text.indexOf('alpha') + 'alpha'.length + 1; // the middle of the two-space gap
+            const result = findKeyAtOffset(text, offset);
+            assert.strictEqual(result, null);
+        });
+
+        test('cursor on non-"keys" attribute returns null', () => {
+            const text = '<keydef keys="mykey" href="target.dita"/>';
+            const offset = text.indexOf('target.dita');
+            const result = findKeyAtOffset(text, offset);
+            assert.strictEqual(result, null);
+        });
+
+        test('cursor outside quotes returns null', () => {
+            const text = '<keydef keys="mykey"/>';
+            const offset = 1; // on "k" of keydef
+            const result = findKeyAtOffset(text, offset);
+            assert.strictEqual(result, null);
+        });
+
+        test('single-quoted "keys" attribute is supported', () => {
+            const text = "<keydef keys='mykey' href='target.dita'/>";
+            const offset = text.indexOf('mykey') + 1;
+            const result = findKeyAtOffset(text, offset);
+            assert.ok(result);
+            assert.strictEqual(result.key, 'mykey');
+        });
+    });
+
+    suite('extractKeyPart', () => {
+        test('keyref-shaped value (no slash) is returned unchanged', () => {
+            assert.strictEqual(extractKeyPart('mykey'), 'mykey');
+        });
+
+        test('conkeyref-shaped value returns the part before the slash', () => {
+            assert.strictEqual(extractKeyPart('mykey/elem1'), 'mykey');
+        });
+    });
+
+    suite('findReferencesToKey', () => {
+        test('finds a matching keyref', () => {
+            const text = '<xref keyref="mykey"/>';
+            const refs = findReferencesToKey(text, 'mykey');
+            assert.strictEqual(refs.length, 1);
+            assert.strictEqual(refs[0].type, 'keyref');
+        });
+
+        test('finds a matching conkeyref by its key-name prefix', () => {
+            const text = '<p conkeyref="mykey/elem1"/>';
+            const refs = findReferencesToKey(text, 'mykey');
+            assert.strictEqual(refs.length, 1);
+            assert.strictEqual(refs[0].type, 'conkeyref');
+            assert.strictEqual(refs[0].value, 'mykey/elem1');
+        });
+
+        test('href and conref never match (they never carry a key name)', () => {
+            const text = '<xref href="mykey.dita"/><p conref="#mykey/e1"/>';
+            const refs = findReferencesToKey(text, 'mykey');
+            assert.strictEqual(refs.length, 0);
+        });
+
+        test('an indirect keyref on a keydef element is found like any other keyref', () => {
+            const text = '<keydef keys="alias" keyref="mykey"/>';
+            const refs = findReferencesToKey(text, 'mykey');
+            assert.strictEqual(refs.length, 1);
+            assert.strictEqual(refs[0].type, 'keyref');
+        });
+
+        test('no matches for an unrelated key name', () => {
+            const text = '<xref keyref="otherkey"/>';
+            const refs = findReferencesToKey(text, 'mykey');
+            assert.strictEqual(refs.length, 0);
+        });
+
+        test('multiple matches across keyref and conkeyref', () => {
+            const text = '<xref keyref="mykey"/> <p conkeyref="mykey/e1"/>';
+            const refs = findReferencesToKey(text, 'mykey');
+            assert.strictEqual(refs.length, 2);
+        });
+
+        test('returns correct value offsets', () => {
+            const text = '<p conkeyref="mykey/elem1"/>';
+            const refs = findReferencesToKey(text, 'mykey');
+            assert.strictEqual(refs.length, 1);
+            assert.strictEqual(text.slice(refs[0].valueStart, refs[0].valueEnd), 'mykey/elem1');
         });
     });
 
