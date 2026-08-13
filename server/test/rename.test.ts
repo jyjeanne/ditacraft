@@ -273,3 +273,271 @@ suite('handleRename', () => {
         assert.strictEqual(edit, null);
     });
 });
+
+suite('handlePrepareRename — key rename', () => {
+    test('cursor on a single-key "keys" attribute value returns its range', () => {
+        const doc = createDoc('<keydef keys="mykey" href="target.dita"/>');
+        const docs = createDocs(doc);
+        const range = handlePrepareRename(
+            { textDocument: { uri: doc.uri }, position: { line: 0, character: 16 } },
+            docs
+        );
+        assert.ok(range, 'should return a range on the keys value');
+    });
+
+    test('cursor on one token within a multi-key "keys" attribute returns just that token', () => {
+        const content = '<keydef keys="alpha beta gamma" href="target.dita"/>';
+        const doc = createDoc(content);
+        const docs = createDocs(doc);
+        const offset = doc.positionAt(content.indexOf('beta') + 1);
+
+        const range = handlePrepareRename(
+            { textDocument: { uri: doc.uri }, position: offset },
+            docs
+        );
+        assert.ok(range, 'should return a range on the beta token');
+
+        const start = doc.offsetAt(range!.start);
+        const end = doc.offsetAt(range!.end);
+        assert.strictEqual(content.slice(start, end), 'beta', 'range should bound only the beta token');
+    });
+
+    test('cursor on href attribute (not keys) returns null', () => {
+        const content = '<keydef keys="mykey" href="target.dita"/>';
+        const doc = createDoc(content);
+        const docs = createDocs(doc);
+        const offset = doc.positionAt(content.indexOf('target.dita'));
+
+        const range = handlePrepareRename(
+            { textDocument: { uri: doc.uri }, position: offset },
+            docs
+        );
+        assert.strictEqual(range, null);
+    });
+});
+
+suite('handleRename — key rename', () => {
+    test('renames the keys token itself and a same-file keyref that resolves to it', async () => {
+        const content =
+            '<map>' +
+            '<keydef keys="mykey" href="target.dita"/>' +
+            '<topicref keyref="mykey"/>' +
+            '</map>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        const keydefLine = 1; // 1-based line of the keydef (mirrors KeyDefinition.sourceLine)
+        const keySpaceService = mockKeySpaceService((keyName) =>
+            keyName === 'mykey'
+                ? { keyName: 'mykey', sourceMap: '/workspace/root.ditamap', sourceLine: keydefLine }
+                : null
+        );
+
+        const offset = doc.positionAt(content.indexOf('mykey') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+            docs,
+            ['/workspace'],
+            keySpaceService
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        assert.strictEqual(edits.length, 2, 'should rewrite both the keys token and the keyref');
+        assert.ok(edits.some(e => e.newText === 'mykeynew'));
+    });
+
+    test('same-file keyref resolving to a DIFFERENT key definition (name collision, different scope) is NOT rewritten', async () => {
+        // Two keydefs happen to share the literal text "mykey" — e.g. two
+        // different keyscopes — but the keyref only resolves to one of them.
+        // Renaming the cursor's definition must not touch the unrelated keyref.
+        const content =
+            '<map>' +
+            '<keydef keys="mykey" href="target.dita"/>' +
+            '<topicref keyref="mykey"/>' +
+            '</map>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        // The mock resolves "mykey" to a definition in a DIFFERENT file/line
+        // than the one the cursor is on, simulating a same-named key that
+        // actually wins resolution from a different scope.
+        const keySpaceService = mockKeySpaceService((keyName) =>
+            keyName === 'mykey'
+                ? { keyName: 'mykey', sourceMap: '/workspace/other-scope.ditamap', sourceLine: 5 }
+                : null
+        );
+
+        const offset = doc.positionAt(content.indexOf('mykey') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+            docs,
+            ['/workspace'],
+            keySpaceService
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        assert.strictEqual(edits.length, 1, 'only the keys token itself should be rewritten');
+        assert.strictEqual(edits[0].newText, 'mykeynew');
+    });
+
+    test('cross-file keyref resolving to the renamed key is rewritten, keyref to an unrelated key is not', async () => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+        try {
+            const rootMapPath = path.join(tmpDir, 'root.ditamap');
+            const referencerPath = path.join(tmpDir, 'referencer.dita');
+            const elsewherePath = path.join(tmpDir, 'elsewhere.dita');
+
+            fs.writeFileSync(rootMapPath, '<map><keydef keys="mykey" href="target.dita"/></map>');
+            fs.writeFileSync(referencerPath, '<topic id="r1"><title>R</title><body><p><xref keyref="mykey">x</xref></p></body></topic>');
+            fs.writeFileSync(elsewherePath, '<topic id="e1"><title>E</title><body><p><xref keyref="otherkey">x</xref></p></body></topic>');
+
+            const doc = createDoc(fs.readFileSync(rootMapPath, 'utf-8'), URI.file(rootMapPath).toString());
+            const docs = createDocs(doc);
+
+            const normalizedRootMap = rootMapPath;
+            const keySpaceService = mockKeySpaceService((keyName) =>
+                keyName === 'mykey'
+                    ? { keyName: 'mykey', sourceMap: normalizedRootMap, sourceLine: 1 }
+                    : keyName === 'otherkey'
+                        ? { keyName: 'otherkey', sourceMap: path.join(tmpDir, 'unrelated.ditamap'), sourceLine: 1 }
+                        : null
+            );
+
+            const content = fs.readFileSync(rootMapPath, 'utf-8');
+            const offset = doc.positionAt(content.indexOf('mykey') + 1);
+
+            const edit = await handleRename(
+                { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+                docs,
+                [tmpDir],
+                keySpaceService
+            );
+
+            const referencerUri = URI.file(referencerPath).toString();
+            const elsewhereUri = URI.file(elsewherePath).toString();
+            assert.ok(edit?.changes?.[referencerUri], 'referencer.dita keyref should be rewritten');
+            assert.strictEqual(edit!.changes![referencerUri][0].newText, 'mykeynew');
+            assert.ok(!edit?.changes?.[elsewhereUri], 'elsewhere.dita references a different key and must be untouched');
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
+    test('conkeyref usage has its key-name prefix renamed while the element-id suffix is preserved', async () => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+        try {
+            const rootMapPath = path.join(tmpDir, 'root.ditamap');
+            const referencerPath = path.join(tmpDir, 'referencer.dita');
+
+            fs.writeFileSync(rootMapPath, '<map><keydef keys="mykey" href="target.dita"/></map>');
+            fs.writeFileSync(referencerPath, '<topic id="r1"><title>R</title><body><p conkeyref="mykey/elem1">x</p></body></topic>');
+
+            const doc = createDoc(fs.readFileSync(rootMapPath, 'utf-8'), URI.file(rootMapPath).toString());
+            const docs = createDocs(doc);
+
+            const keySpaceService = mockKeySpaceService((keyName) =>
+                keyName === 'mykey'
+                    ? { keyName: 'mykey', sourceMap: rootMapPath, sourceLine: 1 }
+                    : null
+            );
+
+            const content = fs.readFileSync(rootMapPath, 'utf-8');
+            const offset = doc.positionAt(content.indexOf('mykey') + 1);
+
+            const edit = await handleRename(
+                { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+                docs,
+                [tmpDir],
+                keySpaceService
+            );
+
+            const referencerUri = URI.file(referencerPath).toString();
+            assert.ok(edit?.changes?.[referencerUri]);
+            assert.strictEqual(edit!.changes![referencerUri][0].newText, 'mykeynew/elem1');
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
+    test('an indirect keyref on another keydef ("keys=a keyref=b") is rewritten when renaming b', async () => {
+        // <keydef keys="alias" keyref="mykey"/> chains to "mykey" — the keyref
+        // attribute here is on a *keydef* element, not a content reference, but
+        // it's still a genuine usage of the key and must be renamed along with
+        // every other keyref/conkeyref usage.
+        const content =
+            '<map>' +
+            '<keydef keys="mykey" href="target.dita"/>' +
+            '<keydef keys="alias" keyref="mykey"/>' +
+            '</map>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        const keySpaceService = mockKeySpaceService((keyName) =>
+            keyName === 'mykey'
+                ? { keyName: 'mykey', sourceMap: '/workspace/root.ditamap', sourceLine: 1 }
+                : null
+        );
+
+        const offset = doc.positionAt(content.indexOf('mykey') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+            docs,
+            ['/workspace'],
+            keySpaceService
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        assert.strictEqual(edits.length, 2, 'should rewrite the keys token and the indirect keyref chain');
+        assert.ok(edits.every(e => e.newText === 'mykeynew'));
+    });
+
+    test('keyref/conkeyref matches are skipped (not rewritten) when no KeySpaceService is available', async () => {
+        const content =
+            '<map>' +
+            '<keydef keys="mykey" href="target.dita"/>' +
+            '<topicref keyref="mykey"/>' +
+            '</map>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        const logs: string[] = [];
+        const offset = doc.positionAt(content.indexOf('mykey') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+            docs,
+            ['/workspace'],
+            // no keySpaceService
+            undefined,
+            (msg) => logs.push(msg)
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        assert.strictEqual(edits.length, 1, 'only the keys token itself should be rewritten without a KeySpaceService');
+        assert.ok(logs.some(m => m.includes('unverifiable')), 'skipping should be logged');
+    });
+
+    test('renaming one token in a multi-key "keys" attribute leaves the other tokens untouched', async () => {
+        const content = '<keydef keys="alpha beta gamma" href="target.dita"/>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        const offset = doc.positionAt(content.indexOf('beta') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'betanew' },
+            docs
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        assert.strictEqual(edits.length, 1, 'only the beta token should be rewritten');
+        assert.strictEqual(edits[0].newText, 'betanew');
+
+        const startOffset = doc.offsetAt(edits[0].range.start);
+        const endOffset = doc.offsetAt(edits[0].range.end);
+        assert.strictEqual(content.slice(startOffset, endOffset), 'beta');
+    });
+});

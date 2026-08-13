@@ -146,6 +146,88 @@ export function findIdAtOffset(text: string, offset: number): { id: string; valu
     return { id: text.slice(valueStart, valueEnd), valueStart, valueEnd };
 }
 
+/** Key-name token found at a cursor position within a `keys="..."` attribute. */
+export interface KeyAtOffset {
+    key: string;
+    valueStart: number;
+    valueEnd: number;
+}
+
+/**
+ * Find the specific key-name token under the cursor within a `keys="..."`
+ * attribute value. A `keydef` may define multiple keys in one attribute
+ * (`keys="a b c"`); this resolves to exactly the whitespace-delimited token
+ * the cursor is on, with offsets bounding just that token — not the whole
+ * attribute value — so a rename only rewrites the one key under the cursor.
+ * Tokenization mirrors `KeySpaceService.extractKeyDefinitions()`
+ * (`keysValue.split(/\s+/)`), so the two don't drift on how a multi-key
+ * `keydef` is split.
+ */
+export function findKeyAtOffset(text: string, offset: number): KeyAtOffset | null {
+    // Scan backwards to find opening quote (mirrors findIdAtOffset)
+    let i = offset;
+    while (i > 0 && text[i - 1] !== '"' && text[i - 1] !== '\'' && text[i - 1] !== '<' && text[i - 1] !== '>') {
+        i--;
+    }
+    if (i <= 0 || (text[i - 1] !== '"' && text[i - 1] !== '\'')) {
+        return null;
+    }
+
+    const quoteChar = text[i - 1];
+    const valueStart = i;
+
+    // Find closing quote
+    let j = offset;
+    while (j < text.length && text[j] !== quoteChar && text[j] !== '<' && text[j] !== '>') {
+        j++;
+    }
+    if (j >= text.length || text[j] !== quoteChar) {
+        return null;
+    }
+    const valueEnd = j;
+
+    // Check there's = before the opening quote
+    let k = i - 2;
+    while (k >= 0 && text[k] === ' ') k--;
+    if (k < 0 || text[k] !== '=') return null;
+
+    // Extract attribute name
+    k--;
+    while (k >= 0 && text[k] === ' ') k--;
+    const attrEnd = k + 1;
+    while (k >= 0 && /[\w-]/.test(text[k])) k--;
+    const attrName = text.slice(k + 1, attrEnd);
+
+    if (attrName !== 'keys') {
+        return null;
+    }
+
+    // Find which whitespace-delimited token within the attribute value contains
+    // the cursor. Token ranges never touch (at least one whitespace char always
+    // separates them), so `relOffset <= tokenEnd` can't ambiguously match two
+    // tokens — it only ever extends the match to a cursor sitting right after
+    // the token's last character, before the following whitespace/quote.
+    const fullValue = text.slice(valueStart, valueEnd);
+    const clampedOffset = Math.max(valueStart, Math.min(offset, valueEnd));
+    const relOffset = clampedOffset - valueStart;
+
+    const tokenPattern = /\S+/g;
+    let tokenMatch: RegExpExecArray | null;
+    while ((tokenMatch = tokenPattern.exec(fullValue)) !== null) {
+        const tokenStart = tokenMatch.index;
+        const tokenEnd = tokenStart + tokenMatch[0].length;
+        if (relOffset >= tokenStart && relOffset <= tokenEnd) {
+            return {
+                key: tokenMatch[0],
+                valueStart: valueStart + tokenStart,
+                valueEnd: valueStart + tokenEnd,
+            };
+        }
+    }
+
+    return null;
+}
+
 /**
  * Find all reference attributes in the document that mention a given ID
  * in their fragment portion.
@@ -161,6 +243,40 @@ export function findReferencesToId(text: string, targetId: string): ReferenceOcc
         const value = match[2];
 
         if (referenceMatchesId(attrName, value, targetId)) {
+            // Calculate value start by finding the opening quote position
+            const fullMatch = match[0];
+            const quoteChar = fullMatch.includes('"') ? '"' : "'";
+            const quotePos = fullMatch.indexOf(quoteChar);
+            const valueStart = match.index + quotePos + 1;
+            const valueEnd = valueStart + value.length;
+
+            results.push({ type: attrName, value, valueStart, valueEnd });
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Find all `keyref`/`conkeyref` reference attributes in the document whose
+ * value refers to a given key name. `href`/`conref` never carry a key name
+ * and are never returned — the counterpart to `findReferencesToId`, whose
+ * `referenceMatchesId` explicitly excludes `keyref` since it exists to serve
+ * ID-fragment matching. This exists to serve key-name matching instead, so it
+ * excludes `href`/`conref` the other way round rather than extending
+ * `findReferencesToId`'s matching rules to cover both.
+ */
+export function findReferencesToKey(text: string, targetKey: string): ReferenceOccurrence[] {
+    const results: ReferenceOccurrence[] = [];
+    // Match href="...", conref="...", conkeyref="...", keyref="..." attribute values
+    const pattern = /\b(href|conref|conkeyref|keyref)\s*=\s*["']([^"']+)["']/g;
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+        const attrName = match[1] as RefAttrName;
+        const value = match[2];
+
+        if (referenceMatchesKey(attrName, value, targetKey)) {
             // Calculate value start by finding the opening quote position
             const fullMatch = match[0];
             const quoteChar = fullMatch.includes('"') ? '"' : "'";
@@ -219,4 +335,27 @@ function referenceMatchesId(attrType: RefAttrName, value: string, targetId: stri
 
     const id = getTargetId(fragment);
     return id === targetId;
+}
+
+/**
+ * Extract the key-name portion of a `keyref`/`conkeyref` value.
+ * `keyref` values are just the key name; `conkeyref` values are
+ * "keyname/elementid" — this returns the part before the slash.
+ */
+export function extractKeyPart(value: string): string {
+    const slashIdx = value.indexOf('/');
+    return slashIdx >= 0 ? value.slice(0, slashIdx) : value;
+}
+
+/**
+ * Check if a reference attribute value references a given target key name.
+ * The counterpart to `referenceMatchesId`: `href`/`conref` never carry a key
+ * name and are excluded, where `referenceMatchesId` excludes `keyref` instead.
+ */
+function referenceMatchesKey(attrType: RefAttrName, value: string, targetKey: string): boolean {
+    if (attrType === 'href' || attrType === 'conref') {
+        return false;
+    }
+    // keyref: the whole value is the key name. conkeyref: the part before '/'.
+    return extractKeyPart(value) === targetKey;
 }
