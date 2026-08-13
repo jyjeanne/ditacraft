@@ -1,4 +1,4 @@
-# Graph Report - .  (2026-08-04)
+# Graph Report - .  (2026-08-13)
 
 ## Corpus Check
 - 306 files · ~397,853 words
@@ -19,7 +19,7 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `d72e335`
+- Built from Git commit: `e908e8c`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 73 edges
@@ -127,7 +127,7 @@ Nodes (12): RngValidationService, ROOT_TO_SCHEMA, SalveConvertResult, SalveGramm
 
 ### Community 20 - "Community 20"
 Cohesion: 0.09
-Nodes (4): main, d72e335 [npm]: bump the production-dependencies group with 2 updates, DitaCraftAPI, vscode
+Nodes (4): main, e908e8c [npm]: bump the production-dependencies group with 2 updates, DitaCraftAPI, vscode
 
 ### Community 21 - "Community 21"
 Cohesion: 0.14
