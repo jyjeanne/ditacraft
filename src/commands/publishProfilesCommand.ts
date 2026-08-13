@@ -156,7 +156,7 @@ export async function managePublishingProfilesCommand(): Promise<void> {
     }
 }
 
-function describeProfile(p: PublishingProfile): string {
+export function describeProfile(p: PublishingProfile): string {
     const parts = [p.transtype];
     if (p.outputDir) parts.push(`→ ${p.outputDir}`);
     if (p.ditavalPath) parts.push(`filtered by ${p.ditavalPath}`);
@@ -227,7 +227,7 @@ async function promptForProfile(
  * already has a filter and then changing your mind mid-browse would
  * silently wipe it.
  */
-async function promptForDitaval(existingPath?: string): Promise<string | undefined> {
+export async function promptForDitaval(existingPath?: string): Promise<string | undefined> {
     for (;;) {
         const choice = await vscode.window.showQuickPick(
             [
@@ -294,7 +294,7 @@ export function storeDitavalPath(
  * back to a static list so profile creation isn't blocked on DITA-OT being
  * configured yet.
  */
-async function pickTranstype(currentValue?: string): Promise<string | undefined> {
+export async function pickTranstype(currentValue?: string): Promise<string | undefined> {
     let transtypes = FALLBACK_TRANSTYPES;
     try {
         const ditaOt = new DitaOtWrapper();
