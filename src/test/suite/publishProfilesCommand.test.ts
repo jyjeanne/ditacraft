@@ -16,6 +16,7 @@ import {
     getLastUsedProfileName,
     resolveDitavalPath,
     resolveProfileOutputDir,
+    storeDitavalPath,
 } from '../../commands/publishProfilesCommand';
 
 suite('Publishing Profiles Test Suite', () => {
@@ -106,6 +107,42 @@ suite('Publishing Profiles Test Suite', () => {
             const expectedBase = folder ? folder.uri.fsPath : '';
 
             assert.strictEqual(resolved, `${expectedBase}/build`);
+        });
+    });
+
+    suite('storeDitavalPath', () => {
+        function fakeFolder(fsPath: string, index: number): vscode.WorkspaceFolder {
+            return { uri: vscode.Uri.file(fsPath), name: `folder${index}`, index };
+        }
+
+        test('Should return the absolute path when no workspace folders are open', () => {
+            const picked = vscode.Uri.file(path.join(path.sep, 'anywhere', 'exclude.ditaval'));
+            assert.strictEqual(storeDitavalPath(picked, undefined), picked.fsPath);
+        });
+
+        test('Should store a path relative to the first workspace folder when the file is under it', () => {
+            const root = path.join(path.sep, 'workspace', 'root');
+            const folders = [fakeFolder(root, 0)];
+            const picked = vscode.Uri.file(path.join(root, 'filters', 'exclude.ditaval'));
+
+            assert.strictEqual(
+                storeDitavalPath(picked, folders),
+                path.join('filters', 'exclude.ditaval')
+            );
+        });
+
+        test('Should fall back to an absolute path when the file is under a DIFFERENT root than folder[0] (multi-root regression)', () => {
+            // resolveDitavalPath() always re-joins a relative value against
+            // workspaceFolders[0] only, so a relative path computed against
+            // some other folder (as vscode.workspace.asRelativePath would
+            // produce) would resolve to the wrong file. storeDitavalPath must
+            // fall back to an absolute path in that case instead.
+            const root0 = path.join(path.sep, 'workspace', 'root0');
+            const root1 = path.join(path.sep, 'workspace', 'root1');
+            const folders = [fakeFolder(root0, 0), fakeFolder(root1, 1)];
+            const picked = vscode.Uri.file(path.join(root1, 'exclude.ditaval'));
+
+            assert.strictEqual(storeDitavalPath(picked, folders), picked.fsPath);
         });
     });
 });

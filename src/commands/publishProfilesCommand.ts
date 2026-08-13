@@ -274,7 +274,7 @@ async function promptForDitaval(existingPath?: string): Promise<string | undefin
  * back to an absolute path when the file isn't under folder[0] (or no
  * workspace is open) keeps storage and resolution consistent.
  */
-function storeDitavalPath(
+export function storeDitavalPath(
     uri: vscode.Uri,
     workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined
 ): string {
