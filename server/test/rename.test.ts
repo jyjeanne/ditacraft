@@ -392,6 +392,77 @@ suite('handleRename — key rename', () => {
         assert.strictEqual(edits[0].newText, 'mykeynew');
     });
 
+    test('same-file keyref is still rewritten despite a stale (disk-cached) sourceLine, when the key is unambiguous in this file (regression)', async () => {
+        // KeySpaceService only ever reads map content from disk and caches
+        // the result — it can't see this document's unsaved edits. Simulate
+        // that: the live cursor computes line 1, but the mock (standing in
+        // for a stale disk-cached KeySpaceService) reports a different line
+        // for the same file, as if an earlier, unsaved edit shifted the
+        // keydef's position. Since "mykey" is defined only once in this
+        // document, that staleness must not block the same-file rewrite.
+        const content =
+            '<map>' +
+            '<keydef keys="mykey" href="target.dita"/>' +
+            '<topicref keyref="mykey"/>' +
+            '</map>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        const keySpaceService = mockKeySpaceService((keyName) =>
+            keyName === 'mykey'
+                ? { keyName: 'mykey', sourceMap: '/workspace/root.ditamap', sourceLine: 99 } // stale line
+                : null
+        );
+
+        const offset = doc.positionAt(content.indexOf('mykey') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+            docs,
+            ['/workspace'],
+            keySpaceService
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        assert.strictEqual(edits.length, 2, 'both the keys token and the keyref should be rewritten despite the stale line');
+        assert.ok(edits.every(e => e.newText === 'mykeynew'));
+    });
+
+    test('same-file keyref with a stale sourceLine is NOT rewritten when the key is ambiguous in this file (regression)', async () => {
+        // Two distinct definitions of "mykey" exist in this same document
+        // (e.g. different inline @keyscope branches) — line-based
+        // disambiguation still matters here, so a stale/mismatched line must
+        // still block the rewrite rather than being waved through.
+        const content =
+            '<map>' +
+            '<topicref keyscope="a" keys="mykey" href="a.dita"/>' +
+            '<topicref keyscope="b" keys="mykey" href="b.dita"/>' +
+            '<topicref keyref="mykey"/>' +
+            '</map>';
+        const doc = createDoc(content, URI.file('/workspace/root.ditamap').toString());
+        const docs = createDocs(doc);
+
+        // The candidate resolves (via scope b, say) to a line that doesn't
+        // match the cursor's own (scope a) definition.
+        const keySpaceService = mockKeySpaceService((keyName) =>
+            keyName === 'mykey'
+                ? { keyName: 'mykey', sourceMap: '/workspace/root.ditamap', sourceLine: 99 }
+                : null
+        );
+
+        const offset = doc.positionAt(content.indexOf('mykey') + 1);
+        const edit = await handleRename(
+            { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+            docs,
+            ['/workspace'],
+            keySpaceService
+        );
+
+        assert.ok(edit?.changes);
+        const edits = edit!.changes![doc.uri];
+        assert.strictEqual(edits.length, 1, 'only the keys token at the cursor should be rewritten — the ambiguous keyref is left alone');
+    });
+
     test('cross-file keyref resolving to the renamed key is rewritten, keyref to an unrelated key is not', async () => {
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
         try {

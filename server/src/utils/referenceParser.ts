@@ -186,14 +186,19 @@ export function findKeyAtOffset(text: string, offset: number): KeyAtOffset | nul
     }
     const valueEnd = j;
 
-    // Check there's = before the opening quote
+    // Check there's = before the opening quote. Whitespace-tolerant (any
+    // \s, not just literal space) so `keys\n="..."`/`keys\t="..."` anchor
+    // the same way the whitespace-tolerant `keys\s*=\s*` regex in
+    // KeySpaceService.extractKeyDefinitionsFromElements now does — a cursor
+    // placed inside such a value used to fail to match here even though
+    // that same key is correctly registered in the key space.
     let k = i - 2;
-    while (k >= 0 && text[k] === ' ') k--;
+    while (k >= 0 && /\s/.test(text[k])) k--;
     if (k < 0 || text[k] !== '=') return null;
 
     // Extract attribute name
     k--;
-    while (k >= 0 && text[k] === ' ') k--;
+    while (k >= 0 && /\s/.test(text[k])) k--;
     const attrEnd = k + 1;
     while (k >= 0 && /[\w-]/.test(text[k])) k--;
     const attrName = text.slice(k + 1, attrEnd);
@@ -289,6 +294,35 @@ export function findReferencesToKey(text: string, targetKey: string): ReferenceO
     }
 
     return results;
+}
+
+/**
+ * Count how many `keys="..."` attribute occurrences in `text` define
+ * `keyName` as one of their (possibly several, whitespace-delimited) key
+ * tokens.
+ *
+ * Exists to answer "is this key name unambiguous within this document" —
+ * when the count is exactly 1, every `keyref`/`conkeyref` candidate
+ * `findReferencesToKey` finds in the *same* text is safe to treat as
+ * referring to that one definition without a `KeySpaceService` lookup,
+ * because there is no other same-named definition it could be confused
+ * with. This sidesteps a real gap in the alternative (verifying via
+ * `KeySpaceService.resolveKeyEntry`): that service only ever reads map
+ * content from disk and caches the result, so it can't see unsaved edits
+ * to the very document a rename is being performed in — a same-file
+ * `keyref` could be wrongly judged "not the same definition" purely
+ * because the disk-cached `sourceLine` hasn't caught up with the live
+ * buffer yet, silently leaving that reference unrenamed.
+ */
+export function countKeyDefinitionOccurrences(text: string, keyName: string): number {
+    let count = 0;
+    const pattern = /\bkeys\s*=\s*["']([^"']+)["']/g;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+        const tokens = match[1].split(/\s+/).filter(t => t.length > 0);
+        if (tokens.includes(keyName)) count++;
+    }
+    return count;
 }
 
 /**

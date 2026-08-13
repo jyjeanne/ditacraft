@@ -16,6 +16,7 @@ import {
     findKeyAtOffset,
     findReferencesToId,
     findReferencesToKey,
+    countKeyDefinitionOccurrences,
     extractKeyPart,
     ReferenceOccurrence,
     KeyAtOffset,
@@ -364,22 +365,46 @@ async function handleKeyRename(
     // directly without a unit conversion at the comparison site.
     const sourceLine = document.positionAt(keyResult.valueStart).line + 1;
 
+    // KeySpaceService.resolveKeyEntry() only ever reads map content from
+    // disk and caches the result — it can't see this document's *unsaved*
+    // edits. If those edits shifted the keydef's line, the live `sourceLine`
+    // computed above and the disk-cached definition's sourceLine disagree,
+    // and sameKeyDefinition() would wrongly reject every reference that
+    // actually does resolve to this definition.
+    //
+    // When `oldKey` is defined only once in this document — the overwhelming
+    // common case — that staleness can't cause an incorrect match: there is
+    // no *other* same-named definition in this text a candidate could be
+    // confused with, so the line number isn't doing any disambiguation work
+    // and can be safely ignored once the file itself is confirmed to match.
+    // This relaxes the LINE check only — resolveKeyEntry()'s own scope-aware
+    // FILE resolution is still authoritative and still runs normally, so a
+    // candidate that genuinely resolves elsewhere is still rejected exactly
+    // as before. Only when this document defines `oldKey` more than once
+    // (e.g. via distinct inline `@keyscope` branches) does line-based
+    // disambiguation still matter, and the strict comparison applies.
+    const targetKeyUnambiguousInOwnFile = countKeyDefinitionOccurrences(text, oldKey) === 1;
+
     // 2. Update keyref/conkeyref usages in the current document.
     const refs = findReferencesToKey(text, oldKey);
     const selfEdits = await collectMatchingKeyEdits(
-        refs, text, sourceMapPath, normalizedSourceMap, sourceLine, newKey, keySpaceService
+        refs, text, sourceMapPath, normalizedSourceMap, sourceLine, newKey, keySpaceService,
+        targetKeyUnambiguousInOwnFile
     );
     currentEdits.push(...selfEdits);
     changes[document.uri] = currentEdits;
 
     // 3. Cross-file: same concurrency shape as ID rename (§ handleRename) —
     // KeySpaceService dedupes concurrent builds of the same key space via
-    // pendingBuilds, so processing files concurrently is safe.
+    // pendingBuilds, so processing files concurrently is safe. The staleness
+    // relaxation above applies here too — a topic file's keyref can resolve
+    // straight back to the same (possibly unsaved) map document.
     Object.assign(changes, await collectCrossFileEdits(
         workspaceFolders, document.uri, documents,
         (content) => findReferencesToKey(content, oldKey),
         (fileRefs, content, filePath) => collectMatchingKeyEdits(
-            fileRefs, content, filePath, normalizedSourceMap, sourceLine, newKey, keySpaceService
+            fileRefs, content, filePath, normalizedSourceMap, sourceLine, newKey, keySpaceService,
+            targetKeyUnambiguousInOwnFile
         )
     ));
 
@@ -408,7 +433,8 @@ async function collectMatchingKeyEdits(
     targetSourceMap: string,
     targetSourceLine: number,
     newKey: string,
-    keySpaceService: KeySpaceService
+    keySpaceService: KeySpaceService,
+    targetKeyUnambiguousInOwnFile: boolean
 ): Promise<TextEdit[]> {
     return buildEditsForVerifiedRefs(
         refs,
@@ -422,7 +448,7 @@ async function collectMatchingKeyEdits(
             // would never match "alias"'s own (sourceMap, sourceLine) and silently
             // skip every direct usage of the alias being renamed.
             const resolved = await keySpaceService.resolveKeyEntry(keyName, contextFilePath);
-            return sameKeyDefinition(resolved, targetSourceMap, targetSourceLine);
+            return sameKeyDefinition(resolved, targetSourceMap, targetSourceLine, targetKeyUnambiguousInOwnFile);
         },
         (ref) => replaceKeyInReference(ref.type, ref.value, newKey)
     );
@@ -432,22 +458,44 @@ async function collectMatchingKeyEdits(
  * Check whether a resolved key definition is the same definition the rename
  * was invoked on, identified by (sourceMap, sourceLine) rather than by key
  * name — two different scopes can validly define the same key name, and
- * only the one at the cursor should be renamed.
+ * only the one at the cursor should be renamed. The file (`sourceMap`) check
+ * is always strict — `resolveKeyEntry`'s own scope-aware resolution is what
+ * decides which file a candidate actually points at, and a candidate
+ * resolving to a different file is never treated as a match here.
  *
- * `sourceLine` is optional on `KeyDefinition` (not always available from
- * every extraction path); when either side lacks it, this falls back to
- * file-level identity, matching the conservative "same file counts as the
- * same definition" precedent already used where finer-grained provenance
- * isn't available.
+ * The line check is relaxed when `targetKeyUnambiguousInOwnFile` is true
+ * (the renamed key is defined only once in its own file, per
+ * `countKeyDefinitionOccurrences` — see `handleKeyRename`): with nothing
+ * else in that file sharing the name, `sourceLine` isn't doing any
+ * disambiguation work, so it's ignored once the file already matches. This
+ * matters because `resolved.sourceLine` comes from `KeySpaceService`, which
+ * only ever reads map content from disk — an unsaved edit shifting the
+ * definition's line would otherwise make a same-file rename spuriously
+ * "unverifiable" via `resolved.sourceLine === undefined` below, or mismatch
+ * against the live cursor's own line, even though there's no real ambiguity.
+ *
+ * Otherwise, `sourceLine` is optional on `KeyDefinition` (not always
+ * available from every extraction path — e.g. keys registered via an
+ * inline `@keyscope` branch never get one); when it's missing and the
+ * ambiguity can't be ruled out, this requires it not match rather than
+ * falling back to file-level identity, since a same-file-only fallback
+ * would let a candidate resolving to a genuinely *different*, same-named
+ * key in another scope of that file get rewritten too — the exact
+ * false-positive class this (sourceMap, sourceLine) check exists to
+ * prevent. Skipping an unverifiable candidate is the same "don't guess"
+ * choice `handleKeyRename` already makes when no `KeySpaceService` is
+ * available at all.
  */
 function sameKeyDefinition(
     resolved: KeyDefinition | null,
     targetSourceMap: string,
-    targetSourceLine: number
+    targetSourceLine: number,
+    targetKeyUnambiguousInOwnFile: boolean
 ): boolean {
     if (!resolved) return false;
     if (normalizeFsPath(resolved.sourceMap) !== targetSourceMap) return false;
-    if (resolved.sourceLine === undefined) return true;
+    if (targetKeyUnambiguousInOwnFile) return true;
+    if (resolved.sourceLine === undefined) return false;
     return resolved.sourceLine === targetSourceLine;
 }
 

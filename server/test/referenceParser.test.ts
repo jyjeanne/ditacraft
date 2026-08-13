@@ -8,6 +8,7 @@ import {
     findElementByIdOffset,
     findKeyAtOffset,
     findReferencesToKey,
+    countKeyDefinitionOccurrences,
     extractKeyPart,
 } from '../src/utils/referenceParser';
 
@@ -264,6 +265,26 @@ suite('referenceParser', () => {
             assert.ok(result);
             assert.strictEqual(result.key, 'mykey');
         });
+
+        test('tolerates a newline around "=" (regression)', () => {
+            // Matches the whitespace-tolerant anchor regex added alongside
+            // this in KeySpaceService.extractKeyDefinitionsFromElements —
+            // a cursor placed in such a value used to fail to match here
+            // even though the key is correctly registered in the key space.
+            const text = '<keydef keys\n="mykey" href="target.dita"/>';
+            const offset = text.indexOf('mykey') + 1;
+            const result = findKeyAtOffset(text, offset);
+            assert.ok(result);
+            assert.strictEqual(result.key, 'mykey');
+        });
+
+        test('tolerates a tab around "=" (regression)', () => {
+            const text = '<keydef keys\t=\t"mykey" href="target.dita"/>';
+            const offset = text.indexOf('mykey') + 1;
+            const result = findKeyAtOffset(text, offset);
+            assert.ok(result);
+            assert.strictEqual(result.key, 'mykey');
+        });
     });
 
     suite('extractKeyPart', () => {
@@ -322,6 +343,40 @@ suite('referenceParser', () => {
             const refs = findReferencesToKey(text, 'mykey');
             assert.strictEqual(refs.length, 1);
             assert.strictEqual(text.slice(refs[0].valueStart, refs[0].valueEnd), 'mykey/elem1');
+        });
+    });
+
+    suite('countKeyDefinitionOccurrences', () => {
+        test('counts a single-key definition', () => {
+            const text = '<keydef keys="mykey" href="a.dita"/>';
+            assert.strictEqual(countKeyDefinitionOccurrences(text, 'mykey'), 1);
+        });
+
+        test('counts a key inside a multi-key attribute the same as a single-key one', () => {
+            const text = '<keydef keys="alpha mykey gamma" href="a.dita"/>';
+            assert.strictEqual(countKeyDefinitionOccurrences(text, 'mykey'), 1);
+        });
+
+        test('counts two separate definitions of the same key name', () => {
+            const text =
+                '<topicref keyscope="a" keys="mykey" href="a.dita"/>' +
+                '<topicref keyscope="b" keys="mykey" href="b.dita"/>';
+            assert.strictEqual(countKeyDefinitionOccurrences(text, 'mykey'), 2);
+        });
+
+        test('returns 0 when the key is never defined', () => {
+            const text = '<keydef keys="otherkey" href="a.dita"/>';
+            assert.strictEqual(countKeyDefinitionOccurrences(text, 'mykey'), 0);
+        });
+
+        test('does not match a substring of a different key token', () => {
+            const text = '<keydef keys="mykey-extended" href="a.dita"/>';
+            assert.strictEqual(countKeyDefinitionOccurrences(text, 'mykey'), 0);
+        });
+
+        test('does not count keyref/conkeyref usages, only keys= definitions', () => {
+            const text = '<keydef keys="mykey" href="a.dita"/><xref keyref="mykey"/>';
+            assert.strictEqual(countKeyDefinitionOccurrences(text, 'mykey'), 1);
         });
     });
 
