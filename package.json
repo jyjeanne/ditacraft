@@ -187,6 +187,11 @@
         "title": "DITA: Create New Bookmap"
       },
       {
+        "command": "ditacraft.insertImage",
+        "title": "DITA: Insert Image",
+        "icon": "$(file-media)"
+      },
+      {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
       },
@@ -318,6 +323,11 @@
           "command": "ditacraft.publish",
           "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
           "group": "ditacraft@2"
+        },
+        {
+          "command": "ditacraft.insertImage",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "ditacraft@3"
         }
       ],
       "view/title": [
@@ -388,6 +398,10 @@
         {
           "command": "ditacraft.restructureMap",
           "when": "resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.insertImage",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
         }
       ],
       "explorer/context": [

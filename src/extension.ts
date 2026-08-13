@@ -26,7 +26,8 @@ import {
     configureDitaOTCommand,
     setupCSpellCommand,
     validateGuideCommand,
-    managePublishingProfilesCommand
+    managePublishingProfilesCommand,
+    insertImageCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
@@ -660,6 +661,18 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in newBookmapCommand', error);
                 vscode.window.showErrorMessage(`Error creating bookmap: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.insertImage', async () => {
+            try {
+                logger.info('Command invoked: ditacraft.insertImage');
+                await insertImageCommand();
+            } catch (error) {
+                logger.error('Unhandled error in insertImageCommand', error);
+                vscode.window.showErrorMessage(`Error inserting image: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );
