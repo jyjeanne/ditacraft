@@ -465,4 +465,51 @@ suite('Key Space Resolver Test Suite', () => {
             assert.ok(duration < 10000, 'Should build multiple key spaces efficiently');
         });
     });
+
+    suite('Workspace Boundary Path Normalization', () => {
+        // normalizePathForComparison is the private helper isPathWithinWorkspace uses to
+        // compare an absolute path against configured workspace folders. It must case-fold
+        // on win32 (mirroring normalizeFsPath in server/src/utils/textUtils.ts) so a path
+        // reaching it via a file:// URI round-trip (which vscode-uri lowercases the drive
+        // letter of) still compares equal to the same path built from a raw fs string.
+        // Accessed via a cast since it's intentionally private API, not part of the
+        // resolver's public surface.
+        function normalize(target: KeySpaceResolver, fsPath: string): string {
+            return (target as unknown as { normalizePathForComparison(p: string): string })
+                .normalizePathForComparison(fsPath);
+        }
+
+        test('Should case-fold mixed-case drive letters to the same value on win32', function() {
+            if (process.platform !== 'win32') {
+                this.skip();
+                return;
+            }
+            const upper = normalize(resolver, 'C:\\Workspace\\topics\\intro.dita');
+            const lower = normalize(resolver, 'c:\\workspace\\topics\\intro.dita');
+            assert.strictEqual(upper, lower,
+                'Paths differing only by drive-letter/segment case must normalize identically on win32');
+        });
+
+        test('Should preserve path case on non-Windows platforms', function() {
+            if (process.platform === 'win32') {
+                this.skip();
+                return;
+            }
+            const mixedCase = normalize(resolver, '/Workspace/Topics/Intro.dita');
+            assert.strictEqual(mixedCase, path.normalize('/Workspace/Topics/Intro.dita'),
+                'Case must be preserved on case-sensitive filesystems');
+        });
+
+        test('Should still normalize path separators identically to path.normalize', () => {
+            // Sanity check that the win32-only lowercasing didn't change the underlying
+            // separator/`.`/`..` cleanup path.normalize already did.
+            const input = process.platform === 'win32'
+                ? 'C:\\a\\.\\b\\..\\c'
+                : '/a/./b/../c';
+            const expected = process.platform === 'win32'
+                ? path.normalize(input).toLowerCase()
+                : path.normalize(input);
+            assert.strictEqual(normalize(resolver, input), expected);
+        });
+    });
 });

@@ -152,6 +152,23 @@ export class KeySpaceResolver implements vscode.Disposable {
     }
 
     /**
+     * Normalize a filesystem path for workspace-boundary comparison.
+     *
+     * Case-folds on win32 (mirroring `normalizeFsPath` in
+     * `server/src/utils/textUtils.ts`) so two paths that refer to the same
+     * file but were derived through different code paths — e.g. one via a
+     * `file://` URI round-trip, which `vscode-uri` lowercases the drive
+     * letter of, and one from a raw fs path — still compare equal. Without
+     * this, a path differing only in drive-letter case from a configured
+     * workspace folder would be wrongly treated as outside the workspace on
+     * Windows.
+     */
+    private normalizePathForComparison(fsPath: string): string {
+        const normalized = path.normalize(fsPath);
+        return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+    }
+
+    /**
      * Check if a path is safely within the workspace boundaries.
      * Prevents path traversal attacks (e.g., ../../etc/passwd).
      * Only allows paths INSIDE workspace folders, not the root itself,
@@ -164,9 +181,9 @@ export class KeySpaceResolver implements vscode.Disposable {
             return true;
         }
 
-        const normalizedPath = path.normalize(absolutePath);
+        const normalizedPath = this.normalizePathForComparison(absolutePath);
         return workspaceFolders.some(folder => {
-            const normalizedWorkspace = path.normalize(folder.uri.fsPath);
+            const normalizedWorkspace = this.normalizePathForComparison(folder.uri.fsPath);
             // Only allow paths that are INSIDE the workspace, not equal to workspace root
             return normalizedPath.startsWith(normalizedWorkspace + path.sep);
         });
