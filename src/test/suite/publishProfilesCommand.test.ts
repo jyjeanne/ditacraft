@@ -11,12 +11,16 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as sinon from 'sinon';
 import {
     getPublishingProfiles,
     getLastUsedProfileName,
     resolveDitavalPath,
     resolveProfileOutputDir,
     storeDitavalPath,
+    describeProfile,
+    promptForDitaval,
+    pickTranstype,
 } from '../../commands/publishProfilesCommand';
 
 suite('Publishing Profiles Test Suite', () => {
@@ -143,6 +147,104 @@ suite('Publishing Profiles Test Suite', () => {
             const picked = vscode.Uri.file(path.join(root1, 'exclude.ditaval'));
 
             assert.strictEqual(storeDitavalPath(picked, folders), picked.fsPath);
+        });
+    });
+
+    suite('describeProfile', () => {
+        test('Should describe a bare profile by transtype only', () => {
+            assert.strictEqual(describeProfile({ name: 'p', transtype: 'html5' }), 'html5');
+        });
+
+        test('Should include outputDir and ditavalPath when set', () => {
+            const description = describeProfile({
+                name: 'p',
+                transtype: 'pdf',
+                outputDir: 'out/pdf',
+                ditavalPath: 'filters/exclude.ditaval'
+            });
+            assert.ok(description.includes('pdf'));
+            assert.ok(description.includes('out/pdf'));
+            assert.ok(description.includes('filters/exclude.ditaval'));
+        });
+    });
+
+    suite('promptForDitaval', () => {
+        let sandbox: sinon.SinonSandbox;
+        let showQuickPickStub: sinon.SinonStub;
+        let showOpenDialogStub: sinon.SinonStub;
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            showQuickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            showOpenDialogStub = sandbox.stub(vscode.window, 'showOpenDialog');
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        test('Should return an empty string when "No filter" is chosen', async () => {
+            showQuickPickStub.resolves({ label: '$(circle-slash) No filter', value: '' });
+            assert.strictEqual(await promptForDitaval(), '');
+            assert.strictEqual(showOpenDialogStub.called, false);
+        });
+
+        test('Should return undefined when the filter-choice picker is cancelled (escape)', async () => {
+            showQuickPickStub.resolves(undefined);
+            assert.strictEqual(await promptForDitaval('existing.ditaval'), undefined);
+        });
+
+        test('Should re-show the filter choice rather than clearing an existing filter when the file dialog is cancelled (regression)', async () => {
+            // First loop iteration: "Browse..." is picked, then the native
+            // file dialog is cancelled. Must NOT short-circuit to '' (which
+            // would silently wipe an existing filter) -- it should loop back
+            // to the filter-choice picker, where this test then picks
+            // "No filter" explicitly on the second iteration.
+            showQuickPickStub.onCall(0).resolves({ label: '$(folder-opened) Browse for .ditaval file...', value: 'browse' });
+            showQuickPickStub.onCall(1).resolves({ label: '$(circle-slash) No filter', value: '' });
+            showOpenDialogStub.resolves(undefined);
+
+            const result = await promptForDitaval('existing.ditaval');
+
+            assert.strictEqual(result, '');
+            assert.strictEqual(showQuickPickStub.callCount, 2, 'the filter-choice picker should reappear after a cancelled browse');
+        });
+
+        test('Should derive a stored path from the picked file when browsing succeeds', async () => {
+            showQuickPickStub.resolves({ label: '$(folder-opened) Browse for .ditaval file...', value: 'browse' });
+            const folder = vscode.workspace.workspaceFolders?.[0];
+            const pickedPath = folder
+                ? path.join(folder.uri.fsPath, 'filters', 'exclude.ditaval')
+                : path.join(path.sep, 'somewhere', 'exclude.ditaval');
+            const picked = vscode.Uri.file(pickedPath);
+            showOpenDialogStub.resolves([picked]);
+
+            const result = await promptForDitaval();
+
+            const expected = folder ? path.join('filters', 'exclude.ditaval') : picked.fsPath;
+            assert.strictEqual(result, expected);
+        });
+    });
+
+    suite('pickTranstype', () => {
+        let sandbox: sinon.SinonSandbox;
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        test('Should offer a transtype list to choose from (falls back to the static list without DITA-OT configured)', async () => {
+            const showQuickPickStub = sandbox.stub(vscode.window, 'showQuickPick').resolves('pdf' as unknown as vscode.QuickPickItem);
+            const result = await pickTranstype();
+
+            assert.strictEqual(result, 'pdf');
+            assert.ok(showQuickPickStub.calledOnce);
+            const offeredTranstypes = showQuickPickStub.firstCall.args[0] as unknown as string[];
+            assert.ok(Array.isArray(offeredTranstypes) && offeredTranstypes.length > 0);
         });
     });
 });
