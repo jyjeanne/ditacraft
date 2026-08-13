@@ -28,6 +28,12 @@ export interface PublishOptions {
     outputDir: string;
     tempDir?: string;
     additionalArgs?: string[];
+    /** Path to a `.ditaval` file to filter this publish's output through
+     * (DITA-OT `--filter`). Before this field existed, the only way to pass
+     * a filter was via the generic `additionalArgs`/`ditacraft.ditaOtArgs`
+     * escape hatch — this gives callers (e.g. publishing profiles) a
+     * dedicated, discoverable option instead. */
+    ditavalPath?: string;
 }
 
 export interface PublishProgress {
@@ -443,6 +449,13 @@ export class DitaOtWrapper {
             // Add temp directory if specified
             if (options.tempDir) {
                 args.push('--temp', options.tempDir);
+            }
+
+            // Add DITAVAL filter if specified. Single "--filter=value" token,
+            // matching the form already documented for the generic
+            // ditacraft.ditaOtArgs escape hatch this supersedes.
+            if (options.ditavalPath) {
+                args.push(`--filter=${this.normalizeFilePath(options.ditavalPath)}`);
             }
 
             // Add additional arguments

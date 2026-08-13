@@ -166,6 +166,10 @@
         "icon": "$(globe)"
       },
       {
+        "command": "ditacraft.managePublishingProfiles",
+        "title": "DITA: Manage Publishing Profiles"
+      },
+      {
         "command": "ditacraft.previewHTML5",
         "title": "DITA: Preview HTML5",
         "icon": "$(open-preview)"
@@ -781,6 +785,50 @@
           "default": true,
           "description": "Include Ollama as a fallback LLM provider (local inference). Requires Ollama to be running on the configured base URL.",
           "order": 41
+        },
+        "ditacraft.publishingProfiles": {
+          "type": "array",
+          "default": [],
+          "description": "Saved publishing profiles (name, transtype, outputDir, ditavalPath, additionalArgs), managed via 'DITA: Manage Publishing Profiles'. When one or more profiles exist, 'DITA: Publish' offers them alongside a one-off format pick.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Profile name shown in the publish picker."
+              },
+              "transtype": {
+                "type": "string",
+                "description": "DITA-OT output format for this profile (e.g. html5, pdf)."
+              },
+              "outputDir": {
+                "type": "string",
+                "description": "Output directory override for this profile. Leave unset to use ditacraft.outputDirectory."
+              },
+              "ditavalPath": {
+                "type": "string",
+                "description": "Path to a .ditaval file to filter this profile's output. Leave unset for no filtering."
+              },
+              "additionalArgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Extra DITA-OT command-line arguments for this profile only."
+              }
+            },
+            "required": [
+              "name",
+              "transtype"
+            ]
+          },
+          "order": 42
+        },
+        "ditacraft.lastUsedPublishingProfile": {
+          "type": "string",
+          "default": "",
+          "description": "Internal: name of the most recently used publishing profile, so the publish picker can surface it first. Managed automatically — not intended for manual editing.",
+          "order": 43
         }
       }
     },

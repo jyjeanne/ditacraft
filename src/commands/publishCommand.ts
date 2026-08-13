@@ -9,6 +9,13 @@ import { DitaOtWrapper, toVsCodeProgressReporter } from '../utils/ditaOtWrapper'
 import { logger } from '../utils/logger';
 import { fireAndForget } from '../utils/errorUtils';
 import { parseDitaOtOutput, getDitaOtDiagnostics } from '../utils/ditaOtErrorParser';
+import {
+    PublishingProfile,
+    getPublishingProfiles,
+    getLastUsedProfileName,
+    rememberLastUsedProfile,
+    resolveDitavalPath,
+} from './publishProfilesCommand';
 
 /**
  * P1-5 Fix: Extracted shared validation logic for publish commands
@@ -72,6 +79,26 @@ export async function publishCommand(uri?: vscode.Uri): Promise<void> {
         }
         const { ditaOt, filePath } = prepared;
 
+        // If any publishing profiles are saved, offer them alongside a
+        // one-off format pick — most repeat publishes become one selection
+        // instead of re-choosing transtype/output/filter every time.
+        const profiles = getPublishingProfiles();
+        if (profiles.length > 0) {
+            const choice = await pickProfileOrConfigureOnce(profiles);
+            if (choice === undefined) return; // user cancelled
+            if (choice !== null) {
+                await rememberLastUsedProfile(choice.name);
+                await executePublish(filePath, choice.transtype, ditaOt, {
+                    outputDir: choice.outputDir,
+                    ditavalPath: resolveDitavalPath(choice.ditavalPath),
+                    additionalArgs: choice.additionalArgs,
+                });
+                return;
+            }
+            // choice === null: "Configure Once..." was picked — fall through
+            // to the plain transtype picker below.
+        }
+
         // Get available transtypes
         const transtypes = await ditaOt.getAvailableTranstypes();
 
@@ -97,6 +124,43 @@ export async function publishCommand(uri?: vscode.Uri): Promise<void> {
 }
 
 /**
+ * Offer saved profiles (last-used one sorted first) alongside a
+ * "Configure Once..." escape hatch for a plain one-off publish.
+ * Returns the chosen profile, `null` for "configure once", or `undefined`
+ * if the picker was cancelled.
+ */
+async function pickProfileOrConfigureOnce(
+    profiles: PublishingProfile[]
+): Promise<PublishingProfile | null | undefined> {
+    const lastUsed = getLastUsedProfileName();
+    const sorted = [...profiles].sort((a, b) => {
+        if (a.name === lastUsed) return -1;
+        if (b.name === lastUsed) return 1;
+        return 0;
+    });
+
+    const items: (vscode.QuickPickItem & { profile: PublishingProfile | null })[] = [
+        ...sorted.map(p => ({
+            label: p.name,
+            description: p.name === lastUsed ? `${p.transtype} (last used)` : p.transtype,
+            profile: p,
+        })),
+        {
+            label: '$(gear) Configure Once...',
+            description: 'Pick a format without using a saved profile',
+            profile: null,
+        },
+    ];
+
+    const selected = await vscode.window.showQuickPick(items, {
+        title: 'DITA Publish',
+        placeHolder: 'Select a publishing profile, or configure once',
+    });
+
+    return selected?.profile;
+}
+
+/**
  * Command: ditacraft.publishHTML5
  * Quick publish to HTML5 format (no format selection)
  */
@@ -118,16 +182,32 @@ export async function publishHTML5Command(uri?: vscode.Uri): Promise<void> {
     }
 }
 
+/** Optional per-publish overrides sourced from a selected publishing profile. */
+interface PublishOverrides {
+    outputDir?: string;
+    ditavalPath?: string;
+    additionalArgs?: string[];
+}
+
 /**
  * Internal function to execute publishing with progress tracking
+ *
+ * `overrides.outputDir`, when given, replaces `ditaOt.getOutputDirectory()`
+ * as the *base* directory (still joined with transtype/fileName below) —
+ * deliberately not threaded through `getOutputDirectory()` itself, since
+ * that same zero-argument getter is also read by live-preview's publish
+ * call; overriding it globally would silently redirect the preview's
+ * output too.
  */
 async function executePublish(
     inputFile: string,
     transtype: string,
-    ditaOt: DitaOtWrapper
+    ditaOt: DitaOtWrapper,
+    overrides?: PublishOverrides
 ): Promise<void> {
     const fileName = path.basename(inputFile, path.extname(inputFile));
-    const outputDir = path.join(ditaOt.getOutputDirectory(), transtype, fileName);
+    const baseOutputDir = overrides?.outputDir || ditaOt.getOutputDirectory();
+    const outputDir = path.join(baseOutputDir, transtype, fileName);
 
     // Clean output directory before publishing to avoid stale files
     // P1-1 Fix: Use async file operations
@@ -156,7 +236,9 @@ async function executePublish(
         const result = await ditaOt.publish({
             inputFile: inputFile,
             transtype: transtype,
-            outputDir: outputDir
+            outputDir: outputDir,
+            ditavalPath: overrides?.ditavalPath,
+            additionalArgs: overrides?.additionalArgs
         }, toVsCodeProgressReporter(progress));
 
         if (result.success) {

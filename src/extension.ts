@@ -25,7 +25,8 @@ import {
     newBookmapCommand,
     configureDitaOTCommand,
     setupCSpellCommand,
-    validateGuideCommand
+    validateGuideCommand,
+    managePublishingProfilesCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
@@ -616,6 +617,10 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ditacraft.publishHTML5', publishHTML5Command)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.managePublishingProfiles', managePublishingProfilesCommand)
     );
 
     context.subscriptions.push(
