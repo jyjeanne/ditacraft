@@ -19,8 +19,9 @@
  * decoration type is created once at registration and lives for the
  * extension's lifetime — only its *applied ranges* (not the type itself)
  * are cleared and reapplied on every recompute. Recomputes are triggered
- * by active-editor changes, document edits (debounced), and active-filter
- * changes.
+ * by active-editor changes, document edits (debounced), active-filter
+ * changes, and relevant configuration changes (enabling/disabling the
+ * feature, changing the large-file threshold).
  */
 
 import * as vscode from 'vscode';
@@ -33,6 +34,7 @@ import { configManager } from '../utils/configurationManager';
 import { logger } from '../utils/logger';
 
 const DECORATION_DEBOUNCE_MS = 300;
+const DEFAULT_LARGE_FILE_THRESHOLD_KB = 500;
 
 /** Dim + strike through elements the active filter would exclude. */
 const excludedDecorationType = vscode.window.createTextEditorDecorationType({
@@ -58,12 +60,34 @@ async function loadActiveRules(ditavalPath: string): Promise<DitavalRule[]> {
     return rules;
 }
 
+/**
+ * Reuses `ditacraft.largeFileThresholdKB` — the same setting
+ * `ValidationPipeline` uses to skip its own heavy phases (DITA rules,
+ * cross-references, workspace checks) for large files — rather than
+ * inventing a second, decoration-specific threshold. This pass runs a
+ * full-document regex scan (plus a per-match closing-tag search) on every
+ * debounced edit, which the same "skip on large files" guard the rest of
+ * the codebase already applies elsewhere.
+ */
+function exceedsLargeFileThreshold(document: vscode.TextDocument): boolean {
+    const thresholdKb = vscode.workspace.getConfiguration('ditacraft')
+        .get<number>('largeFileThresholdKB', DEFAULT_LARGE_FILE_THRESHOLD_KB);
+    if (thresholdKb <= 0) {
+        return false; // 0 means "disabled" per the setting's own documented contract.
+    }
+    return Buffer.byteLength(document.getText(), 'utf8') > thresholdKb * 1024;
+}
+
 async function recompute(editor: vscode.TextEditor | undefined): Promise<void> {
     if (!editor) {
         return;
     }
 
-    if (!configManager.get('conditionHighlightingEnabled') || !isDitaContentUri(editor.document.uri)) {
+    if (
+        !configManager.get('conditionHighlightingEnabled') ||
+        !isDitaContentUri(editor.document.uri) ||
+        exceedsLargeFileThreshold(editor.document)
+    ) {
         editor.setDecorations(excludedDecorationType, []);
         return;
     }
@@ -132,6 +156,20 @@ export function registerConditionHighlighting(context: vscode.ExtensionContext):
             }
         }),
         onDidChangeActiveDitaval(() => scheduleRecompute(vscode.window.activeTextEditor)),
+        // Toggling ditacraft.conditionHighlightingEnabled (or changing
+        // largeFileThresholdKB) off must clear/update decorations
+        // immediately, not just on the next unrelated edit/editor-switch
+        // recompute — `/code-review` regression: the setting's own
+        // description promises it "gates the whole feature off", which
+        // wasn't true without this listener.
+        configManager.onConfigurationChange(event => {
+            if (
+                event.affectedKeys.includes('conditionHighlightingEnabled') ||
+                event.affectedKeys.includes('largeFileThresholdKB')
+            ) {
+                scheduleRecompute(vscode.window.activeTextEditor);
+            }
+        }),
         {
             dispose: () => {
                 if (debounceTimer) {

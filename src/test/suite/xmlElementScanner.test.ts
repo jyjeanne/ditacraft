@@ -63,6 +63,18 @@ suite('XML Element Scanner Test Suite', () => {
         assert.deepStrictEqual(findProfiledElements(content, ATTRS), []);
     });
 
+    test('Should not treat a profiled element inside an XML comment as live content (regression)', () => {
+        const content = '<body><!-- <p audience="internal">old text, remove before release</p> --><p>live</p></body>';
+        assert.deepStrictEqual(findProfiledElements(content, ATTRS), []);
+    });
+
+    test('Should still find a genuinely live profiled element after a preceding comment', () => {
+        const content = '<body><!-- a note --><p audience="internal">live text</p></body>';
+        const elements = findProfiledElements(content, ATTRS);
+        assert.strictEqual(elements.length, 1);
+        assert.strictEqual(content.slice(elements[0].start, elements[0].end), '<p audience="internal">live text</p>');
+    });
+
     test('Should fall back to just the opening tag range when no closing tag is found (malformed/truncated document)', () => {
         const content = '<body><section audience="internal">unterminated';
         const elements = findProfiledElements(content, ATTRS);

@@ -107,6 +107,38 @@ suite('DITAVAL Rule Parsing Test Suite', () => {
             ];
             assert.strictEqual(isExcludedByRules({ platform: 'windows' }, rules), true);
         });
+
+        test('Should let a specific include rule override a val-less exclude default for the same attribute (regression)', () => {
+            // Standard DITAVAL "exclude by default, selectively include" pattern:
+            // <prop action="exclude" att="platform"/>
+            // <prop action="include" att="platform" val="windows"/>
+            // An element tagged platform="windows" must NOT be treated as
+            // excluded, even though the val-less default rule for the same
+            // attribute is an exclude — the more specific rule wins,
+            // regardless of declaration order.
+            const rules = [
+                { action: 'exclude', att: 'platform', val: undefined },
+                { action: 'include', att: 'platform', val: 'windows' }
+            ];
+            assert.strictEqual(isExcludedByRules({ platform: 'windows' }, rules), false);
+        });
+
+        test('Should still apply the val-less exclude default when no specific rule matches the value (regression)', () => {
+            const rules = [
+                { action: 'exclude', att: 'platform', val: undefined },
+                { action: 'include', att: 'platform', val: 'windows' }
+            ];
+            // "linux" has no specific rule of its own, so the default applies.
+            assert.strictEqual(isExcludedByRules({ platform: 'linux' }, rules), true);
+        });
+
+        test('Should apply the specific rule\'s precedence even when it appears before the default in the file', () => {
+            const rules = [
+                { action: 'include', att: 'platform', val: 'windows' },
+                { action: 'exclude', att: 'platform', val: undefined }
+            ];
+            assert.strictEqual(isExcludedByRules({ platform: 'windows' }, rules), false);
+        });
     });
 
     suite('PROFILING_ATTRIBUTES', () => {
