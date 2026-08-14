@@ -74,6 +74,11 @@ export async function handleComputeMoveEdits(
     if (ditaMoves.length === 0) {
         return null;
     }
+    // Keyed by normalizedOldPath so each reference resolves its matching
+    // move in O(1) instead of a linear scan per reference (a multi-select
+    // move/rename can move many files at once, each scanned against every
+    // reference in every other workspace file).
+    const ditaMovesByOldPath = new Map(ditaMoves.map(m => [m.normalizedOldPath, m]));
 
     const ditaFiles = collectDitaFiles(workspaceFolders);
     // Never rewrite anything *inside* a moved file itself -- see the module
@@ -114,7 +119,7 @@ export async function handleComputeMoveEdits(
                 continue;
             }
             const resolvedRefPath = normalizeFsPath(path.resolve(fileDir, refFilePath));
-            const move = ditaMoves.find(m => m.normalizedOldPath === resolvedRefPath);
+            const move = ditaMovesByOldPath.get(resolvedRefPath);
             if (!move) {
                 continue;
             }
