@@ -64,28 +64,61 @@ suite('Insert Image Command Test Suite', () => {
             const image = path.join(path.sep, 'workspace', 'images', 'diagram.png');
             assert.strictEqual(computeImageHref(dir, image), '../../images/diagram.png');
         });
+
+        test('Should return undefined when the image is on a different drive than the document (regression, Windows-only)', function() {
+            // path.relative() has no common root to compute from across
+            // Windows drive letters and falls back to returning the
+            // absolute target path unchanged — not a valid relative href.
+            // POSIX always has a common root ('/'), so this case can't be
+            // reproduced there; skip on non-Windows the same way
+            // keySpaceResolver.test.ts guards its own platform-specific
+            // path-casing tests.
+            if (process.platform !== 'win32') {
+                this.skip();
+                return;
+            }
+            const dir = 'C:\\workspace\\topics';
+            const image = 'D:\\shared\\diagram.png';
+            assert.strictEqual(computeImageHref(dir, image), undefined);
+        });
     });
 
     suite('buildImageSnippet', () => {
-        test('Should build a bare <image> when no caption is given', () => {
+        test('Should build a bare <image> when neither caption nor alt is given', () => {
             assert.strictEqual(
                 buildImageSnippet('images/diagram.png', '', ''),
                 '<image href="images/diagram.png"/>'
             );
         });
 
-        test('Should include alt when given', () => {
+        test('Should emit alt as an <alt> child element, not the deprecated @alt attribute (regression)', () => {
+            // @alt is deprecated (DITA-SCH-011) for DITA 1.0-1.3 — emitting
+            // it here would make every image inserted with alt text
+            // immediately flag a warning on its own generated markup.
             assert.strictEqual(
                 buildImageSnippet('images/diagram.png', '', 'Architecture diagram'),
-                '<image href="images/diagram.png" alt="Architecture diagram"/>'
+                '<image href="images/diagram.png">\n    <alt>Architecture diagram</alt>\n</image>'
             );
         });
 
-        test('Should wrap in <fig><title> when a caption is given', () => {
+        test('Should wrap in <fig><title> when a caption is given, nesting a multi-line <image> correctly', () => {
             const snippet = buildImageSnippet('images/diagram.png', 'Architecture Overview', 'Architecture diagram');
             assert.strictEqual(
                 snippet,
-                '<fig>\n    <title>Architecture Overview</title>\n    <image href="images/diagram.png" alt="Architecture diagram"/>\n</fig>'
+                '<fig>\n' +
+                '    <title>Architecture Overview</title>\n' +
+                '    <image href="images/diagram.png">\n' +
+                '        <alt>Architecture diagram</alt>\n' +
+                '    </image>\n' +
+                '</fig>'
+            );
+        });
+
+        test('Should wrap a bare <image> in <fig><title> when a caption is given without alt text', () => {
+            const snippet = buildImageSnippet('images/diagram.png', 'Architecture Overview', '');
+            assert.strictEqual(
+                snippet,
+                '<fig>\n    <title>Architecture Overview</title>\n    <image href="images/diagram.png"/>\n</fig>'
             );
         });
 
@@ -209,7 +242,28 @@ suite('Insert Image Command Test Suite', () => {
             const text = editor.document.getText();
             assert.ok(text.includes('<fig>'), 'should wrap in <fig> when a caption is given');
             assert.ok(text.includes('<title>Architecture Overview</title>'), 'should include the caption as <title>');
-            assert.ok(text.includes('alt="Architecture Overview"'), 'alt should default to the caption text');
+            assert.ok(text.includes('<alt>Architecture Overview</alt>'), 'alt should default to the caption text');
+        });
+
+        test('Should show an error and insert nothing when the image is on a different drive than the document (regression, Windows-only)', async function() {
+            if (process.platform !== 'win32') {
+                this.skip();
+                return;
+            }
+            const editor = await openTempTopic();
+            positionOnBlankBodyLine(editor);
+            const originalText = editor.document.getText();
+
+            const picked = vscode.Uri.file('D:\\shared\\diagram.png');
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+
+            await insertImageCommand();
+
+            assert.ok(errorStub.calledOnce, 'should show an error instead of inserting an invalid href');
+            assert.strictEqual(inputBoxStub.called, false, 'should not prompt for caption/alt after an unresolvable href');
+            assert.strictEqual(editor.document.getText(), originalText, 'document should be unchanged');
         });
     });
 });
