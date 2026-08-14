@@ -116,9 +116,18 @@ export function isEligibleDocument(uri: vscode.Uri): boolean {
  * relative path can be computed at all (see `computeImageHref`).
  */
 async function resolveImageHref(picked: vscode.Uri, documentDir: string): Promise<string | undefined> {
-    const isInWorkspace = vscode.workspace.getWorkspaceFolder(picked) !== undefined;
+    // `/code-review` correctness fix: gating solely on getWorkspaceFolder()
+    // meant every image insert forced this prompt when NO workspace/folder
+    // was open at all (a single file opened directly) — getWorkspaceFolder
+    // returns undefined for everything in that mode, not just for images
+    // genuinely outside the document's own directory. "Copy into the
+    // workspace" is meaningless when there's no workspace to copy into, so
+    // that case now falls straight through to the original v1 behavior
+    // instead of prompting.
+    const workspaceIsOpen = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+    const pickedIsInWorkspace = workspaceIsOpen && vscode.workspace.getWorkspaceFolder(picked) !== undefined;
 
-    if (isInWorkspace) {
+    if (!workspaceIsOpen || pickedIsInWorkspace) {
         return reportUnresolvableHref(computeImageHref(documentDir, picked.fsPath));
     }
 
@@ -191,8 +200,18 @@ export async function copyImageIntoDirectory(sourcePath: string, targetDir: stri
             if (existingContent.equals(sourceContent)) {
                 return candidatePath; // Identical file already there — reuse it, no duplicate copy.
             }
-        } catch {
-            // Nothing at this candidate path yet — safe to write here.
+            // Different content at this name — fall through to try the next suffix.
+        } catch (error) {
+            // `/code-review` correctness fix: only ENOENT means "nothing at
+            // this path yet, safe to write" — any other error (a transient
+            // lock from an indexer/antivirus, a permissions problem, ...)
+            // must not be treated the same way, or it would silently
+            // overwrite a file that's actually still there, directly
+            // contradicting this function's own "never silently
+            // overwritten" contract for an unrelated same-named file.
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+                throw error;
+            }
             await fs.writeFile(candidatePath, sourceContent);
             return candidatePath;
         }
@@ -252,6 +271,12 @@ async function promptForImageSize(): Promise<ImageSizeAttrs | undefined | null> 
         if (width === undefined) return null;
         const height = await promptForNmtokenValue('Height', 'e.g. 150 (pixels) — leave empty to omit');
         if (height === undefined) return null;
+
+        // `/code-review` fix: both fields left empty must resolve to the
+        // same "no size chosen" value the scale branch below already uses
+        // (undefined) — not an empty-but-defined {}, which is a different
+        // sentinel for what should be an identical outcome.
+        if (width.length === 0 && height.length === 0) return undefined;
 
         const size: ImageSizeAttrs = {};
         if (width.length > 0) size.width = width;
