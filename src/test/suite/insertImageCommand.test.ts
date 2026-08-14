@@ -294,16 +294,51 @@ suite('Insert Image Command Test Suite', () => {
         /**
          * Makes `fixturesPath` (and everything under it — the temp topic
          * files this suite creates, and the `images/` fixture) register as
-         * "inside the workspace" via `vscode.workspace.getWorkspaceFolder`,
-         * so the new "image is outside the workspace" copy-prompt doesn't
-         * fire for tests that predate it and aren't testing that flow. This
-         * test host normally has no workspace folder open at all (see
-         * previewCommand.test.ts's own notes on this), so without this stub
-         * every picked test image would otherwise register as "outside".
+         * "inside the workspace" so the new "image is outside the
+         * workspace" copy-prompt doesn't fire for tests that predate it and
+         * aren't testing that flow — the "workspace is open AND the image
+         * is under one of its folders" path specifically (as opposed to the
+         * separate "no workspace is open at all" shortcut, covered by its
+         * own dedicated test below, which needs no stub at all).
+         *
+         * Stubs `vscode.workspace.getWorkspaceFolder` *directly*, alongside
+         * `workspaceFolders` — not `workspaceFolders` alone (regression: an
+         * earlier version of this suite stubbed only the `workspaceFolders`
+         * property, on the assumption `getWorkspaceFolder()` derives its
+         * answer from it; in this VS Code test host it evidently does not
+         * — it kept returning `undefined` regardless, routing every
+         * "already in workspace" test through the real outside-workspace
+         * `showQuickPick` prompt unstubbed, which either hung waiting for
+         * real UI input, a 10s test timeout, or silently cancelled the
+         * command, cascading into unrelated-looking failures on every test
+         * declared after the first one to hit it).
          */
         function stubWorkspaceFolderCoveringFixtures(): void {
+            const fixturesFolder: vscode.WorkspaceFolder = {
+                uri: vscode.Uri.file(fixturesPath),
+                name: 'fixtures',
+                index: 0
+            };
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([fixturesFolder]);
+            sandbox.stub(vscode.workspace, 'getWorkspaceFolder').callsFake((uri: vscode.Uri) => {
+                const normalized = path.normalize(uri.fsPath);
+                return normalized.startsWith(path.normalize(fixturesPath)) ? fixturesFolder : undefined;
+            });
+        }
+
+        /**
+         * Simulates a workspace being open, but not covering the picked
+         * image — for tests exercising the outside-workspace copy/reference
+         * prompt specifically. Only `workspaceFolders` needs stubbing here:
+         * `getWorkspaceFolder()`'s real (unstubbed) behavior already
+         * returns `undefined` for everything in this test host (no real
+         * workspace is ever actually registered at the Electron level), so
+         * it naturally reports "not in this folder" without needing its own
+         * stub.
+         */
+        function stubWorkspaceOpenElsewhere(): void {
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
-                { uri: vscode.Uri.file(fixturesPath), name: 'fixtures', index: 0 }
+                { uri: vscode.Uri.file(path.join(fixturesPath, '..', '..')), name: 'unrelated', index: 0 }
             ]);
         }
 
@@ -351,11 +386,37 @@ suite('Insert Image Command Test Suite', () => {
             assert.strictEqual(editor.document.getText(), originalText, 'document should be unchanged');
         });
 
-        test('Should do nothing when the outside-workspace prompt is escaped (regression)', async () => {
+        test('Should not prompt to copy when no workspace is open at all (regression)', async () => {
+            // "Copy into the workspace" is meaningless with no workspace to
+            // copy into — this must fall straight through to the original
+            // v1 behavior (direct href computation, no extra QuickPick),
+            // not force a prompt just because getWorkspaceFolder() trivially
+            // returns undefined for everything in single-file mode.
             const editor = await openTempTopic();
+            positionOnBlankBodyLine(editor);
             const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
             sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
-            stubQuickPicksByTitle({}); // no workspace-folder stub — image registers as "outside"; prompt resolves undefined
+            const quickPickStub = stubQuickPicksByTitle({ 'Image Size (optional)': { value: 'none' } });
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('');
+            inputBoxStub.onCall(1).resolves('');
+
+            await insertImageCommand();
+
+            assert.strictEqual(
+                quickPickStub.neverCalledWith(sinon.match.any, sinon.match({ title: 'Image Is Outside the Workspace' })),
+                true,
+                'the outside-workspace prompt should never be shown when no workspace is open'
+            );
+            assert.ok(editor.document.getText().includes('<image href="images/diagram.png"/>'));
+        });
+
+        test('Should do nothing when the outside-workspace prompt is escaped (regression)', async () => {
+            const editor = await openTempTopic();
+            stubWorkspaceOpenElsewhere();
+            const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            stubQuickPicksByTitle({}); // workspace is open, but doesn't cover the image — prompt fires and resolves undefined
             const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
             const originalText = editor.document.getText();
 
@@ -459,6 +520,33 @@ suite('Insert Image Command Test Suite', () => {
             );
         });
 
+        test('Should insert a bare image when width and height are both left empty (regression)', async () => {
+            // Choosing "dimensions" and then leaving both fields blank must
+            // behave identically to choosing "no size attributes" — not
+            // silently attach an empty-but-defined size object internally
+            // (fixed alongside the "scale" branch's equivalent case, which
+            // already returned undefined for an empty value).
+            const editor = await openTempTopic();
+            positionOnBlankBodyLine(editor);
+            stubWorkspaceFolderCoveringFixtures();
+
+            const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves(''); // caption
+            inputBoxStub.onCall(1).resolves(''); // alt
+            inputBoxStub.onCall(2).resolves(''); // width, left empty
+            inputBoxStub.onCall(3).resolves(''); // height, left empty
+            stubQuickPicksByTitle({ 'Image Size (optional)': { value: 'dimensions' } });
+
+            await insertImageCommand();
+
+            assert.ok(
+                editor.document.getText().includes('<image href="images/diagram.png"/>'),
+                'no size attributes should be present when both fields are left empty'
+            );
+        });
+
         test('Should insert only scale when the scale option is chosen (regression)', async () => {
             const editor = await openTempTopic();
             positionOnBlankBodyLine(editor);
@@ -529,9 +617,11 @@ suite('Insert Image Command Test Suite', () => {
             sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
             const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
             const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
-            // Not in any workspace folder — choose "reference at current location"
-            // to reach the cross-drive computeImageHref failure this test targets.
-            stubQuickPicksByTitle({ 'Image Is Outside the Workspace': { value: 'reference' } });
+            // No workspace open in this test host, so resolveImageHref
+            // skips the outside-workspace prompt entirely (nothing to copy
+            // into) and goes straight to computeImageHref — landing on the
+            // cross-drive failure this test targets without needing a
+            // showQuickPick stub at all.
 
             await insertImageCommand();
 
@@ -543,9 +633,10 @@ suite('Insert Image Command Test Suite', () => {
         test('Should offer to copy an out-of-workspace image in, and insert the copy\'s relative href (regression)', async () => {
             const { editor, topicDir } = await openTempTopicInFreshDir();
             positionOnBlankBodyLine(editor);
-            // Deliberately no workspace-folder stub — the picked image (and
-            // the temp topic itself) register as outside any workspace in
-            // this test host, exercising the real "outside workspace" path.
+            // A workspace is open, but doesn't cover the picked image —
+            // exercising the real "outside workspace" path (as opposed to
+            // the separate "no workspace open at all" shortcut).
+            stubWorkspaceOpenElsewhere();
 
             const sourceImage = path.join(fixturesPath, 'images', 'diagram.png');
             const picked = vscode.Uri.file(sourceImage);
@@ -575,6 +666,7 @@ suite('Insert Image Command Test Suite', () => {
         test('Should reference the original location without copying when the user declines (regression)', async () => {
             const { editor, topicDir } = await openTempTopicInFreshDir();
             positionOnBlankBodyLine(editor);
+            stubWorkspaceOpenElsewhere();
 
             const sourceImage = path.join(fixturesPath, 'images', 'diagram.png');
             const picked = vscode.Uri.file(sourceImage);
