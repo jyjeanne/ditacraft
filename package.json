@@ -206,6 +206,11 @@
         "icon": "$(table)"
       },
       {
+        "command": "ditacraft.findReplaceInFiles",
+        "title": "DITA: Find and Replace in Files",
+        "icon": "$(replace-all)"
+      },
+      {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
       },

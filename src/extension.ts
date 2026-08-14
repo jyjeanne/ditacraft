@@ -32,7 +32,8 @@ import {
     managePublishingProfilesCommand,
     insertImageCommand,
     insertTableCommand,
-    initProjectCommand
+    initProjectCommand,
+    findReplaceInFilesCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { registerConditionHighlighting } from './providers/ditavalDecorationProvider';
@@ -786,6 +787,18 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in initProjectCommand', error);
                 vscode.window.showErrorMessage(`Error initializing project: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.findReplaceInFiles', async () => {
+            try {
+                logger.info('Command invoked: ditacraft.findReplaceInFiles');
+                await findReplaceInFilesCommand();
+            } catch (error) {
+                logger.error('Unhandled error in findReplaceInFilesCommand', error);
+                vscode.window.showErrorMessage(`Error running Find & Replace: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );

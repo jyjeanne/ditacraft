@@ -58,6 +58,7 @@ import { handleGetContextGraph, GetContextGraphParams, ContextGraph } from './fe
 import { handleValidateFragment, ValidateFragmentParams, FragmentValidationResult } from './features/fragmentValidator';
 import { handleBuildContextSnapshot, BuildContextSnapshotParams, ContextSnapshotResult } from './features/contextSnapshot';
 import { handleComputeMoveEdits, ComputeMoveEditsParams } from './features/moveTopic';
+import { handleComputeFindReplaceEdits, FindReplaceParams } from './features/findReplace';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { detectUnusedTopics, WorkspaceIndex } from './features/workspaceValidation';
@@ -303,6 +304,16 @@ connection.onRequest('dita/buildContextSnapshot', (params: BuildContextSnapshotP
 connection.onRequest('dita/computeMoveEdits', (params: ComputeMoveEditsParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
     return handleComputeMoveEdits(params, documents, folders);
+});
+
+// Custom request: dita/computeFindReplaceEdits
+// Backs "Multi-File DITA-Aware Find & Replace": scans every DITA content
+// file in scope (or just one, when scopeUri is set) and returns a
+// WorkspaceEdit of every match rewritten, for the client to preview via
+// VS Code's native refactor-preview UI before applying.
+connection.onRequest('dita/computeFindReplaceEdits', (params: FindReplaceParams) => {
+    const folders = keySpaceService?.getWorkspaceFolders();
+    return handleComputeFindReplaceEdits(params, documents, folders);
 });
 
 // File watcher — invalidate key space cache on map changes
