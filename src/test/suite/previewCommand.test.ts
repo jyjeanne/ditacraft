@@ -7,12 +7,17 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as sinon from 'sinon';
 import {
     validateFilePath,
     findMainHtmlFile,
     initializePreview,
-    shouldAutoRefreshPreview
+    shouldAutoRefreshPreview,
+    computeFilterSuffix,
+    pickPreviewFilterCommand,
+    getActiveDitavalPath
 } from '../../commands/previewCommand';
+import { DitaPreviewPanel } from '../../providers/previewPanel';
 
 suite('Preview Command Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
@@ -40,6 +45,14 @@ suite('Preview Command Test Suite', () => {
             assert.ok(
                 commands.includes('ditacraft.previewHTML5'),
                 'ditacraft.previewHTML5 command should be registered'
+            );
+        });
+
+        test('Should have previewFilter command registered', async function() {
+            const commands = await vscode.commands.getCommands(true);
+            assert.ok(
+                commands.includes('ditacraft.previewFilter'),
+                'ditacraft.previewFilter command should be registered'
             );
         });
 
@@ -312,6 +325,113 @@ suite('Preview Command Test Suite', () => {
                 shouldAutoRefreshPreview(saved, true, previewed),
                 true
             );
+        });
+    });
+
+    suite('computeFilterSuffix (§4.5 DITAVAL preview filtering)', () => {
+        test('Should return an empty string when there is no active filter', () => {
+            assert.strictEqual(computeFilterSuffix(undefined), '');
+        });
+
+        test('Should return a stable, deterministic suffix for a given .ditaval path', () => {
+            const a = computeFilterSuffix(path.join(path.sep, 'workspace', 'production.ditaval'));
+            const b = computeFilterSuffix(path.join(path.sep, 'workspace', 'production.ditaval'));
+            assert.strictEqual(a, b, 'the same filter path should always map to the same cache suffix');
+            assert.match(a, /^__filter-[0-9a-f]{8}$/);
+        });
+
+        test('Should return different suffixes for different .ditaval paths (regression: cache must not collide across filters)', () => {
+            const production = computeFilterSuffix(path.join(path.sep, 'workspace', 'production.ditaval'));
+            const draft = computeFilterSuffix(path.join(path.sep, 'workspace', 'draft.ditaval'));
+            assert.notStrictEqual(
+                production,
+                draft,
+                'two different filters must not resolve to the same output directory'
+            );
+        });
+    });
+
+    suite('pickPreviewFilterCommand (§4.5 orchestration)', () => {
+        let sandbox: sinon.SinonSandbox;
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+        });
+
+        teardown(async () => {
+            // Reset the module-level "active filter" back to none so later
+            // tests (in this file and others sharing the extension host)
+            // don't observe a filter left over from a prior test.
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: '$(circle-slash) No filter', value: '' } as unknown as vscode.QuickPickItem);
+            await pickPreviewFilterCommand();
+            sandbox.restore();
+        });
+
+        test('Should leave the active filter unchanged when the picker is cancelled', async () => {
+            sandbox.stub(vscode.window, 'showQuickPick').resolves(undefined);
+            const before = getActiveDitavalPath();
+
+            await pickPreviewFilterCommand();
+
+            assert.strictEqual(getActiveDitavalPath(), before, 'a cancelled picker must not change the active filter');
+        });
+
+        test('Should clear the active filter when "No filter" is chosen', async () => {
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: '$(circle-slash) No filter', value: '' } as unknown as vscode.QuickPickItem);
+
+            await pickPreviewFilterCommand();
+
+            assert.strictEqual(getActiveDitavalPath(), undefined);
+        });
+
+        test('Should set the active filter to the browsed .ditaval file\'s resolved path', async () => {
+            const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
+            const ditavalFile = vscode.Uri.file(path.join(fixturesPath, 'test.ditaval'));
+
+            sandbox.stub(vscode.window, 'showQuickPick').resolves(
+                { label: '$(folder-opened) Browse for .ditaval file...', value: 'browse' } as unknown as vscode.QuickPickItem
+            );
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([ditavalFile]);
+
+            await pickPreviewFilterCommand();
+
+            assert.strictEqual(getActiveDitavalPath(), ditavalFile.fsPath);
+        });
+
+        test('Should not attempt to re-run the preview when no preview panel is currently open', async () => {
+            // previewHTML5Command swallows every internal error itself
+            // (handlePreviewError), so it never rejects regardless of
+            // whether it actually ran — doesNotReject alone can't tell "ran
+            // and failed silently" apart from "correctly skipped". Instead,
+            // rely on the fact that any attempted run reaches
+            // handlePreviewError -> showErrorMessage for a nonexistent
+            // source file, while a correctly-skipped run never calls it.
+            DitaPreviewPanel.currentPanel = undefined;
+            const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: '$(circle-slash) No filter', value: '' } as unknown as vscode.QuickPickItem);
+
+            await pickPreviewFilterCommand();
+
+            assert.strictEqual(errorStub.called, false, 'no refresh attempt should be made when no preview panel is open');
+        });
+
+        test('Should attempt to re-run the preview when a panel is already open (regression)', async () => {
+            // A fake panel whose source file doesn't exist on disk — any
+            // attempt to refresh it necessarily fails somewhere inside
+            // previewHTML5Command's pipeline (DITA-OT not configured, or the
+            // file not found), and that failure always surfaces through
+            // handlePreviewError -> showErrorMessage. Its absence is what
+            // the previous test guards; its presence here guards the
+            // opposite regression — silently dropping the refresh entirely.
+            const fakeSourceFile = path.join(fixturesPath, 'does-not-exist-preview-filter-regression.dita');
+            DitaPreviewPanel.currentPanel = { getSourceFile: () => fakeSourceFile } as unknown as DitaPreviewPanel;
+            const errorStub = sandbox.stub(vscode.window, 'showErrorMessage').resolves(undefined);
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: '$(circle-slash) No filter', value: '' } as unknown as vscode.QuickPickItem);
+
+            await pickPreviewFilterCommand();
+
+            assert.strictEqual(errorStub.called, true, 'an open preview panel should trigger a refresh attempt');
+            DitaPreviewPanel.currentPanel = undefined;
         });
     });
 });

@@ -26,6 +26,12 @@ export class DitaPreviewPanel {
     private readonly _extensionUri: vscode.Uri;
     private _currentHtmlFile: string | undefined;
     private _currentSourceFile: string | undefined;
+    /** Basename of the `.ditaval` file currently filtering this preview, if
+     * any — display-only. The panel has no knowledge of DITA-OT filtering
+     * itself (that lives in previewCommand.ts); this is just a label handed
+     * in by the caller so the title can show the user *why* the content may
+     * look different from an unfiltered publish. */
+    private _filterLabel: string | undefined;
     private _disposables: vscode.Disposable[] = [];
 
     // Scroll sync state
@@ -45,7 +51,8 @@ export class DitaPreviewPanel {
         extensionUri: vscode.Uri,
         htmlFile: string,
         sourceFile: string,
-        preserveFocus = false
+        preserveFocus = false,
+        filterLabel?: string
     ): DitaPreviewPanel {
         const column = vscode.ViewColumn.Beside;
 
@@ -57,7 +64,7 @@ export class DitaPreviewPanel {
             if (!preserveFocus) {
                 DitaPreviewPanel.currentPanel._panel.reveal(column);
             }
-            DitaPreviewPanel.currentPanel.update(htmlFile, sourceFile);
+            DitaPreviewPanel.currentPanel.update(htmlFile, sourceFile, filterLabel);
             return DitaPreviewPanel.currentPanel;
         }
 
@@ -76,7 +83,7 @@ export class DitaPreviewPanel {
             }
         );
 
-        DitaPreviewPanel.currentPanel = new DitaPreviewPanel(panel, extensionUri, htmlFile, sourceFile);
+        DitaPreviewPanel.currentPanel = new DitaPreviewPanel(panel, extensionUri, htmlFile, sourceFile, filterLabel);
         return DitaPreviewPanel.currentPanel;
     }
 
@@ -94,12 +101,14 @@ export class DitaPreviewPanel {
         panel: vscode.WebviewPanel,
         extensionUri: vscode.Uri,
         htmlFile?: string,
-        sourceFile?: string
+        sourceFile?: string,
+        filterLabel?: string
     ) {
         this._panel = panel;
         this._extensionUri = extensionUri;
         this._currentHtmlFile = htmlFile;
         this._currentSourceFile = sourceFile;
+        this._filterLabel = filterLabel;
 
         // Set the webview's initial html content
         if (htmlFile) {
@@ -165,9 +174,10 @@ export class DitaPreviewPanel {
     /**
      * Update the preview with new content
      */
-    public update(htmlFile: string, sourceFile: string): void {
+    public update(htmlFile: string, sourceFile: string, filterLabel?: string): void {
         this._currentHtmlFile = htmlFile;
         this._currentSourceFile = sourceFile;
+        this._filterLabel = filterLabel;
 
         // Update local resource roots to include new file's directory
         this._panel.webview.options = {
@@ -512,7 +522,9 @@ export class DitaPreviewPanel {
 
         // Update panel title
         const fileName = path.basename(this._currentSourceFile || this._currentHtmlFile);
-        this._panel.title = `Preview: ${fileName}`;
+        this._panel.title = this._filterLabel
+            ? `Preview: ${fileName} (filtered: ${this._filterLabel})`
+            : `Preview: ${fileName}`;
 
         // Set the HTML content asynchronously
         // P1 Fix: Show error page if async loading fails

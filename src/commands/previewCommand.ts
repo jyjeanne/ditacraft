@@ -6,18 +6,103 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import type { Stats } from 'fs';
+import * as crypto from 'crypto';
 import { DitaOtWrapper, toVsCodeProgressReporter } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
+import { fireAndForget } from '../utils/errorUtils';
 import { DitaPreviewPanel } from '../providers/previewPanel';
+import { promptForDitaval, resolveDitavalPath } from './publishProfilesCommand';
 
 // Store extension context for creating preview panels
 let extensionContext: vscode.ExtensionContext | undefined;
+
+/**
+ * `.ditaval` file currently filtering the HTML5 preview (absolute path), or
+ * undefined for an unfiltered preview. Applies to the next preview build for
+ * *any* file — the preview panel is a singleton, so "current filter" is
+ * process-wide state rather than something tracked per document. Changed via
+ * `ditacraft.previewFilter`; read by every path that ends up in
+ * `previewHTML5Command` (the manual command itself, and the save-triggered
+ * auto-refresh via `requestPreviewRefresh` below), so a save naturally
+ * re-publishes through whichever filter is currently active.
+ */
+let activeDitavalPath: string | undefined;
+
+/** The `.ditaval` file currently filtering the preview, if any. Exported for testing. */
+export function getActiveDitavalPath(): string | undefined {
+    return activeDitavalPath;
+}
+
+// Serializes every trigger that can call previewHTML5Command *outside* a
+// direct, one-off user invocation of the preview command itself — currently
+// the save-triggered auto-refresh (registerPreviewAutoRefresh in
+// extension.ts) and the DITAVAL filter picker's own immediate re-publish
+// below. Both publish into the same shared output directory for a given
+// file+filter combination, so without this guard a save landing while a
+// filter change is still publishing (or vice versa) could run two
+// `ditaOt.publish()` invocations concurrently against it.
+let refreshInFlight = false;
+let pendingRefresh: { uri: vscode.Uri; preserveFocus: boolean } | undefined;
+
+/**
+ * Request a preview refresh, guaranteeing at most one DITA-OT publish runs
+ * at a time. A request that arrives while a publish is already in flight
+ * replaces any previously queued one and is replayed once that publish
+ * finishes, rather than starting a concurrent publish. Exported so
+ * `registerPreviewAutoRefresh` shares this guard instead of keeping its own
+ * separate copy.
+ */
+export function requestPreviewRefresh(uri: vscode.Uri, preserveFocus: boolean): Promise<void> {
+    if (refreshInFlight) {
+        pendingRefresh = { uri, preserveFocus };
+        return Promise.resolve();
+    }
+
+    refreshInFlight = true;
+    return previewHTML5Command(uri, preserveFocus).finally(() => {
+        refreshInFlight = false;
+        if (pendingRefresh) {
+            const next = pendingRefresh;
+            pendingRefresh = undefined;
+            fireAndForget(requestPreviewRefresh(next.uri, next.preserveFocus), 'preview-refresh-replay');
+        }
+    });
+}
 
 /**
  * Initialize the preview command with extension context
  */
 export function initializePreview(context: vscode.ExtensionContext): void {
     extensionContext = context;
+}
+
+/**
+ * Command: ditacraft.previewFilter
+ * Choose (or clear) the `.ditaval` file used to filter the HTML5 preview.
+ *
+ * Reuses `promptForDitaval` — the same "browse for a .ditaval file" picker
+ * publishing profiles already use — rather than building a second one; only
+ * what happens with the result differs (profile storage vs. this in-memory
+ * preview state).
+ *
+ * The choice applies to the next preview build. If a preview panel is
+ * already open, the current source file is re-published immediately so the
+ * effect is visible without a separate manual refresh or save.
+ */
+export async function pickPreviewFilterCommand(): Promise<void> {
+    const choice = await promptForDitaval(activeDitavalPath);
+    if (choice === undefined) {
+        return; // Cancelled — leave the active filter unchanged.
+    }
+
+    activeDitavalPath = resolveDitavalPath(choice);
+    logger.info('Preview filter changed', { ditavalPath: activeDitavalPath });
+
+    const sourceFile = DitaPreviewPanel.currentPanel?.getSourceFile();
+    if (sourceFile) {
+        await requestPreviewRefresh(vscode.Uri.file(sourceFile), true);
+    }
 }
 
 /**
@@ -45,10 +130,10 @@ export async function previewHTML5Command(uri?: vscode.Uri, preserveFocus = fals
         validateInputFile(ditaOt, filePath);
 
         // Generate HTML5 output if needed
-        const outputDir = await generateHtml5OutputIfNeeded(ditaOt, filePath);
+        const outputDir = await generateHtml5OutputIfNeeded(ditaOt, filePath, activeDitavalPath);
 
         // Find and display the main HTML file
-        await displayPreview(filePath, outputDir, preserveFocus);
+        await displayPreview(filePath, outputDir, preserveFocus, activeDitavalPath);
 
     } catch (error) {
         handlePreviewError(error);
@@ -180,41 +265,75 @@ function validateInputFile(ditaOt: DitaOtWrapper, filePath: string): void {
 }
 
 /**
+ * Suffix distinguishing a filtered preview's output directory from an
+ * unfiltered one (and from a preview filtered by a *different* `.ditaval`
+ * file), so switching filters never serves another filter's — or no
+ * filter's — stale cached HTML from the mtime check below. Deterministic:
+ * the same `.ditaval` path always maps to the same suffix, so re-selecting
+ * an already-used filter reuses its existing cache directory rather than
+ * republishing needlessly. Exported for testing.
+ */
+export function computeFilterSuffix(ditavalPath: string | undefined): string {
+    if (!ditavalPath) {
+        return '';
+    }
+    const hash = crypto.createHash('md5').update(ditavalPath).digest('hex').slice(0, 8);
+    return `__filter-${hash}`;
+}
+
+/**
  * Generate HTML5 output if needed (checks cache and publishes if necessary)
  * P1-1 Fix: Use async file operations
+ *
+ * When `ditavalPath` is set, the output directory is suffixed (see
+ * `computeFilterSuffix`) so a filtered and an unfiltered preview — or two
+ * previews filtered by different `.ditaval` files — never share a cache
+ * entry. The cache is also invalidated by the `.ditaval` file's own mtime,
+ * not just the source document's: editing the filter's conditions without
+ * touching the topic must still force a republish.
  */
-async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: string): Promise<string> {
+async function generateHtml5OutputIfNeeded(
+    ditaOt: DitaOtWrapper,
+    filePath: string,
+    ditavalPath: string | undefined
+): Promise<string> {
     // Generate HTML5 output
     const fileName = path.basename(filePath, path.extname(filePath));
-    const outputDir = path.join(ditaOt.getOutputDirectory(), 'html5', fileName);
+    const outputDir = path.join(ditaOt.getOutputDirectory(), 'html5', `${fileName}${computeFilterSuffix(ditavalPath)}`);
 
     // Check if preview already exists
     let needsPublish = true;
     try {
-        const [fileStats, outputStats] = await Promise.all([
-            fs.stat(filePath),
-            fs.stat(outputDir)
-        ]);
+        const statTargets = [fs.stat(filePath), fs.stat(outputDir)];
+        if (ditavalPath) {
+            statTargets.push(fs.stat(ditavalPath));
+        }
+        const stats: Stats[] = await Promise.all(statTargets);
+        const [fileStats, outputStats, ditavalStats] = stats;
+        const newestSourceMtime = ditavalPath && ditavalStats.mtime > fileStats.mtime
+            ? ditavalStats.mtime
+            : fileStats.mtime;
 
-        // If output is newer than source, use cached version
-        if (outputStats.mtime > fileStats.mtime) {
+        // If output is newer than every source (topic + active filter), use cached version
+        if (outputStats.mtime > newestSourceMtime) {
             needsPublish = false;
         }
     } catch {
-        // Output directory doesn't exist or can't be accessed - needs publish
+        // Output directory (or the ditaval file) doesn't exist or can't be accessed - needs publish
     }
 
     // Publish to HTML5 if needed
     if (needsPublish) {
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: "Generating HTML5 preview",
+            title: ditavalPath ? "Generating filtered HTML5 preview" : "Generating HTML5 preview",
             cancellable: false
         }, async (progress) => {
             const result = await ditaOt.publish({
                 inputFile: filePath,
                 transtype: 'html5',
-                outputDir: outputDir
+                outputDir: outputDir,
+                ditavalPath
             }, toVsCodeProgressReporter(progress));
 
             if (!result.success) {
@@ -229,7 +348,12 @@ async function generateHtml5OutputIfNeeded(ditaOt: DitaOtWrapper, filePath: stri
 /**
  * Display the preview in WebView panel or external browser
  */
-async function displayPreview(sourceFilePath: string, outputDir: string, preserveFocus = false): Promise<void> {
+async function displayPreview(
+    sourceFilePath: string,
+    outputDir: string,
+    preserveFocus = false,
+    ditavalPath?: string
+): Promise<void> {
     const fileName = path.basename(sourceFilePath, path.extname(sourceFilePath));
 
     // Find the main HTML file (P1-1 Fix: await async function)
@@ -241,13 +365,15 @@ async function displayPreview(sourceFilePath: string, outputDir: string, preserv
 
     // Create and show WebView panel
     if (extensionContext) {
+        const filterLabel = ditavalPath ? path.basename(ditavalPath) : undefined;
         DitaPreviewPanel.createOrShow(
             extensionContext.extensionUri,
             htmlFile,
             sourceFilePath,
-            preserveFocus
+            preserveFocus,
+            filterLabel
         );
-        logger.info('Preview panel opened', { htmlFile, sourceFile: sourceFilePath });
+        logger.info('Preview panel opened', { htmlFile, sourceFile: sourceFilePath, filter: filterLabel });
     } else {
         // Fallback: open in external browser if context not available
         logger.warn('Extension context not available, opening in external browser');
