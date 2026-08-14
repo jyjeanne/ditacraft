@@ -44,6 +44,12 @@ export async function insertImageCommand(): Promise<void> {
     if (!picked || picked.length === 0) return; // user cancelled the browse
 
     const href = computeImageHref(documentDir, picked[0].fsPath);
+    if (href === undefined) {
+        vscode.window.showErrorMessage(
+            'DitaCraft: Cannot compute a relative path to the selected image (it is not on the same drive as this document). Move or copy the image under the workspace first.'
+        );
+        return;
+    }
 
     const captionInput = await vscode.window.showInputBox({
         title: 'Image Caption (optional)',
@@ -54,7 +60,7 @@ export async function insertImageCommand(): Promise<void> {
 
     const altInput = await vscode.window.showInputBox({
         title: 'Alt Text (recommended for accessibility)',
-        prompt: 'Describes the image for screen readers — leave empty and DITA-SCH-011 will flag it as a reminder',
+        prompt: 'Describes the image for screen readers — leave empty and DITA-SCH-030 will flag it as a reminder',
         value: caption
     });
     if (altInput === undefined) return;
@@ -86,23 +92,49 @@ export function isEligibleDocument(uri: vscode.Uri): boolean {
  * file uses (see `referenceParser.ts`/`KeySpaceService` on the server).
  * Always forward-slashed, since DITA hrefs are URI references regardless
  * of the authoring platform.
+ *
+ * Returns undefined when the image isn't reachable by a relative path at
+ * all — e.g. a different drive letter than the document on Windows.
+ * `path.relative()` has no common root to work from in that case and
+ * falls back to returning the absolute target path unchanged, which is
+ * not a valid relative href; inserting it as one would silently produce
+ * broken markup, so the caller must handle this instead.
  */
-export function computeImageHref(documentDir: string, imagePath: string): string {
+export function computeImageHref(documentDir: string, imagePath: string): string | undefined {
     const relative = path.relative(documentDir, imagePath);
+    if (path.isAbsolute(relative)) {
+        return undefined;
+    }
     return relative.split(path.sep).join('/');
 }
 
 /**
  * Build the markup to insert: a bare `<image/>` when no caption is given,
- * or a `<fig><title>/><image/></fig>` skeleton when one is.
+ * or a `<fig><title>…</title>…</fig>` skeleton when one is. Alt text is
+ * emitted as an `<alt>` child element, not the `@alt` attribute — the
+ * attribute form is deprecated (`DITA-SCH-011`) for DITA 1.0-1.3, so using
+ * it here would make every inserted image with alt text immediately flag
+ * a warning on the very markup this command just generated.
  */
 export function buildImageSnippet(href: string, caption: string, alt: string): string {
-    const altAttr = alt.length > 0 ? ` alt="${escapeXml(alt)}"` : '';
-    const imageEl = `<image href="${escapeXml(href)}"${altAttr}/>`;
+    const imageEl = buildImageElement(href, alt);
     if (caption.length === 0) {
         return imageEl;
     }
-    return `<fig>\n    <title>${escapeXml(caption)}</title>\n    ${imageEl}\n</fig>`;
+    return `<fig>\n    <title>${escapeXml(caption)}</title>\n    ${indentContinuationLines(imageEl, '    ')}\n</fig>`;
+}
+
+function buildImageElement(href: string, alt: string): string {
+    const hrefAttr = `href="${escapeXml(href)}"`;
+    if (alt.length === 0) {
+        return `<image ${hrefAttr}/>`;
+    }
+    return `<image ${hrefAttr}>\n    <alt>${escapeXml(alt)}</alt>\n</image>`;
+}
+
+/** Indent every line after the first by `indent`, so a multi-line block still nests correctly when embedded after other text on its own line. */
+function indentContinuationLines(text: string, indent: string): string {
+    return text.split('\n').map((line, i) => (i === 0 ? line : indent + line)).join('\n');
 }
 
 /**
@@ -123,6 +155,6 @@ function escapeXml(value: string): string {
 async function insertAtCursor(editor: vscode.TextEditor, snippet: string): Promise<boolean> {
     const position = editor.selection.active;
     const indent = editor.document.lineAt(position.line).text.match(/^[ \t]*/)?.[0] ?? '';
-    const indented = snippet.split('\n').map((line, i) => (i === 0 ? line : indent + line)).join('\n');
+    const indented = indentContinuationLines(snippet, indent);
     return editor.edit(editBuilder => editBuilder.insert(position, indented));
 }

@@ -326,7 +326,7 @@
         },
         {
           "command": "ditacraft.insertImage",
-          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "when": "resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
           "group": "ditacraft@3"
         }
       ],
@@ -401,7 +401,7 @@
         },
         {
           "command": "ditacraft.insertImage",
-          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+          "when": "resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
         }
       ],
       "explorer/context": [
