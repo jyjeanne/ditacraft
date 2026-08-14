@@ -5,11 +5,19 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as sinon from 'sinon';
 import {
     validateFileName,
     generateTopicContent,
     generateMapContent,
-    generateBookmapContent
+    generateBookmapContent,
+    humanizeFileName,
+    newTopicCommand,
+    newMapCommand,
+    newBookmapCommand,
+    initProjectCommand
 } from '../../commands/fileCreationCommands';
 
 suite('File Creation Commands Test Suite', () => {
@@ -53,6 +61,14 @@ suite('File Creation Commands Test Suite', () => {
             assert.ok(
                 commands.includes('ditacraft.newBookmap'),
                 'ditacraft.newBookmap command should be registered'
+            );
+        });
+
+        test('Should have initProject command registered', async function() {
+            const commands = await vscode.commands.getCommands(true);
+            assert.ok(
+                commands.includes('ditacraft.initProject'),
+                'ditacraft.initProject command should be registered'
             );
         });
     });
@@ -417,6 +433,268 @@ suite('File Creation Commands Test Suite', () => {
             for (const content of contents) {
                 assert.ok(content.startsWith('<?xml'), 'Should start with XML declaration');
             }
+        });
+    });
+
+    suite('humanizeFileName Function', () => {
+        test('Should title-case hyphen/underscore-separated words', () => {
+            assert.strictEqual(humanizeFileName('my-topic'), 'My Topic');
+            assert.strictEqual(humanizeFileName('my_long_topic_name'), 'My Long Topic Name');
+            assert.strictEqual(humanizeFileName('mixed-separator_name'), 'Mixed Separator Name');
+        });
+
+        test('Should handle a single word', () => {
+            assert.strictEqual(humanizeFileName('overview'), 'Overview');
+        });
+
+        test('Should collapse consecutive separators', () => {
+            assert.strictEqual(humanizeFileName('my--topic__name'), 'My Topic Name');
+        });
+    });
+
+    /**
+     * These suites stub vscode.workspace.workspaceFolders to point at a
+     * real temp directory (the sinon pattern already established in
+     * cspellSetupCommand.test.ts) rather than relying on a workspace
+     * folder being open in this test-electron run, which the rest of this
+     * suite's own comments note is typically not the case (single-file
+     * mode). This lets the template-integration and Init Wizard paths be
+     * exercised end-to-end, including real file writes, verified then
+     * cleaned up.
+     */
+    suite('Template Integration (orchestration)', () => {
+        const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
+        let sandbox: sinon.SinonSandbox;
+        let workspaceDir: string;
+        let templatesDir: string;
+        const config = () => vscode.workspace.getConfiguration('ditacraft');
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            workspaceDir = fs.mkdtempSync(path.join(fixturesPath, 'temp-ws-'));
+            templatesDir = fs.mkdtempSync(path.join(fixturesPath, 'temp-tpl-'));
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: vscode.Uri.file(workspaceDir), name: 'test-ws', index: 0 }
+            ]);
+        });
+
+        teardown(async () => {
+            sandbox.restore();
+            await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+            fs.rmSync(workspaceDir, { recursive: true, force: true });
+            fs.rmSync(templatesDir, { recursive: true, force: true });
+            await config().update('templatesPath', undefined, vscode.ConfigurationTarget.Global);
+            await config().update('templateAuthor', undefined, vscode.ConfigurationTarget.Global);
+        });
+
+        test('newTopicCommand should use a matching template and prompt for its title placeholder', async () => {
+            fs.writeFileSync(
+                path.join(templatesDir, 'concept.dita'),
+                '<?xml version="1.0" encoding="UTF-8"?>\n<concept id="{{id}}"><title>{{title}}</title><author>{{author}}</author></concept>\n',
+                'utf8'
+            );
+            await config().update('templatesPath', templatesDir, vscode.ConfigurationTarget.Global);
+            await config().update('templateAuthor', 'Jane Doe', vscode.ConfigurationTarget.Global);
+
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: 'Concept', value: 'concept' } as unknown as vscode.QuickPickItem);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('my-concept'); // file name
+            inputBoxStub.onCall(1).resolves('My Concept Title'); // template title prompt
+
+            await newTopicCommand();
+
+            const written = fs.readFileSync(path.join(workspaceDir, 'my-concept.dita'), 'utf8');
+            assert.ok(written.includes('id="my-concept"'), 'id placeholder should be substituted');
+            assert.ok(written.includes('<title>My Concept Title</title>'), 'title placeholder should be substituted');
+            assert.ok(written.includes('<author>Jane Doe</author>'), 'author placeholder should be substituted');
+            assert.strictEqual(inputBoxStub.callCount, 2, 'should prompt for file name, then template title');
+        });
+
+        test('newTopicCommand should fall back to the built-in generator when no matching template exists (regression: unchanged when templatesPath is set but has no match)', async () => {
+            await config().update('templatesPath', templatesDir, vscode.ConfigurationTarget.Global); // set but empty — no concept.dita in it
+
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: 'Concept', value: 'concept' } as unknown as vscode.QuickPickItem);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('my-concept');
+
+            await newTopicCommand();
+
+            const written = fs.readFileSync(path.join(workspaceDir, 'my-concept.dita'), 'utf8');
+            assert.ok(written.includes('<concept id="my-concept">'), 'should use the built-in generator');
+            assert.strictEqual(inputBoxStub.callCount, 1, 'should NOT prompt for a template title when no template was found');
+        });
+
+        test('newTopicCommand should cancel without creating a file when the template title prompt is escaped', async () => {
+            fs.writeFileSync(path.join(templatesDir, 'task.dita'), '<task id="{{id}}"/>', 'utf8');
+            await config().update('templatesPath', templatesDir, vscode.ConfigurationTarget.Global);
+
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: 'Task', value: 'task' } as unknown as vscode.QuickPickItem);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('my-task');
+            inputBoxStub.onCall(1).resolves(undefined); // escape the title prompt
+
+            await newTopicCommand();
+
+            assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'my-task.dita')), false, 'no file should be created');
+        });
+
+        test('newMapCommand should use a matching template when configured', async () => {
+            fs.writeFileSync(
+                path.join(templatesDir, 'map.ditamap'),
+                '<?xml version="1.0" encoding="UTF-8"?>\n<map id="{{id}}"><title>{{title}}</title></map>\n',
+                'utf8'
+            );
+            await config().update('templatesPath', templatesDir, vscode.ConfigurationTarget.Global);
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('my-map');
+            inputBoxStub.onCall(1).resolves('My Map Title');
+
+            await newMapCommand();
+
+            const written = fs.readFileSync(path.join(workspaceDir, 'my-map.ditamap'), 'utf8');
+            assert.ok(written.includes('id="my-map"'));
+            assert.ok(written.includes('<title>My Map Title</title>'));
+        });
+
+        test('newBookmapCommand should reuse the already-collected book title, prompting nothing extra', async () => {
+            fs.writeFileSync(
+                path.join(templatesDir, 'bookmap.bookmap'),
+                '<?xml version="1.0" encoding="UTF-8"?>\n<bookmap id="{{id}}"><booktitle><mainbooktitle>{{title}}</mainbooktitle></booktitle></bookmap>\n',
+                'utf8'
+            );
+            await config().update('templatesPath', templatesDir, vscode.ConfigurationTarget.Global);
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('My Book'); // book title
+            inputBoxStub.onCall(1).resolves('my-book'); // file name
+
+            await newBookmapCommand();
+
+            const written = fs.readFileSync(path.join(workspaceDir, 'my-book.bookmap'), 'utf8');
+            assert.ok(written.includes('id="my-book"'));
+            assert.ok(written.includes('<mainbooktitle>My Book</mainbooktitle>'));
+            assert.strictEqual(inputBoxStub.callCount, 2, 'should not prompt a third time for title');
+        });
+    });
+
+    suite('Project Init Wizard (orchestration)', () => {
+        const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
+        let sandbox: sinon.SinonSandbox;
+        let workspaceDir: string;
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            workspaceDir = fs.mkdtempSync(path.join(fixturesPath, 'temp-ws-'));
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: vscode.Uri.file(workspaceDir), name: 'test-ws', index: 0 }
+            ]);
+        });
+
+        teardown(async () => {
+            sandbox.restore();
+            await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+            fs.rmSync(workspaceDir, { recursive: true, force: true });
+        });
+
+        test('Should scaffold a map, starter topics, folder layout, and a starter .ditaval', async () => {
+            const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            quickPickStub.onCall(0).resolves({ label: 'Map', value: 'map' } as unknown as vscode.QuickPickItem); // root type
+            quickPickStub.onCall(1).resolves([
+                { label: 'Concept', value: 'concept' },
+                { label: 'Task', value: 'task' }
+            ] as unknown as vscode.QuickPickItem); // starter topics
+            quickPickStub.onCall(2).resolves({ label: '$(filter) Yes, add a starter .ditaval', value: true } as unknown as vscode.QuickPickItem);
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('My Documentation'); // title
+            inputBoxStub.onCall(1).resolves('main'); // root file name
+
+            await initProjectCommand();
+
+            assert.ok(fs.existsSync(path.join(workspaceDir, 'maps', 'main.ditamap')), 'root map should be created');
+            assert.ok(fs.existsSync(path.join(workspaceDir, 'topics', 'concept.dita')), 'concept starter topic should be created');
+            assert.ok(fs.existsSync(path.join(workspaceDir, 'topics', 'task.dita')), 'task starter topic should be created');
+            assert.ok(fs.existsSync(path.join(workspaceDir, 'images')), 'images folder should be created');
+            assert.ok(fs.existsSync(path.join(workspaceDir, 'maps', 'main.ditaval')), 'starter .ditaval should be created');
+
+            const rootMap = fs.readFileSync(path.join(workspaceDir, 'maps', 'main.ditamap'), 'utf8');
+            assert.ok(rootMap.includes('<title>My Documentation</title>'));
+            assert.ok(rootMap.includes('href="../topics/concept.dita"'));
+            assert.ok(rootMap.includes('href="../topics/task.dita"'));
+        });
+
+        test('Should scaffold a bookmap with topicrefs nested directly in a chapter', async () => {
+            const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            quickPickStub.onCall(0).resolves({ label: 'Bookmap', value: 'bookmap' } as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(1).resolves([{ label: 'Task', value: 'task' }] as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(2).resolves({ label: '$(circle-slash) No filter file', value: false } as unknown as vscode.QuickPickItem);
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('My Guide');
+            inputBoxStub.onCall(1).resolves('guide');
+
+            await initProjectCommand();
+
+            const bookmapPath = path.join(workspaceDir, 'maps', 'guide.bookmap');
+            assert.ok(fs.existsSync(bookmapPath));
+            const content = fs.readFileSync(bookmapPath, 'utf8');
+            assert.ok(content.includes('<mainbooktitle>My Guide</mainbooktitle>'));
+            assert.ok(content.includes('<chapter>'));
+            assert.ok(content.includes('href="../topics/task.dita"'));
+            assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'maps', 'guide.ditaval')), false, 'no ditaval should be created when declined');
+        });
+
+        test('Should succeed with zero starter topics when none are selected', async () => {
+            const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            quickPickStub.onCall(0).resolves({ label: 'Map', value: 'map' } as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(1).resolves(undefined); // Escape on the multi-pick == no topics, not cancellation
+            quickPickStub.onCall(2).resolves({ label: '$(circle-slash) No filter file', value: false } as unknown as vscode.QuickPickItem);
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('Minimal Project');
+            inputBoxStub.onCall(1).resolves('minimal');
+
+            await initProjectCommand();
+
+            const rootMap = fs.readFileSync(path.join(workspaceDir, 'maps', 'minimal.ditamap'), 'utf8');
+            assert.ok(rootMap.includes('Add topicref elements here'), 'should include a placeholder comment instead of a topicref');
+            assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'topics')), true, 'topics folder should still be created even with no starter topics');
+        });
+
+        test('Should abort without writing anything when the root map file already exists', async () => {
+            fs.mkdirSync(path.join(workspaceDir, 'maps'), { recursive: true });
+            fs.writeFileSync(path.join(workspaceDir, 'maps', 'main.ditamap'), 'existing content', 'utf8');
+
+            const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            quickPickStub.onCall(0).resolves({ label: 'Map', value: 'map' } as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(1).resolves([{ label: 'Concept', value: 'concept' }] as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(2).resolves({ label: '$(circle-slash) No filter file', value: false } as unknown as vscode.QuickPickItem);
+            const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('My Documentation');
+            inputBoxStub.onCall(1).resolves('main');
+
+            await initProjectCommand();
+
+            assert.ok(errorStub.calledOnce, 'should show a conflict error');
+            assert.strictEqual(
+                fs.readFileSync(path.join(workspaceDir, 'maps', 'main.ditamap'), 'utf8'),
+                'existing content',
+                'the pre-existing file should be untouched'
+            );
+            assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'topics', 'concept.dita')), false, 'no other file should have been written either');
+        });
+
+        test('Should cancel cleanly when the root type picker is escaped', async () => {
+            sandbox.stub(vscode.window, 'showQuickPick').resolves(undefined);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+
+            await initProjectCommand();
+
+            assert.strictEqual(inputBoxStub.called, false);
+            assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'maps')), false);
         });
     });
 });

@@ -27,7 +27,8 @@ import {
     setupCSpellCommand,
     validateGuideCommand,
     managePublishingProfilesCommand,
-    insertImageCommand
+    insertImageCommand,
+    initProjectCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
@@ -673,6 +674,18 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in insertImageCommand', error);
                 vscode.window.showErrorMessage(`Error inserting image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.initProject', async () => {
+            try {
+                logger.info('Command invoked: ditacraft.initProject');
+                await initProjectCommand();
+            } catch (error) {
+                logger.error('Unhandled error in initProjectCommand', error);
+                vscode.window.showErrorMessage(`Error initializing project: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );

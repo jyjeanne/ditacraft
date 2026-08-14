@@ -19,7 +19,7 @@ export {
 } from './publishProfilesCommand';
 export type { PublishingProfile } from './publishProfilesCommand';
 export { previewHTML5Command, initializePreview, shouldAutoRefreshPreview } from './previewCommand';
-export { newTopicCommand, newMapCommand, newBookmapCommand } from './fileCreationCommands';
+export { newTopicCommand, newMapCommand, newBookmapCommand, initProjectCommand } from './fileCreationCommands';
 export { configureDitaOTCommand } from './configureCommand';
 export { setupCSpellCommand } from './cspellSetupCommand';
 export { validateGuideCommand } from './validateGuideCommand';
