@@ -16,6 +16,7 @@ import {
     isEligibleDocument,
     computeImageHref,
     buildImageSnippet,
+    copyImageIntoDirectory,
 } from '../../commands/insertImageCommand';
 
 suite('Insert Image Command Test Suite', () => {
@@ -128,15 +129,97 @@ suite('Insert Image Command Test Suite', () => {
             assert.ok(snippet.includes('A &quot;B&quot; &amp; C'), 'caption should be escaped');
             assert.ok(snippet.includes('D &lt; E'), 'alt should be escaped');
         });
+
+        test('Should include width/height attributes when a size is given', () => {
+            const snippet = buildImageSnippet('images/diagram.png', '', '', { width: '200', height: '150' });
+            assert.strictEqual(snippet, '<image href="images/diagram.png" width="200" height="150"/>');
+        });
+
+        test('Should include only the attributes actually set (partial size)', () => {
+            assert.strictEqual(
+                buildImageSnippet('images/diagram.png', '', '', { width: '200' }),
+                '<image href="images/diagram.png" width="200"/>'
+            );
+        });
+
+        test('Should include scale when given', () => {
+            assert.strictEqual(
+                buildImageSnippet('images/diagram.png', '', '', { scale: '50' }),
+                '<image href="images/diagram.png" scale="50"/>'
+            );
+        });
+
+        test('Should combine size attributes with alt text', () => {
+            const snippet = buildImageSnippet('images/diagram.png', '', 'Diagram', { width: '200' });
+            assert.strictEqual(
+                snippet,
+                '<image href="images/diagram.png" width="200">\n    <alt>Diagram</alt>\n</image>'
+            );
+        });
+
+        test('Should not emit any size attributes when size is undefined or empty', () => {
+            assert.strictEqual(
+                buildImageSnippet('images/diagram.png', '', '', undefined),
+                '<image href="images/diagram.png"/>'
+            );
+            assert.strictEqual(
+                buildImageSnippet('images/diagram.png', '', '', {}),
+                '<image href="images/diagram.png"/>'
+            );
+        });
+    });
+
+    suite('copyImageIntoDirectory', () => {
+        const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
+        const sourceImage = path.join(fixturesPath, 'images', 'diagram.png');
+        let targetDir: string;
+
+        setup(() => {
+            targetDir = path.join(fixturesPath, `temp-copy-target-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+        });
+
+        teardown(() => {
+            if (fs.existsSync(targetDir)) {
+                fs.rmSync(targetDir, { recursive: true, force: true });
+            }
+        });
+
+        test('Should create the target directory and copy the file into it', async () => {
+            const result = await copyImageIntoDirectory(sourceImage, targetDir);
+            assert.strictEqual(result, path.join(targetDir, 'diagram.png'));
+            assert.ok(fs.existsSync(result), 'the copied file should exist');
+            assert.ok(fs.readFileSync(result).equals(fs.readFileSync(sourceImage)), 'copied content should match the source');
+        });
+
+        test('Should reuse an existing byte-identical file instead of duplicating it (regression)', async () => {
+            const first = await copyImageIntoDirectory(sourceImage, targetDir);
+            const second = await copyImageIntoDirectory(sourceImage, targetDir);
+            assert.strictEqual(second, first, 're-copying the same source should reuse the existing file, not create diagram-1.png');
+            assert.strictEqual(fs.readdirSync(targetDir).length, 1, 'only one file should exist in the target directory');
+        });
+
+        test('Should append a numbered suffix when a different file already occupies the target name (regression)', async () => {
+            fs.mkdirSync(targetDir, { recursive: true });
+            fs.writeFileSync(path.join(targetDir, 'diagram.png'), 'not the same content');
+
+            const result = await copyImageIntoDirectory(sourceImage, targetDir);
+
+            assert.strictEqual(result, path.join(targetDir, 'diagram-1.png'));
+            assert.ok(fs.readFileSync(result).equals(fs.readFileSync(sourceImage)));
+            // The pre-existing, unrelated file must be left untouched.
+            assert.strictEqual(fs.readFileSync(path.join(targetDir, 'diagram.png'), 'utf-8'), 'not the same content');
+        });
     });
 
     suite('insertImageCommand (orchestration)', () => {
         const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
         let sandbox: sinon.SinonSandbox;
         let tempFile: string | undefined;
+        let extraCleanupDirs: string[];
 
         setup(() => {
             sandbox = sinon.createSandbox();
+            extraCleanupDirs = [];
         });
 
         teardown(async () => {
@@ -146,6 +229,11 @@ suite('Insert Image Command Test Suite', () => {
                 fs.unlinkSync(tempFile);
             }
             tempFile = undefined;
+            for (const dir of extraCleanupDirs) {
+                if (fs.existsSync(dir)) {
+                    fs.rmSync(dir, { recursive: true, force: true });
+                }
+            }
         });
 
         /** Opens a fresh, unsaved-elsewhere temp .dita topic with a blank line inside <body> for the cursor. */
@@ -172,6 +260,74 @@ suite('Insert Image Command Test Suite', () => {
             editor.selection = new vscode.Selection(position, position);
         }
 
+        /**
+         * Like `openTempTopic`, but in a fresh subdirectory of its own
+         * rather than directly in `fixturesPath` — needed for the
+         * copy-into-workspace tests below, where the topic's sibling
+         * `images/` directory must be genuinely distinct from the fixture
+         * image's own `fixturesPath/images/` directory (source and
+         * destination coinciding by construction would make "copy" and
+         * "reference" produce the exact same file, defeating the test).
+         */
+        async function openTempTopicInFreshDir(): Promise<{ editor: vscode.TextEditor; topicDir: string }> {
+            const topicDir = path.join(fixturesPath, `temp-insert-image-dir-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+            fs.mkdirSync(topicDir, { recursive: true });
+            extraCleanupDirs.push(topicDir);
+
+            const filePath = path.join(topicDir, 'topic.dita');
+            const content =
+                '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                '<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">\n' +
+                '<topic id="temp_topic">\n' +
+                '    <title>Temp Topic</title>\n' +
+                '    <body>\n' +
+                '        \n' +
+                '    </body>\n' +
+                '</topic>\n';
+            fs.writeFileSync(filePath, content, 'utf-8');
+
+            const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+            const editor = await vscode.window.showTextDocument(document);
+            return { editor, topicDir };
+        }
+
+        /**
+         * Makes `fixturesPath` (and everything under it — the temp topic
+         * files this suite creates, and the `images/` fixture) register as
+         * "inside the workspace" via `vscode.workspace.getWorkspaceFolder`,
+         * so the new "image is outside the workspace" copy-prompt doesn't
+         * fire for tests that predate it and aren't testing that flow. This
+         * test host normally has no workspace folder open at all (see
+         * previewCommand.test.ts's own notes on this), so without this stub
+         * every picked test image would otherwise register as "outside".
+         */
+        function stubWorkspaceFolderCoveringFixtures(): void {
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: vscode.Uri.file(fixturesPath), name: 'fixtures', index: 0 }
+            ]);
+        }
+
+        /**
+         * Routes `showQuickPick` by its `title` — this command now shows up
+         * to two different QuickPicks in one run (the outside-workspace
+         * choice, conditionally, and the size choice, always), so a single
+         * positional `.onCall(n)` stub can't express both a test's specific
+         * response and "this prompt should never fire" for the other.
+         * Titles not present in `byTitle` resolve to `undefined` (Escape),
+         * matching how an un-stubbed prompt safely cancels the command
+         * instead of hanging.
+         */
+        function stubQuickPicksByTitle(byTitle: Record<string, { value: string } | undefined>): sinon.SinonStub {
+            return sandbox.stub(vscode.window, 'showQuickPick').callsFake((_items: unknown, options?: unknown) => {
+                const title = (options as vscode.QuickPickOptions | undefined)?.title ?? '';
+                if (!(title in byTitle)) {
+                    return Promise.resolve(undefined);
+                }
+                const response = byTitle[title];
+                return Promise.resolve(response ? ({ label: '', ...response } as unknown as vscode.QuickPickItem) : undefined);
+            });
+        }
+
         test('Should warn and do nothing when there is no eligible active editor', async () => {
             await vscode.commands.executeCommand('workbench.action.closeAllEditors');
             const warnStub = sandbox.stub(vscode.window, 'showWarningMessage');
@@ -195,8 +351,23 @@ suite('Insert Image Command Test Suite', () => {
             assert.strictEqual(editor.document.getText(), originalText, 'document should be unchanged');
         });
 
+        test('Should do nothing when the outside-workspace prompt is escaped (regression)', async () => {
+            const editor = await openTempTopic();
+            const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            stubQuickPicksByTitle({}); // no workspace-folder stub — image registers as "outside"; prompt resolves undefined
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            const originalText = editor.document.getText();
+
+            await insertImageCommand();
+
+            assert.strictEqual(inputBoxStub.called, false, 'should not prompt for caption after the outside-workspace prompt is cancelled');
+            assert.strictEqual(editor.document.getText(), originalText, 'document should be unchanged');
+        });
+
         test('Should do nothing when the caption prompt is escaped', async () => {
             const editor = await openTempTopic();
+            stubWorkspaceFolderCoveringFixtures();
             const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
             sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
             sandbox.stub(vscode.window, 'showInputBox').resolves(undefined);
@@ -207,15 +378,34 @@ suite('Insert Image Command Test Suite', () => {
             assert.strictEqual(editor.document.getText(), originalText, 'document should be unchanged');
         });
 
-        test('Should insert a bare <image> at the cursor when no caption is given', async () => {
+        test('Should do nothing when the size prompt is escaped (regression)', async () => {
             const editor = await openTempTopic();
             positionOnBlankBodyLine(editor);
+            stubWorkspaceFolderCoveringFixtures();
+            const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('');
+            inputBoxStub.onCall(1).resolves('');
+            stubQuickPicksByTitle({}); // "Image Size (optional)" resolves undefined
+            const originalText = editor.document.getText();
+
+            await insertImageCommand();
+
+            assert.strictEqual(editor.document.getText(), originalText, 'document should be unchanged when the size step is escaped');
+        });
+
+        test('Should insert a bare <image> at the cursor when no caption or size is given', async () => {
+            const editor = await openTempTopic();
+            positionOnBlankBodyLine(editor);
+            stubWorkspaceFolderCoveringFixtures();
 
             const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
             sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
             const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
             inputBoxStub.onCall(0).resolves('');
             inputBoxStub.onCall(1).resolves('');
+            stubQuickPicksByTitle({ 'Image Size (optional)': { value: 'none' } });
 
             await insertImageCommand();
 
@@ -228,6 +418,7 @@ suite('Insert Image Command Test Suite', () => {
         test('Should insert a <fig> skeleton when a caption is given, prefilling alt from the caption', async () => {
             const editor = await openTempTopic();
             positionOnBlankBodyLine(editor);
+            stubWorkspaceFolderCoveringFixtures();
 
             const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
             sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
@@ -236,6 +427,7 @@ suite('Insert Image Command Test Suite', () => {
             inputBoxStub.onCall(1).callsFake((options) =>
                 Promise.resolve((options as vscode.InputBoxOptions | undefined)?.value ?? '')
             );
+            stubQuickPicksByTitle({ 'Image Size (optional)': { value: 'none' } });
 
             await insertImageCommand();
 
@@ -243,6 +435,78 @@ suite('Insert Image Command Test Suite', () => {
             assert.ok(text.includes('<fig>'), 'should wrap in <fig> when a caption is given');
             assert.ok(text.includes('<title>Architecture Overview</title>'), 'should include the caption as <title>');
             assert.ok(text.includes('<alt>Architecture Overview</alt>'), 'alt should default to the caption text');
+        });
+
+        test('Should insert width/height attributes when set (regression)', async () => {
+            const editor = await openTempTopic();
+            positionOnBlankBodyLine(editor);
+            stubWorkspaceFolderCoveringFixtures();
+
+            const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves(''); // caption
+            inputBoxStub.onCall(1).resolves(''); // alt
+            inputBoxStub.onCall(2).resolves('200'); // width
+            inputBoxStub.onCall(3).resolves('150'); // height
+            stubQuickPicksByTitle({ 'Image Size (optional)': { value: 'dimensions' } });
+
+            await insertImageCommand();
+
+            assert.ok(
+                editor.document.getText().includes('<image href="images/diagram.png" width="200" height="150"/>'),
+                'width and height should both be set'
+            );
+        });
+
+        test('Should insert only scale when the scale option is chosen (regression)', async () => {
+            const editor = await openTempTopic();
+            positionOnBlankBodyLine(editor);
+            stubWorkspaceFolderCoveringFixtures();
+
+            const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves(''); // caption
+            inputBoxStub.onCall(1).resolves(''); // alt
+            inputBoxStub.onCall(2).resolves('50'); // scale
+            stubQuickPicksByTitle({ 'Image Size (optional)': { value: 'scale' } });
+
+            await insertImageCommand();
+
+            assert.ok(
+                editor.document.getText().includes('<image href="images/diagram.png" scale="50"/>'),
+                'scale should be set and width/height omitted'
+            );
+        });
+
+        test('Should reject a non-NMTOKEN size value via validateInput (regression)', async () => {
+            // Exercise the InputBox's own validateInput function directly —
+            // the same way the rest of this project's insert-command test
+            // suites verify a QuickInput's bounds/format checking (see
+            // insertTableCommand.test.ts's own validateInput coverage).
+            const editor = await openTempTopic();
+            positionOnBlankBodyLine(editor);
+            stubWorkspaceFolderCoveringFixtures();
+
+            const picked = vscode.Uri.file(path.join(fixturesPath, 'images', 'diagram.png'));
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('');
+            inputBoxStub.onCall(1).resolves('');
+            inputBoxStub.onCall(2).callsFake((options) => {
+                const validate = (options as vscode.InputBoxOptions | undefined)?.validateInput;
+                assert.strictEqual(typeof validate, 'function');
+                assert.strictEqual(validate!('50%'), 'Must be a plain number or simple token (no spaces or %) — DITA\'s width/height/scale attributes are NMTOKEN values.');
+                assert.strictEqual(validate!('200'), undefined);
+                assert.strictEqual(validate!(''), undefined, 'empty should be a valid "omit" value');
+                return Promise.resolve('50');
+            });
+            stubQuickPicksByTitle({ 'Image Size (optional)': { value: 'scale' } });
+
+            await insertImageCommand();
+
+            assert.ok(editor.document.getText().includes('scale="50"'));
         });
 
         test('Should show an error and insert nothing when the image is on a different drive than the document (regression, Windows-only)', async function() {
@@ -265,12 +529,73 @@ suite('Insert Image Command Test Suite', () => {
             sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
             const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
             const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            // Not in any workspace folder — choose "reference at current location"
+            // to reach the cross-drive computeImageHref failure this test targets.
+            stubQuickPicksByTitle({ 'Image Is Outside the Workspace': { value: 'reference' } });
 
             await insertImageCommand();
 
             assert.ok(errorStub.calledOnce, 'should show an error instead of inserting an invalid href');
             assert.strictEqual(inputBoxStub.called, false, 'should not prompt for caption/alt after an unresolvable href');
             assert.strictEqual(editor.document.getText(), originalText, 'document should be unchanged');
+        });
+
+        test('Should offer to copy an out-of-workspace image in, and insert the copy\'s relative href (regression)', async () => {
+            const { editor, topicDir } = await openTempTopicInFreshDir();
+            positionOnBlankBodyLine(editor);
+            // Deliberately no workspace-folder stub — the picked image (and
+            // the temp topic itself) register as outside any workspace in
+            // this test host, exercising the real "outside workspace" path.
+
+            const sourceImage = path.join(fixturesPath, 'images', 'diagram.png');
+            const picked = vscode.Uri.file(sourceImage);
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('');
+            inputBoxStub.onCall(1).resolves('');
+            stubQuickPicksByTitle({
+                'Image Is Outside the Workspace': { value: 'copy' },
+                'Image Size (optional)': { value: 'none' }
+            });
+
+            await insertImageCommand();
+
+            const copiedPath = path.join(topicDir, 'images', 'diagram.png');
+            assert.ok(fs.existsSync(copiedPath), 'the image should have been copied into images/ next to the topic');
+            assert.ok(
+                fs.readFileSync(copiedPath).equals(fs.readFileSync(sourceImage)),
+                'the copy\'s content should match the source image'
+            );
+            assert.ok(
+                editor.document.getText().includes('<image href="images/diagram.png"/>'),
+                'the inserted href should point at the copy, relative to the topic'
+            );
+        });
+
+        test('Should reference the original location without copying when the user declines (regression)', async () => {
+            const { editor, topicDir } = await openTempTopicInFreshDir();
+            positionOnBlankBodyLine(editor);
+
+            const sourceImage = path.join(fixturesPath, 'images', 'diagram.png');
+            const picked = vscode.Uri.file(sourceImage);
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('');
+            inputBoxStub.onCall(1).resolves('');
+            stubQuickPicksByTitle({
+                'Image Is Outside the Workspace': { value: 'reference' },
+                'Image Size (optional)': { value: 'none' }
+            });
+
+            await insertImageCommand();
+
+            const wouldBeCopyDir = path.join(topicDir, 'images');
+            assert.strictEqual(fs.existsSync(wouldBeCopyDir), false, 'nothing should be copied when the user declines');
+            const expectedHref = computeImageHref(topicDir, sourceImage);
+            assert.ok(
+                editor.document.getText().includes(`<image href="${expectedHref}"/>`),
+                'should reference the original image at its actual (unmoved) relative path'
+            );
         });
     });
 });
