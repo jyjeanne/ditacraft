@@ -533,6 +533,12 @@
           "description": "Enable bidirectional scroll synchronization between the source editor and HTML5 preview.",
           "order": 8
         },
+        "ditacraft.conditionHighlightingEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dim elements in the editor that the active preview DITAVAL filter (DITA: Set Preview DITAVAL Filter) would exclude from a filtered publish.",
+          "order": 9
+        },
         "ditacraft.showProgressNotifications": {
           "type": "boolean",
           "default": true,
