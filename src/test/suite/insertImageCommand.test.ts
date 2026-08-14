@@ -254,7 +254,14 @@ suite('Insert Image Command Test Suite', () => {
             positionOnBlankBodyLine(editor);
             const originalText = editor.document.getText();
 
-            const picked = vscode.Uri.file('D:\\shared\\diagram.png');
+            // Derive a drive letter guaranteed to differ from wherever this
+            // checkout actually lives (GitHub's windows-latest runners use
+            // D:\, not the C:\ this test originally assumed — hardcoding
+            // either one risks picking the *same* drive as the real
+            // checkout and silently not exercising the cross-drive case).
+            const documentDrive = path.parse(editor.document.uri.fsPath).root.charAt(0).toUpperCase();
+            const otherDrive = documentDrive === 'D' ? 'C' : 'D';
+            const picked = vscode.Uri.file(`${otherDrive}:\\shared\\diagram.png`);
             sandbox.stub(vscode.window, 'showOpenDialog').resolves([picked]);
             const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
             const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
