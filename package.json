@@ -196,6 +196,11 @@
         "icon": "$(file-media)"
       },
       {
+        "command": "ditacraft.insertTable",
+        "title": "DITA: Insert Table",
+        "icon": "$(table)"
+      },
+      {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
       },
@@ -332,6 +337,11 @@
           "command": "ditacraft.insertImage",
           "when": "resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
           "group": "ditacraft@3"
+        },
+        {
+          "command": "ditacraft.insertTable",
+          "when": "resourceExtname == .dita",
+          "group": "ditacraft@4"
         }
       ],
       "view/title": [
@@ -406,6 +416,10 @@
         {
           "command": "ditacraft.insertImage",
           "when": "resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.insertTable",
+          "when": "resourceExtname == .dita"
         }
       ],
       "explorer/context": [
