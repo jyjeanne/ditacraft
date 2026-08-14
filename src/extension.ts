@@ -32,7 +32,7 @@ import {
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
-import { UI_TIMEOUTS } from './utils/constants';
+import { UI_TIMEOUTS, DITA_EXTENSIONS } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
 import { ValidationReportPanel } from './providers/validationReportPanel';
@@ -172,6 +172,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Register root map commands and status bar
         registerRootMapFeature(context);
+
+        // Register Move Topic — updates references when a DITA file is moved/renamed
+        registerMoveTopicFeature(context);
 
         // Start Language Server
         outputChannel.appendLine('Starting DITA Language Server...');
@@ -514,6 +517,92 @@ export async function deactivate(): Promise<void> {
 
 /** Debounce delay before a save triggers a preview re-publish (ms). */
 const PREVIEW_AUTO_REFRESH_DEBOUNCE_MS = 500;
+
+// Mirrors server/src/features/moveTopic.ts's WorkspaceEdit response shape
+// (raw LSP protocol shape, before conversion to a vscode.WorkspaceEdit) —
+// client and server can't share types across the package boundary this
+// project maintains, so this is a parallel, hand-mirrored copy, matching
+// the established pattern for every other custom `dita/*` request's types
+// (see aiServiceOrchestrator.ts's own local copies of the context-snapshot/
+// fragment-validation request/response shapes).
+interface LspTextEdit {
+    range: { start: { line: number; character: number }; end: { line: number; character: number } };
+    newText: string;
+}
+interface LspWorkspaceEdit {
+    changes?: { [uri: string]: LspTextEdit[] };
+}
+
+/**
+ * Register the `onDidRenameFiles` listener behind "Move Topic with
+ * Reference Updates": when a `.dita`/`.ditamap`/`.bookmap` file is moved
+ * or renamed via VS Code (Explorer drag-and-drop, F2 rename, etc.), asks
+ * the LSP server for every inbound `href`/`conref` that pointed at its old
+ * path and rewrites them to the new location, then saves the affected
+ * files — mirroring VS Code's own built-in "update imports on file move"
+ * behavior for JS/TS, the closest established UX precedent for this exact
+ * feature shape.
+ *
+ * **Scope: inbound references only.** See
+ * `server/src/features/moveTopic.ts`'s doc comment for what this
+ * deliberately does not cover (a moved file's own outbound hrefs when it
+ * changes directory; folder-level moves, which VS Code reports as a
+ * single folder rename rather than one event per contained file).
+ */
+function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
+    context.subscriptions.push(
+        vscode.workspace.onDidRenameFiles(async (event) => {
+            const client = getLanguageClient();
+            if (!client) {
+                return;
+            }
+
+            const ditaMoves = event.files.filter(f => {
+                const lower = f.oldUri.fsPath.toLowerCase();
+                return DITA_EXTENSIONS.ALL.some(ext => lower.endsWith(ext));
+            });
+            if (ditaMoves.length === 0) {
+                return;
+            }
+
+            try {
+                const result = await client.sendRequest<LspWorkspaceEdit | null>('dita/computeMoveEdits', {
+                    moves: ditaMoves.map(f => ({
+                        oldUri: client.code2ProtocolConverter.asUri(f.oldUri),
+                        newUri: client.code2ProtocolConverter.asUri(f.newUri)
+                    }))
+                });
+                if (!result) {
+                    return;
+                }
+
+                const edit = await client.protocol2CodeConverter.asWorkspaceEdit(result);
+                const editedUris = edit.entries().map(([uri]) => uri);
+                if (editedUris.length === 0) {
+                    return;
+                }
+
+                const applied = await vscode.workspace.applyEdit(edit);
+                if (!applied) {
+                    logger.warn('Move Topic: failed to apply reference updates', { movedCount: ditaMoves.length });
+                    return;
+                }
+
+                await Promise.all(editedUris.map(uri => vscode.workspace.save(uri)));
+
+                logger.info('Move Topic: updated references after file move', {
+                    movedCount: ditaMoves.length,
+                    updatedFileCount: editedUris.length
+                });
+                vscode.window.showInformationMessage(
+                    `DitaCraft: Updated references in ${editedUris.length} file(s) after the move.`
+                );
+            } catch (error) {
+                logger.error('Move Topic: failed to compute/apply reference updates', error);
+            }
+        })
+    );
+}
 
 /**
  * Register the save-triggered auto-refresh for the HTML5 preview.

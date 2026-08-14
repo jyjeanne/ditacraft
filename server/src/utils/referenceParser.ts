@@ -263,6 +263,44 @@ export function findReferencesToId(text: string, targetId: string): ReferenceOcc
 }
 
 /**
+ * Find every `href`/`conref` occurrence in the document that carries a
+ * non-empty *file-path* component — i.e. excludes fragment-only references
+ * like `conref="#topicid/elementid"`, which can never point at a different
+ * file. Unlike `findReferencesToId`/`findReferencesToKey`, this has no
+ * target predicate — callers resolve each occurrence's file path
+ * themselves (see `server/src/features/moveTopic.ts`) and filter by
+ * whichever target path they're looking for.
+ *
+ * Deliberately scoped to `href`/`conref` only, not the full
+ * `href|conref|conkeyref|keyref` set `findReferencesToId` scans — a bare
+ * `keyref`/`conkeyref` value is a *key name* (optionally `keyname/id` for
+ * conkeyref), not a file path, so running it through `parseReference`
+ * would misparse "myKey" as if it were a relative file path.
+ */
+export function findFileReferences(text: string): ReferenceOccurrence[] {
+    const results: ReferenceOccurrence[] = [];
+    const pattern = /\b(href|conref)\s*=\s*["']([^"']+)["']/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = pattern.exec(text)) !== null) {
+        const attrName = match[1] as 'href' | 'conref';
+        const value = match[2];
+
+        if (!parseReference(value).filePath) continue;
+
+        const fullMatch = match[0];
+        const quoteChar = fullMatch.includes('"') ? '"' : "'";
+        const quotePos = fullMatch.indexOf(quoteChar);
+        const valueStart = match.index + quotePos + 1;
+        const valueEnd = valueStart + value.length;
+
+        results.push({ type: attrName, value, valueStart, valueEnd });
+    }
+
+    return results;
+}
+
+/**
  * Find all `keyref`/`conkeyref` reference attributes in the document whose
  * value refers to a given key name. `href`/`conref` never carry a key name
  * and are never returned — the counterpart to `findReferencesToId`, whose
