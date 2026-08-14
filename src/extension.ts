@@ -28,6 +28,7 @@ import {
     validateGuideCommand,
     managePublishingProfilesCommand,
     insertImageCommand,
+    insertTableCommand,
     initProjectCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
@@ -763,6 +764,18 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in insertImageCommand', error);
                 vscode.window.showErrorMessage(`Error inserting image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.insertTable', async () => {
+            try {
+                logger.info('Command invoked: ditacraft.insertTable');
+                await insertTableCommand();
+            } catch (error) {
+                logger.error('Unhandled error in insertTableCommand', error);
+                vscode.window.showErrorMessage(`Error inserting table: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );

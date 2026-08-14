@@ -21,6 +21,7 @@ import * as path from 'path';
 import { DITA_EXTENSIONS } from '../utils/constants';
 import { logger } from '../utils/logger';
 import { escapeXml } from '../utils/xmlUtils';
+import { indentContinuationLines, insertAtCursor } from '../utils/editorInsertUtils';
 
 const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp', 'webp'];
 
@@ -131,21 +132,4 @@ function buildImageElement(href: string, alt: string): string {
         return `<image ${hrefAttr}/>`;
     }
     return `<image ${hrefAttr}>\n    <alt>${escapeXml(alt)}</alt>\n</image>`;
-}
-
-/** Indent every line after the first by `indent`, so a multi-line block still nests correctly when embedded after other text on its own line. */
-function indentContinuationLines(text: string, indent: string): string {
-    return text.split('\n').map((line, i) => (i === 0 ? line : indent + line)).join('\n');
-}
-
-/**
- * Insert `snippet` at the cursor, re-indenting continuation lines to match
- * the current line's leading whitespace so a multi-line `<fig>` skeleton
- * doesn't land flush-left against the document's existing indentation.
- */
-async function insertAtCursor(editor: vscode.TextEditor, snippet: string): Promise<boolean> {
-    const position = editor.selection.active;
-    const indent = editor.document.lineAt(position.line).text.match(/^[ \t]*/)?.[0] ?? '';
-    const indented = indentContinuationLines(snippet, indent);
-    return editor.edit(editBuilder => editBuilder.insert(position, indented));
 }

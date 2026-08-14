@@ -26,3 +26,4 @@ export { validateGuideCommand } from './validateGuideCommand';
 export { configureAICommand } from './configureAICommand';
 export { restructureMapCommand } from './restructureMapCommand';
 export { insertImageCommand } from './insertImageCommand';
+export { insertTableCommand } from './insertTableCommand';
