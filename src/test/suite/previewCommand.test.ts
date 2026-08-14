@@ -363,8 +363,15 @@ suite('Preview Command Test Suite', () => {
         test('Should be false when idle, true synchronously once a refresh starts, and false again once it settles', async () => {
             assert.strictEqual(isPreviewRefreshInFlight(), false, 'should start idle');
 
+            // Extension-less path: validateFilePath rejects it synchronously,
+            // before previewHTML5Command ever reaches DITA-OT verification —
+            // settling fast and deterministically regardless of whether/how
+            // slowly DITA-OT installation-checking behaves in this CI
+            // environment (regression: an earlier version of this test used
+            // a `.dita` path, which reached the real DITA-OT verification
+            // step and timed out on macOS CI).
             const fakeUri = vscode.Uri.file(
-                path.join(fixturesPath, 'does-not-exist-in-flight-regression.dita')
+                path.join(fixturesPath, 'does-not-exist-in-flight-regression')
             );
             const refreshPromise = requestPreviewRefresh(fakeUri, true);
 
@@ -458,14 +465,17 @@ suite('Preview Command Test Suite', () => {
         });
 
         test('Should attempt to re-run the preview when a panel is already open (regression)', async () => {
-            // A fake panel whose source file doesn't exist on disk — any
-            // attempt to refresh it necessarily fails somewhere inside
-            // previewHTML5Command's pipeline (DITA-OT not configured, or the
-            // file not found), and that failure always surfaces through
-            // handlePreviewError -> showErrorMessage. Its absence is what
-            // the previous test guards; its presence here guards the
+            // A fake panel whose source file has no extension: validateFilePath
+            // rejects it synchronously, before previewHTML5Command ever reaches
+            // DITA-OT verification, so this settles fast and deterministically
+            // (regression: an earlier `.dita`-suffixed version of this fake path
+            // reached the real DITA-OT verification step and timed out on CI).
+            // Any attempted refresh still necessarily fails somewhere inside
+            // previewHTML5Command's pipeline, and that failure always surfaces
+            // through handlePreviewError -> showErrorMessage. Its absence is
+            // what the previous test guards; its presence here guards the
             // opposite regression — silently dropping the refresh entirely.
-            const fakeSourceFile = path.join(fixturesPath, 'does-not-exist-preview-filter-regression.dita');
+            const fakeSourceFile = path.join(fixturesPath, 'does-not-exist-preview-filter-regression');
             DitaPreviewPanel.currentPanel = { getSourceFile: () => fakeSourceFile } as unknown as DitaPreviewPanel;
             const errorStub = sandbox.stub(vscode.window, 'showErrorMessage').resolves(undefined);
             sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: '$(circle-slash) No filter', value: '' } as unknown as vscode.QuickPickItem);
