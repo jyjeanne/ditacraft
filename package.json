@@ -187,6 +187,10 @@
         "title": "DITA: Create New Bookmap"
       },
       {
+        "command": "ditacraft.initProject",
+        "title": "DITA: Initialize DITA Project"
+      },
+      {
         "command": "ditacraft.insertImage",
         "title": "DITA: Insert Image",
         "icon": "$(file-media)"
@@ -843,6 +847,18 @@
           "default": "",
           "description": "Internal: name of the most recently used publishing profile, so the publish picker can surface it first. Managed automatically — not intended for manual editing.",
           "order": 43
+        },
+        "ditacraft.templatesPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a directory of .dita/.ditamap/.bookmap template files (supports ${workspaceFolder}). A template named e.g. topic.dita, concept.dita, task.dita, reference.dita, map.ditamap, or bookmap.bookmap is used by 'DITA: Create New Topic/Map/Bookmap' instead of the built-in skeleton when present. Placeholders: {{title}}, {{id}}, {{author}}, {{date}}. Leave empty to always use the built-in skeletons.",
+          "order": 44
+        },
+        "ditacraft.templateAuthor": {
+          "type": "string",
+          "default": "",
+          "description": "Value substituted for the {{author}} placeholder in custom templates (ditacraft.templatesPath). Leave empty to leave {{author}} unsubstituted.",
+          "order": 45
         }
       }
     },
