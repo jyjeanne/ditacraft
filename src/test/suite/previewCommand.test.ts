@@ -359,12 +359,25 @@ suite('Preview Command Test Suite', () => {
         });
 
         teardown(async () => {
+            // Restore whatever this test itself stubbed FIRST — reusing the
+            // same sandbox to stub showQuickPick again below, before this
+            // restore, throws "already wrapped" (a test body's own stub is
+            // still in place), which would abort the teardown before
+            // reaching sandbox.restore() and leak a wrapped showQuickPick
+            // into every later test in the run (regression: this is exactly
+            // what broke CI the first time this suite was added).
+            sandbox.restore();
+
             // Reset the module-level "active filter" back to none so later
             // tests (in this file and others sharing the extension host)
-            // don't observe a filter left over from a prior test.
-            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: '$(circle-slash) No filter', value: '' } as unknown as vscode.QuickPickItem);
+            // don't observe a filter left over from a prior test. Uses its
+            // own throwaway sandbox rather than the (now-restored, but
+            // still test-scoped) one above, to keep this reset independent
+            // of whatever the test body did.
+            const resetSandbox = sinon.createSandbox();
+            resetSandbox.stub(vscode.window, 'showQuickPick').resolves({ label: '$(circle-slash) No filter', value: '' } as unknown as vscode.QuickPickItem);
             await pickPreviewFilterCommand();
-            sandbox.restore();
+            resetSandbox.restore();
         });
 
         test('Should leave the active filter unchanged when the picker is cancelled', async () => {
