@@ -47,11 +47,29 @@ suite('Template Engine Test Suite', () => {
             }
         });
 
-        test('Should substitute ${workspaceFolder}', () => {
+        test('Should substitute ${workspaceFolder} when a workspace is open, or return undefined otherwise (regression)', () => {
+            // The placeholder is meaningless with no workspace open --
+            // substituting it with '' would previously produce a bogus
+            // "/templates" path that path.isAbsolute() (on POSIX) then
+            // accepted as a real, resolved directory. Must return
+            // undefined instead, matching "not configured".
             const folder = vscode.workspace.workspaceFolders?.[0];
             const resolved = resolveTemplatesDir('${workspaceFolder}/templates');
-            const expectedBase = folder ? folder.uri.fsPath : '';
-            assert.strictEqual(resolved, `${expectedBase}/templates`);
+
+            if (folder) {
+                assert.strictEqual(resolved, `${folder.uri.fsPath}/templates`);
+            } else {
+                assert.strictEqual(resolved, undefined);
+            }
+        });
+
+        test('Should substitute every ${workspaceFolder} occurrence, not just the first (regression)', () => {
+            const folder = vscode.workspace.workspaceFolders?.[0];
+            if (!folder) {
+                return; // nothing to assert without a workspace folder to substitute in
+            }
+            const resolved = resolveTemplatesDir('${workspaceFolder}/a/${workspaceFolder}/b');
+            assert.strictEqual(resolved, `${folder.uri.fsPath}/a/${folder.uri.fsPath}/b`);
         });
     });
 
@@ -77,9 +95,13 @@ suite('Template Engine Test Suite', () => {
             assert.strictEqual(result, 'x by {{author}}');
         });
 
-        test('Should leave a placeholder untouched when its value is an empty string', () => {
+        test('Should substitute with an empty string when a value is explicitly "" (regression)', () => {
+            // Distinct from "undefined" above: an explicitly empty value
+            // (e.g. a user clearing a prefilled title prompt, then
+            // pressing Enter rather than Escape) must actually take
+            // effect, not leave a literal "{{title}}" in the output.
             const result = substitutePlaceholders('{{id}} by {{author}}', { id: 'x', author: '' });
-            assert.strictEqual(result, 'x by {{author}}');
+            assert.strictEqual(result, 'x by ');
         });
 
         test('Should leave unknown placeholder names untouched', () => {
@@ -90,6 +112,20 @@ suite('Template Engine Test Suite', () => {
         test('Should substitute repeated placeholders every occurrence', () => {
             const result = substitutePlaceholders('{{id}}-{{id}}', { id: 'dup' });
             assert.strictEqual(result, 'dup-dup');
+        });
+
+        test('Should XML-escape substituted values (regression)', () => {
+            // A free-text title/author containing &, <, >, or " must not
+            // produce non-well-formed XML when substituted into DITA
+            // content.
+            const result = substitutePlaceholders(
+                '<title>{{title}}</title><!-- {{author}} -->',
+                { id: 'x', title: 'Setup & Config <required>', author: 'O\'Brien & Co. "Team"' }
+            );
+            assert.strictEqual(
+                result,
+                '<title>Setup &amp; Config &lt;required&gt;</title><!-- O\'Brien &amp; Co. &quot;Team&quot; -->'
+            );
         });
     });
 
@@ -115,6 +151,14 @@ suite('Template Engine Test Suite', () => {
             fs.writeFileSync(path.join(templatesDir, 'concept.dita'), '<concept id="{{id}}"/>', 'utf8');
             const raw = await loadTemplateRaw(templatesDir, 'concept', '.dita');
             assert.strictEqual(raw, '<concept id="{{id}}"/>');
+        });
+
+        test('loadTemplateRaw should return undefined for an empty or whitespace-only template file (regression)', async () => {
+            fs.writeFileSync(path.join(templatesDir, 'empty.dita'), '', 'utf8');
+            fs.writeFileSync(path.join(templatesDir, 'blank.dita'), '   \n\t  ', 'utf8');
+
+            assert.strictEqual(await loadTemplateRaw(templatesDir, 'empty', '.dita'), undefined);
+            assert.strictEqual(await loadTemplateRaw(templatesDir, 'blank', '.dita'), undefined);
         });
 
         test('renderTemplate should return undefined when no matching template exists (caller falls back)', async () => {

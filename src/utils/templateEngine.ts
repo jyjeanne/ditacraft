@@ -10,14 +10,17 @@
  * `generateTopicContent`/`generateMapContent`/`generateBookmapContent`
  * generators in `fileCreationCommands.ts` — those keep their current
  * zero-template behavior and tests untouched. Callers check
- * `renderTemplate()`'s result and fall back to the built-in generator when
- * it returns `undefined` (no `ditacraft.templatesPath` configured, or no
- * template file matching the requested name exists there).
+ * `loadTemplateRaw()`/`renderTemplate()`'s result and fall back to the
+ * built-in generator when it returns `undefined` (no `ditacraft.
+ * templatesPath` configured, no template file matching the requested name,
+ * or an empty/whitespace-only template file).
  */
 
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { escapeXml } from './xmlUtils';
+import { substituteWorkspaceFolderVar } from './pathUtils';
 
 /** Values substituted for `{{name}}` placeholders in a template file. */
 export interface TemplateVariables {
@@ -29,41 +32,47 @@ export interface TemplateVariables {
 
 /**
  * Resolve the configured `ditacraft.templatesPath` to an absolute
- * directory, substituting the `${workspaceFolder}` placeholder the same
- * way `ditacraft.outputDirectory` does (see `DitaOtWrapper.
- * loadConfiguration()` / `resolveProfileOutputDir()` in
- * `publishProfilesCommand.ts`). Returns undefined when unset, so callers
- * can treat "no templates configured" and "templates directory resolved
- * to nothing" the same way.
+ * directory. Returns undefined when unset, when it's relative with no
+ * workspace folder open to resolve it against, or when it uses the
+ * `${workspaceFolder}` placeholder with no workspace open — the
+ * placeholder is meaningless in that case, and substituting it with an
+ * empty string would silently produce an unrelated (and on POSIX,
+ * accidentally-absolute-looking) path rather than the "not configured"
+ * result callers expect.
  */
 export function resolveTemplatesDir(templatesPath: string | undefined): string | undefined {
     if (!templatesPath || templatesPath.trim().length === 0) {
         return undefined;
     }
+
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    const substituted = templatesPath.replace('${workspaceFolder}', workspaceFolder ?? '');
-    if (path.isAbsolute(substituted)) {
-        return substituted;
+
+    if (templatesPath.includes('${workspaceFolder}')) {
+        return workspaceFolder ? substituteWorkspaceFolderVar(templatesPath) : undefined;
     }
-    if (!workspaceFolder) {
-        return undefined;
+    if (path.isAbsolute(templatesPath)) {
+        return templatesPath;
     }
-    return path.join(workspaceFolder, substituted);
+    return workspaceFolder ? path.join(workspaceFolder, templatesPath) : undefined;
 }
 
 /**
  * Substitute `{{name}}` placeholders (tolerating internal whitespace, e.g.
- * `{{ title }}`) with the matching value from `variables`. A placeholder
- * with no matching key, or whose value is undefined, is left untouched
- * rather than replaced with an empty string or `undefined` — better to
+ * `{{ title }}`) with the matching value from `variables`, XML-escaping
+ * each value first (these substitute directly into DITA XML content).
+ * A placeholder with no matching key, or whose value is `undefined`, is
+ * left untouched rather than replaced with an empty string — better to
  * leave a visible `{{author}}` an author can fill in by hand than to
- * silently produce blank content.
+ * silently produce blank content. An explicitly *empty* string value
+ * (distinct from `undefined`) IS substituted, though — e.g. a user who
+ * deliberately clears a prefilled title prompt gets an empty title, not a
+ * literal `{{title}}` left in the generated file.
  */
 export function substitutePlaceholders(content: string, variables: TemplateVariables): string {
     const values: Record<string, string | undefined> = { ...variables };
     return content.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, key: string) => {
         const value = values[key];
-        return value !== undefined && value.length > 0 ? value : match;
+        return value !== undefined ? escapeXml(value) : match;
     });
 }
 
@@ -71,11 +80,13 @@ export function substitutePlaceholders(content: string, variables: TemplateVaria
  * Load the raw (unsubstituted) template for `baseName + extension` (e.g.
  * `('concept', '.dita')` → `<templatesDir>/concept.dita`) inside
  * `templatesDir`. Returns undefined — not a thrown error — when the file
- * doesn't exist, so callers can fall back to the built-in generator (or
- * decide whether to prompt for extra placeholder values, since it's only
- * worth asking when a template that could use them actually exists); any
- * other read failure (permissions, etc.) is rethrown since that's not the
- * "no template configured for this type" case.
+ * doesn't exist, or exists but is empty/whitespace-only (an accidentally
+ * truncated template should fall back to a valid built-in skeleton, not
+ * silently produce a content-less file with no warning), so callers can
+ * fall back to the built-in generator (or decide whether to prompt for
+ * extra placeholder values, since it's only worth asking when a usable
+ * template actually exists); any other read failure (permissions, etc.)
+ * is rethrown since that's not the "no template configured" case.
  */
 export async function loadTemplateRaw(
     templatesDir: string,
@@ -83,8 +94,9 @@ export async function loadTemplateRaw(
     extension: string
 ): Promise<string | undefined> {
     const templatePath = path.join(templatesDir, `${baseName}${extension}`);
+    let raw: string;
     try {
-        return await fs.readFile(templatePath, 'utf8');
+        raw = await fs.readFile(templatePath, 'utf8');
     } catch (error) {
         const code = (error as NodeJS.ErrnoException).code;
         if (code === 'ENOENT') {
@@ -92,13 +104,16 @@ export async function loadTemplateRaw(
         }
         throw error;
     }
+    return raw.trim().length > 0 ? raw : undefined;
 }
 
 /**
  * Convenience wrapper combining `loadTemplateRaw` + `substitutePlaceholders`
- * for callers that already have every variable in hand (e.g. the Project
- * Init Wizard, which collects title/author before rendering anything) and
- * don't need to branch on "does a template exist" first.
+ * for callers that already have every variable in hand (e.g. `newBookmapCommand`,
+ * which collects the book title before rendering anything, and the Project
+ * Init Wizard) and don't need to branch on "does a template exist" first
+ * (as `newTopicCommand`/`newMapCommand` do, to decide whether to prompt for
+ * an extra title).
  */
 export async function renderTemplate(
     templatesDir: string,
