@@ -20,6 +20,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { DITA_EXTENSIONS } from '../utils/constants';
 import { logger } from '../utils/logger';
+import { escapeXml } from '../utils/xmlUtils';
 
 const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp', 'webp'];
 
@@ -135,16 +136,6 @@ function buildImageElement(href: string, alt: string): string {
 /** Indent every line after the first by `indent`, so a multi-line block still nests correctly when embedded after other text on its own line. */
 function indentContinuationLines(text: string, indent: string): string {
     return text.split('\n').map((line, i) => (i === 0 ? line : indent + line)).join('\n');
-}
-
-/**
- * Mirrors the escaping already used for generated markup on the server
- * side (`contextSnapshot.ts`'s identical `escapeXml` helper) — client and
- * server can't share code across the package boundary this project
- * maintains, so this is a parallel copy, not a duplicate import.
- */
-function escapeXml(value: string): string {
-    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 /**

@@ -538,6 +538,50 @@ suite('File Creation Commands Test Suite', () => {
             assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'my-task.dita')), false, 'no file should be created');
         });
 
+        test('newTopicCommand should substitute an explicitly-cleared title as empty, not leave a literal {{title}} (regression)', async () => {
+            fs.writeFileSync(path.join(templatesDir, 'concept.dita'), '<concept id="{{id}}"><title>{{title}}</title></concept>', 'utf8');
+            await config().update('templatesPath', templatesDir, vscode.ConfigurationTarget.Global);
+
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: 'Concept', value: 'concept' } as unknown as vscode.QuickPickItem);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('my-concept');
+            inputBoxStub.onCall(1).resolves(''); // cleared, then Enter -- not Escape
+
+            await newTopicCommand();
+
+            const written = fs.readFileSync(path.join(workspaceDir, 'my-concept.dita'), 'utf8');
+            assert.ok(written.includes('<title></title>'), 'an explicitly empty title should substitute to empty, not "{{title}}"');
+            assert.ok(!written.includes('{{title}}'), 'the raw placeholder must not leak into the written file');
+        });
+
+        test('newTopicCommand should XML-escape a title containing special characters (regression)', async () => {
+            fs.writeFileSync(path.join(templatesDir, 'concept.dita'), '<concept id="{{id}}"><title>{{title}}</title></concept>', 'utf8');
+            await config().update('templatesPath', templatesDir, vscode.ConfigurationTarget.Global);
+
+            sandbox.stub(vscode.window, 'showQuickPick').resolves({ label: 'Concept', value: 'concept' } as unknown as vscode.QuickPickItem);
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('my-concept');
+            inputBoxStub.onCall(1).resolves('Setup & Config <required>');
+
+            await newTopicCommand();
+
+            const written = fs.readFileSync(path.join(workspaceDir, 'my-concept.dita'), 'utf8');
+            assert.ok(written.includes('<title>Setup &amp; Config &lt;required&gt;</title>'), 'title must be XML-escaped in the written file');
+        });
+
+        test('newTopicCommand should not prompt or read the filesystem at all when no workspace folder is open (regression)', async () => {
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
+            const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
+
+            await newTopicCommand();
+
+            assert.strictEqual(quickPickStub.called, false, 'should not even show the topic-type picker without a workspace');
+            assert.strictEqual(inputBoxStub.called, false);
+            assert.ok(errorStub.calledOnce);
+        });
+
         test('newMapCommand should use a matching template when configured', async () => {
             fs.writeFileSync(
                 path.join(templatesDir, 'map.ditamap'),
@@ -695,6 +739,74 @@ suite('File Creation Commands Test Suite', () => {
 
             assert.strictEqual(inputBoxStub.called, false);
             assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'maps')), false);
+        });
+
+        test('Should include an <author> element in a scaffolded bookmap when ditacraft.templateAuthor is set (regression)', async () => {
+            const config = vscode.workspace.getConfiguration('ditacraft');
+            await config.update('templateAuthor', 'Jane Doe', vscode.ConfigurationTarget.Global);
+            try {
+                const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+                quickPickStub.onCall(0).resolves({ label: 'Bookmap', value: 'bookmap' } as unknown as vscode.QuickPickItem);
+                quickPickStub.onCall(1).resolves([] as unknown as vscode.QuickPickItem);
+                quickPickStub.onCall(2).resolves({ label: '$(circle-slash) No filter file', value: false } as unknown as vscode.QuickPickItem);
+
+                const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+                inputBoxStub.onCall(0).resolves('My Guide');
+                inputBoxStub.onCall(1).resolves('guide');
+
+                await initProjectCommand();
+
+                const content = fs.readFileSync(path.join(workspaceDir, 'maps', 'guide.bookmap'), 'utf8');
+                assert.ok(content.includes('<author>Jane Doe</author>'), 'the configured template author should appear in the scaffolded bookmap');
+            } finally {
+                await config.update('templateAuthor', undefined, vscode.ConfigurationTarget.Global);
+            }
+        });
+
+        test('Should XML-escape the project title in the scaffolded root map (regression)', async () => {
+            const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            quickPickStub.onCall(0).resolves({ label: 'Map', value: 'map' } as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(1).resolves([] as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(2).resolves({ label: '$(circle-slash) No filter file', value: false } as unknown as vscode.QuickPickItem);
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('Setup & Config <required>');
+            inputBoxStub.onCall(1).resolves('main');
+
+            await initProjectCommand();
+
+            const rootMap = fs.readFileSync(path.join(workspaceDir, 'maps', 'main.ditamap'), 'utf8');
+            assert.ok(rootMap.includes('<title>Setup &amp; Config &lt;required&gt;</title>'), 'the title must be XML-escaped');
+        });
+
+        test('Should abort cleanly, before creating any directory, when a scaffold directory name collides with an existing non-directory file (regression)', async () => {
+            // A plain file (no extension) literally named "topics" at the
+            // workspace root would make fs.mkdir(topicsDir, {recursive:
+            // true}) throw ENOTDIR -- but only *after* mapsDir may already
+            // have been created, since mkdir runs directory-by-directory.
+            // The pre-flight check must catch this before anything is
+            // created, not partway through.
+            fs.writeFileSync(path.join(workspaceDir, 'topics'), 'not a directory', 'utf8');
+
+            const quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+            quickPickStub.onCall(0).resolves({ label: 'Map', value: 'map' } as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(1).resolves([{ label: 'Concept', value: 'concept' }] as unknown as vscode.QuickPickItem);
+            quickPickStub.onCall(2).resolves({ label: '$(circle-slash) No filter file', value: false } as unknown as vscode.QuickPickItem);
+            const errorStub = sandbox.stub(vscode.window, 'showErrorMessage');
+
+            const inputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+            inputBoxStub.onCall(0).resolves('My Documentation');
+            inputBoxStub.onCall(1).resolves('main');
+
+            await initProjectCommand();
+
+            assert.ok(errorStub.calledOnce, 'should show a conflict error');
+            assert.strictEqual(fs.existsSync(path.join(workspaceDir, 'maps')), false, 'maps/ must not be created when the check catches the topics/ collision first');
+            assert.strictEqual(
+                fs.readFileSync(path.join(workspaceDir, 'topics'), 'utf8'),
+                'not a directory',
+                'the conflicting file must be left untouched'
+            );
         });
     });
 });

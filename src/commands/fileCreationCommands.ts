@@ -7,7 +7,9 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { logger } from '../utils/logger';
-import { resolveTemplatesDir, loadTemplateRaw, substitutePlaceholders, TemplateVariables } from '../utils/templateEngine';
+import { resolveTemplatesDir, loadTemplateRaw, renderTemplate, substitutePlaceholders, TemplateVariables } from '../utils/templateEngine';
+import { escapeXml } from '../utils/xmlUtils';
+import { pathExists } from '../utils/pathUtils';
 
 // Constants for file name validation
 const FILE_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
@@ -61,16 +63,20 @@ function getWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
     return workspaceFolder;
 }
 
-/** Resolve the configured `ditacraft.templatesPath`, or undefined if unset. */
-function getTemplatesDir(): string | undefined {
-    const templatesPath = vscode.workspace.getConfiguration('ditacraft').get<string>('templatesPath', '');
-    return resolveTemplatesDir(templatesPath);
+/** `ditacraft.templatesPath`/`ditacraft.templateAuthor`, read once per command invocation rather than as two separate `getConfiguration()` calls. */
+interface TemplateContext {
+    templatesDir: string | undefined;
+    author: string | undefined;
 }
 
-/** The `{{author}}` placeholder value, or undefined to leave it unsubstituted. */
-function getTemplateAuthor(): string | undefined {
-    const author = vscode.workspace.getConfiguration('ditacraft').get<string>('templateAuthor', '');
-    return author.length > 0 ? author : undefined;
+function getTemplateContext(): TemplateContext {
+    const config = vscode.workspace.getConfiguration('ditacraft');
+    const templatesPath = config.get<string>('templatesPath', '');
+    const author = config.get<string>('templateAuthor', '');
+    return {
+        templatesDir: resolveTemplatesDir(templatesPath),
+        author: author.length > 0 ? author : undefined
+    };
 }
 
 /** Today's date as `YYYY-MM-DD`, matching the `{{date}}` template placeholder and the bookmap generator's `<created>` date. */
@@ -105,15 +111,10 @@ async function createDitaFile(options: FileCreationOptions): Promise<void> {
 
     logger.debug('Creating file', { filePath });
 
-    // Check if file already exists (P1-1 Fix: Use async file operations)
-    try {
-        await fs.access(filePath);
-        // File exists if no error
+    if (await pathExists(filePath)) {
         logger.warn('File already exists', { filePath });
         vscode.window.showErrorMessage(`File already exists: ${fullFileName}`);
         return;
-    } catch {
-        // File doesn't exist, continue with creation
     }
 
     // Write file with error handling (P1-1 Fix: Use async file operations)
@@ -150,12 +151,83 @@ async function promptForFileName(placeholder: string, prompt: string): Promise<s
 }
 
 /**
+ * Resolve content for `newTopicCommand`/`newMapCommand`: a matching custom
+ * template — prompting for an extra optional title to fill its `{{title}}`
+ * placeholder, since neither command otherwise collects one — or the
+ * built-in generator's output when no template exists. Returns undefined
+ * only when the user cancels that extra title prompt (Escape); an
+ * intentionally *empty* title (cleared, then Enter) is a valid, distinct
+ * `""` that still renders — `substitutePlaceholders` treats an empty
+ * string as "use it" and only `undefined` as "leave `{{title}}` alone".
+ */
+async function resolveTemplatedOrGeneratedContent(
+    templateContext: TemplateContext,
+    baseName: string,
+    extension: string,
+    id: string,
+    titlePromptLabel: string,
+    fallback: () => string
+): Promise<string | undefined> {
+    if (!templateContext.templatesDir) {
+        return fallback();
+    }
+    const templateRaw = await loadTemplateRaw(templateContext.templatesDir, baseName, extension);
+    if (templateRaw === undefined) {
+        return fallback();
+    }
+    const title = await vscode.window.showInputBox({
+        title: `${titlePromptLabel} (optional)`,
+        prompt: "Fills the template's {{title}} placeholder",
+        value: humanizeFileName(id)
+    });
+    if (title === undefined) {
+        return undefined;
+    }
+    return substitutePlaceholders(templateRaw, { id, title, author: templateContext.author, date: todayIso() });
+}
+
+/**
+ * Resolve content for a create-file command that already has its title in
+ * hand (`newBookmapCommand`'s `bookTitle`, collected before this is
+ * called) — a matching custom template rendered via `renderTemplate()`, or
+ * the built-in generator's output. No extra prompt needed, unlike
+ * `resolveTemplatedOrGeneratedContent` above.
+ */
+async function resolveTemplatedOrGeneratedContentWithTitle(
+    templateContext: TemplateContext,
+    baseName: string,
+    extension: string,
+    id: string,
+    title: string,
+    fallback: () => string
+): Promise<string> {
+    if (templateContext.templatesDir) {
+        const rendered = await renderTemplate(templateContext.templatesDir, baseName, extension, {
+            id, title, author: templateContext.author, date: todayIso()
+        });
+        if (rendered !== undefined) {
+            return rendered;
+        }
+    }
+    return fallback();
+}
+
+/**
  * Command: ditacraft.newTopic
  * Creates a new DITA topic file
  */
 export async function newTopicCommand(): Promise<void> {
     try {
         logger.debug('Starting newTopicCommand');
+
+        // Fail fast on no workspace folder before any prompting or template
+        // I/O below — createDitaFile() re-checks this itself right before
+        // writing (a harmless, cheap re-read), but doing it here too avoids
+        // reading a template file and prompting the user for a title only
+        // to discard both when there's nowhere to write the result.
+        if (!getWorkspaceFolder()) {
+            return;
+        }
 
         // Ask for topic type
         const topicType = await vscode.window.showQuickPick([
@@ -185,34 +257,19 @@ export async function newTopicCommand(): Promise<void> {
 
         logger.debug('File name entered', { fileName });
 
-        // Use a custom template (ditacraft.templatesPath/<type>.dita) when one exists;
-        // fall back to the built-in skeleton otherwise. Only prompts for an extra
-        // title (to fill the template's {{title}}) in the templated path — the
-        // built-in generator's own hardcoded "Topic Title" placeholder needs no such
-        // prompt, so this stays a no-op when templatesPath is unset (CLAUDE.md-style
-        // backward compatibility: existing zero-template behavior is untouched).
-        const templatesDir = getTemplatesDir();
-        const templateRaw = templatesDir ? await loadTemplateRaw(templatesDir, topicType.value, '.dita') : undefined;
-
-        let content: string;
-        if (templateRaw !== undefined) {
-            const title = await vscode.window.showInputBox({
-                title: 'Topic Title (optional)',
-                prompt: "Fills the template's {{title}} placeholder",
-                value: humanizeFileName(fileName)
-            });
-            if (title === undefined) {
-                logger.debug('User cancelled template title input');
-                return;
-            }
-            content = substitutePlaceholders(templateRaw, {
-                id: fileName, title, author: getTemplateAuthor(), date: todayIso()
-            });
-            logger.debug('Rendered topic from template', { topicType: topicType.value });
-        } else {
-            content = generateTopicContent(topicType.value, fileName);
-            logger.debug('Generated content', { length: content.length, topicType: topicType.value });
+        // Use a custom template (ditacraft.templatesPath/<type>.dita) when one exists
+        // (prompting for an extra optional title to fill it); fall back to the
+        // built-in skeleton otherwise, unchanged from before this feature existed —
+        // this stays a no-op when templatesPath is unset.
+        const content = await resolveTemplatedOrGeneratedContent(
+            getTemplateContext(), topicType.value, '.dita', fileName, 'Topic Title',
+            () => generateTopicContent(topicType.value, fileName)
+        );
+        if (content === undefined) {
+            logger.debug('User cancelled template title input');
+            return;
         }
+        logger.debug('Resolved topic content', { length: content.length, topicType: topicType.value });
 
         await createDitaFile({
             fileName,
@@ -237,6 +294,10 @@ export async function newMapCommand(): Promise<void> {
     try {
         logger.debug('Starting newMapCommand');
 
+        if (!getWorkspaceFolder()) {
+            return;
+        }
+
         // Ask for file name
         const fileName = await promptForFileName('my-map', 'Enter map file name (without extension)');
 
@@ -250,28 +311,15 @@ export async function newMapCommand(): Promise<void> {
         // See newTopicCommand's matching comment: custom template when one
         // exists (ditacraft.templatesPath/map.ditamap), built-in skeleton
         // otherwise, with the extra title prompt only in the templated path.
-        const templatesDir = getTemplatesDir();
-        const templateRaw = templatesDir ? await loadTemplateRaw(templatesDir, 'map', '.ditamap') : undefined;
-
-        let content: string;
-        if (templateRaw !== undefined) {
-            const title = await vscode.window.showInputBox({
-                title: 'Map Title (optional)',
-                prompt: "Fills the template's {{title}} placeholder",
-                value: humanizeFileName(fileName)
-            });
-            if (title === undefined) {
-                logger.debug('User cancelled template title input');
-                return;
-            }
-            content = substitutePlaceholders(templateRaw, {
-                id: fileName, title, author: getTemplateAuthor(), date: todayIso()
-            });
-            logger.debug('Rendered map from template');
-        } else {
-            content = generateMapContent(fileName);
-            logger.debug('Generated map content', { length: content.length });
+        const content = await resolveTemplatedOrGeneratedContent(
+            getTemplateContext(), 'map', '.ditamap', fileName, 'Map Title',
+            () => generateMapContent(fileName)
+        );
+        if (content === undefined) {
+            logger.debug('User cancelled template title input');
+            return;
         }
+        logger.debug('Resolved map content', { length: content.length });
 
         await createDitaFile({
             fileName,
@@ -294,6 +342,10 @@ export async function newMapCommand(): Promise<void> {
 export async function newBookmapCommand(): Promise<void> {
     try {
         logger.debug('Starting newBookmapCommand');
+
+        if (!getWorkspaceFolder()) {
+            return;
+        }
 
         // Ask for book title
         const bookTitle = await vscode.window.showInputBox({
@@ -322,14 +374,11 @@ export async function newBookmapCommand(): Promise<void> {
         // exists (ditacraft.templatesPath/bookmap.bookmap), built-in skeleton
         // otherwise. No extra title prompt needed here — bookTitle was
         // already collected above and fills the template's {{title}}.
-        const templatesDir = getTemplatesDir();
-        const templateRaw = templatesDir ? await loadTemplateRaw(templatesDir, 'bookmap', '.bookmap') : undefined;
-        const content = templateRaw !== undefined
-            ? substitutePlaceholders(templateRaw, {
-                id: fileName, title: bookTitle, author: getTemplateAuthor(), date: todayIso()
-            })
-            : generateBookmapContent(bookTitle, fileName);
-        logger.debug('Generated bookmap content', { length: content.length, fromTemplate: templateRaw !== undefined });
+        const content = await resolveTemplatedOrGeneratedContentWithTitle(
+            getTemplateContext(), 'bookmap', '.bookmap', fileName, bookTitle,
+            () => generateBookmapContent(bookTitle, fileName)
+        );
+        logger.debug('Resolved bookmap content', { length: content.length });
 
         await createDitaFile({
             fileName,
@@ -464,46 +513,83 @@ async function runProjectInit(workspaceFolder: vscode.WorkspaceFolder, options: 
     const topicFiles = options.topicTypes.map(type => ({ type, path: path.join(topicsDir, `${type}.dita`) }));
     const ditavalPath = options.includeDitaval ? path.join(mapsDir, `${options.rootFileName}.ditaval`) : undefined;
 
+    // Pre-flight: no planned FILE may already exist, and none of the three
+    // scaffold DIRECTORIES may already exist as something other than a
+    // directory — fs.mkdir(..., {recursive:true}) below would otherwise
+    // succeed for the first one or two before throwing ENOTDIR on the
+    // third, leaving orphaned empty folders on disk despite this whole
+    // check's purpose of aborting *before* anything is written.
     const plannedPaths = [rootMapPath, ...topicFiles.map(t => t.path), ...(ditavalPath ? [ditavalPath] : [])];
-    const conflicts = await findExistingPaths(plannedPaths);
-    if (conflicts.length > 0) {
-        const relative = conflicts.map(p => path.relative(workspaceFolder.uri.fsPath, p)).join(', ');
-        vscode.window.showErrorMessage(`DitaCraft: Cannot initialize project — file(s) already exist: ${relative}`);
+    const [fileConflicts, dirConflicts] = await Promise.all([
+        findExistingPaths(plannedPaths),
+        findNonDirectoryConflicts([mapsDir, topicsDir, imagesDir])
+    ]);
+    if (fileConflicts.length > 0 || dirConflicts.length > 0) {
+        const relative = (p: string): string => path.relative(workspaceFolder.uri.fsPath, p);
+        const conflicts = [
+            ...fileConflicts.map(relative),
+            ...dirConflicts.map(p => `${relative(p)} (exists and is not a directory)`)
+        ];
+        vscode.window.showErrorMessage(`DitaCraft: Cannot initialize project — conflicting path(s): ${conflicts.join(', ')}`);
         return;
     }
 
-    const templatesDir = getTemplatesDir();
-    const author = getTemplateAuthor();
+    const { templatesDir, author } = getTemplateContext();
     const date = todayIso();
 
-    const topicContents = await Promise.all(topicFiles.map(async ({ type, path: topicPath }) => {
-        const topicId = path.basename(topicPath, '.dita');
-        const templateRaw = templatesDir ? await loadTemplateRaw(templatesDir, type, '.dita') : undefined;
-        const content = templateRaw !== undefined
-            ? substitutePlaceholders(templateRaw, { id: topicId, title: humanizeFileName(topicId), author, date })
-            : generateTopicContent(type, topicId);
-        return { path: topicPath, content };
-    }));
+    // Root template load has no dependency on the per-topic content, so it
+    // runs concurrently with the topic Promise.all rather than after it.
+    const [topicContents, rootTemplateRaw] = await Promise.all([
+        Promise.all(topicFiles.map(async ({ type, path: topicPath }) => {
+            const topicId = path.basename(topicPath, '.dita');
+            const templateRaw = templatesDir ? await loadTemplateRaw(templatesDir, type, '.dita') : undefined;
+            const content = templateRaw !== undefined
+                ? substitutePlaceholders(templateRaw, { id: topicId, title: humanizeFileName(topicId), author, date })
+                : generateTopicContent(type, topicId);
+            return { path: topicPath, content };
+        })),
+        templatesDir ? loadTemplateRaw(templatesDir, options.rootType, rootExtension) : Promise.resolve(undefined)
+    ]);
 
     const topicHrefs = topicFiles.map(t => `../topics/${t.type}.dita`);
-    const rootTemplateRaw = templatesDir ? await loadTemplateRaw(templatesDir, options.rootType, rootExtension) : undefined;
     const rootVariables: TemplateVariables = { id: options.rootFileName, title: options.title, author, date };
     const rootContent = rootTemplateRaw !== undefined
         ? substitutePlaceholders(rootTemplateRaw, rootVariables)
         : (options.rootType === 'bookmap'
-            ? generateInitBookmapContent(options.rootFileName, options.title, topicHrefs)
+            ? generateInitBookmapContent(options.rootFileName, options.title, topicHrefs, author, date)
             : generateInitMapContent(options.rootFileName, options.title, topicHrefs));
 
-    await fs.mkdir(mapsDir, { recursive: true });
-    await fs.mkdir(topicsDir, { recursive: true });
-    await fs.mkdir(imagesDir, { recursive: true });
+    await Promise.all([
+        fs.mkdir(mapsDir, { recursive: true }),
+        fs.mkdir(topicsDir, { recursive: true }),
+        fs.mkdir(imagesDir, { recursive: true })
+    ]);
 
-    await fs.writeFile(rootMapPath, rootContent, 'utf8');
-    for (const { path: topicPath, content } of topicContents) {
-        await fs.writeFile(topicPath, content, 'utf8');
-    }
-    if (ditavalPath) {
-        await fs.writeFile(ditavalPath, generateStarterDitavalContent(), 'utf8');
+    // Exclusive ('wx') writes narrow — though, without a transactional
+    // filesystem, can't perfectly eliminate — the TOCTOU window between the
+    // pre-flight check above and these writes: a genuine race (e.g. two
+    // overlapping wizard runs targeting the same name) now surfaces as a
+    // loud EEXIST error instead of one silently clobbering the other's
+    // output. A full multi-file rollback on a partial failure is out of
+    // scope here, matching createDitaFile()'s own equally
+    // non-transactional single-file behavior.
+    try {
+        await fs.writeFile(rootMapPath, rootContent, { encoding: 'utf8', flag: 'wx' });
+        await Promise.all(topicContents.map(({ path: topicPath, content }) =>
+            fs.writeFile(topicPath, content, { encoding: 'utf8', flag: 'wx' })
+        ));
+        if (ditavalPath) {
+            await fs.writeFile(ditavalPath, generateStarterDitavalContent(), { encoding: 'utf8', flag: 'wx' });
+        }
+    } catch (writeError) {
+        if ((writeError as NodeJS.ErrnoException).code === 'EEXIST') {
+            logger.error('Project init hit a write-time conflict after the pre-flight check passed', writeError);
+            vscode.window.showErrorMessage(
+                'DitaCraft: Initialization was interrupted by a conflicting file created during the process. The project may be partially scaffolded — check the workspace before retrying.'
+            );
+            return;
+        }
+        throw writeError;
     }
 
     const fileCount = 1 + topicContents.length + (ditavalPath ? 1 : 0);
@@ -517,18 +603,29 @@ async function runProjectInit(workspaceFolder: vscode.WorkspaceFolder, options: 
     vscode.window.showInformationMessage(`DitaCraft: Project initialized — ${fileCount} file(s) created.`);
 }
 
-/** Which of `paths` already exist on disk. */
+/** Which of `paths` already exist on disk, checked concurrently. */
 async function findExistingPaths(paths: string[]): Promise<string[]> {
-    const existing: string[] = [];
-    for (const p of paths) {
+    const flags = await Promise.all(paths.map(pathExists));
+    return paths.filter((_, i) => flags[i]);
+}
+
+/**
+ * Which of `dirPaths` already exist as something other than a directory
+ * (a plain file with that name would make `fs.mkdir(dirPath, {recursive:
+ * true})` throw `ENOTDIR`). Paths that don't exist at all, or that already
+ * are directories, are not conflicts — `fs.mkdir`'s `recursive: true`
+ * handles both of those cases fine.
+ */
+async function findNonDirectoryConflicts(dirPaths: string[]): Promise<string[]> {
+    const results = await Promise.all(dirPaths.map(async (dirPath): Promise<string | null> => {
         try {
-            await fs.access(p);
-            existing.push(p);
+            const stats = await fs.stat(dirPath);
+            return stats.isDirectory() ? null : dirPath;
         } catch {
-            // doesn't exist — fine
+            return null;
         }
-    }
-    return existing;
+    }));
+    return results.filter((p): p is string => p !== null);
 }
 
 /**
@@ -538,12 +635,12 @@ async function findExistingPaths(paths: string[]): Promise<string[]> {
  */
 function generateInitMapContent(id: string, title: string, topicHrefs: string[]): string {
     const topicrefs = topicHrefs.length > 0
-        ? topicHrefs.map(href => `    <topicref href="${href}"/>`).join('\n')
+        ? topicHrefs.map(href => `    <topicref href="${escapeXml(href)}"/>`).join('\n')
         : '    <!-- Add topicref elements here, or use "DITA: Create New Topic" -->';
     return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
 <map id="${id}">
-    <title>${title}</title>
+    <title>${escapeXml(title)}</title>
 ${topicrefs}
 </map>
 `;
@@ -556,20 +653,25 @@ ${topicrefs}
  * directly inside a single chapter pointing at the topics actually
  * scaffolded — `chapter`'s content model allows `topicref` children
  * directly (`server/src/data/ditaSchema.ts`), so this needs no submap.
+ * Takes `author`/`date` as parameters (rather than reaching for
+ * `ditacraft.templateAuthor`/`todayIso()` itself) so this generated
+ * artifact stays consistent with whatever the rest of the same wizard run
+ * used for the starter topics, instead of independently re-deriving them.
  */
-function generateInitBookmapContent(id: string, title: string, topicHrefs: string[]): string {
+function generateInitBookmapContent(id: string, title: string, topicHrefs: string[], author: string | undefined, date: string): string {
     const topicrefs = topicHrefs.length > 0
-        ? topicHrefs.map(href => `            <topicref href="${href}"/>`).join('\n')
+        ? topicHrefs.map(href => `            <topicref href="${escapeXml(href)}"/>`).join('\n')
         : '            <!-- Add topicref elements here, or use "DITA: Create New Topic" -->';
+    const authorElement = author ? `\n        <author>${escapeXml(author)}</author>` : '';
     return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd">
 <bookmap id="${id}">
     <booktitle>
-        <mainbooktitle>${title}</mainbooktitle>
+        <mainbooktitle>${escapeXml(title)}</mainbooktitle>
     </booktitle>
-    <bookmeta>
+    <bookmeta>${authorElement}
         <critdates>
-            <created date="${todayIso()}"/>
+            <created date="${date}"/>
         </critdates>
     </bookmeta>
     <frontmatter>
@@ -716,13 +818,19 @@ export function generateMapContent(id: string): string {
 /**
  * Generate DITA bookmap content
  * Exported for testing
+ *
+ * `title` is XML-escaped — a book title is free text (`newBookmapCommand`
+ * collects it via a plain `showInputBox`, no character restriction), and a
+ * title containing e.g. `&` or `<` would otherwise produce non-well-formed
+ * XML (caught alongside the identical gap in the Init Wizard's own
+ * generators, `generateInitMapContent`/`generateInitBookmapContent`).
  */
 export function generateBookmapContent(title: string, id: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd">
 <bookmap id="${id}">
     <booktitle>
-        <mainbooktitle>${title}</mainbooktitle>
+        <mainbooktitle>${escapeXml(title)}</mainbooktitle>
     </booktitle>
     <bookmeta>
         <author>Author Name</author>

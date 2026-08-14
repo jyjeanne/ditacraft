@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
+import { substituteWorkspaceFolderVar } from '../utils/pathUtils';
 
 /** A saved publishing configuration. Mirrors `PublishOptions` (minus `inputFile`,
  * which is always the file being published) so a profile is, structurally,
@@ -79,8 +80,7 @@ export function resolveDitavalPath(ditavalPath: string | undefined): string | un
  */
 export function resolveProfileOutputDir(outputDir: string | undefined): string | undefined {
     if (!outputDir) return undefined;
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
-    return outputDir.replace('${workspaceFolder}', workspaceFolder);
+    return substituteWorkspaceFolderVar(outputDir);
 }
 
 /**
