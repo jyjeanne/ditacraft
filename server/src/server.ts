@@ -57,6 +57,7 @@ import { handleLinkedEditingRange } from './features/linkedEditing';
 import { handleGetContextGraph, GetContextGraphParams, ContextGraph } from './features/contextGraph';
 import { handleValidateFragment, ValidateFragmentParams, FragmentValidationResult } from './features/fragmentValidator';
 import { handleBuildContextSnapshot, BuildContextSnapshotParams, ContextSnapshotResult } from './features/contextSnapshot';
+import { handleComputeMoveEdits, ComputeMoveEditsParams } from './features/moveTopic';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { detectUnusedTopics, WorkspaceIndex } from './features/workspaceValidation';
@@ -292,6 +293,16 @@ connection.onRequest('dita/validateFragment', async (params: ValidateFragmentPar
 // Builds a token-budgeted text snapshot of a DITA map for LLM prompts.
 connection.onRequest('dita/buildContextSnapshot', (params: BuildContextSnapshotParams): ContextSnapshotResult => {
     return handleBuildContextSnapshot(params, keySpaceService);
+});
+
+// Custom request: dita/computeMoveEdits
+// Backs "Move Topic with Reference Updates": given one or more file moves
+// reported by the client's onDidRenameFiles, returns a WorkspaceEdit
+// rewriting every inbound href/conref that pointed at a moved file's old
+// path to its new location.
+connection.onRequest('dita/computeMoveEdits', (params: ComputeMoveEditsParams) => {
+    const folders = keySpaceService?.getWorkspaceFolders();
+    return handleComputeMoveEdits(params, documents, folders);
 });
 
 // File watcher — invalidate key space cache on map changes

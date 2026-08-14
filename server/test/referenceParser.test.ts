@@ -5,6 +5,7 @@ import {
     findReferenceAtOffset,
     findIdAtOffset,
     findReferencesToId,
+    findFileReferences,
     findElementByIdOffset,
     findKeyAtOffset,
     findReferencesToKey,
@@ -205,6 +206,63 @@ suite('referenceParser', () => {
             const refs = findReferencesToId(text, 'elem1');
             assert.strictEqual(refs.length, 1);
             assert.strictEqual(text.slice(refs[0].valueStart, refs[0].valueEnd), 'file.dita#topic/elem1');
+        });
+    });
+
+    suite('findFileReferences', () => {
+        test('finds an href with a file path', () => {
+            const text = '<xref href="other.dita"/>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(refs.length, 1);
+            assert.strictEqual(refs[0].type, 'href');
+            assert.strictEqual(refs[0].value, 'other.dita');
+        });
+
+        test('finds an href with a file path and a fragment', () => {
+            const text = '<xref href="other.dita#topic1/elem1"/>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(refs.length, 1);
+            assert.strictEqual(refs[0].value, 'other.dita#topic1/elem1');
+        });
+
+        test('finds a conref with a file path', () => {
+            const text = '<p conref="other.dita#topic1/para1"/>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(refs.length, 1);
+            assert.strictEqual(refs[0].type, 'conref');
+        });
+
+        test('excludes a fragment-only reference (no file-path component)', () => {
+            const text = '<xref href="#topic1/elem1"/> <p conref="#topic1/para1"/>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(refs.length, 0, 'fragment-only refs can never point at a different file');
+        });
+
+        test('excludes keyref and conkeyref entirely, even when the value looks like a file path (regression)', () => {
+            // keyref/conkeyref values are key names (optionally "keyname/id"
+            // for conkeyref), never file paths -- running "target.dita"
+            // through parseReference would misparse it as if it were one.
+            const text = '<topicref keyref="target.dita"/> <p conkeyref="target.dita/para1"/>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(refs.length, 0);
+        });
+
+        test('finds multiple file-path references', () => {
+            const text = '<xref href="a.dita"/> <xref href="b.dita"/>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(refs.length, 2);
+        });
+
+        test('returns correct value offsets', () => {
+            const text = '<xref href="other.dita"/>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(text.slice(refs[0].valueStart, refs[0].valueEnd), 'other.dita');
+        });
+
+        test('no matches in text with no href/conref', () => {
+            const text = '<topic id="t1"><title>T</title></topic>';
+            const refs = findFileReferences(text);
+            assert.strictEqual(refs.length, 0);
         });
     });
 
