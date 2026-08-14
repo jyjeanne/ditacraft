@@ -83,22 +83,40 @@ export function parseDitavalRules(content: string): DitavalRule[] {
  * scheme-wide default action, not an attribute-specific one — out of scope
  * for per-element highlighting, so it's ignored here rather than matched
  * against every element.
+ *
+ * `/code-review` correctness fix: a `val`-specific rule for a given
+ * attribute+value now takes precedence over a `val`-less default rule for
+ * the same attribute, regardless of which appears first in the `.ditaval`
+ * file — matching the standard "exclude by default, selectively include"
+ * DITAVAL authoring pattern (`<prop action="exclude" att="platform"/>`
+ * followed by `<prop action="include" att="platform" val="windows"/>`).
+ * Without this, a val-less exclude default matched before its more
+ * specific include exception was ever consulted, dimming content DITA-OT
+ * would actually publish.
  */
 export function isExcludedByRules(attrs: Record<string, string | undefined>, rules: readonly DitavalRule[]): boolean {
-    for (const rule of rules) {
-        if (rule.action !== 'exclude' || !rule.att) {
+    for (const [attName, rawValue] of Object.entries(attrs)) {
+        if (rawValue === undefined) {
             continue;
         }
-        const value = attrs[rule.att];
-        if (value === undefined) {
+        const attRules = rules.filter(r => r.att === attName);
+        if (attRules.length === 0) {
             continue;
         }
-        if (rule.val === undefined) {
-            return true;
-        }
-        const tokens = value.split(/\s+/).filter(t => t.length > 0);
-        if (tokens.includes(rule.val)) {
-            return true;
+
+        const tokens = rawValue.split(/\s+/).filter(t => t.length > 0);
+        for (const token of tokens) {
+            const specificRule = attRules.find(r => r.val === token);
+            if (specificRule) {
+                if (specificRule.action === 'exclude') {
+                    return true;
+                }
+                continue; // A specific include/flag/passthrough rule matched — this token is not excluded.
+            }
+            const defaultRule = attRules.find(r => r.val === undefined);
+            if (defaultRule?.action === 'exclude') {
+                return true;
+            }
         }
     }
     return false;

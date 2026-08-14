@@ -537,7 +537,7 @@
           "type": "boolean",
           "default": true,
           "description": "Dim elements in the editor that the active preview DITAVAL filter (DITA: Set Preview DITAVAL Filter) would exclude from a filtered publish.",
-          "order": 9
+          "order": 46
         },
         "ditacraft.showProgressNotifications": {
           "type": "boolean",

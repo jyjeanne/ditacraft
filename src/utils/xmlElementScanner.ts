@@ -40,6 +40,33 @@ function parseTagAttributes(attrsText: string): Record<string, string> {
 }
 
 /**
+ * `[start, end)` offset spans of every `<!-- ... -->` comment in `content`.
+ * `/code-review` correctness fix: without this, an opening tag inside a
+ * comment (e.g. old content left commented out pending removal) was matched
+ * as live content and dimmed alongside genuinely excluded elements — a
+ * comment's contents were never rendered or published in the first place,
+ * so highlighting them as "excluded by the filter" is misleading. Only the
+ * *opening tag's* position is checked against these spans (see
+ * `findProfiledElements` below) — a stray closing tag of the same name
+ * inside a comment (a pathological, vanishingly rare case) can still
+ * confuse the depth-counting closing-tag search; not guarded against here,
+ * matching this module's regex-based (not a full parser) scope.
+ */
+function findCommentSpans(content: string): Array<[number, number]> {
+    const spans: Array<[number, number]> = [];
+    const pattern = /<!--[\s\S]*?-->/g;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(content)) !== null) {
+        spans.push([match.index, match.index + match[0].length]);
+    }
+    return spans;
+}
+
+function isWithinSpans(offset: number, spans: ReadonlyArray<[number, number]>): boolean {
+    return spans.some(([start, end]) => offset >= start && offset < end);
+}
+
+/**
  * From just after an element's opening tag, find the offset just past its
  * matching closing tag, tracking nested same-name elements by depth.
  * Returns undefined if no matching close tag is found (a malformed or
@@ -74,6 +101,7 @@ function findMatchingCloseTag(content: string, fromIndex: number, tagName: strin
  */
 export function findProfiledElements(content: string, profilingAttrs: readonly string[]): ProfiledElement[] {
     const results: ProfiledElement[] = [];
+    const commentSpans = findCommentSpans(content);
     OPEN_TAG_PATTERN.lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = OPEN_TAG_PATTERN.exec(content)) !== null) {
@@ -82,6 +110,11 @@ export function findProfiledElements(content: string, profilingAttrs: readonly s
         // never itself a highlighting target even if it somehow carried a
         // matching attribute name.
         if (tagName.toLowerCase() === 'prop') {
+            continue;
+        }
+        // A tag inside an XML comment isn't live content — never rendered
+        // or published, so it can't be "excluded by the filter" either.
+        if (isWithinSpans(match.index, commentSpans)) {
             continue;
         }
 
