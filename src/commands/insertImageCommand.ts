@@ -18,7 +18,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { DITA_EXTENSIONS } from '../utils/constants';
+import { isDitaContentUri } from '../utils/constants';
 import { logger } from '../utils/logger';
 import { escapeXml } from '../utils/xmlUtils';
 import { indentContinuationLines, insertAtCursor } from '../utils/editorInsertUtils';
@@ -79,13 +79,14 @@ export async function insertImageCommand(): Promise<void> {
 
 /**
  * True for the DITA content file types an `<image>` can meaningfully be
- * inserted into. Deliberately excludes `.ditaval` (in `DITA_EXTENSIONS.
- * ALL_WITH_DITAVAL` but not `.ALL`) — a filter file isn't content and
- * can't contain image markup.
+ * inserted into. Deliberately excludes `.ditaval` — a filter file isn't
+ * content and can't contain image markup — which is exactly what
+ * `isDitaContentUri` (as opposed to the broader `isDitaUri`, which does
+ * include `.ditaval`) checks; kept as a locally-named wrapper so this
+ * module's own eligibility intent stays self-documenting at call sites.
  */
 export function isEligibleDocument(uri: vscode.Uri): boolean {
-    const lower = uri.fsPath.toLowerCase();
-    return DITA_EXTENSIONS.ALL.some(ext => lower.endsWith(ext));
+    return isDitaContentUri(uri);
 }
 
 /**

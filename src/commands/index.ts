@@ -18,7 +18,7 @@ export {
     resolveDitavalPath,
 } from './publishProfilesCommand';
 export type { PublishingProfile } from './publishProfilesCommand';
-export { previewHTML5Command, initializePreview, shouldAutoRefreshPreview, pickPreviewFilterCommand, requestPreviewRefresh } from './previewCommand';
+export { previewHTML5Command, initializePreview, shouldAutoRefreshPreview, pickPreviewFilterCommand, requestPreviewRefresh, isPreviewRefreshInFlight } from './previewCommand';
 export { newTopicCommand, newMapCommand, newBookmapCommand, initProjectCommand } from './fileCreationCommands';
 export { configureDitaOTCommand } from './configureCommand';
 export { setupCSpellCommand } from './cspellSetupCommand';

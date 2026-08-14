@@ -71,6 +71,20 @@ export function requestPreviewRefresh(uri: vscode.Uri, preserveFocus: boolean): 
 }
 
 /**
+ * Whether a DITA-OT publish requested through `requestPreviewRefresh` is
+ * currently running. Exported so `registerPreviewAutoRefresh` can bypass its
+ * save-coalescing debounce and queue immediately when a publish is already
+ * in flight (`/code-review` regression: routing every save through the
+ * debounce unconditionally, with no in-flight fast path, meant a burst of
+ * saves arriving faster than the debounce interval could keep resetting the
+ * timer and never actually queue a replay until the burst paused for a full
+ * debounce window — well after the in-flight publish had already finished).
+ */
+export function isPreviewRefreshInFlight(): boolean {
+    return refreshInFlight;
+}
+
+/**
  * Initialize the preview command with extension context
  */
 export function initializePreview(context: vscode.ExtensionContext): void {

@@ -15,7 +15,9 @@ import {
     shouldAutoRefreshPreview,
     computeFilterSuffix,
     pickPreviewFilterCommand,
-    getActiveDitavalPath
+    getActiveDitavalPath,
+    requestPreviewRefresh,
+    isPreviewRefreshInFlight
 } from '../../commands/previewCommand';
 import { DitaPreviewPanel } from '../../providers/previewPanel';
 
@@ -348,6 +350,33 @@ suite('Preview Command Test Suite', () => {
                 draft,
                 'two different filters must not resolve to the same output directory'
             );
+        });
+    });
+
+    suite('isPreviewRefreshInFlight (§4.5 code-review regression)', () => {
+        // Covers a regression a /code-review pass caught in the first version
+        // of this consolidation: registerPreviewAutoRefresh (extension.ts)
+        // needs to tell whether a publish is already running so it can queue
+        // a save immediately instead of waiting out a debounce window that a
+        // burst of rapid saves could keep resetting indefinitely. This is
+        // the exported seam that decision is based on.
+        test('Should be false when idle, true synchronously once a refresh starts, and false again once it settles', async () => {
+            assert.strictEqual(isPreviewRefreshInFlight(), false, 'should start idle');
+
+            const fakeUri = vscode.Uri.file(
+                path.join(fixturesPath, 'does-not-exist-in-flight-regression.dita')
+            );
+            const refreshPromise = requestPreviewRefresh(fakeUri, true);
+
+            assert.strictEqual(
+                isPreviewRefreshInFlight(),
+                true,
+                'should already report in-flight synchronously after starting a refresh, before it settles'
+            );
+
+            await refreshPromise;
+
+            assert.strictEqual(isPreviewRefreshInFlight(), false, 'should no longer be in flight once settled');
         });
     });
 

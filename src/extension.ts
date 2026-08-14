@@ -22,6 +22,7 @@ import {
     shouldAutoRefreshPreview,
     pickPreviewFilterCommand,
     requestPreviewRefresh,
+    isPreviewRefreshInFlight,
     newTopicCommand,
     newMapCommand,
     newBookmapCommand,
@@ -35,7 +36,7 @@ import {
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
-import { UI_TIMEOUTS, DITA_EXTENSIONS } from './utils/constants';
+import { UI_TIMEOUTS, isDitaContentUri } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
 import { ValidationReportPanel } from './providers/validationReportPanel';
@@ -560,10 +561,7 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
                 return;
             }
 
-            const ditaMoves = event.files.filter(f => {
-                const lower = f.oldUri.fsPath.toLowerCase();
-                return DITA_EXTENSIONS.ALL.some(ext => lower.endsWith(ext));
-            });
+            const ditaMoves = event.files.filter(f => isDitaContentUri(f.oldUri));
             if (ditaMoves.length === 0) {
                 return;
             }
@@ -623,6 +621,14 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
  * the shared output directory, regardless of which of those two triggers
  * fires — a save landing while a filter change is still publishing (or vice
  * versa) queues rather than races it.
+ *
+ * A save that lands while a publish is already in flight skips the debounce
+ * and queues immediately (`/code-review` regression fix): routing every save
+ * through the debounce unconditionally means a burst of saves arriving
+ * faster than the debounce interval keeps resetting the timer, so the
+ * replay is never queued until the burst pauses for a full debounce window —
+ * well after the in-flight publish already finished. `requestPreviewRefresh`
+ * itself still only ever runs one publish at a time either way.
  */
 function registerPreviewAutoRefresh(context: vscode.ExtensionContext): void {
     let debounceTimer: NodeJS.Timeout | undefined;
@@ -642,6 +648,12 @@ function registerPreviewAutoRefresh(context: vscode.ExtensionContext): void {
         }
 
         const uri = document.uri;
+
+        if (isPreviewRefreshInFlight()) {
+            logger.debug('Preview publish already in flight — queuing this save immediately', { file: uri.fsPath });
+            fireAndForget(requestPreviewRefresh(uri, /* preserveFocus */ true), 'preview-auto-refresh');
+            return;
+        }
 
         if (debounceTimer) {
             clearTimeout(debounceTimer);

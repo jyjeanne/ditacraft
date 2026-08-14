@@ -113,6 +113,26 @@ export function isDitaUri(uri: import('vscode').Uri): boolean {
 }
 
 /**
+ * Check whether a file path is a DITA *content* file — topic, map, or
+ * bookmap — excluding `.ditaval`, which carries filtering rules rather than
+ * authored content. Distinct from `isDitaFilePath` (which includes
+ * `.ditaval`): use this one for "can this document have content
+ * inserted/edited"-style checks, where a `.ditaval` file is never eligible.
+ */
+export function isDitaContentPath(fsPath: string): boolean {
+    const lower = fsPath.toLowerCase();
+    return DITA_EXTENSIONS.ALL.some(ext => lower.endsWith(ext));
+}
+
+/**
+ * Check whether a VS Code URI points to a DITA *content* file (topic, map,
+ * or bookmap) — see `isDitaContentPath`.
+ */
+export function isDitaContentUri(uri: import('vscode').Uri): boolean {
+    return isDitaContentPath(uri.fsPath);
+}
+
+/**
  * Common DITA element names
  * Used for validation and parsing
  */

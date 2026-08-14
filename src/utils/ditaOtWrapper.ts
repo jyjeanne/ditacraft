@@ -12,6 +12,7 @@ import { logger } from './logger';
 import { getDitaOtOutputChannel } from './ditaOtOutputChannel';
 import { PROCESS_CONSTANTS } from './constants';
 import { configManager } from './configurationManager';
+import { substituteWorkspaceFolderVar } from './pathUtils';
 
 const execFileAsync = promisify(execFile);
 
@@ -105,7 +106,12 @@ export class DitaOtWrapper {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
 
         let outputDir = configManager.get('outputDirectory');
-        outputDir = outputDir.replace('${workspaceFolder}', workspaceFolder);
+        // `/code-review` regression fix: this used to replace only the FIRST
+        // `${workspaceFolder}` occurrence, unlike the shared helper's global
+        // replace — a value referencing the placeholder more than once
+        // resolved inconsistently with every other setting that uses it
+        // (ditacraft.templatesPath, publishing profiles' outputDir).
+        outputDir = substituteWorkspaceFolderVar(outputDir);
 
         // Validate output directory path
         if (outputDir && !this.isValidPath(outputDir)) {
