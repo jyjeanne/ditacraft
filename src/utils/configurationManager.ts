@@ -65,6 +65,7 @@ export interface DitaCraftConfiguration {
     previewTheme: PreviewThemeType;
     previewCustomCss: string;
     previewScrollSync: boolean;
+    conditionHighlightingEnabled: boolean;
 
     // UI settings
     showProgressNotifications: boolean;
@@ -111,6 +112,7 @@ const DEFAULT_CONFIG: DitaCraftConfiguration = {
     previewTheme: 'auto',
     previewCustomCss: '',
     previewScrollSync: true,
+    conditionHighlightingEnabled: true,
     showProgressNotifications: true,
     enableSnippets: true,
     logLevel: 'info',
@@ -212,6 +214,7 @@ export class ConfigurationManager implements vscode.Disposable {
             previewTheme: config.get<PreviewThemeType>('previewTheme', DEFAULT_CONFIG.previewTheme),
             previewCustomCss: config.get<string>('previewCustomCss', DEFAULT_CONFIG.previewCustomCss),
             previewScrollSync: config.get<boolean>('previewScrollSync', DEFAULT_CONFIG.previewScrollSync),
+            conditionHighlightingEnabled: config.get<boolean>('conditionHighlightingEnabled', DEFAULT_CONFIG.conditionHighlightingEnabled),
             showProgressNotifications: config.get<boolean>('showProgressNotifications', DEFAULT_CONFIG.showProgressNotifications),
             enableSnippets: config.get<boolean>('enableSnippets', DEFAULT_CONFIG.enableSnippets),
             logLevel: config.get<LogLevelType>('logLevel', DEFAULT_CONFIG.logLevel),

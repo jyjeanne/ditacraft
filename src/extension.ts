@@ -35,6 +35,7 @@ import {
     initProjectCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
+import { registerConditionHighlighting } from './providers/ditavalDecorationProvider';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
 import { UI_TIMEOUTS, isDitaContentUri } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
@@ -87,6 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
         initializePreview(context);
         registerPreviewPanelSerializer(context);
         registerPreviewAutoRefresh(context);
+        registerConditionHighlighting(context);
         outputChannel.appendLine('Preview panel initialized');
 
         // Note: Document links now provided by the LSP server (Phase 6)

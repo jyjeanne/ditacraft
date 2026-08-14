@@ -34,6 +34,19 @@ export function getActiveDitavalPath(): string | undefined {
     return activeDitavalPath;
 }
 
+const activeDitavalChangedEmitter = new vscode.EventEmitter<string | undefined>();
+/**
+ * Fires whenever the active preview filter changes (including to/from
+ * `undefined`). Consumed by `ditavalDecorationProvider.ts` (§4.5 Piece 2)
+ * so condition highlighting recomputes the moment the user picks a
+ * different filter, without polling `getActiveDitavalPath()` on a timer.
+ * Deliberately reuses this same "active filter" concept for both the
+ * rendered preview and the dimmed-source highlighting rather than
+ * introducing a second, independent "which filter is highlighting" state —
+ * picking a filter is one act with two views of its effect.
+ */
+export const onDidChangeActiveDitaval = activeDitavalChangedEmitter.event;
+
 // Serializes every trigger that can call previewHTML5Command *outside* a
 // direct, one-off user invocation of the preview command itself — currently
 // the save-triggered auto-refresh (registerPreviewAutoRefresh in
@@ -112,6 +125,7 @@ export async function pickPreviewFilterCommand(): Promise<void> {
 
     activeDitavalPath = resolveDitavalPath(choice);
     logger.info('Preview filter changed', { ditavalPath: activeDitavalPath });
+    activeDitavalChangedEmitter.fire(activeDitavalPath);
 
     const sourceFile = DitaPreviewPanel.currentPanel?.getSourceFile();
     if (sourceFile) {
