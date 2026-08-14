@@ -175,6 +175,11 @@
         "icon": "$(open-preview)"
       },
       {
+        "command": "ditacraft.previewFilter",
+        "title": "DITA: Set Preview DITAVAL Filter",
+        "icon": "$(filter)"
+      },
+      {
         "command": "ditacraft.newTopic",
         "title": "DITA: Create New Topic"
       },
@@ -320,6 +325,11 @@
           "command": "ditacraft.publish",
           "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
           "group": "navigation@4"
+        },
+        {
+          "command": "ditacraft.previewFilter",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "navigation@5"
         }
       ],
       "editor/context": [
@@ -403,6 +413,10 @@
         },
         {
           "command": "ditacraft.previewHTML5",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.previewFilter",
           "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
         },
         {

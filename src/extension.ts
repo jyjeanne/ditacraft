@@ -20,6 +20,8 @@ import {
     previewHTML5Command,
     initializePreview,
     shouldAutoRefreshPreview,
+    pickPreviewFilterCommand,
+    requestPreviewRefresh,
     newTopicCommand,
     newMapCommand,
     newBookmapCommand,
@@ -614,32 +616,16 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
  * HTML) and the panel updates. Focus is preserved so the cursor stays in the
  * editor. Resolves issue #96.
  *
- * Rapid saves (auto-save, fast Ctrl+S) are coalesced: a short debounce drops
- * redundant triggers, and refreshes are serialized so at most one DITA-OT
- * publish runs at a time against the shared output directory. A save that
- * arrives while a publish is in flight schedules exactly one trailing refresh.
+ * Rapid saves (auto-save, fast Ctrl+S) are coalesced by a short debounce here.
+ * The actual publish is serialized through `requestPreviewRefresh` (shared
+ * with the DITAVAL filter picker's own immediate re-publish in
+ * previewCommand.ts) so at most one DITA-OT publish runs at a time against
+ * the shared output directory, regardless of which of those two triggers
+ * fires — a save landing while a filter change is still publishing (or vice
+ * versa) queues rather than races it.
  */
 function registerPreviewAutoRefresh(context: vscode.ExtensionContext): void {
     let debounceTimer: NodeJS.Timeout | undefined;
-    let refreshInFlight = false;
-    let pendingUri: vscode.Uri | undefined;
-
-    const runRefresh = (uri: vscode.Uri): void => {
-        refreshInFlight = true;
-        logger.debug('Auto-refreshing preview after save', { file: uri.fsPath });
-        fireAndForget(
-            previewHTML5Command(uri, /* preserveFocus */ true).finally(() => {
-                refreshInFlight = false;
-                // Replay the most recent save that landed during this publish.
-                if (pendingUri) {
-                    const next = pendingUri;
-                    pendingUri = undefined;
-                    runRefresh(next);
-                }
-            }),
-            'preview-auto-refresh'
-        );
-    };
 
     const saveListener = vscode.workspace.onDidSaveTextDocument(document => {
         const panel = DitaPreviewPanel.currentPanel;
@@ -657,19 +643,13 @@ function registerPreviewAutoRefresh(context: vscode.ExtensionContext): void {
 
         const uri = document.uri;
 
-        // A publish is already running — remember this save and replay it once
-        // the current run finishes, rather than launching a concurrent publish.
-        if (refreshInFlight) {
-            pendingUri = uri;
-            return;
-        }
-
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
         debounceTimer = setTimeout(() => {
             debounceTimer = undefined;
-            runRefresh(uri);
+            logger.debug('Auto-refreshing preview after save', { file: uri.fsPath });
+            fireAndForget(requestPreviewRefresh(uri, /* preserveFocus */ true), 'preview-auto-refresh');
         }, PREVIEW_AUTO_REFRESH_DEBOUNCE_MS);
     });
 
@@ -717,6 +697,10 @@ function registerCommands(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ditacraft.previewHTML5', previewHTML5Command)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.previewFilter', pickPreviewFilterCommand)
     );
 
     // File creation commands with error wrapping
