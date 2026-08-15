@@ -80,5 +80,27 @@ suite('Section Extractor Test Suite', () => {
             const result = findEnclosingSection(text, text.indexOf('One'));
             assert.strictEqual(result!.bodyContent, '<ul><li>One</li><li>Two</li></ul>');
         });
+
+        test('Should still detect the title when preceded by a comment (regression)', () => {
+            const text = '<section><!-- TODO: review --><title>Overview</title><p>Body.</p></section>';
+            const result = findEnclosingSection(text, text.indexOf('Body'));
+            assert.strictEqual(result!.title, 'Overview');
+            // The literal <title> element must not leak into bodyContent --
+            // <body>/<conbody>/<refbody> don't allow it as a direct child.
+            assert.ok(!result!.bodyContent.includes('<title>'));
+            assert.ok(result!.bodyContent.includes('<p>Body.</p>'));
+        });
+
+        test('Should pick the genuinely innermost section on malformed, transiently-nested content (regression)', () => {
+            // DITA sections don't nest in valid content, but this depth
+            // -tracks any well-formed open/close pair regardless -- a
+            // stray/duplicated <section> (e.g. a mid-paste artifact)
+            // shouldn't cause the *outer*, larger span to be picked over
+            // the true innermost one containing the cursor.
+            const text = '<section id="outer">X<section id="inner">Y</section>Z</section>';
+            const offset = text.indexOf('Y');
+            const result = findEnclosingSection(text, offset);
+            assert.strictEqual(result!.id, 'inner');
+        });
     });
 });

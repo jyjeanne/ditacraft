@@ -599,6 +599,9 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
                 const applied = await vscode.workspace.applyEdit(edit);
                 if (!applied) {
                     logger.warn('Move Topic: failed to apply reference updates', { movedCount: ditaMoves.length });
+                    vscode.window.showWarningMessage(
+                        'DitaCraft: Could not update references after the move -- check for broken links.'
+                    );
                     return;
                 }
 
@@ -612,7 +615,18 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
                     `DitaCraft: Updated references in ${editedUris.length} file(s) after the move.`
                 );
             } catch (error) {
+                // `/code-review` fix: this used to log only -- a failed
+                // reference update after a move/rename gave the user no
+                // visible signal at all, unlike every other Phase 3
+                // command (findReplaceCommand.ts, batchMetadataCommand.ts,
+                // ...), which all surface request/apply failures via
+                // showErrorMessage. Broken hrefs/conrefs from a silently
+                // failed update would only surface later, disconnected
+                // from the move that caused them.
                 logger.error('Move Topic: failed to compute/apply reference updates', error);
+                vscode.window.showErrorMessage(
+                    `DitaCraft: Could not update references after the move: ${error instanceof Error ? error.message : 'Unknown error'}`
+                );
             }
         })
     );

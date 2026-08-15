@@ -15,14 +15,15 @@
  * are never individually reported to this handler.
  */
 
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import { TextDocuments, TextEdit, WorkspaceEdit, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { findFileReferences, parseReference } from '../utils/referenceParser';
-import { collectDitaFiles } from '../utils/workspaceScanner';
+import { collectDitaFilesAsync } from '../utils/workspaceScanner';
 import { offsetToPosition, uriToPath, normalizeFsPath } from '../utils/textUtils';
+import { mapWithConcurrency, MAX_CONCURRENT_READS } from './workspaceValidation';
 
 // ── Request/response types (mirrored on the client, src/extension.ts) ──────
 
@@ -87,14 +88,26 @@ export async function handleComputeMoveEdits(
     // reference in every other workspace file).
     const ditaMovesByOldPath = new Map(ditaMoves.map(m => [m.normalizedOldPath, m]));
 
-    const ditaFiles = collectDitaFiles(workspaceFolders);
+    // `/code-review` fix: this used to be a synchronous `collectDitaFiles`
+    // walk followed by `fs.readFileSync` inside an unbounded
+    // `Promise.all` — since every read was synchronous (no `await` point
+    // inside the loop body), that wasn't actually concurrent I/O at all;
+    // it just ran every file's directory walk and read back-to-back on
+    // the main thread with no yield point, blocking the LSP server's
+    // event loop (hover/completion/diagnostics for every open file) for
+    // the whole scan on a large workspace. Switched to the same
+    // non-blocking `collectDitaFilesAsync` + bounded-concurrency
+    // `mapWithConcurrency`/`MAX_CONCURRENT_READS` pattern `findReplace.ts`
+    // and `batchMetadata.ts` already establish for the identical
+    // "read every DITA file" operation.
+    const ditaFiles = await collectDitaFilesAsync(workspaceFolders);
     // Never rewrite anything *inside* a moved file itself -- see the module
     // doc comment's "inbound references only" scope note.
     const movedNewPaths = new Set(ditaMoves.map(m => normalizeFsPath(m.newPath)));
 
     const changes: { [uri: string]: TextEdit[] } = {};
 
-    await Promise.all(ditaFiles.map(async (filePath) => {
+    await mapWithConcurrency(ditaFiles, MAX_CONCURRENT_READS, async (filePath) => {
         if (movedNewPaths.has(normalizeFsPath(filePath))) {
             return;
         }
@@ -106,7 +119,7 @@ export async function handleComputeMoveEdits(
             content = openDoc.getText();
         } else {
             try {
-                content = fs.readFileSync(filePath, 'utf-8');
+                content = await fs.readFile(filePath, 'utf-8');
             } catch {
                 return;
             }
@@ -149,7 +162,7 @@ export async function handleComputeMoveEdits(
         if (edits.length > 0) {
             changes[fileUri] = edits;
         }
-    }));
+    });
 
     return Object.keys(changes).length > 0 ? { changes } : null;
 }

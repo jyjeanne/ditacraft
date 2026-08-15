@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import {
     PrepareRenameParams,
     RenameParams,
@@ -22,9 +22,10 @@ import {
     KeyAtOffset,
 } from '../utils/referenceParser';
 
-import { collectDitaFiles, referenceMatchesTarget } from '../utils/workspaceScanner';
+import { collectDitaFilesAsync, referenceMatchesTarget } from '../utils/workspaceScanner';
 import { offsetToPosition, uriToPath, normalizeFsPath } from '../utils/textUtils';
 import { KeySpaceService, KeyDefinition } from '../services/keySpaceService';
+import { mapWithConcurrency, MAX_CONCURRENT_READS } from './workspaceValidation';
 
 /**
  * Handle Prepare Rename request.
@@ -152,9 +153,18 @@ async function collectCrossFileEdits(
     const changes: { [uri: string]: TextEdit[] } = {};
     if (!workspaceFolders || workspaceFolders.length === 0) return changes;
 
-    const ditaFiles = collectDitaFiles(workspaceFolders);
+    // `/code-review` fix: switched from a synchronous `collectDitaFiles`
+    // walk + `fs.readFileSync` inside an unbounded `Promise.all` to the
+    // non-blocking `collectDitaFilesAsync` + bounded-concurrency
+    // `mapWithConcurrency`/`MAX_CONCURRENT_READS` pattern `findReplace.ts`/
+    // `batchMetadata.ts`/`moveTopic.ts` all establish for this identical
+    // "read every DITA file in the workspace" operation — this function
+    // backs both ID rename and key rename, so both were paying the
+    // event-loop-blocking cost of the old synchronous scan on every
+    // invocation.
+    const ditaFiles = await collectDitaFilesAsync(workspaceFolders);
 
-    const perFileEdits = await Promise.all(ditaFiles.map(async (filePath) => {
+    const perFileEdits = await mapWithConcurrency(ditaFiles, MAX_CONCURRENT_READS, async (filePath) => {
         const fileUri = URI.file(filePath).toString();
         if (fileUri === currentUri) return null;
 
@@ -164,7 +174,7 @@ async function collectCrossFileEdits(
             content = openDoc.getText();
         } else {
             try {
-                content = fs.readFileSync(filePath, 'utf-8');
+                content = await fs.readFile(filePath, 'utf-8');
             } catch {
                 return null;
             }
@@ -175,7 +185,7 @@ async function collectCrossFileEdits(
 
         const fileEdits = await buildEdits(fileRefs, content, filePath);
         return fileEdits.length > 0 ? { fileUri, fileEdits } : null;
-    }));
+    });
 
     for (const result of perFileEdits) {
         if (result) {

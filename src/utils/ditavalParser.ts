@@ -29,8 +29,22 @@ export interface DitavalRule {
  * Profiling attributes DITAVAL `<prop>` rules can target. Mirrors the
  * standard DITA profiling attribute set; `otherprops`/`props` are the two
  * legacy/generic ones, the rest are the well-known specific attributes.
+ *
+ * `/code-review` fix: this list had drifted from the two sibling lists
+ * elsewhere in the codebase — `profilingValidation.ts`'s server-side
+ * `PROFILING_ATTRIBUTES` and `batchMetadataCommand.ts`'s
+ * `KNOWN_PROFILING_ATTRIBUTES` both include `deliveryTarget` (a DITA 1.3+
+ * profiling attribute), which this list omitted, so the Visual DITAVAL
+ * Condition Editor's dropdown and condition-highlighting decoration pass
+ * never offered or dimmed `deliveryTarget`-based conditions. This list is
+ * intentionally a *superset* of those two, not an exact copy: `rev`
+ * (revision marking) is a real, DITAVAL-filterable attribute those other
+ * two lists correctly exclude, since `rev` values are typically free-form
+ * and not subject-scheme-controlled — the property those lists actually
+ * track (see `profilingValidation.ts`'s own comment: "attributes that can
+ * be constrained by subject schemes").
  */
-export const PROFILING_ATTRIBUTES = ['audience', 'platform', 'product', 'otherprops', 'props', 'rev'] as const;
+export const PROFILING_ATTRIBUTES = ['audience', 'platform', 'product', 'otherprops', 'props', 'rev', 'deliveryTarget'] as const;
 
 const PROP_TAG_PATTERN = /<prop\b((?:[^>"']|"[^"]*"|'[^']*')*)\/?>/gi;
 const ATTR_PATTERN = /([\w-]+)\s*=\s*"([^"]*)"|([\w-]+)\s*=\s*'([^']*)'/g;

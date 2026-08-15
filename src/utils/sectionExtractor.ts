@@ -71,7 +71,16 @@ export function findEnclosingSection(text: string, offset: number): ExtractedSec
                 // The innermost (last-pushed, so last-popped-so-far at this
                 // depth) match containing offset wins -- sections don't
                 // nest in valid DITA, so in practice this loop runs once.
-                if (!best || tagStart - open.tagStart < best.end - best.start) {
+                // `/code-review` fix: compare the *same* span definition on
+                // both sides -- `tagEnd - open.tagStart` (this candidate's
+                // full span, closing tag included) against `best.end -
+                // best.start` (`best.end`/`best.start` are likewise the
+                // full span). The previous comparison mixed `tagStart -
+                // open.tagStart` (excluding the closing tag's own length)
+                // against `best.end - best.start` (including it), which
+                // could pick the wrong candidate as "innermost" on
+                // malformed/transiently-duplicated `<section>` content.
+                if (!best || (tagEnd - open.tagStart) < (best.end - best.start)) {
                     best = buildExtractedSection(text, open.tagStart, tagEnd, open.contentStart, open.attrsText);
                 }
             }
@@ -104,7 +113,17 @@ function buildExtractedSection(
     const closeTagStart = originalText.lastIndexOf('<', end - 1);
     const rawInner = originalText.slice(contentStart, closeTagStart);
 
-    const titleMatch = LEADING_TITLE_PATTERN.exec(rawInner);
+    // `/code-review` fix: match against a comment/CDATA-blanked view, not
+    // the raw inner text -- a leading comment before `<title>` (e.g.
+    // `<section><!-- TODO --><title>Overview</title>...`) made the `^\s*`
+    // anchor fail to match at all (a comment isn't whitespace), so the
+    // title went undetected *and* the literal `<title>` element was left
+    // in `bodyContent`, which is invalid inside `<body>`/`<conbody>`/
+    // `<refbody>`. Blanking preserves length/offsets exactly, so slicing
+    // `rawInner` (not the blanked text) at the match's boundaries still
+    // recovers the real, unblanked content.
+    const searchableInner = stripCommentsAndCDATA(rawInner);
+    const titleMatch = LEADING_TITLE_PATTERN.exec(searchableInner);
     const title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : undefined;
     const bodyContent = (titleMatch ? rawInner.slice(titleMatch[0].length) : rawInner).trim();
 
