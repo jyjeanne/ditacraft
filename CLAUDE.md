@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **DitaCraft** is a comprehensive VS Code extension for editing and publishing DITA (Darwin Information Typing Architecture) XML files. It provides syntax highlighting, real-time validation, smart navigation, LSP-based IntelliSense, live HTML preview, and one-click DITA-OT publishing. The project uses a **client-server architecture**: the client extension handles UI commands and a separate LSP server handles all language intelligence.
 
 **Key Stats:**
-- 1,376+ tests (683 client + 703 server)
-- 23,000+ lines of TypeScript code
+- 2,183+ tests (966 client + 1,134 server + 83 MCP)
+- 50,000+ lines of TypeScript code
 - Client: ES2020, CommonJS, esbuild bundled
 - Server: 13-phase validation pipeline, LSP 3.17+
 - Validation: TypesXML DTD (OASIS catalog), optional RelaxNG, 43 DITA rules, custom regex rules
@@ -62,7 +62,13 @@ Generates a queryable knowledge graph of the codebase into `docs/graph/` using [
 ```bash
 npm run okf
 ```
-Generates a conformant [Open Knowledge Format](https://github.com/jyjeanne/okf-rs) bundle of the codebase into `docs/okf-knowledge/` using [okf-rs](https://github.com/jyjeanne/okf-rs) — a standalone Rust CLI (`cargo install --git https://github.com/jyjeanne/okf-rs okf-cli`, or a prebuilt release binary; **not** an npm devDependency, so this is opt-in and NOT part of `npm install`/`npm run watch`, unlike graphify above). Unlike `graph.json`'s single-file, database-like artifact, an OKF bundle is one Markdown+YAML-frontmatter file per concept (package/module/class/interface/function/method), cross-linked by ordinary markdown links — `git diff`-able per concept, and readable without any tooling at all. Also provides change-impact analysis (`okf-rs impact <ref-a> <ref-b>`), a PR-review report generator (`okf-rs review`), and call-cycle/community detection that complement graphify's own querying and visualization strengths. `docs/graph/studio/assets/` (graphify's vendored, minified viewer bundle) is excluded from the scan via `.gitignore` — it isn't source code and previously flooded the bundle with garbage concepts extracted from minified JS. Working cache `.okf-cache.json` is git-ignored; see `docs/okf-knowledge/README.md` for querying examples.
+Generates a conformant [Open Knowledge Format](https://github.com/jyjeanne/okf-rs) bundle of the codebase into `docs/okf-knowledge/` using [okf-rs](https://github.com/jyjeanne/okf-rs) — a standalone Rust CLI (`cargo install --git https://github.com/jyjeanne/okf-rs okf-cli`, or a prebuilt release binary; **not** an npm devDependency, so this is opt-in and NOT part of `npm install`/`npm run watch`, unlike graphify above). Unlike `graph.json`'s single-file, database-like artifact, an OKF bundle is one Markdown+YAML-frontmatter file per concept (package/module/class/interface/function/method), cross-linked by ordinary markdown links — `git diff`-able per concept, and readable without any tooling at all. Also provides change-impact analysis (`okf-rs impact <ref-a> <ref-b>`), a PR-review report generator (`okf-rs review`), and call-cycle/community detection that complement graphify's own querying and visualization strengths. `docs/graph/studio/assets/` (graphify's vendored, minified viewer bundle) is excluded from the scan via `.gitignore` — it isn't source code and previously flooded the bundle with garbage concepts extracted from minified JS. Working cache `.okf-cache.json` is git-ignored; see `docs/okf-knowledge/README.md` for querying examples. `okf.toml` at the repo root records `output = "docs/okf-knowledge"`, so `okf-rs search`/`explore`/`graph`/`validate`/`coverage` all resolve the bundle without needing `--output` repeated on every call — e.g. `okf-rs explore KeySpaceService`.
+
+**Querying it as an MCP tool (Claude Code):** `okf-mcp` (built from the same `jyjeanne/okf-rs` source — `cargo build --release -p okf-mcp`, or use the prebuilt binary alongside `okf-rs`) exposes `docs/okf-knowledge`'s search/explore/coverage/graph queries as MCP tools over stdio, so a Claude Code session can query the codebase's structure and call graph directly instead of `grep`-and-read — cheaper (one structured answer vs. reading whole files) and more precise (a resolved call edge vs. a name match). Register it project-wide (shared via git with every contributor's Claude Code instance) with:
+```bash
+claude mcp add okf-rs -s project -- /path/to/okf-mcp .
+```
+Prefer `explore <concept>` when you need several facts about the *same* concept (signature, callers, callees, blast radius) in one round trip; `graph` (pass `relation: callers|callees|path|cycles|communities|...`) for everything else — see the [MCP server section of the okf-rs README](https://github.com/jyjeanne/okf-rs#mcp-server) for the full tool list and `--benchmark` for a local, offline token-cost report specific to this bundle.
 
 ---
 
@@ -168,7 +174,7 @@ src/                          # Client extension
   commands/                   # Command handlers
   providers/                  # VS Code API (validators, views, webviews)
   utils/                      # DITA-OT wrapper, key space, config, logger
-  test/                       # 683 client tests
+  test/                       # 966 client tests
 
 server/
   src/
@@ -180,7 +186,7 @@ server/
     utils/                    # Shared utilities (xmlTokenizer, referenceParser, workspaceScanner)
     messages/                 # Localization (en.json, fr.json)
     data/                     # Static schema data (ditaSchema.ts, ditaSpecialization.ts)
-  test/                       # 703 server tests (standalone Mocha)
+  test/                       # 1,134 server tests (standalone Mocha)
 
 dtds/                         # DITA 1.2, 1.3, 2.0 DTDs + OASIS catalogs
 docs/                         # Architecture docs

@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.8.2)
+## Current Status (v0.9.0)
 
 DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
 
@@ -156,8 +156,54 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Per-Document Subject-Scheme Snapshot Isolation** | Complete | 100% |
 | **AI Quick Fix Stale-Edit Guard** | Complete | 100% |
 | **Shared resyncStackToMatch() Tag-Desync Fix** | Complete | 100% |
+| **Rename Key Across All Usages** | Complete | 100% |
+| **Publishing Profiles (save/reuse)** | Complete | 100% |
+| **Image Insertion (`<fig>` wrapper)** | Complete | 100% |
+| **Custom Topic Templates** | Complete | 100% |
+| **Project Initialization Wizard** | Complete | 100% |
+| **Table Insertion (CALS/simple)** | Complete | 100% |
+| **Move Topic with Reference Updates** | Complete | 100% |
+| **DITAVAL: Preview with Conditions Applied** | Complete | 100% |
+| **DITAVAL: Condition Highlighting in Editor** | Complete | 100% |
+| **Multi-File DITA-Aware Find & Replace** | Complete | 100% |
+| **Batch Metadata Update** | Complete | 100% |
+| **Visual DITAVAL Condition Editor** | Complete | 100% |
+| **Extract Topic from Section** | Complete | 100% |
+| **Inline Conref** | Complete | 100% |
+| **Watch Mode (auto-republish on change)** | Complete | 100% |
+| **OKF Knowledge Base (okf-rs)** | Complete | 100% |
 
-### Recent Changes (v0.8.2)
+### Recent Changes (v0.9.0)
+
+The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — every prioritized item shipped, plus two of three Backlog items taken on as natural follow-ons (Import from Markdown/HTML deferred as the one item genuinely needing a design spike first). See Milestone 6/7 below for the per-item checklist.
+
+**Added — Refactoring Tools (§3.1, §4.4, §5.4, §6.1):**
+- Rename key across all usages, with `conkeyref` matches verified against the key space before rewriting
+- Move topic with reference updates (rewrites inbound `href`/`conref` on file move/rename)
+- Extract topic from section (into a new standalone topic + `xref`)
+- Inline conref (splice a `conref`/`conkeyref` target's content in place, stripping nested descendant ids to avoid duplicate-id violations)
+
+**Added — Templates, Scaffolding & Publishing (§3.2, §3.3, §4.1, §4.2, §4.3):**
+- Custom topic templates, project initialization wizard
+- Publishing profiles (save/reuse transtype + output-dir + DITAVAL + extra-args, remembers last-used)
+- Image insertion and table insertion (CALS/simple) helpers
+
+**Added — Productivity & DITAVAL (§4.5, §5.1, §5.2, §5.3):**
+- Multi-file DITA-aware find & replace and batch metadata update, both previewed via VS Code's native refactor-preview UI
+- Visual DITAVAL condition editor, live preview with conditions applied, condition highlighting in the editor
+- Watch mode (§6.2) — auto-republish on file change, quiet status-bar feedback (watch+rerun, not incremental)
+
+**Added — Knowledge Tooling:**
+- OKF Knowledge Base (`npm run okf`, `docs/okf-knowledge/`) via [okf-rs](https://github.com/jyjeanne/okf-rs) — a `git diff`-able, per-concept bundle complementing graphify's `docs/graph/graph.json`, plus change-impact analysis, a PR-review report generator, and call-cycle detection graphify doesn't have. `okf-mcp` exposes it as an MCP tool for agent queries — see `CLAUDE.md`.
+- `docs/graph/studio/assets/` (graphify's own vendored, minified viewer bundle) excluded from `.gitignore`-aware code-scanning tools — it isn't source code, and being un-excluded once caused an okf-rs scan to extract thousands of garbage concepts from the minified JS
+
+**Fixed (found via a deep code-review pass using both graphify's and okf-rs's knowledge graphs):**
+- Client-side `KeySpaceResolver` had zero `@keyscope` (DITA 1.3 nested/scoped keys) support, unlike the server's `KeySpaceService` — a keyref inside a scoped branch could resolve to a *different file* via a clickable document link than via LSP-backed Go to Definition on the exact same reference. Ported the server's scope-prefix BFS, PushDown inheritance, inline scope blocks, and deferred peer-map resolution into the client resolver
+- `hover.ts`'s conref/conkeyref content preview carried its own buggy copy of an element-span algorithm (missing self-closing-element check, no comment-stripping before scanning) that could leak unrelated document content into the preview; now delegates to the already-hardened shared `elementExtent.ts` helper
+
+**2183+ Total Tests** — Client (966) + Server (1,134) + MCP (83)
+
+### Previous Changes (v0.8.2)
 
 **Security & Path Traversal:**
 - Extracted a shared `isPathWithinWorkspace()` guard and applied it at every previously-unguarded `href`-resolution site: hover, completion, definition, cross-reference validation, circular-reference detection, document links, and the MCP `dita_map_structure`/context-graph handler
@@ -168,7 +214,6 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - Fixed Windows case-mismatch in key-space path comparisons (`resolveKey`, `explainKey`, BFS visited-set, cache invalidation) via consistent `normalizeFsPath()` usage
 - Rename and Find All References now verify `conkeyref` matches actually resolve to the target file via the key space before rewriting/reporting, instead of matching on element-ID text alone across the workspace
 - `resolveKey` calls in cross-file reference/rename loops now run in parallel via `Promise.all`
-- **Client-side `KeySpaceResolver`** (backing clickable keyref/conkeyref document links and the Key Space sidebar) had zero `@keyscope` support at all, unlike the server's `KeySpaceService` — a keyref inside a scoped branch could silently resolve to a *different file* via a document-link click than via LSP-backed Go to Definition on the exact same reference. Ported the server's scope-prefix BFS, PushDown inheritance, inline scope block handling, and deferred peer-map resolution into the client resolver (deliberately not the server's diamond-graph re-registration or peer-scope diagnostics, both narrower edge-case hardening the client doesn't need — see the module's own doc comment)
 
 **Validation Pipeline Race & Cache Fixes (deep code review, 2 passes):**
 - A timed-out or cancelled async validation phase (cross-reference, circular-reference, RNG) no longer caches its empty fallback as a valid result — previously could mask broken links for up to 5 minutes
@@ -186,15 +231,10 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - Added missing `parml`, `screen`, `syntaxdiagram` to the `body`/`conbody`/`section` content models
 - Fixed `workspaceValidation.ts` root-ID extraction matching a nested child's `id` instead of the topic's actual root element
 - DITA-OT progress percentages (absolute) no longer misapplied as cumulative increments in publish/preview/validate-guide
-- `hover.ts`'s conref/conkeyref content preview (`getConrefPreview`) no longer carries its own independent, buggy copy of the element-span depth-tracking algorithm — missing self-closing-element check and no comment-stripping meant a self-closing target followed by a comment merely *mentioning* the tag's closing bracket could leak arbitrary unrelated document content into the preview; now delegates to `elementExtent.ts`'s already-hardened `findElementExtentById`
 
 **Added — Knowledge Graph:**
 - `@sentropic/graphify` devDependency (local tree-sitter AST extraction, no LLM/API keys); `npm run graph` publishes `graph.json`, `GRAPH_REPORT.md`, `graph.svg`, an interactive studio viewer, and `flows.json` to `docs/graph/`
 - Auto-regenerates via `watch:graph` (included in `npm run watch`) and the `knowledge-graph` GitHub Actions workflow on every push to `main`
-- **Added — OKF Knowledge Base:** `npm run okf` publishes a conformant [Open Knowledge Format](https://github.com/jyjeanne/okf-rs) bundle (one Markdown+YAML-frontmatter file per concept, `git diff`-able) to `docs/okf-knowledge/` via [okf-rs](https://github.com/jyjeanne/okf-rs), a standalone Rust CLI (opt-in, not an npm devDependency — unlike graphify above, not wired into `npm install`/`npm run watch`/CI). Complements graphify with change-impact analysis, a PR-review report generator, and call-cycle detection
-
-**Fixed — Knowledge-Tooling Hygiene:**
-- `docs/graph/studio/assets/` (graphify's vendored, minified interactive-viewer bundle) is now excluded from `.gitignore`-aware code-scanning tools — being un-excluded once caused an okf-rs scan to extract thousands of garbage single/double-letter "concepts" from the minified JS, since it isn't source code at all
 
 **Hygiene:**
 - Removed 41 stale compiled `.js`/`.js.map` files committed alongside their TypeScript sources; `.gitignore` now guards against recommitting them
@@ -643,7 +683,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] npm run build-standalone command
 - [x] LSP smoke test via stdio
 
-### Refactoring Tools (deferred to v0.9.0) — see [docs/V0.9-IMPLEMENTATION-PLAN.md](docs/V0.9-IMPLEMENTATION-PLAN.md)
+### Refactoring Tools (shipped in v0.9.0) — see [docs/V0.9-IMPLEMENTATION-PLAN.md](docs/V0.9-IMPLEMENTATION-PLAN.md)
 - [x] Rename key across all usages (§3.1)
 - [x] Rename element ID with reference updates (pre-existing baseline feature, verified still in place)
 - [x] Move topic with reference updates (§4.4)

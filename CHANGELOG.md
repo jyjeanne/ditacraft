@@ -5,6 +5,40 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-08-15
+
+The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — every prioritized item shipped, plus two of three Backlog items taken on as natural follow-ons (Import from Markdown/HTML deferred, as the one item genuinely needing a design spike first).
+
+### Added
+
+**Refactoring tools:**
+- Rename key across all usages, with `conkeyref` matches verified against the key space before rewriting.
+- Move topic with reference updates — rewrites every inbound `href`/`conref` when a `.dita`/`.ditamap`/`.bookmap` file is moved or renamed via VS Code.
+- Extract topic from section — select a `<section>`, extract it into a new standalone topic, and replace it with an `xref`.
+- Inline conref — resolve a `conref`/`conkeyref` reference and splice the target content in place, stripping the reference attribute and any nested descendant ids (to avoid a duplicate-id violation).
+
+**Templates, scaffolding & publishing:**
+- Custom topic templates and a project initialization wizard.
+- Publishing profiles — save/reuse transtype + output-dir + DITAVAL + extra-args combinations, remembers the last-used profile.
+- Image insertion and table insertion (CALS/simple) helpers.
+
+**Productivity & DITAVAL:**
+- Multi-file DITA-aware find & replace and batch metadata update, both previewed via VS Code's native refactor-preview UI before applying.
+- Visual DITAVAL condition editor, live preview with conditions applied, and condition highlighting in the editor.
+- Watch mode (`DITA: Start/Stop Watch Mode`) — automatically re-runs a full publish whenever a watched DITA file changes, with quiet status-bar-only feedback. Not incremental publishing — DITA-OT has no first-class incremental build mode.
+
+**Knowledge tooling:**
+- **OKF Knowledge Base (okf-rs)** — `npm run okf` publishes a conformant [Open Knowledge Format](https://github.com/jyjeanne/okf-rs) bundle (one Markdown+YAML-frontmatter file per concept, `git diff`-able) to `docs/okf-knowledge/`, complementing graphify's `docs/graph/graph.json`. Adds change-impact analysis, a PR-review report generator, and call-cycle detection graphify doesn't have. `okf-mcp` exposes it as an MCP tool for agent queries — see "OKF Knowledge Base (okf-rs)" in `CLAUDE.md`.
+
+### Fixed
+
+Found via a deep code-review pass using both graphify's and okf-rs's knowledge graphs:
+- Client-side `KeySpaceResolver` (backing clickable keyref/conkeyref document links and the Key Space sidebar) had zero DITA 1.3 `@keyscope` (nested/scoped key) support at all, unlike the server's `KeySpaceService` — a keyref inside a scoped branch could silently resolve to a *different file* via a document-link click than via LSP-backed Go to Definition on the exact same reference. Ported the server's scope-prefix BFS, PushDown inheritance, inline scope block handling, and deferred peer-map resolution into the client resolver.
+- `hover.ts`'s conref/conkeyref content preview (`getConrefPreview`) no longer carries its own independent, buggy copy of the element-span depth-tracking algorithm — missing self-closing-element check and no comment-stripping meant a self-closing target followed by a comment merely *mentioning* the tag's closing bracket could leak arbitrary unrelated document content into the preview; now delegates to `elementExtent.ts`'s already-hardened `findElementExtentById`.
+- `docs/graph/studio/assets/` (graphify's own vendored, minified interactive-viewer bundle) is now excluded from `.gitignore`-aware code-scanning tools — being un-excluded once caused an okf-rs scan to extract thousands of garbage single/double-letter "concepts" from the minified JS, since it isn't source code at all.
+
+**2183+ Total Tests** — Client (966) + Server (1,134) + MCP (83)
+
 ## [0.8.2] - 2026-07-26
 
 ### Added
