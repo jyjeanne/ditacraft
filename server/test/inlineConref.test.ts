@@ -267,9 +267,17 @@ suite('handleComputeInlineConrefEdit', () => {
             const uri = URI.file(sourcePath).toString();
             const offset = fs.readFileSync(sourcePath, 'utf-8').indexOf('conref');
 
-            const result = await handleComputeInlineConrefEdit({ uri, offset }, createDocs(), undefined, [tmpDir]);
-            assert.strictEqual(result.edit, null);
-            assert.ok(result.reason?.includes('workspace'));
+            // Workspace-folder scoping (`tmpDir` as the only root) comes from
+            // `keySpaceService.getWorkspaceFolders()` -- narrowed internally
+            // via `effectiveWorkspaceFolders`, not passed in directly.
+            const keySpaceService = createKeySpaceService(tmpDir);
+            try {
+                const result = await handleComputeInlineConrefEdit({ uri, offset }, createDocs(), keySpaceService);
+                assert.strictEqual(result.edit, null);
+                assert.ok(result.reason?.includes('workspace'));
+            } finally {
+                keySpaceService.shutdown();
+            }
         } finally {
             fs.rmSync(outsideDir, { recursive: true, force: true });
         }

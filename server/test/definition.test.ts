@@ -514,4 +514,88 @@ suite('handleDefinition', () => {
             fs.rmSync(tmpDir, { recursive: true, force: true });
         }
     });
+
+    test('resolves keyref to the exact element when the keydef elementId is a two-part fragment (regression)', async () => {
+        // `keyDef.elementId` comes straight from the keydef's own href
+        // fragment (e.g. "t1/elem2" for `href="target.dita#t1/elem2"`), not
+        // a bare id -- passing it to findElementByIdOffset unnarrowed used to
+        // silently fail to match, falling back to file start instead of the
+        // actual element.
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-def-test-'));
+        const targetFile = path.join(tmpDir, 'target.dita');
+        fs.writeFileSync(targetFile, '<topic id="t1">\n<body><p id="elem2">target</p></body>\n</topic>');
+
+        try {
+            const keys = new Map<string, KeyDefinition>([
+                ['key-with-fragment', {
+                    keyName: 'key-with-fragment',
+                    sourceMap: path.join(tmpDir, 'root.ditamap'),
+                    targetFile: targetFile,
+                    elementId: 't1/elem2',
+                }],
+            ]);
+            const keySpaceService = createMockKeySpaceService(keys);
+
+            const content = '<xref keyref="key-with-fragment">link</xref>';
+            const doc = createDoc(content);
+            const docs = createDocs(doc);
+
+            const cursorChar = content.indexOf('"key-with-fragment"') + 3;
+            const result = await handleDefinition(
+                {
+                    textDocument: { uri: TEST_URI },
+                    position: { line: 0, character: cursorChar },
+                },
+                docs,
+                keySpaceService
+            );
+
+            assert.ok(result, 'should return a Location pointing to the element, not file start');
+            const expectedUri = URI.file(targetFile).toString();
+            assert.strictEqual(result.uri, expectedUri);
+            assert.strictEqual(result.range.start.line, 1);
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
+    test('resolves conkeyref to the exact element when falling back to a two-part keydef elementId fragment (regression)', async () => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-def-test-'));
+        const targetFile = path.join(tmpDir, 'target.dita');
+        fs.writeFileSync(targetFile, '<topic id="t1">\n<body><p id="elem2">target</p></body>\n</topic>');
+
+        try {
+            const keys = new Map<string, KeyDefinition>([
+                ['mykey', {
+                    keyName: 'mykey',
+                    sourceMap: path.join(tmpDir, 'root.ditamap'),
+                    targetFile: targetFile,
+                    elementId: 't1/elem2',
+                }],
+            ]);
+            const keySpaceService = createMockKeySpaceService(keys);
+
+            // No "/elementid" suffix on the usage -- must fall back to the keydef's own elementId.
+            const content = '<p conkeyref="mykey"/>';
+            const doc = createDoc(content);
+            const docs = createDocs(doc);
+
+            const cursorChar = content.indexOf('"mykey"') + 3;
+            const result = await handleDefinition(
+                {
+                    textDocument: { uri: TEST_URI },
+                    position: { line: 0, character: cursorChar },
+                },
+                docs,
+                keySpaceService
+            );
+
+            assert.ok(result, 'should return a Location pointing to the element, not file start');
+            const expectedUri = URI.file(targetFile).toString();
+            assert.strictEqual(result.uri, expectedUri);
+            assert.strictEqual(result.range.start.line, 1);
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
 });

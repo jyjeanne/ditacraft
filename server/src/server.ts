@@ -342,8 +342,7 @@ connection.onRequest('dita/getSubjectSchemeAttributes', (params: GetSubjectSchem
 // content and returns a WorkspaceEdit splicing it into the referencing
 // element in place, with the reference attribute removed.
 connection.onRequest('dita/computeInlineConrefEdit', (params: InlineConrefParams) => {
-    const folders = keySpaceService?.getWorkspaceFolders();
-    return handleComputeInlineConrefEdit(params, documents, keySpaceService, folders);
+    return handleComputeInlineConrefEdit(params, documents, keySpaceService);
 });
 
 // File watcher — invalidate key space cache on map changes
