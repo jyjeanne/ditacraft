@@ -221,6 +221,11 @@
         "icon": "$(filter)"
       },
       {
+        "command": "ditacraft.extractTopicFromSection",
+        "title": "DITA: Extract Topic from Section",
+        "icon": "$(export)"
+      },
+      {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
       },
@@ -377,6 +382,11 @@
           "command": "ditacraft.editDitavalConditions",
           "when": "resourceExtname == .ditaval",
           "group": "ditacraft@5"
+        },
+        {
+          "command": "ditacraft.extractTopicFromSection",
+          "when": "resourceExtname == .dita",
+          "group": "ditacraft@6"
         }
       ],
       "view/title": [
@@ -467,6 +477,10 @@
         },
         {
           "command": "ditacraft.insertTable",
+          "when": "resourceExtname == .dita"
+        },
+        {
+          "command": "ditacraft.extractTopicFromSection",
           "when": "resourceExtname == .dita"
         }
       ],

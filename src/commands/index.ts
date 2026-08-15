@@ -30,3 +30,4 @@ export { insertTableCommand } from './insertTableCommand';
 export { findReplaceInFilesCommand } from './findReplaceCommand';
 export { batchUpdateMetadataCommand } from './batchMetadataCommand';
 export { editDitavalConditionsCommand } from './ditavalConditionEditorCommand';
+export { extractTopicFromSectionCommand, buildExtractedTopicContent, detectNewTopicType, slugify } from './extractTopicCommand';

@@ -35,7 +35,8 @@ import {
     initProjectCommand,
     findReplaceInFilesCommand,
     batchUpdateMetadataCommand,
-    editDitavalConditionsCommand
+    editDitavalConditionsCommand,
+    extractTopicFromSectionCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { registerConditionHighlighting } from './providers/ditavalDecorationProvider';
@@ -833,6 +834,19 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in editDitavalConditionsCommand', error);
                 vscode.window.showErrorMessage(`Error opening DITAVAL condition editor: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    // Command to extract the <section> at the cursor into a new standalone topic
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.extractTopicFromSection', async () => {
+            try {
+                logger.info('Command invoked: ditacraft.extractTopicFromSection');
+                await extractTopicFromSectionCommand();
+            } catch (error) {
+                logger.error('Unhandled error in extractTopicFromSectionCommand', error);
+                vscode.window.showErrorMessage(`Error extracting topic: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );
