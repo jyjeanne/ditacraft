@@ -642,7 +642,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] Rename element ID with reference updates (pre-existing baseline feature, verified still in place)
 - [x] Move topic with reference updates (§4.4)
 - [x] Extract topic from section (§5.4)
-- [ ] Inline conref (replace reference with content) — Backlog, needs a design spike
+- [x] Inline conref (replace reference with content) — §6.1
 
 ### Templates & Scaffolding
 - [x] Custom topic templates (§4.1)
@@ -684,8 +684,8 @@ scope (see its §7) and remain open for a future milestone.
 
 ### Build System Integration (not scoped into v0.9.0 — open for a future milestone)
 - [ ] VS Code task definitions for DITA workflows
-- [ ] Watch mode for continuous publishing — see Backlog in the v0.9.0 plan
-- [ ] Incremental publishing (only changed files) — see Backlog in the v0.9.0 plan
+- [x] Watch mode for continuous publishing — §6.2 (watch + rerun the full publish only, not true incremental — see below)
+- [ ] Incremental publishing (only changed files) — DITA-OT has no incremental build mode; would need DitaCraft-side dependency-graph tracking, a meaningfully larger project — see Backlog in the v0.9.0 plan
 - [ ] Custom DITA-OT plugin management
 
 ### Output Formats (not scoped into v0.9.0 — open for a future milestone)

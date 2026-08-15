@@ -61,6 +61,7 @@ import { handleComputeMoveEdits, ComputeMoveEditsParams } from './features/moveT
 import { handleComputeFindReplaceEdits, FindReplaceParams } from './features/findReplace';
 import { handleComputeBatchMetadataEdits, BatchMetadataParams } from './features/batchMetadata';
 import { handleGetSubjectSchemeAttributes, GetSubjectSchemeAttributesParams } from './features/ditavalConditions';
+import { handleComputeInlineConrefEdit, InlineConrefParams } from './features/inlineConref';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { detectUnusedTopics, WorkspaceIndex } from './features/workspaceValidation';
@@ -333,6 +334,16 @@ connection.onRequest('dita/computeBatchMetadataEdits', (params: BatchMetadataPar
 // attribute/value pair from that context's subject scheme.
 connection.onRequest('dita/getSubjectSchemeAttributes', (params: GetSubjectSchemeAttributesParams) => {
     return handleGetSubjectSchemeAttributes(params, subjectSchemeService, keySpaceService);
+});
+
+// Custom request: dita/computeInlineConrefEdit
+// Backs "Inline Conref": given a cursor position on/inside an element
+// carrying a conref/conkeyref attribute, resolves the referenced element's
+// content and returns a WorkspaceEdit splicing it into the referencing
+// element in place, with the reference attribute removed.
+connection.onRequest('dita/computeInlineConrefEdit', (params: InlineConrefParams) => {
+    const folders = keySpaceService?.getWorkspaceFolders();
+    return handleComputeInlineConrefEdit(params, documents, keySpaceService, folders);
 });
 
 // File watcher — invalidate key space cache on map changes

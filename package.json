@@ -226,6 +226,21 @@
         "icon": "$(export)"
       },
       {
+        "command": "ditacraft.startWatchMode",
+        "title": "DITA: Start Watch Mode",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "ditacraft.stopWatchMode",
+        "title": "DITA: Stop Watch Mode",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "ditacraft.inlineConref",
+        "title": "DITA: Inline Conref",
+        "icon": "$(collapse-all)"
+      },
+      {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
       },
@@ -387,6 +402,16 @@
           "command": "ditacraft.extractTopicFromSection",
           "when": "resourceExtname == .dita",
           "group": "ditacraft@6"
+        },
+        {
+          "command": "ditacraft.startWatchMode",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "ditacraft@7"
+        },
+        {
+          "command": "ditacraft.inlineConref",
+          "when": "resourceExtname == .dita",
+          "group": "ditacraft@8"
         }
       ],
       "view/title": [
@@ -482,6 +507,14 @@
         {
           "command": "ditacraft.extractTopicFromSection",
           "when": "resourceExtname == .dita"
+        },
+        {
+          "command": "ditacraft.startWatchMode",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.inlineConref",
+          "when": "resourceExtname == .dita"
         }
       ],
       "explorer/context": [
@@ -494,6 +527,11 @@
           "command": "ditacraft.editDitavalConditions",
           "when": "resourceExtname == .ditaval",
           "group": "ditacraft@2"
+        },
+        {
+          "command": "ditacraft.startWatchMode",
+          "when": "resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "group": "ditacraft@3"
         }
       ]
     },
