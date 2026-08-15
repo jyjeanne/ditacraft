@@ -60,6 +60,16 @@ suite('Extract Topic From Section Command Test Suite', () => {
             const text = '<?xml version="1.0"?>\n<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">\n<concept id="t"/>';
             assert.strictEqual(detectNewTopicType(text), 'concept');
         });
+
+        test('Should not mistake a tag-like fragment inside a leading comment for the root (regression)', () => {
+            const text = '<!-- TODO: convert to <task> --><concept id="t"><conbody><section/></conbody></concept>';
+            assert.strictEqual(detectNewTopicType(text), 'concept');
+        });
+
+        test('Should still detect a real <task> root even when a comment mentions another element first (regression)', () => {
+            const text = '<!-- see also <concept> --><task id="t"><taskbody/></task>';
+            assert.strictEqual(detectNewTopicType(text), undefined);
+        });
     });
 
     suite('slugify', () => {
