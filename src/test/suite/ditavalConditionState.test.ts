@@ -90,6 +90,59 @@ suite('DITAVAL Condition Editor State Test Suite', () => {
             assert.strictEqual(audience.values[0].action, 'exclude');
             assert.strictEqual(platform.values[0].action, null);
         });
+
+        test('Should default defaultAction to null when the file has no value-less rule for the attribute', () => {
+            const scheme: SchemeAttributeInfo[] = [{ attribute: 'audience', values: [{ value: 'internal' }] }];
+            const result = mergeAttributeState(scheme, []);
+            assert.strictEqual(result[0].defaultAction, null);
+        });
+
+        test('Should surface a value-less "default for this attribute" rule as defaultAction (regression: was previously invisible)', () => {
+            const scheme: SchemeAttributeInfo[] = [
+                { attribute: 'platform', values: [{ value: 'linux' }, { value: 'windows' }] }
+            ];
+            const defaultRules: DitavalRule[] = [{ action: 'exclude', att: 'platform' }];
+            const result = mergeAttributeState(scheme, [], defaultRules);
+            assert.strictEqual(result[0].defaultAction, 'exclude');
+            // Values with no rule of their own keep action: null -- the
+            // panel is responsible for showing defaultAction as a hint
+            // next to them, not for collapsing the two into one field.
+            assert.deepStrictEqual(result[0].values.map(v => v.action), [null, null]);
+        });
+
+        test('Should let a value-specific rule coexist with an attribute-wide default', () => {
+            const scheme: SchemeAttributeInfo[] = [
+                { attribute: 'platform', values: [{ value: 'linux' }, { value: 'windows' }] }
+            ];
+            const valueRules: DitavalRule[] = [{ action: 'include', att: 'platform', val: 'windows' }];
+            const defaultRules: DitavalRule[] = [{ action: 'exclude', att: 'platform' }];
+            const result = mergeAttributeState(scheme, valueRules, defaultRules);
+            assert.strictEqual(result[0].defaultAction, 'exclude');
+            const windows = result[0].values.find(v => v.value === 'windows')!;
+            const linux = result[0].values.find(v => v.value === 'linux')!;
+            assert.strictEqual(windows.action, 'include');
+            assert.strictEqual(linux.action, null);
+        });
+
+        test('Should create an attribute group for a value-less default rule even with no scheme data or value-specific rules', () => {
+            const defaultRules: DitavalRule[] = [{ action: 'flag', att: 'rev' }];
+            const result = mergeAttributeState([], [], defaultRules);
+            assert.strictEqual(result.length, 1);
+            assert.strictEqual(result[0].attribute, 'rev');
+            assert.strictEqual(result[0].defaultAction, 'flag');
+            assert.deepStrictEqual(result[0].values, []);
+        });
+
+        test('Should not apply one attribute\'s default rule to a different attribute', () => {
+            const defaultRules: DitavalRule[] = [{ action: 'exclude', att: 'platform' }];
+            const result = mergeAttributeState(
+                [{ attribute: 'audience', values: [{ value: 'internal' }] }],
+                [],
+                defaultRules
+            );
+            const audience = result.find(r => r.attribute === 'audience')!;
+            assert.strictEqual(audience.defaultAction, null);
+        });
     });
 
     suite('applyConditionToggle', () => {
