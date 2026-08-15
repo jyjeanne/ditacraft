@@ -34,7 +34,8 @@ import {
     insertTableCommand,
     initProjectCommand,
     findReplaceInFilesCommand,
-    batchUpdateMetadataCommand
+    batchUpdateMetadataCommand,
+    editDitavalConditionsCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { registerConditionHighlighting } from './providers/ditavalDecorationProvider';
@@ -43,6 +44,7 @@ import { UI_TIMEOUTS, isDitaContentUri } from './utils/constants';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
 import { ValidationReportPanel } from './providers/validationReportPanel';
+import { DitavalConditionEditorPanel } from './providers/ditavalConditionEditorPanel';
 import { DitaExplorerProvider, DitaExplorerItem } from './providers/ditaExplorerProvider';
 import { DitaFileDecorationProvider } from './providers/ditaFileDecorationProvider';
 import { KeySpaceViewProvider } from './providers/keySpaceViewProvider';
@@ -514,6 +516,11 @@ export async function deactivate(): Promise<void> {
         try { ValidationReportPanel.currentPanel.dispose(); } catch { /* already disposed */ }
     }
 
+    // Dispose of DITAVAL Condition Editor panel
+    if (DitavalConditionEditorPanel.currentPanel) {
+        try { DitavalConditionEditorPanel.currentPanel.dispose(); } catch { /* already disposed */ }
+    }
+
     if (outputChannel) {
         try {
             outputChannel.appendLine('DitaCraft extension deactivated');
@@ -813,6 +820,19 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in batchUpdateMetadataCommand', error);
                 vscode.window.showErrorMessage(`Error running batch metadata update: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    // Command to open the Visual DITAVAL Condition Editor (accepts optional tree item or URI from context menus)
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.editDitavalConditions', async (arg?: DitaExplorerItem | vscode.Uri) => {
+            try {
+                logger.info('Command invoked: ditacraft.editDitavalConditions');
+                await editDitavalConditionsCommand(arg);
+            } catch (error) {
+                logger.error('Unhandled error in editDitavalConditionsCommand', error);
+                vscode.window.showErrorMessage(`Error opening DITAVAL condition editor: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );

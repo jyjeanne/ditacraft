@@ -94,6 +94,41 @@ export function parseDitavalRules(content: string): DitavalRule[] {
  * specific include exception was ever consulted, dimming content DITA-OT
  * would actually publish.
  */
+/**
+ * Regenerate a complete `.ditaval` document from a flat list of rules —
+ * used by the Visual DITAVAL Condition Editor (§5.3) to write back a
+ * toggled condition set.
+ *
+ * This REPLACES the file's entire `<val>` content. Anything the editor
+ * doesn't model as a `DitavalRule` — comments, `<style-conflict>` blocks,
+ * or any element other than `<prop>` — is not preserved; a value-less
+ * "default for this attribute" rule (`att` set, `val` omitted) IS
+ * preserved as long as it's included in `rules`, since the editor keeps
+ * those alongside the value-specific rules it edits rather than dropping
+ * them (see `ditavalConditionEditorPanel.ts`). This is a documented,
+ * deliberate v1 scope limit — the editor surfaces a warning about it
+ * before the first edit rather than silently discarding content.
+ */
+export function buildDitavalDocument(rules: readonly DitavalRule[]): string {
+    const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<val>'];
+    for (const rule of rules) {
+        const parts = [`action="${escapeDitavalAttr(rule.action)}"`];
+        if (rule.att) {
+            parts.push(`att="${escapeDitavalAttr(rule.att)}"`);
+        }
+        if (rule.val !== undefined) {
+            parts.push(`val="${escapeDitavalAttr(rule.val)}"`);
+        }
+        lines.push(`    <prop ${parts.join(' ')}/>`);
+    }
+    lines.push('</val>');
+    return lines.join('\n') + '\n';
+}
+
+function escapeDitavalAttr(value: string): string {
+    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
+
 export function isExcludedByRules(attrs: Record<string, string | undefined>, rules: readonly DitavalRule[]): boolean {
     for (const [attName, rawValue] of Object.entries(attrs)) {
         if (rawValue === undefined) {
