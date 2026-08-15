@@ -59,11 +59,12 @@ export async function batchUpdateMetadataCommand(
     const attribute = await promptForAttribute();
     if (!attribute) return;
 
-    const value = await vscode.window.showInputBox({
+    const rawValue = await vscode.window.showInputBox({
         title: `Set @${attribute}`,
         prompt: `Value for ${fileItems.length} file(s) — space-separated for multiple values, leave empty to remove @${attribute}`
     });
-    if (value === undefined) return; // escape cancels
+    if (rawValue === undefined) return; // escape cancels
+    const value = rawValue.trim(); // only leading/trailing whitespace -- internal spaces separate multiple values
 
     const fileUris = fileItems.map(fileItem =>
         client.code2ProtocolConverter.asUri(vscode.Uri.file(fileItem.mapNode.filePath!))

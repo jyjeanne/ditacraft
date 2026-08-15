@@ -323,7 +323,7 @@ connection.onRequest('dita/computeFindReplaceEdits', (params: FindReplaceParams)
 // selected file's root element, validated against the currently
 // registered subject scheme's controlled values.
 connection.onRequest('dita/computeBatchMetadataEdits', (params: BatchMetadataParams) => {
-    return handleComputeBatchMetadataEdits(params, documents, subjectSchemeService);
+    return handleComputeBatchMetadataEdits(params, documents, subjectSchemeService, keySpaceService);
 });
 
 // File watcher — invalidate key space cache on map changes
