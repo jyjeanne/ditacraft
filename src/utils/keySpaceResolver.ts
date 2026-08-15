@@ -1,6 +1,34 @@
 /**
  * Key Space Resolver
- * Resolves DITA key references by building a key space from map hierarchy
+ * Resolves DITA key references by building a key space from map hierarchy.
+ *
+ * Includes DITA 1.3 `@keyscope` nested/scoped key support, ported from the
+ * server's `KeySpaceService` (`server/src/services/keySpaceService.ts`,
+ * whose own doc comment records it was originally forked FROM this file —
+ * @keyscope support was added there afterward and never ported back here,
+ * which is exactly the drift class this port closes: this resolver backs
+ * `ditaLinkProvider.ts`'s clickable keyref/conkeyref document links and
+ * `keySpaceViewProvider.ts`'s sidebar, both of which used to silently
+ * disagree with the LSP server's (correct) hover/go-to-definition/
+ * validation on any map using `@keyscope`).
+ *
+ * This is a deliberately *scoped* port, not a byte-for-byte mirror — two
+ * pieces of the server's more advanced edge-case handling are intentionally
+ * left out, since they exist to harden a bigger, actively-validated service
+ * against pathological inputs, not because a navigation-only client feature
+ * needs them for correctness in the common case:
+ *   - **Diamond-shaped scope graphs** (the same submap reached twice via two
+ *     different `@keyscope` paths) still only register the *first* scope
+ *     path reached, like this resolver's pre-existing non-keyscope BFS
+ *     already did for plain submaps. The server fixed this specifically
+ *     (see `ROADMAP.md`'s v0.8.2 changes) with a `mapDirectKeysCache` +
+ *     `registeredScopeSignatures` re-visit mechanism; porting that too would
+ *     roughly double this port's size for a scope-graph shape that's rare
+ *     even among projects that use `@keyscope` at all.
+ *   - **Peer-scope diagnostics** (`duplicateKeys`, `scopeExplosionWarning`,
+ *     `explainKey`'s step-by-step trace) are validation/debugging surfaces
+ *     with no client-side consumer — this resolver only ever needs the
+ *     winning definition, never a full trace of how it won.
  */
 
 import * as vscode from 'vscode';
@@ -40,10 +68,34 @@ export interface KeyMetadata {
  */
 export interface KeySpace {
     rootMap: string;                    // Absolute path to root map
-    keys: Map<string, KeyDefinition>;   // Key name → definition
+    keys: Map<string, KeyDefinition>;   // Key name → definition (also holds "scope.keyname" qualified aliases)
     buildTime: number;                  // Timestamp when key space was built
     mapHierarchy: string[];             // All maps in hierarchy (in traversal order)
+    /**
+     * Maps each topic file path (normalized) to its primary `@keyscope`
+     * prefix, e.g. "product.lib". Used by `resolveKey()` for context-aware
+     * lookup: a keyref authored inside a scoped branch resolves against
+     * that branch's own keys before falling back to the flat/global ones.
+     */
+    topicToScope: Map<string, string>;
+    /**
+     * Peer maps (`@scope="peer"` + `@keyscope`) encountered during BFS.
+     * Not inlined into the main key space — DITA's peer scope means "not
+     * part of my document, only reachable by explicit qualified name."
+     * Maps keyscope-name → absolute map path; resolved lazily on a
+     * `"scopeName.key"`-shaped lookup miss.
+     */
+    deferredPeerMaps: Map<string, string>;
 }
+
+/** DITA element attribute-list pattern — mirrors `TAG_ATTRS` in `server/src/utils/patterns.ts` (a small, deliberately independent copy per this project's client/server duplication convention; see the module doc comment). */
+const TAG_ATTRS = `(?:"[^"]*"|'[^']*'|[^>"'])*`;
+
+/** Guards `processInlineScopeBlocks`'s recursion against pathologically deep scope nesting. */
+const MAX_INLINE_SCOPE_DEPTH = 10;
+
+/** Caps total qualified scope-alias entries against combinatorial blowup from a scope graph with many branches. */
+const MAX_KEY_SPACE_ENTRIES = 50_000;
 
 /**
  * Cache configuration
@@ -387,18 +439,32 @@ export class KeySpaceResolver implements vscode.Disposable {
             rootMap: absoluteRootPath,
             keys: new Map(),
             buildTime: Date.now(),
-            mapHierarchy: []
+            mapHierarchy: [],
+            topicToScope: new Map(),
+            deferredPeerMaps: new Map(),
         };
 
         const visited = new Set<string>();
-        const queue: string[] = [absoluteRootPath];
+        const queue: { mapPath: string; scopePrefixes: string[] }[] = [
+            { mapPath: absoluteRootPath, scopePrefixes: [] },
+        ];
+
+        // Tracks the highest-priority key definition per key name per scope
+        // prefix. The PushDown pass (after the BFS below) uses this to
+        // propagate ancestor-scope keys into descendant scope namespaces
+        // (e.g. "product.lib.version" inherits from "product.version").
+        const scopeDirectKeys = new Map<string, KeyDefinition[]>();
 
         // Breadth-first traversal of map hierarchy
         while (queue.length > 0) {
-            const currentMap = queue.shift()!;
+            const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
             const normalizedPath = path.normalize(currentMap);
 
-            // Skip already visited maps (circular reference protection)
+            // Skip already visited maps (circular reference protection).
+            // Note: unlike the server's KeySpaceService, a diamond-shaped
+            // scope graph (the same map reached again via a *different*
+            // @keyscope path) still only registers the first scope path —
+            // see the module doc comment for why that's an accepted gap here.
             if (visited.has(normalizedPath)) {
                 logger.debug('Skipping already visited map', { map: currentMap });
                 continue;
@@ -417,17 +483,50 @@ export class KeySpaceResolver implements vscode.Disposable {
             try {
                 // Read and parse current map — strip comments/CDATA, then reltable blocks.
                 // reltable hrefs are relationship-table links, not key space content (spec §2.4.4).
+                // Blanked (not deleted) so every offset computed against this
+                // string later (extractInlineScopeBlocks, etc.) stays valid.
                 const rawContent = await this.readFileAsync(currentMap);
                 const mapContent = rawContent
                     .replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length))
                     .replace(/<!\[CDATA\[[\s\S]*?]]>/g, (m) => ' '.repeat(m.length))
-                    .replace(/<reltable\b[^>]*>[\s\S]*?<\/reltable\s*>/gi, '');
+                    .replace(/<reltable\b[^>]*>[\s\S]*?<\/reltable\s*>/gi, (m) => m.replace(/[^\n\r]/g, ' '));
+
+                const rootScopes = this.extractRootKeyscope(mapContent);
+                const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, rootScopes);
+                // The primary prefix is the first (canonical) scope path for
+                // this map, used for topic-to-scope tracking. All prefixes
+                // (multi-name keyscope) are used for scopeDirectKeys so the
+                // PushDown pass inherits correctly for every alias.
+                const primaryPrefix = effectivePrefixes[0] ?? '';
+                const allScopePrefixes = effectivePrefixes.length > 0 ? effectivePrefixes : [''];
+
+                for (const prefix of allScopePrefixes) {
+                    if (!scopeDirectKeys.has(prefix)) {
+                        scopeDirectKeys.set(prefix, []);
+                    }
+                }
+
+                // Handle inline scope branches (topicrefs with @keyscope that
+                // don't reference an external map). Returns mapContent with
+                // those blocks blanked out so child-scope keys aren't
+                // double-processed by the extraction calls below.
+                const maskedContent = this.processInlineScopeBlocks(
+                    mapContent, currentMap, effectivePrefixes, keySpace, scopeDirectKeys, queue
+                );
 
                 // Extract key definitions
-                const keys = this.extractKeyDefinitions(mapContent, currentMap);
+                const keys = this.extractKeyDefinitions(maskedContent, currentMap);
 
-                // First definition wins (key precedence)
                 for (const keyDef of keys) {
+                    // Record as a direct key of every scope alias.
+                    for (const prefix of allScopePrefixes) {
+                        const directKeys = scopeDirectKeys.get(prefix)!;
+                        if (!directKeys.some(k => k.keyName === keyDef.keyName)) {
+                            directKeys.push(keyDef);
+                        }
+                    }
+
+                    // Unqualified entry — first definition across the whole key space wins.
                     if (!keySpace.keys.has(keyDef.keyName)) {
                         keySpace.keys.set(keyDef.keyName, keyDef);
                         logger.debug('Added key definition', {
@@ -435,14 +534,62 @@ export class KeySpaceResolver implements vscode.Disposable {
                             source: path.basename(currentMap)
                         });
                     }
+
+                    // Scope-qualified entries — first definition per qualified name wins.
+                    for (const prefix of effectivePrefixes) {
+                        const qualifiedName = `${prefix}.${keyDef.keyName}`;
+                        this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+                    }
                 }
 
-                // Find and queue submaps
-                const submaps = this.extractMapReferences(mapContent, currentMap);
-                queue.push(...submaps);
+                // Record which scope each referenced topic belongs to, for
+                // context-aware lookup in resolveKey().
+                this.extractTopicReferences(maskedContent, currentMap, primaryPrefix, keySpace.topicToScope);
+
+                // Find and queue submaps (masked content, so submaps inside
+                // inline scope blocks — already queued above — aren't queued twice).
+                const submaps = this.extractMapReferences(maskedContent, currentMap);
+                for (const submap of submaps) {
+                    // Peer maps are not inlined; registered for lazy resolution on a "scope.key" miss.
+                    if (submap.isPeer) {
+                        for (const scopeName of submap.keyscopes) {
+                            if (!keySpace.deferredPeerMaps.has(scopeName)) {
+                                keySpace.deferredPeerMaps.set(scopeName, submap.path);
+                            }
+                        }
+                        continue;
+                    }
+
+                    const childPrefixes = this.combineScopePrefixes(effectivePrefixes, submap.keyscopes);
+
+                    // @keys on the mapref element itself belong to the child
+                    // scope it creates (DITA spec §2.4.4.1).
+                    this.registerInlineMaprefKeys(
+                        keySpace, scopeDirectKeys, submap.inlineKeys, currentMap, submap.path, childPrefixes
+                    );
+
+                    queue.push({ mapPath: submap.path, scopePrefixes: childPrefixes });
+                }
 
             } catch (error) {
                 logger.error('Error parsing map file', { map: currentMap, error });
+            }
+        }
+
+        // PushDown pass: for every child scope, inherit ancestor-scope key
+        // definitions at lower priority, so a key defined in an ancestor scope
+        // (e.g. "product.version") is resolvable via its fully-qualified
+        // child-scope name (e.g. "product.lib.version") when authoring within
+        // the "lib" child scope. Keys already in the child scope aren't overwritten.
+        for (const [childPrefix] of scopeDirectKeys) {
+            if (childPrefix === '') continue;
+            const parts = childPrefix.split('.');
+            for (let depth = 0; depth < parts.length; depth++) {
+                const ancestorPrefix = parts.slice(0, depth).join('.');
+                for (const ancestorKey of scopeDirectKeys.get(ancestorPrefix) ?? []) {
+                    const inheritedName = `${childPrefix}.${ancestorKey.keyName}`;
+                    this.addScopedKeyEntry(keySpace, inheritedName, { ...ancestorKey, keyName: inheritedName });
+                }
             }
         }
 
@@ -694,14 +841,18 @@ export class KeySpaceResolver implements vscode.Disposable {
     /**
      * Extract map references from map content (mapref, topicgroup with href to map)
      */
-    private extractMapReferences(mapContent: string, mapPath: string): string[] {
-        const submaps: string[] = [];
+    private extractMapReferences(
+        mapContent: string,
+        mapPath: string
+    ): { path: string; keyscopes: string[]; inlineKeys: string[]; isPeer: boolean }[] {
+        const submaps: { path: string; keyscopes: string[]; inlineKeys: string[]; isPeer: boolean }[] = [];
         const mapDir = path.dirname(mapPath);
 
         // Match ANY element with href pointing to a .ditamap or .bookmap file.
         // This covers mapref, topicref, chapter, appendix, part, glossarylist,
         // frontmatter, backmatter, notices, preface, topichead, anchorref, etc.
-        const mapRefRegex = /<\w+[^>]*\bhref\s*=\s*["']([^"']+\.(?:ditamap|bookmap))["'][^>]*>/gi;
+        // Also capture @keyscope/@keys/@scope for key scope support.
+        const mapRefRegex = new RegExp(`<\\w+\\b${TAG_ATTRS}\\bhref\\s*=\\s*["']([^"']+\\.(?:ditamap|bookmap))["']${TAG_ATTRS}>`, 'gi');
 
         let match: RegExpExecArray | null;
         let matchCount = 0;
@@ -725,13 +876,357 @@ export class KeySpaceResolver implements vscode.Disposable {
 
             // Validate path is within workspace bounds
             if (this.isPathWithinWorkspace(absolutePath)) {
-                submaps.push(absolutePath);
+                const keyscopeMatch = match[0].match(/\bkeyscope\s*=\s*["']([^"']+)["']/i);
+                const keyscopes = keyscopeMatch
+                    ? keyscopeMatch[1].split(/\s+/).filter(s => s.length > 0)
+                    : [];
+                // @keys on the same element as @keyscope belongs to the child scope (DITA spec §2.4.4.1).
+                const keysMatch = keyscopes.length > 0
+                    ? match[0].match(/\bkeys\s*=\s*["']([^"']+)["']/i)
+                    : null;
+                const inlineKeys = keysMatch
+                    ? keysMatch[1].split(/\s+/).filter(k => k.length > 0)
+                    : [];
+                // Peer maps with @keyscope are not inlined -- only accessible via "scopeName.keyName".
+                const scopeMatch = match[0].match(/\bscope\s*=\s*["']([^"']+)["']/i);
+                const isPeer = scopeMatch?.[1] === 'peer' && keyscopes.length > 0;
+                submaps.push({ path: absolutePath, keyscopes, inlineKeys, isPeer });
             } else {
                 logger.warn('Map reference outside workspace blocked', { href, mapPath });
             }
         }
 
         return submaps;
+    }
+
+    /** Extract keyscope(s) from the root map/bookmap element. */
+    private extractRootKeyscope(mapContent: string): string[] {
+        const rootMatch = mapContent.match(new RegExp(`<(?:map|bookmap)\\b(${TAG_ATTRS})`, 'i'));
+        if (!rootMatch) return [];
+        const keyscopeMatch = rootMatch[1].match(/\bkeyscope\s*=\s*["']([^"']+)["']/i);
+        return keyscopeMatch ? keyscopeMatch[1].split(/\s+/).filter(s => s.length > 0) : [];
+    }
+
+    /**
+     * Compute the cross product of parent scope prefixes and child scope names.
+     * - If childScopes is empty, returns parentPrefixes unchanged (scope is inherited).
+     * - If parentPrefixes is empty, returns childScopes as new prefixes.
+     * - Otherwise returns every "parent.child" combination.
+     * Uses a Set internally to deduplicate.
+     */
+    private combineScopePrefixes(parentPrefixes: string[], childScopes: string[]): string[] {
+        if (childScopes.length === 0) return parentPrefixes;
+        if (parentPrefixes.length === 0) return childScopes;
+        const combined = new Set<string>();
+        for (const parent of parentPrefixes) {
+            for (const child of childScopes) {
+                combined.add(`${parent}.${child}`);
+            }
+        }
+        return Array.from(combined);
+    }
+
+    /**
+     * Insert a scope-qualified alias entry only when the key space has not
+     * yet reached the combinatorial-explosion cap. Always a no-op when the
+     * name already exists (first-definition wins).
+     */
+    private addScopedKeyEntry(keySpace: KeySpace, qualifiedName: string, def: KeyDefinition): void {
+        if (keySpace.keys.has(qualifiedName)) return;
+        if (keySpace.keys.size >= MAX_KEY_SPACE_ENTRIES) return;
+        keySpace.keys.set(qualifiedName, def);
+    }
+
+    /** Register @keys defined directly on a mapref element under the child scope it creates. */
+    private registerInlineMaprefKeys(
+        keySpace: KeySpace,
+        scopeDirectKeys: Map<string, KeyDefinition[]>,
+        inlineKeys: string[],
+        sourceMap: string,
+        targetFile: string,
+        childPrefixes: string[]
+    ): void {
+        if (inlineKeys.length === 0 || childPrefixes.length === 0) return;
+
+        for (const inlineKeyName of inlineKeys) {
+            const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap, targetFile };
+            for (const prefix of childPrefixes) {
+                if (!scopeDirectKeys.has(prefix)) {
+                    scopeDirectKeys.set(prefix, []);
+                }
+                const directKeys = scopeDirectKeys.get(prefix)!;
+                if (!directKeys.some(k => k.keyName === inlineKeyName)) {
+                    directKeys.push(inlineDef);
+                }
+                const qualifiedName = `${prefix}.${inlineKeyName}`;
+                this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+            }
+            if (!keySpace.keys.has(inlineKeyName)) {
+                keySpace.keys.set(inlineKeyName, inlineDef);
+            }
+        }
+    }
+
+    /**
+     * Record which scope each topic reference belongs to (used by resolveKey()
+     * for context-aware lookup). Only the first scope a topic is seen under wins.
+     */
+    private extractTopicReferences(
+        mapContent: string,
+        mapPath: string,
+        scopePrefix: string,
+        topicToScope: Map<string, string>
+    ): void {
+        const mapDir = path.dirname(mapPath);
+        const topicRefRegex = new RegExp(
+            `<(\\w+)\\b${TAG_ATTRS}\\bhref\\s*=\\s*["']([^"'#]+\\.(?:dita|xml))(?:#[^"']*)?["']`,
+            'gi'
+        );
+        let match: RegExpExecArray | null;
+        let count = 0;
+        const maxMatches = this.getMaxMatches();
+        while ((match = topicRefRegex.exec(mapContent)) !== null) {
+            if (++count > maxMatches) break;
+            if (['mapref', 'keydef', 'subjectdef'].includes(match[1].toLowerCase())) continue;
+            const href = match[2];
+            if (href.startsWith('http://') || href.startsWith('https://')) continue;
+            const resolved = path.resolve(mapDir, href);
+            if (!this.isPathWithinWorkspace(resolved)) continue;
+            const normalized = this.normalizePathForComparison(resolved);
+            if (!topicToScope.has(normalized)) {
+                topicToScope.set(normalized, scopePrefix);
+            }
+        }
+    }
+
+    /**
+     * Given a position immediately after an element's opening tag, find the
+     * matching closing tag and return the inner content and the end position
+     * of the close tag. Handles nesting of same-name elements via a depth counter.
+     */
+    private findInnerContent(content: string, fromIndex: number, tagName: string): { content: string; end: number } | null {
+        const escapedTag = tagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const openRe = new RegExp(`<${escapedTag}\\b`, 'gi');
+        const closeRe = new RegExp(`<\\/${escapedTag}\\s*>`, 'gi');
+
+        let depth = 1;
+        let pos = fromIndex;
+
+        while (depth > 0 && pos < content.length) {
+            openRe.lastIndex = pos;
+            closeRe.lastIndex = pos;
+            const nextOpen = openRe.exec(content);
+            const nextClose = closeRe.exec(content);
+
+            if (!nextClose) return null; // Malformed XML
+
+            if (nextOpen && nextOpen.index < nextClose.index) {
+                // Scan forward to the closing '>' of this opening tag to
+                // determine whether it's self-closing (self-closing elements
+                // don't introduce a new nesting level).
+                let scanPos = nextOpen.index + nextOpen[0].length;
+                let inAttrQuote = false;
+                let quoteChar = '';
+                while (scanPos < content.length) {
+                    const ch = content[scanPos];
+                    if (inAttrQuote) {
+                        if (ch === quoteChar) inAttrQuote = false;
+                    } else if (ch === '"' || ch === "'") {
+                        inAttrQuote = true;
+                        quoteChar = ch;
+                    } else if (ch === '>') {
+                        break;
+                    }
+                    scanPos++;
+                }
+                let checkPos = scanPos - 1;
+                while (checkPos > nextOpen.index && /\s/.test(content[checkPos])) checkPos--;
+                if (content[checkPos] !== '/') depth++;
+                pos = scanPos + 1;
+            } else {
+                depth--;
+                if (depth === 0) {
+                    return {
+                        content: content.substring(fromIndex, nextClose.index),
+                        end: nextClose.index + nextClose[0].length,
+                    };
+                }
+                pos = nextClose.index + nextClose[0].length;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Replace character ranges with spaces to prevent re-processing.
+     * Preserves string length so lastIndex/offset values computed against
+     * the original content remain valid after masking.
+     */
+    private maskRanges(content: string, ranges: Array<{ start: number; end: number }>): string {
+        if (ranges.length === 0) return content;
+        const sorted = [...ranges].sort((a, b) => a.start - b.start);
+        let result = '';
+        let pos = 0;
+        for (const { start, end } of sorted) {
+            if (start > pos) result += content.substring(pos, start);
+            result += ' '.repeat(Math.max(0, end - start));
+            pos = end;
+        }
+        result += content.substring(pos);
+        return result;
+    }
+
+    /**
+     * Find all top-level elements within `content` that carry @keyscope but do
+     * NOT reference an external .ditamap/.bookmap file -- "inline scope
+     * branches" whose child key definitions must be processed under the
+     * child scope prefix. Only top-level blocks are returned; nested ones are
+     * found recursively by `processInlineScopeBlocks` so they're never
+     * double-processed.
+     */
+    private extractInlineScopeBlocks(content: string): Array<{
+        keyscopes: string[];
+        inlineKeys: string[];
+        innerContent: string;
+        outerStart: number;
+        outerEnd: number;
+    }> {
+        const blocks: Array<{
+            keyscopes: string[];
+            inlineKeys: string[];
+            innerContent: string;
+            outerStart: number;
+            outerEnd: number;
+        }> = [];
+
+        const keyscopedRe = new RegExp(`<(\\w+)\\b${TAG_ATTRS}\\bkeyscope\\s*=\\s*["']([^"']+)["']${TAG_ATTRS}>`, 'gi');
+
+        let match: RegExpExecArray | null;
+        while ((match = keyscopedRe.exec(content)) !== null) {
+            const fullOpenTag = match[0];
+            const elemName = match[1];
+
+            // Root map/bookmap keyscopes are handled by extractRootKeyscope.
+            if (/^(?:map|bookmap)$/i.test(elemName)) continue;
+            // Submap references are handled by extractMapReferences + inlineKeys mechanism.
+            if (/\bhref\s*=\s*["'][^"']*\.(?:ditamap|bookmap)["']/i.test(fullOpenTag)) continue;
+            // Self-closing elements have no children to scope.
+            if (fullOpenTag.endsWith('/>')) continue;
+
+            const openTagEnd = match.index + fullOpenTag.length;
+            const inner = this.findInnerContent(content, openTagEnd, elemName);
+            if (!inner) continue;
+
+            const keyscopes = match[2].split(/\s+/).filter(s => s.length > 0);
+            const keysMatch = fullOpenTag.match(/\bkeys\s*=\s*["']([^"']+)["']/i);
+            const inlineKeys = keysMatch ? keysMatch[1].split(/\s+/).filter(k => k.length > 0) : [];
+
+            blocks.push({
+                keyscopes,
+                inlineKeys,
+                innerContent: inner.content,
+                outerStart: match.index,
+                outerEnd: inner.end,
+            });
+        }
+
+        // Keep only top-level blocks; nested blocks are handled by recursion.
+        return blocks.filter(block =>
+            !blocks.some(other =>
+                other !== block && other.outerStart < block.outerStart && block.outerEnd <= other.outerEnd
+            )
+        );
+    }
+
+    /**
+     * Recursively process inline scope branches within map content. For each
+     * top-level element with @keyscope (but no external map href): compute
+     * child scope prefixes, register @keys on the scope element itself,
+     * recurse into its inner content (handles nesting), extract key
+     * definitions/topic references from it under the child scope, and queue
+     * any submaps found inside it. Returns the input content with all inline
+     * scope block ranges blanked out so the caller's own
+     * extractKeyDefinitions/extractTopicReferences/extractMapReferences calls
+     * don't double-count child-scope content.
+     */
+    private processInlineScopeBlocks(
+        content: string,
+        mapPath: string,
+        parentEffectivePrefixes: string[],
+        keySpace: KeySpace,
+        scopeDirectKeys: Map<string, KeyDefinition[]>,
+        bfsQueue: Array<{ mapPath: string; scopePrefixes: string[] }>,
+        depth = 0
+    ): string {
+        if (depth > MAX_INLINE_SCOPE_DEPTH) return content;
+
+        const blocks = this.extractInlineScopeBlocks(content);
+        if (blocks.length === 0) return content;
+
+        const maskedContent = this.maskRanges(content, blocks.map(b => ({ start: b.outerStart, end: b.outerEnd })));
+
+        for (const block of blocks) {
+            const childPrefixes = this.combineScopePrefixes(parentEffectivePrefixes, block.keyscopes);
+            if (childPrefixes.length === 0) continue;
+
+            for (const prefix of childPrefixes) {
+                if (!scopeDirectKeys.has(prefix)) scopeDirectKeys.set(prefix, []);
+            }
+
+            // @keys on the scope-creating element itself belong to the child scope (DITA §2.4.4.1).
+            for (const inlineKeyName of block.inlineKeys) {
+                const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap: mapPath };
+                for (const prefix of childPrefixes) {
+                    const directKeys = scopeDirectKeys.get(prefix)!;
+                    if (!directKeys.some(k => k.keyName === inlineKeyName)) directKeys.push(inlineDef);
+                    const qualifiedName = `${prefix}.${inlineKeyName}`;
+                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                }
+                if (!keySpace.keys.has(inlineKeyName)) keySpace.keys.set(inlineKeyName, inlineDef);
+            }
+
+            // Recurse into nested inline scopes.
+            const maskedBlockContent = this.processInlineScopeBlocks(
+                block.innerContent, mapPath, childPrefixes, keySpace, scopeDirectKeys, bfsQueue, depth + 1
+            );
+
+            // Register key definitions from the (masked) block content under child scope.
+            const blockKeys = this.extractKeyDefinitions(maskedBlockContent, mapPath);
+            for (const keyDef of blockKeys) {
+                for (const prefix of childPrefixes) {
+                    const directKeys = scopeDirectKeys.get(prefix)!;
+                    if (!directKeys.some(k => k.keyName === keyDef.keyName)) directKeys.push(keyDef);
+                    const qualifiedName = `${prefix}.${keyDef.keyName}`;
+                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+                }
+                if (!keySpace.keys.has(keyDef.keyName)) {
+                    keySpace.keys.set(keyDef.keyName, keyDef);
+                }
+            }
+
+            // Register topic-scope associations for context-aware resolution.
+            this.extractTopicReferences(maskedBlockContent, mapPath, childPrefixes[0], keySpace.topicToScope);
+
+            // Discover submaps inside this block and queue with combined scope prefix.
+            const blockSubmaps = this.extractMapReferences(maskedBlockContent, mapPath);
+            for (const submap of blockSubmaps) {
+                if (submap.isPeer) {
+                    for (const scopeName of submap.keyscopes) {
+                        if (!keySpace.deferredPeerMaps.has(scopeName)) {
+                            keySpace.deferredPeerMaps.set(scopeName, submap.path);
+                        }
+                    }
+                    continue;
+                }
+                const grandchildPrefixes = this.combineScopePrefixes(childPrefixes, submap.keyscopes);
+                this.registerInlineMaprefKeys(
+                    keySpace, scopeDirectKeys, submap.inlineKeys, mapPath, submap.path, grandchildPrefixes
+                );
+                bfsQueue.push({ mapPath: submap.path, scopePrefixes: grandchildPrefixes });
+            }
+        }
+
+        return maskedContent;
     }
 
     /**
@@ -789,17 +1284,62 @@ export class KeySpaceResolver implements vscode.Disposable {
         // Build key space
         const keySpace = await this.buildKeySpace(rootMap);
 
-        // Lookup key, then follow any @keyref chain to the final definition.
+        // Context-aware resolution: when the authoring file lives inside a
+        // named @keyscope, prefer the scope-qualified key (e.g.
+        // "product.lib.version") over the root-level unqualified key
+        // ("version"). The PushDown pass already added inherited ancestor
+        // keys under the child scope namespace, so a child-scope override
+        // always beats an ancestor definition at this lookup point.
+        const scopePrefix = keySpace.topicToScope.get(this.normalizePathForComparison(contextFilePath));
+        if (scopePrefix) {
+            const qualifiedName = `${scopePrefix}.${keyName}`;
+            const scopedDef = keySpace.keys.get(qualifiedName);
+            if (scopedDef) {
+                const resolved = this.followKeyrefChain(scopedDef, keySpace.keys, scopePrefix);
+                logger.debug('Key resolved (scope-qualified)', {
+                    keyName, scopePrefix, targetFile: resolved.targetFile
+                });
+                return resolved;
+            }
+        }
+
+        // Fall back to the context-free (root-scope) entry, then follow any
+        // @keyref chain to the final definition.
         const keyDef = keySpace.keys.get(keyName);
 
         if (keyDef) {
-            const resolved = this.followKeyrefChain(keyDef, keySpace.keys);
+            const resolved = this.followKeyrefChain(keyDef, keySpace.keys, '');
             logger.debug('Key resolved', {
                 keyName,
                 targetFile: resolved.targetFile,
                 sourceMap: path.basename(resolved.sourceMap)
             });
             return resolved;
+        }
+
+        // Deferred peer map resolution: keys in a peer map are only reachable
+        // as "peerScopeName.actualKey" -- strip the first scope segment and
+        // look up the remainder in the peer map's own key space.
+        const dotIdx = keyName.indexOf('.');
+        if (dotIdx > 0 && keySpace.deferredPeerMaps.size > 0) {
+            const peerScopeName = keyName.slice(0, dotIdx);
+            const peerKey = keyName.slice(dotIdx + 1);
+            const peerMapPath = keySpace.deferredPeerMaps.get(peerScopeName);
+            if (peerMapPath) {
+                try {
+                    const peerKeySpace = await this.buildKeySpace(peerMapPath);
+                    const peerDef = peerKeySpace.keys.get(peerKey);
+                    if (peerDef) {
+                        const lastDot = peerKey.lastIndexOf('.');
+                        const peerKeyScope = lastDot > 0 ? peerKey.slice(0, lastDot) : '';
+                        const resolved = this.followKeyrefChain(peerDef, peerKeySpace.keys, peerKeyScope);
+                        logger.debug('Key resolved (peer map)', { keyName, peerMapPath, targetFile: resolved.targetFile });
+                        return resolved;
+                    }
+                } catch (error) {
+                    logger.debug('Peer map not readable', { peerMapPath, error });
+                }
+            }
         }
 
         logger.debug('Key not found in key space', { keyName });
@@ -975,6 +1515,7 @@ export class KeySpaceResolver implements vscode.Disposable {
     private followKeyrefChain(
         keyDef: KeyDefinition,
         keys: Map<string, KeyDefinition>,
+        scopePrefix = '',
         hopsRemaining = 3,
         visited = new Set<string>()
     ): KeyDefinition {
@@ -982,9 +1523,12 @@ export class KeySpaceResolver implements vscode.Disposable {
             return keyDef;
         }
         visited.add(keyDef.keyName);
-        const next = keys.get(keyDef.keyref);
+        // Prefer the scope-qualified target so a keyref chain within a named
+        // scope resolves to the scope's own override rather than the root definition.
+        const next = (scopePrefix ? keys.get(`${scopePrefix}.${keyDef.keyref}`) : undefined)
+            ?? keys.get(keyDef.keyref);
         if (!next) return keyDef;
-        return this.followKeyrefChain(next, keys, hopsRemaining - 1, visited);
+        return this.followKeyrefChain(next, keys, scopePrefix, hopsRemaining - 1, visited);
     }
 
     /**

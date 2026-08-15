@@ -11,9 +11,9 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 
 import { ELEMENT_DOCS, DITA_ELEMENTS } from '../data/ditaSchema';
-import { findReferenceAtOffset, parseReference } from '../utils/referenceParser';
+import { findReferenceAtOffset, parseReference, getTargetId } from '../utils/referenceParser';
 import { KeySpaceService } from '../services/keySpaceService';
-import { TAG_ATTRS } from '../utils/patterns';
+import { findElementExtentById } from '../utils/elementExtent';
 import { uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
 
 /**
@@ -225,10 +225,26 @@ async function getHrefHover(
     };
 }
 
+const MAX_PREVIEW = 300;
+
 /**
  * Extract the content of a referenced element for conref preview.
  * Fragment format: "topicid/elementid" or just "topicid".
  * Returns the first ~300 chars of the element's XML content, or null.
+ *
+ * Delegates the actual "find this id, get its full span" work to
+ * `elementExtent.ts`'s `findElementExtentById` -- this function used to
+ * carry its own, independent copy of that depth-tracking algorithm (noted
+ * in `elementExtent.ts`'s own doc comment), which had the same two bugs
+ * `elementExtent.ts` itself needed fixed: no self-closing-element check
+ * (so a self-closing target would fall through to depth-tracking a
+ * *separate* closing tag that may not exist, or worse, may exist purely as
+ * a bare mention inside a later comment -- this function never stripped
+ * comments/CDATA before scanning either) and an exact `</tag>` substring
+ * match that misses a legal `</tag >` (whitespace before `>`, which XML's
+ * ETag production explicitly permits). Reusing the already-fixed,
+ * already-tested implementation instead of patching a third private copy
+ * of the same algorithm a third time.
  */
 async function getConrefPreview(filePath: string, fragment: string): Promise<string | null> {
     let content: string;
@@ -238,57 +254,17 @@ async function getConrefPreview(filePath: string, fragment: string): Promise<str
         return null;
     }
 
-    // Parse fragment: topicid/elementid
-    const slashPos = fragment.indexOf('/');
-    const targetId = slashPos !== -1 ? fragment.substring(slashPos + 1) : fragment;
+    const targetId = getTargetId(fragment);
     if (!targetId) return null;
 
-    // Find the element with the target id
-    const escaped = targetId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`<([\\w-]+)\\b${TAG_ATTRS}\\bid\\s*=\\s*["']${escaped}["']${TAG_ATTRS}>`, 'g');
-    const match = regex.exec(content);
-    if (!match) return null;
+    const extent = findElementExtentById(content, targetId);
+    if (!extent) return null;
 
-    const tagName = match[1];
-    const startIdx = match.index;
-
-    // Find matching closing tag (simple depth tracking)
-    const closeTag = `</${tagName}>`;
-    let depth = 1;
-    let pos = startIdx + match[0].length;
-    const openPattern = new RegExp(`<${tagName}\\b(?:"[^"]*"|'[^']*'|[^>"'])*\\/?>`, 'g');
-
-    while (depth > 0 && pos < content.length) {
-        const nextClose = content.indexOf(closeTag, pos);
-        if (nextClose === -1) break;
-
-        // Count opens between pos and nextClose
-        openPattern.lastIndex = pos;
-        let openMatch;
-        while ((openMatch = openPattern.exec(content)) !== null && openMatch.index < nextClose) {
-            if (!openMatch[0].endsWith('/>')) {
-                depth++;
-            }
-        }
-
-        depth--;
-        if (depth === 0) {
-            const fullElement = content.substring(startIdx, nextClose + closeTag.length);
-            const MAX_PREVIEW = 300;
-            if (fullElement.length > MAX_PREVIEW) {
-                return fullElement.substring(0, MAX_PREVIEW) + '\n  ...';
-            }
-            return fullElement;
-        }
-        pos = nextClose + closeTag.length;
+    const fullElement = content.slice(extent.start, extent.end);
+    if (fullElement.length > MAX_PREVIEW) {
+        return fullElement.slice(0, MAX_PREVIEW) + '\n  ...';
     }
-
-    // Fallback: just show the opening tag + first line of content
-    const lineEnd = content.indexOf('\n', startIdx + match[0].length);
-    if (lineEnd !== -1) {
-        return content.substring(startIdx, lineEnd) + '\n  ...';
-    }
-    return match[0];
+    return fullElement;
 }
 
 /**
