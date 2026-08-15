@@ -33,7 +33,8 @@ import {
     insertImageCommand,
     insertTableCommand,
     initProjectCommand,
-    findReplaceInFilesCommand
+    findReplaceInFilesCommand,
+    batchUpdateMetadataCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { registerConditionHighlighting } from './providers/ditavalDecorationProvider';
@@ -134,7 +135,8 @@ export function activate(context: vscode.ExtensionContext) {
         const ditaExplorerProvider = new DitaExplorerProvider();
         const ditaExplorerView = vscode.window.createTreeView('ditacraft.ditaExplorer', {
             treeDataProvider: ditaExplorerProvider,
-            showCollapseAll: true
+            showCollapseAll: true,
+            canSelectMany: true
         });
         context.subscriptions.push(ditaExplorerView, ditaExplorerProvider);
         context.subscriptions.push(
@@ -799,6 +801,18 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in findReplaceInFilesCommand', error);
                 vscode.window.showErrorMessage(`Error running Find & Replace: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.batchUpdateMetadata', async (item?: DitaExplorerItem, allSelected?: DitaExplorerItem[]) => {
+            try {
+                logger.info('Command invoked: ditacraft.batchUpdateMetadata');
+                await batchUpdateMetadataCommand(item, allSelected);
+            } catch (error) {
+                logger.error('Unhandled error in batchUpdateMetadataCommand', error);
+                vscode.window.showErrorMessage(`Error running batch metadata update: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );

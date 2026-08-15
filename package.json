@@ -211,6 +211,11 @@
         "icon": "$(replace-all)"
       },
       {
+        "command": "ditacraft.batchUpdateMetadata",
+        "title": "DITA: Batch Update Metadata",
+        "icon": "$(list-flat)"
+      },
+      {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
       },
@@ -401,6 +406,11 @@
           "command": "ditacraft.showMapVisualizer",
           "when": "view == ditacraft.ditaExplorer && viewItem =~ /ditaMap/",
           "group": "ditacraft@3"
+        },
+        {
+          "command": "ditacraft.batchUpdateMetadata",
+          "when": "view == ditacraft.ditaExplorer && viewItem =~ /ditaFile/",
+          "group": "ditacraft@4"
         }
       ],
       "commandPalette": [

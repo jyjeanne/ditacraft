@@ -59,6 +59,7 @@ import { handleValidateFragment, ValidateFragmentParams, FragmentValidationResul
 import { handleBuildContextSnapshot, BuildContextSnapshotParams, ContextSnapshotResult } from './features/contextSnapshot';
 import { handleComputeMoveEdits, ComputeMoveEditsParams } from './features/moveTopic';
 import { handleComputeFindReplaceEdits, FindReplaceParams } from './features/findReplace';
+import { handleComputeBatchMetadataEdits, BatchMetadataParams } from './features/batchMetadata';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { detectUnusedTopics, WorkspaceIndex } from './features/workspaceValidation';
@@ -314,6 +315,15 @@ connection.onRequest('dita/computeMoveEdits', (params: ComputeMoveEditsParams) =
 connection.onRequest('dita/computeFindReplaceEdits', (params: FindReplaceParams) => {
     const folders = keySpaceService?.getWorkspaceFolders();
     return handleComputeFindReplaceEdits(params, documents, folders);
+});
+
+// Custom request: dita/computeBatchMetadataEdits
+// Backs "Batch Metadata Update": given a multi-file selection and a
+// profiling attribute + value, sets or removes that attribute on each
+// selected file's root element, validated against the currently
+// registered subject scheme's controlled values.
+connection.onRequest('dita/computeBatchMetadataEdits', (params: BatchMetadataParams) => {
+    return handleComputeBatchMetadataEdits(params, documents, subjectSchemeService);
 });
 
 // File watcher — invalidate key space cache on map changes
