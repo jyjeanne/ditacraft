@@ -2,5 +2,5 @@
 <!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
 <map>
     <title>Lib Submap (Nested Scope)</title>
-    <topicref href="nested-keyscope-lib-topic.dita"/>
+    <topicref href="lib-topic.dita"/>
 </map>
