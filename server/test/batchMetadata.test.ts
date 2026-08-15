@@ -5,7 +5,16 @@ import * as path from 'path';
 import { URI } from 'vscode-uri';
 import { handleComputeBatchMetadataEdits } from '../src/features/batchMetadata';
 import { SubjectSchemeService } from '../src/services/subjectSchemeService';
+import { KeySpaceService } from '../src/services/keySpaceService';
 import { createDoc, createDocs } from './helper';
+
+function createKeySpaceService(tmpDir: string): KeySpaceService {
+    return new KeySpaceService(
+        [tmpDir],
+        async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }),
+        () => {}
+    );
+}
 
 function createSchemeService(schemeContent: string, dir: string): SubjectSchemeService {
     const filePath = path.join(dir, 'scheme.ditamap');
@@ -309,5 +318,97 @@ suite('handleComputeBatchMetadataEdits', () => {
         );
 
         assert.strictEqual(result.edit!.changes![uri][0].newText, ' otherprops="a&amp;b&lt;c&quot;d"');
+    });
+
+    test('does not mistake a tag-like fragment inside a leading comment for the root element (regression)', async () => {
+        const filePath = path.join(tmpDir, 'topic.dita');
+        fs.writeFileSync(
+            filePath,
+            '<?xml version="1.0"?><!DOCTYPE topic><!-- TODO: remove <placeholder foo="x"/> before publishing --><topic id="t1"><title>T</title></topic>'
+        );
+        const uri = URI.file(filePath).toString();
+
+        const result = await handleComputeBatchMetadataEdits(
+            { fileUris: [uri], attribute: 'audience', value: 'internal' },
+            createDocs(),
+            NO_SCHEME_SERVICE
+        );
+
+        assert.strictEqual(result.updatedCount, 1);
+        assert.strictEqual(result.skipped.length, 0);
+        // Root element must be <topic>, not the comment's <placeholder/> --
+        // the inserted attribute must land right after "topic".
+        const newText = result.edit!.changes![uri][0].newText;
+        assert.strictEqual(newText, ' audience="internal"');
+        const originalContent = fs.readFileSync(filePath, 'utf-8');
+        const insertOffset = originalContent.indexOf('<topic') + '<topic'.length;
+        assert.strictEqual(
+            result.edit!.changes![uri][0].range.start.character,
+            insertOffset,
+            'the edit must be anchored right after the real <topic> root, not the comment\'s <placeholder/>'
+        );
+    });
+
+    suite('per-file subject scheme scoping (regression: must not rely on the shared service\'s already-registered state)', () => {
+        test('rejects an invalid value for a file resolved via keySpaceService, even though the shared service has no schemes registered directly', async () => {
+            fs.writeFileSync(path.join(tmpDir, 'scheme.ditamap'), AUDIENCE_SCHEME, 'utf-8');
+            fs.writeFileSync(
+                path.join(tmpDir, 'root.ditamap'),
+                `<?xml version="1.0"?><map><mapref href="scheme.ditamap"/></map>`,
+                'utf-8'
+            );
+            const filePath = path.join(tmpDir, 'topic.dita');
+            fs.writeFileSync(filePath, '<topic id="t1"><title>T</title></topic>');
+            const uri = URI.file(filePath).toString();
+
+            // A fresh service with nothing registered on it -- if batchMetadata
+            // fell back to the shared service's own (empty) state instead of
+            // resolving this file's own scheme via keySpaceService, validation
+            // would silently no-op and the invalid value would be written.
+            const freshService = new SubjectSchemeService();
+            const keySpaceService = createKeySpaceService(tmpDir);
+            try {
+                const result = await handleComputeBatchMetadataEdits(
+                    { fileUris: [uri], attribute: 'audience', value: 'bogus-value' },
+                    createDocs(),
+                    freshService,
+                    keySpaceService
+                );
+
+                assert.strictEqual(result.updatedCount, 0, 'an invalid value must not produce an edit even without prior registerSchemes()');
+                assert.strictEqual(result.skipped.length, 1);
+                assert.ok(result.skipped[0].reason.includes('bogus-value'));
+            } finally {
+                keySpaceService.shutdown();
+            }
+        });
+
+        test('accepts a valid value for a file resolved via keySpaceService, even though the shared service has no schemes registered directly', async () => {
+            fs.writeFileSync(path.join(tmpDir, 'scheme.ditamap'), AUDIENCE_SCHEME, 'utf-8');
+            fs.writeFileSync(
+                path.join(tmpDir, 'root.ditamap'),
+                `<?xml version="1.0"?><map><mapref href="scheme.ditamap"/></map>`,
+                'utf-8'
+            );
+            const filePath = path.join(tmpDir, 'topic.dita');
+            fs.writeFileSync(filePath, '<topic id="t1"><title>T</title></topic>');
+            const uri = URI.file(filePath).toString();
+
+            const freshService = new SubjectSchemeService();
+            const keySpaceService = createKeySpaceService(tmpDir);
+            try {
+                const result = await handleComputeBatchMetadataEdits(
+                    { fileUris: [uri], attribute: 'audience', value: 'internal' },
+                    createDocs(),
+                    freshService,
+                    keySpaceService
+                );
+
+                assert.strictEqual(result.updatedCount, 1);
+                assert.strictEqual(result.skipped.length, 0);
+            } finally {
+                keySpaceService.shutdown();
+            }
+        });
     });
 });
