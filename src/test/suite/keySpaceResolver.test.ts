@@ -466,6 +466,62 @@ suite('Key Space Resolver Test Suite', () => {
         });
     });
 
+    suite('@keyscope Support (DITA 1.3 nested/scoped keys)', () => {
+        test('Should resolve the same key name to different targets depending on the context file\'s scope', async () => {
+            // Two submaps under two different @keyscope names, each defining
+            // "overview" -- the exact bug this port fixes (previously the
+            // client resolver had zero @keyscope awareness and would give
+            // one arbitrary, scope-blind answer for every context).
+            const mapPath = path.join(fixturesPath, 'root-keyscope-map.ditamap');
+            await resolver.buildKeySpace(mapPath);
+
+            const topicA = path.join(fixturesPath, 'keyscope-topic-a.dita');
+            const topicB = path.join(fixturesPath, 'keyscope-topic-b.dita');
+
+            const defA = await resolver.resolveKey('overview', topicA);
+            const defB = await resolver.resolveKey('overview', topicB);
+
+            assert.ok(defA, 'should resolve "overview" from topic A\'s context');
+            assert.ok(defB, 'should resolve "overview" from topic B\'s context');
+            assert.ok(defA!.targetFile?.includes('keyscope-overview-a.dita'),
+                `topic A's context should resolve "overview" to keyscope-overview-a.dita, got ${defA!.targetFile}`);
+            assert.ok(defB!.targetFile?.includes('keyscope-overview-b.dita'),
+                `topic B's context should resolve "overview" to keyscope-overview-b.dita, got ${defB!.targetFile}`);
+            assert.notStrictEqual(defA!.targetFile, defB!.targetFile,
+                'the same key name must resolve differently depending on which scope the context file is in');
+        });
+
+        test('Should expose dot-qualified scope aliases for access from outside the scope', async () => {
+            const mapPath = path.join(fixturesPath, 'root-keyscope-map.ditamap');
+            const keySpace = await resolver.buildKeySpace(mapPath);
+
+            const qualifiedA = keySpace.keys.get('prodA.overview');
+            const qualifiedB = keySpace.keys.get('prodB.overview');
+            assert.ok(qualifiedA?.targetFile?.includes('keyscope-overview-a.dita'));
+            assert.ok(qualifiedB?.targetFile?.includes('keyscope-overview-b.dita'));
+        });
+
+        test('Should inherit an ancestor scope\'s key into a nested child scope\'s fully-qualified name (PushDown)', async () => {
+            const mapPath = path.join(fixturesPath, 'root-nested-keyscope-map.ditamap');
+            const keySpace = await resolver.buildKeySpace(mapPath);
+
+            const inherited = keySpace.keys.get('product.lib.version');
+            assert.ok(inherited, 'ancestor scope key should be inherited into the nested child scope\'s namespace');
+            assert.ok(inherited!.targetFile?.includes('nested-keyscope-product-version.dita'));
+        });
+
+        test('Should resolve a bare key name from within a nested scope via the inherited ancestor definition', async () => {
+            const mapPath = path.join(fixturesPath, 'root-nested-keyscope-map.ditamap');
+            await resolver.buildKeySpace(mapPath);
+
+            const contextFile = path.join(fixturesPath, 'nested-keyscope-lib-topic.dita');
+            const resolved = await resolver.resolveKey('version', contextFile);
+
+            assert.ok(resolved, 'a topic inside the nested "lib" scope should resolve "version" via the inherited ancestor key');
+            assert.ok(resolved!.targetFile?.includes('nested-keyscope-product-version.dita'));
+        });
+    });
+
     suite('Workspace Boundary Path Normalization', () => {
         // normalizePathForComparison is the private helper isPathWithinWorkspace uses to
         // compare an absolute path against configured workspace folders. It must case-fold

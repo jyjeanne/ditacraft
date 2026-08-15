@@ -168,6 +168,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - Fixed Windows case-mismatch in key-space path comparisons (`resolveKey`, `explainKey`, BFS visited-set, cache invalidation) via consistent `normalizeFsPath()` usage
 - Rename and Find All References now verify `conkeyref` matches actually resolve to the target file via the key space before rewriting/reporting, instead of matching on element-ID text alone across the workspace
 - `resolveKey` calls in cross-file reference/rename loops now run in parallel via `Promise.all`
+- **Client-side `KeySpaceResolver`** (backing clickable keyref/conkeyref document links and the Key Space sidebar) had zero `@keyscope` support at all, unlike the server's `KeySpaceService` — a keyref inside a scoped branch could silently resolve to a *different file* via a document-link click than via LSP-backed Go to Definition on the exact same reference. Ported the server's scope-prefix BFS, PushDown inheritance, inline scope block handling, and deferred peer-map resolution into the client resolver (deliberately not the server's diamond-graph re-registration or peer-scope diagnostics, both narrower edge-case hardening the client doesn't need — see the module's own doc comment)
 
 **Validation Pipeline Race & Cache Fixes (deep code review, 2 passes):**
 - A timed-out or cancelled async validation phase (cross-reference, circular-reference, RNG) no longer caches its empty fallback as a valid result — previously could mask broken links for up to 5 minutes
@@ -185,6 +186,7 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - Added missing `parml`, `screen`, `syntaxdiagram` to the `body`/`conbody`/`section` content models
 - Fixed `workspaceValidation.ts` root-ID extraction matching a nested child's `id` instead of the topic's actual root element
 - DITA-OT progress percentages (absolute) no longer misapplied as cumulative increments in publish/preview/validate-guide
+- `hover.ts`'s conref/conkeyref content preview (`getConrefPreview`) no longer carries its own independent, buggy copy of the element-span depth-tracking algorithm — missing self-closing-element check and no comment-stripping meant a self-closing target followed by a comment merely *mentioning* the tag's closing bracket could leak arbitrary unrelated document content into the preview; now delegates to `elementExtent.ts`'s already-hardened `findElementExtentById`
 
 **Added — Knowledge Graph:**
 - `@sentropic/graphify` devDependency (local tree-sitter AST extraction, no LLM/API keys); `npm run graph` publishes `graph.json`, `GRAPH_REPORT.md`, `graph.svg`, an interactive studio viewer, and `flows.json` to `docs/graph/`

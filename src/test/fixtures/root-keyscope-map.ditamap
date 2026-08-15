@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Root Map With Keyscope Submaps</title>
+    <mapref href="keyscope-prodA.ditamap" keyscope="prodA"/>
+    <mapref href="keyscope-prodB.ditamap" keyscope="prodB"/>
+</map>

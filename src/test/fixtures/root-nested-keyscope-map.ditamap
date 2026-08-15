@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map keyscope="product">
+    <title>Root Map With Nested Keyscope</title>
+    <keydef keys="version" href="nested-keyscope-product-version.dita"/>
+    <mapref href="nested-keyscope-lib.ditamap" keyscope="lib"/>
+</map>

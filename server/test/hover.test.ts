@@ -286,6 +286,78 @@ suite('handleHover', () => {
             assert.ok(mc.value.includes('snippets.dita'), 'should show target file');
         });
 
+        suite('conkeyref content preview', () => {
+            let tmpDir: string;
+
+            setup(() => {
+                tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-hover-test-'));
+            });
+
+            teardown(() => {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            });
+
+            test('shows the resolved element\'s content in the preview', async () => {
+                const targetPath = path.join(tmpDir, 'snippets.dita');
+                fs.writeFileSync(targetPath, '<topic id="t"><body><p id="intro">Hello world.</p></body></topic>');
+
+                const keys = new Map<string, KeyDefinition>([
+                    ['snippet', { keyName: 'snippet', sourceMap: path.join(tmpDir, 'root.ditamap'), targetFile: targetPath }],
+                ]);
+                const keySpaceService = createMockKeySpaceService(keys);
+
+                const content = '<p conkeyref="snippet/intro">fallback</p>';
+                const doc = createDoc(content);
+                const docs = createDocs(doc);
+                const result = await handleHover(
+                    { textDocument: { uri: TEST_URI }, position: { line: 0, character: 20 } },
+                    docs,
+                    keySpaceService
+                );
+
+                assert.ok(result);
+                const mc = result.contents as { kind: string; value: string };
+                assert.ok(mc.value.includes('<p id="intro">Hello world.</p>'), 'should show the resolved element\'s full content');
+            });
+
+            test('omits the preview (does not show unrelated content) when the target element is self-closing (regression)', async () => {
+                // Previously: getConrefPreview had no self-closing check and
+                // never stripped comments before scanning for a closing tag,
+                // so a self-closing target followed by a comment merely
+                // *mentioning* the tag name's closing bracket produced a
+                // preview spanning arbitrary unrelated content in between.
+                const targetPath = path.join(tmpDir, 'snippets.dita');
+                fs.writeFileSync(
+                    targetPath,
+                    '<topic id="t"><body>' +
+                    '<p>Text with <data id="intro" name="ver" value="1.0"/> inline.</p>' +
+                    '<p>More real content that must never appear in the preview.</p>' +
+                    '</body>' +
+                    '<!-- migration note: this replaces the old </data> element from v1 -->' +
+                    '</topic>'
+                );
+
+                const keys = new Map<string, KeyDefinition>([
+                    ['snippet', { keyName: 'snippet', sourceMap: path.join(tmpDir, 'root.ditamap'), targetFile: targetPath }],
+                ]);
+                const keySpaceService = createMockKeySpaceService(keys);
+
+                const content = '<p conkeyref="snippet/intro">fallback</p>';
+                const doc = createDoc(content);
+                const docs = createDocs(doc);
+                const result = await handleHover(
+                    { textDocument: { uri: TEST_URI }, position: { line: 0, character: 20 } },
+                    docs,
+                    keySpaceService
+                );
+
+                assert.ok(result);
+                const mc = result.contents as { kind: string; value: string };
+                assert.ok(!mc.value.includes('More real content'), 'must not leak unrelated content into the preview');
+                assert.ok(!mc.value.includes('migration note'), 'must not leak comment content into the preview');
+            });
+        });
+
         test('keyref hover for unknown key shows warning', async () => {
             const keys = new Map<string, KeyDefinition>();
             const keySpaceService = createMockKeySpaceService(keys);
