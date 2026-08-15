@@ -216,6 +216,11 @@
         "icon": "$(list-flat)"
       },
       {
+        "command": "ditacraft.editDitavalConditions",
+        "title": "DITA: Edit DITAVAL Conditions",
+        "icon": "$(filter)"
+      },
+      {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
       },
@@ -340,6 +345,11 @@
           "command": "ditacraft.previewFilter",
           "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap",
           "group": "navigation@5"
+        },
+        {
+          "command": "ditacraft.editDitavalConditions",
+          "when": "resourceExtname == .ditaval",
+          "group": "navigation@1"
         }
       ],
       "editor/context": [
@@ -362,6 +372,11 @@
           "command": "ditacraft.insertTable",
           "when": "resourceExtname == .dita",
           "group": "ditacraft@4"
+        },
+        {
+          "command": "ditacraft.editDitavalConditions",
+          "when": "resourceExtname == .ditaval",
+          "group": "ditacraft@5"
         }
       ],
       "view/title": [
@@ -439,6 +454,10 @@
           "when": "resourceExtname == .ditamap || resourceExtname == .bookmap"
         },
         {
+          "command": "ditacraft.editDitavalConditions",
+          "when": "resourceExtname == .ditaval"
+        },
+        {
           "command": "ditacraft.restructureMap",
           "when": "resourceExtname == .ditamap || resourceExtname == .bookmap"
         },
@@ -456,6 +475,11 @@
           "command": "ditacraft.restructureMap",
           "when": "resourceExtname == .ditamap || resourceExtname == .bookmap",
           "group": "ditacraft@1"
+        },
+        {
+          "command": "ditacraft.editDitavalConditions",
+          "when": "resourceExtname == .ditaval",
+          "group": "ditacraft@2"
         }
       ]
     },

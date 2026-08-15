@@ -190,6 +190,19 @@ export class SubjectSchemeService implements ISubjectSchemeService {
         return snapshot;
     }
 
+    /**
+     * Parse and merge an explicit scheme path list into raw
+     * `SubjectSchemeData`, without touching the shared registered state —
+     * the same pure lookup `snapshotFor()` uses internally, exposed for
+     * callers (the DITAVAL condition editor) that need the raw
+     * `validValuesMap`/`hierarchyPaths` structure to *enumerate* every
+     * controlled attribute/value pair, rather than the narrower
+     * `SubjectSchemeQueries` lookup-by-name surface `snapshotFor()` returns.
+     */
+    getSchemeData(schemePaths: string[]): SubjectSchemeData {
+        return this.mergeSchemes(schemePaths);
+    }
+
     /** Parse and merge an explicit list of scheme maps (pure — no service state mutation). */
     private mergeSchemes(schemePaths: string[]): SubjectSchemeData {
         const merged: SubjectSchemeData = {

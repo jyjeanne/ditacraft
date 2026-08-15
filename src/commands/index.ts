@@ -29,3 +29,4 @@ export { insertImageCommand } from './insertImageCommand';
 export { insertTableCommand } from './insertTableCommand';
 export { findReplaceInFilesCommand } from './findReplaceCommand';
 export { batchUpdateMetadataCommand } from './batchMetadataCommand';
+export { editDitavalConditionsCommand } from './ditavalConditionEditorCommand';

@@ -5,7 +5,7 @@
  */
 
 import * as assert from 'assert';
-import { parseDitavalRules, isExcludedByRules, PROFILING_ATTRIBUTES } from '../../utils/ditavalParser';
+import { parseDitavalRules, isExcludedByRules, buildDitavalDocument, PROFILING_ATTRIBUTES } from '../../utils/ditavalParser';
 
 suite('DITAVAL Rule Parsing Test Suite', () => {
     suite('parseDitavalRules', () => {
@@ -146,6 +146,48 @@ suite('DITAVAL Rule Parsing Test Suite', () => {
             for (const attr of ['audience', 'platform', 'product', 'otherprops', 'props', 'rev']) {
                 assert.ok(PROFILING_ATTRIBUTES.includes(attr as (typeof PROFILING_ATTRIBUTES)[number]));
             }
+        });
+    });
+
+    suite('buildDitavalDocument', () => {
+        test('Should produce an empty <val/> for no rules', () => {
+            const doc = buildDitavalDocument([]);
+            assert.strictEqual(doc, '<?xml version="1.0" encoding="UTF-8"?>\n<val>\n</val>\n');
+        });
+
+        test('Should serialize a single rule with action/att/val', () => {
+            const doc = buildDitavalDocument([{ action: 'exclude', att: 'audience', val: 'internal' }]);
+            assert.ok(doc.includes('<prop action="exclude" att="audience" val="internal"/>'));
+        });
+
+        test('Should serialize a value-less rule without a val attribute', () => {
+            const doc = buildDitavalDocument([{ action: 'exclude', att: 'platform' }]);
+            assert.ok(doc.includes('<prop action="exclude" att="platform"/>'));
+            assert.ok(!doc.includes('val='));
+        });
+
+        test('Should round-trip through parseDitavalRules', () => {
+            const rules = [
+                { action: 'exclude', att: 'audience', val: 'internal' },
+                { action: 'include', att: 'platform', val: 'windows' },
+                { action: 'flag', att: 'rev', val: '2.0' }
+            ];
+            const doc = buildDitavalDocument(rules);
+            assert.deepStrictEqual(parseDitavalRules(doc), rules);
+        });
+
+        test('Should escape special characters in attribute values', () => {
+            const doc = buildDitavalDocument([{ action: 'exclude', att: 'otherprops', val: 'a&b<c"d' }]);
+            assert.ok(doc.includes('val="a&amp;b&lt;c&quot;d"'));
+        });
+
+        test('Should preserve rule order', () => {
+            const rules = [
+                { action: 'exclude', att: 'audience', val: 'b' },
+                { action: 'exclude', att: 'audience', val: 'a' }
+            ];
+            const doc = buildDitavalDocument(rules);
+            assert.ok(doc.indexOf('val="b"') < doc.indexOf('val="a"'));
         });
     });
 });

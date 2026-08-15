@@ -60,6 +60,7 @@ import { handleBuildContextSnapshot, BuildContextSnapshotParams, ContextSnapshot
 import { handleComputeMoveEdits, ComputeMoveEditsParams } from './features/moveTopic';
 import { handleComputeFindReplaceEdits, FindReplaceParams } from './features/findReplace';
 import { handleComputeBatchMetadataEdits, BatchMetadataParams } from './features/batchMetadata';
+import { handleGetSubjectSchemeAttributes, GetSubjectSchemeAttributesParams } from './features/ditavalConditions';
 import { KeySpaceService } from './services/keySpaceService';
 import { SubjectSchemeService } from './services/subjectSchemeService';
 import { detectUnusedTopics, WorkspaceIndex } from './features/workspaceValidation';
@@ -324,6 +325,14 @@ connection.onRequest('dita/computeFindReplaceEdits', (params: FindReplaceParams)
 // registered subject scheme's controlled values.
 connection.onRequest('dita/computeBatchMetadataEdits', (params: BatchMetadataParams) => {
     return handleComputeBatchMetadataEdits(params, documents, subjectSchemeService, keySpaceService);
+});
+
+// Custom request: dita/getSubjectSchemeAttributes
+// Backs the Visual DITAVAL Condition Editor: given a context file (the
+// .ditaval being edited), resolves and returns every controlled profiling
+// attribute/value pair from that context's subject scheme.
+connection.onRequest('dita/getSubjectSchemeAttributes', (params: GetSubjectSchemeAttributesParams) => {
+    return handleGetSubjectSchemeAttributes(params, subjectSchemeService, keySpaceService);
 });
 
 // File watcher — invalidate key space cache on map changes
