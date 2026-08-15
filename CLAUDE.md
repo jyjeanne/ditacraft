@@ -188,7 +188,7 @@ docs/                         # Architecture docs
 
 1. Create `server/src/features/myfeature.ts` with a handler function
 2. Add types to `server/src/utils/types.ts` if needed
-3. Wire handler in `server/src/serverHandlers.ts`: `connection.onMyFeature(handleMyFeature)`
+3. Wire the handler directly in `server/src/server.ts`: standard LSP protocol methods use `connection.onMyFeature(handleMyFeature)`; custom DitaCraft-specific requests use `connection.onRequest('dita/myFeature', handleMyFeature)` (see the existing `dita/computeMoveEdits`, `dita/computeFindReplaceEdits`, `dita/computeBatchMetadataEdits`, `dita/getSubjectSchemeAttributes` for the established pattern). `server/src/serverHandlers.ts` holds only initialization/classification helper functions server.ts's handlers call into (`detectClientCapabilities`, `buildInitializeResult`, `isMapFile`, `classifyWatchedFileChanges`, ...) — it does not itself register any `connection.on*` handler.
 4. Add tests in `server/test/myfeature.test.ts` using `createDoc()` helper
 5. Run: `cd server && npm test -- --grep "myfeature"`
 

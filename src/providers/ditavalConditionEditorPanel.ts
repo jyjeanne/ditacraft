@@ -115,6 +115,14 @@ export class DitavalConditionEditorPanel {
                 }
                 break;
             case 'addCondition':
+                // Deliberately a truthy check on `val`, not `!== undefined`
+                // like `toggleCondition` below -- unlike toggling an
+                // *existing* chip (which can legitimately have `val=""`),
+                // "Add Condition" introduces a brand-new value the user
+                // just typed, and an empty typed value isn't a meaningful
+                // new condition to add. The webview's own JS already
+                // enforces this (`if (!attr || !val) return;`); this is
+                // defense-in-depth against a future caller that skips it.
                 if (message.attr && message.val) {
                     await this._toggleCondition(message.attr.trim(), message.val.trim(), 'exclude');
                 }

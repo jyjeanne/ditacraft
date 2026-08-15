@@ -147,6 +147,15 @@ suite('DITAVAL Rule Parsing Test Suite', () => {
                 assert.ok(PROFILING_ATTRIBUTES.includes(attr as (typeof PROFILING_ATTRIBUTES)[number]));
             }
         });
+
+        test('Should include deliveryTarget (regression: must not drift from the scheme-validated attribute set)', () => {
+            // batchMetadataCommand.ts's KNOWN_PROFILING_ATTRIBUTES and the
+            // server's profilingValidation.ts PROFILING_ATTRIBUTES both
+            // include deliveryTarget -- this list is a superset of those
+            // (it also keeps `rev`, which those two correctly omit), so it
+            // must never drop an attribute they both already validate.
+            assert.ok(PROFILING_ATTRIBUTES.includes('deliveryTarget'));
+        });
     });
 
     suite('buildDitavalDocument', () => {

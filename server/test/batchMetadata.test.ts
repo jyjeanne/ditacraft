@@ -128,6 +128,29 @@ suite('handleComputeBatchMetadataEdits', () => {
         assert.strictEqual(result.edit, null);
     });
 
+    test('treats a whitespace-only value the same as an empty one -- removes the attribute rather than rejecting it (regression)', async () => {
+        // `/code-review` fix: a whitespace-only value (length > 0, but
+        // trims to "") used to be treated as one invalid token by
+        // validateAgainstSubjectScheme (`"".trim().split(/\s+/)` yields
+        // `['']`), skipping the file with a confusing `"" not allowed for
+        // @audience...` error instead of removing the attribute as the
+        // batch-update command's own client-side trim already intends.
+        const service = createSchemeService(AUDIENCE_SCHEME, tmpDir);
+        const filePath = path.join(tmpDir, 'topic.dita');
+        fs.writeFileSync(filePath, '<topic id="t1" audience="external"><title>T</title></topic>');
+        const uri = URI.file(filePath).toString();
+
+        const result = await handleComputeBatchMetadataEdits(
+            { fileUris: [uri], attribute: 'audience', value: '   ' },
+            createDocs(),
+            service
+        );
+
+        assert.strictEqual(result.updatedCount, 1);
+        assert.strictEqual(result.skipped.length, 0);
+        assert.strictEqual(result.edit!.changes![uri][0].newText, '');
+    });
+
     test('updates multiple files in one request', async () => {
         const pathA = path.join(tmpDir, 'a.dita');
         const pathB = path.join(tmpDir, 'b.dita');

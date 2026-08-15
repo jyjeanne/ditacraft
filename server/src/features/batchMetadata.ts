@@ -228,8 +228,21 @@ export async function handleComputeBatchMetadataEdits(
         return { edit: null, updatedCount: 0, skipped: [] };
     }
 
+    // `/code-review` fix: normalize once, centrally, rather than relying
+    // solely on the client's own trim (`batchMetadataCommand.ts`) as the
+    // only safeguard. Without this, a whitespace-only value (e.g. a
+    // single space, however it arrives here) has `length > 0` but
+    // `.trim().split(/\s+/)` on it yields `['']` -- an empty-string
+    // "token" no subject scheme ever allows, so every file was skipped
+    // with a confusing `"" not allowed for @attr...` error instead of the
+    // attribute being removed as intended. Trimming leading/trailing
+    // whitespace only (internal spaces still separate multiple values)
+    // keeps `validateAgainstSubjectScheme` and `buildAttributeEdit` in
+    // sync -- both branch on `value.length === 0` meaning "remove".
+    const value = params.value.trim();
+
     const outcomes = await mapWithConcurrency(params.fileUris, MAX_CONCURRENT_READS, (fileUri) =>
-        processFile(fileUri, documents, subjectSchemeService, keySpaceService, params.attribute, params.value)
+        processFile(fileUri, documents, subjectSchemeService, keySpaceService, params.attribute, value)
     );
 
     const changes: { [uri: string]: TextEdit[] } = {};
