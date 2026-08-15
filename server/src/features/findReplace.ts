@@ -21,6 +21,8 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { collectDitaFilesAsync } from '../utils/workspaceScanner';
 import { stripCommentsAndCDATA, offsetToRange, escapeRegex, uriToPath } from '../utils/textUtils';
+import { mapWithConcurrency, MAX_CONCURRENT_READS } from './workspaceValidation';
+import { isDitaFilePath } from './moveTopic';
 
 export interface FindReplaceParams {
     query: string;
@@ -40,13 +42,26 @@ export interface FindReplaceResult {
 
 const EMPTY_RESULT: FindReplaceResult = { edit: null, matchCount: 0, fileCount: 0 };
 
+// `\b` is ASCII-only in JS regex — it doesn't treat accented Latin letters
+// (é, ñ, ü, ...) as word characters, so `\b(?:café)\b` fails to match
+// "café" at all (no boundary between "é" and a following space). This
+// extends the word-character set with Latin-1 Supplement + Latin
+// Extended-A (U+00C0-U+017F, covering the accented letters used by
+// French/Spanish/German/... — this project ships French localization,
+// see fr.json) via lookaround assertions instead of forcing regex mode's
+// arbitrary user-supplied pattern onto the `u` flag, which could reject
+// otherwise-valid patterns that aren't Unicode-mode-compatible.
+const WHOLE_WORD_CHAR_CLASS = '[A-Za-z0-9_\\u00C0-\\u017F]';
+
 /**
  * Build the search pattern for a query. Non-regex queries are escaped so
  * every character is matched literally. `wholeWord` wraps the pattern in
- * `\b` word-boundary anchors. Throws `SyntaxError` for an invalid regex —
- * callers should validate this themselves before offering a preview (the
- * client already does, via a plain `new RegExp()` probe) but this handler
- * guards it too rather than assuming the client always will.
+ * word-boundary lookarounds (see `WHOLE_WORD_CHAR_CLASS` above — not a
+ * bare `\b`, which misses accented-letter word edges). Throws
+ * `SyntaxError` for an invalid regex — callers should validate this
+ * themselves before offering a preview (the client already does, via a
+ * plain `new RegExp()` probe) but this handler guards it too rather than
+ * assuming the client always will.
  */
 export function buildSearchPattern(
     query: string,
@@ -56,7 +71,7 @@ export function buildSearchPattern(
 ): RegExp {
     let source = useRegex ? query : escapeRegex(query);
     if (wholeWord) {
-        source = `\\b(?:${source})\\b`;
+        source = `(?<!${WHOLE_WORD_CHAR_CLASS})(?:${source})(?!${WHOLE_WORD_CHAR_CLASS})`;
     }
     return new RegExp(source, caseSensitive ? 'g' : 'gi');
 }
@@ -101,15 +116,29 @@ export async function handleComputeFindReplaceEdits(
         return EMPTY_RESULT; // Invalid regex — the client validates first, but never trust that alone.
     }
 
-    const files = params.scopeUri
-        ? [uriToPath(params.scopeUri)]
-        : await collectDitaFilesAsync(workspaceFolders);
+    let files: string[];
+    if (params.scopeUri) {
+        const scopedPath = uriToPath(params.scopeUri);
+        // The workspace-wide path is already filtered to DITA content
+        // files by collectDitaFilesAsync — scopeUri bypassed that filter
+        // entirely, so a non-DITA active file (package.json, a .md file,
+        // ...) would otherwise get rewritten by an arbitrary regex/literal
+        // search with no DITA-aware guard at all.
+        files = isDitaFilePath(scopedPath) ? [scopedPath] : [];
+    } else {
+        files = await collectDitaFilesAsync(workspaceFolders);
+    }
 
     const changes: { [uri: string]: TextEdit[] } = {};
     let matchCount = 0;
     let fileCount = 0;
 
-    await Promise.all(files.map(async (filePath) => {
+    // Bounded concurrency, not an unbounded Promise.all — a large
+    // workspace's worth of simultaneous file reads risks exhausting file
+    // descriptors (EMFILE), the same failure class
+    // workspaceValidation.ts's mapWithConcurrency already guards against
+    // for its own bulk reads.
+    await mapWithConcurrency(files, MAX_CONCURRENT_READS, async (filePath) => {
         const fileUri = URI.file(filePath).toString();
         const openDoc = documents.get(fileUri);
 
@@ -147,7 +176,7 @@ export async function handleComputeFindReplaceEdits(
             matchCount += edits.length;
             fileCount++;
         }
-    }));
+    });
 
     return fileCount > 0 ? { edit: { changes }, matchCount, fileCount } : EMPTY_RESULT;
 }

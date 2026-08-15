@@ -12,6 +12,7 @@
 import * as vscode from 'vscode';
 import { getLanguageClient } from '../languageClient';
 import { logger } from '../utils/logger';
+import { isDitaContentUri } from '../utils/constants';
 
 // Mirrors server/src/features/findReplace.ts's response shape (raw LSP
 // protocol shape, before conversion to a vscode.WorkspaceEdit) — client
@@ -93,6 +94,14 @@ export async function findReplaceInFilesCommand(): Promise<void> {
         const activeUri = vscode.window.activeTextEditor?.document.uri;
         if (!activeUri) {
             vscode.window.showWarningMessage('DitaCraft: No active file to scope the search to.');
+            return;
+        }
+        if (!isDitaContentUri(activeUri)) {
+            // `/code-review` fix: the server now rejects a non-DITA
+            // scopeUri too (defense in depth), but checking here avoids an
+            // unnecessary round-trip and gives an immediate, specific
+            // reason instead of a generic "no matches found".
+            vscode.window.showWarningMessage('DitaCraft: The active file is not a DITA topic, map, or bookmap.');
             return;
         }
         scopeUri = client.code2ProtocolConverter.asUri(activeUri);
