@@ -63,3 +63,10 @@ yarn.lock
 
 # Graphify working state (committed output lives in docs/graph)
 .graphify/
+
+# okf-rs incremental-index cache (disposable local perf cache, not part of the bundle;
+# committed output lives in docs/okf-knowledge)
+.okf-cache.json
+
+# Vendored/bundled minified assets -- not source, would flood code-analysis tools (okf-rs, etc.)
+docs/graph/studio/assets/

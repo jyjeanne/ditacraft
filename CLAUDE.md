@@ -58,6 +58,12 @@ npm run graph
 ```
 Generates a queryable knowledge graph of the codebase into `docs/graph/` using [graphify](https://github.com/rhanka/graphify) (`@sentropic/graphify`, local tree-sitter AST extraction — no LLM/API keys). Artifacts: `graph.json`, `GRAPH_REPORT.md`, `graph.svg`, and an interactive `studio/studio.html` viewer. `npm run watch` includes `watch:graph`, so the graph auto-regenerates on code changes during development; the `knowledge-graph` GitHub Actions workflow refreshes it on every push to `main`. Extraction scope is controlled by `.graphifyignore`; working state in `.graphify/` is git-ignored. Query with `npx graphify query "..." --graph docs/graph/graph.json`.
 
+### OKF Knowledge Base (okf-rs)
+```bash
+npm run okf
+```
+Generates a conformant [Open Knowledge Format](https://github.com/jyjeanne/okf-rs) bundle of the codebase into `docs/okf-knowledge/` using [okf-rs](https://github.com/jyjeanne/okf-rs) — a standalone Rust CLI (`cargo install --git https://github.com/jyjeanne/okf-rs okf-cli`, or a prebuilt release binary; **not** an npm devDependency, so this is opt-in and NOT part of `npm install`/`npm run watch`, unlike graphify above). Unlike `graph.json`'s single-file, database-like artifact, an OKF bundle is one Markdown+YAML-frontmatter file per concept (package/module/class/interface/function/method), cross-linked by ordinary markdown links — `git diff`-able per concept, and readable without any tooling at all. Also provides change-impact analysis (`okf-rs impact <ref-a> <ref-b>`), a PR-review report generator (`okf-rs review`), and call-cycle/community detection that complement graphify's own querying and visualization strengths. `docs/graph/studio/assets/` (graphify's vendored, minified viewer bundle) is excluded from the scan via `.gitignore` — it isn't source code and previously flooded the bundle with garbage concepts extracted from minified JS. Working cache `.okf-cache.json` is git-ignored; see `docs/okf-knowledge/README.md` for querying examples.
+
 ---
 
 ## Testing

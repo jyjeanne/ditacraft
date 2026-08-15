@@ -1002,6 +1002,7 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "watch:graph": "node scripts/generate-graph.js --watch",
     "graph": "node scripts/generate-graph.js",
+    "okf": "node scripts/generate-okf-knowledge.js",
     "package": "vsce package",
     "esbuild-base": "node esbuild.js",
     "build-standalone": "node esbuild-standalone.js",
