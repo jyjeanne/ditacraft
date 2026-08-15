@@ -191,6 +191,10 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 **Added — Knowledge Graph:**
 - `@sentropic/graphify` devDependency (local tree-sitter AST extraction, no LLM/API keys); `npm run graph` publishes `graph.json`, `GRAPH_REPORT.md`, `graph.svg`, an interactive studio viewer, and `flows.json` to `docs/graph/`
 - Auto-regenerates via `watch:graph` (included in `npm run watch`) and the `knowledge-graph` GitHub Actions workflow on every push to `main`
+- **Added — OKF Knowledge Base:** `npm run okf` publishes a conformant [Open Knowledge Format](https://github.com/jyjeanne/okf-rs) bundle (one Markdown+YAML-frontmatter file per concept, `git diff`-able) to `docs/okf-knowledge/` via [okf-rs](https://github.com/jyjeanne/okf-rs), a standalone Rust CLI (opt-in, not an npm devDependency — unlike graphify above, not wired into `npm install`/`npm run watch`/CI). Complements graphify with change-impact analysis, a PR-review report generator, and call-cycle detection
+
+**Fixed — Knowledge-Tooling Hygiene:**
+- `docs/graph/studio/assets/` (graphify's vendored, minified interactive-viewer bundle) is now excluded from `.gitignore`-aware code-scanning tools — being un-excluded once caused an okf-rs scan to extract thousands of garbage single/double-letter "concepts" from the minified JS, since it isn't source code at all
 
 **Hygiene:**
 - Removed 41 stale compiled `.js`/`.js.map` files committed alongside their TypeScript sources; `.gitignore` now guards against recommitting them

@@ -1,0 +1,40 @@
+---
+type: TypeScript Module
+title: test
+resource: src/test/suite/realtimeValidation.test.ts#L1-L284
+generated:
+  by: okf-rs/0.4.0
+relationships:
+  imports:
+  - target: external/assert
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/vscode
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/path
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/fs
+    resolved_by: tree-sitter
+    confidence: exact
+  member_of:
+  - target: packages/ditacraft
+    resolved_by: tree-sitter
+    confidence: exact
+---
+
+# Contains
+
+- [waitForErrors](../../../../../functions/src/test/suite/realtimeValidation/test/waitForErrors.md)
+
+# Imports
+
+- `assert`
+- `vscode`
+- `path`
+- `fs`
+
+# Member of
+
+- [ditacraft](../../../../../packages/ditacraft.md)
