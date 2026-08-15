@@ -55,11 +55,18 @@ export async function handleDefinition(
         if (!keyDef) return null;
 
         if (keyDef.targetFile) {
+            // `keyDef.elementId` comes straight from the keydef's own href
+            // fragment (e.g. "t/e1" for `href="shared.dita#t/e1"`), not just
+            // the bare element id `findElementByIdOffset` searches for below
+            // -- narrow it with `getTargetId` the same way `href`/`conref`'s
+            // own fragment already is (line 101), or a two-part fragment
+            // silently fails to match and this falls back to the file's
+            // start instead of the actual element.
             return resolveElementInFile(
                 keyDef.targetFile,
                 URI.file(keyDef.targetFile).toString(),
                 workspaceFolders,
-                keyDef.elementId
+                keyDef.elementId ? getTargetId(keyDef.elementId) : undefined
             );
         }
 
@@ -80,11 +87,13 @@ export async function handleDefinition(
             const currentFilePath = uriToPath(params.textDocument.uri);
             const keyDef = await keySpaceService.resolveKey(keyName, currentFilePath);
             if (keyDef?.targetFile) {
+                // Same narrowing as the `keyref` branch above -- `keyDef.elementId`
+                // is the keydef's raw href fragment, not a bare id.
                 return resolveElementInFile(
                     keyDef.targetFile,
                     URI.file(keyDef.targetFile).toString(),
                     workspaceFolders,
-                    elementId || keyDef.elementId
+                    elementId || (keyDef.elementId ? getTargetId(keyDef.elementId) : undefined)
                 );
             }
         }

@@ -23,8 +23,17 @@ export interface ElementExtent {
     start: number;
     /** Offset just past the element's closing tag (or, for a self-closing element, its own `>`). */
     end: number;
-    /** Offset just past the opening tag itself (`start === openTagEnd === end` -3-ish for a self-closing element -- concretely, `openTagEnd === end` for one, since there's no separate closing tag to reach). Lets a caller slice out just the element's *inner* content (between the tags) without re-deriving the closing tag's length. */
+    /** Offset just past the opening tag itself. Lets a caller slice out just the element's *inner* content (between the tags) without re-deriving the closing tag's length. */
     openTagEnd: number;
+    /**
+     * Offset of the `<` starting the closing tag (equals `end` for a
+     * self-closing element, since there's no separate closing tag). A
+     * closing tag's length isn't fixed at `tagName.length + 3` -- XML's
+     * ETag production allows whitespace before the final `>` (`</p >`) --
+     * so this is stored explicitly rather than derived from `end` and
+     * `tagName.length` by a caller.
+     */
+    closeTagStart: number;
     tagName: string;
 }
 
@@ -58,43 +67,60 @@ export function findElementExtentById(content: string, elementId: string): Eleme
     const openTagEnd = match.index + match[0].length;
 
     if (isSelfClosing) {
-        return { start, end: openTagEnd, openTagEnd, tagName };
+        return { start, end: openTagEnd, openTagEnd, closeTagStart: openTagEnd, tagName };
     }
 
-    const closeEnd = findClosingTagEnd(searchableText, tagName, openTagEnd);
-    return closeEnd === undefined ? undefined : { start, end: closeEnd, openTagEnd, tagName };
+    const closeTag = findClosingTagEnd(searchableText, tagName, openTagEnd);
+    return closeTag === undefined
+        ? undefined
+        : { start, end: closeTag.end, openTagEnd, closeTagStart: closeTag.start, tagName };
 }
 
 /** The inner content of `extent` (between its opening and closing tags) — empty for a self-closing element. */
 export function getElementInnerContent(content: string, extent: ElementExtent): string {
-    if (extent.openTagEnd >= extent.end) {
+    if (extent.openTagEnd >= extent.closeTagStart) {
         return '';
     }
-    const closeTagLength = extent.tagName.length + 3; // `</` + tagName + `>`
-    return content.slice(extent.openTagEnd, extent.end - closeTagLength);
+    return content.slice(extent.openTagEnd, extent.closeTagStart);
+}
+
+/** The offset span of a closing tag, `<` through just past `>`. */
+export interface ClosingTagSpan {
+    /** Offset of the closing tag's `<`. */
+    start: number;
+    /** Offset just past the closing tag's `>`. */
+    end: number;
 }
 
 /**
  * Given a comment/CDATA-blanked document, a tag name, and the offset just
- * past that tag's *opening* tag, depth-track forward to find the offset
- * just past its *matching* closing tag. Returns `undefined` for
- * malformed/unclosed content. Exported so other "find an element, then
- * need its full extent" callers (e.g. `inlineConref.ts`'s own
- * find-by-attribute discovery, which locates the opening tag a different
- * way than `findElementExtentById`'s by-id lookup) can reuse the same
- * depth-tracking core instead of reimplementing it.
+ * past that tag's *opening* tag, depth-track forward to find its *matching*
+ * closing tag's span. Returns `undefined` for malformed/unclosed content.
+ * Exported so other "find an element, then need its full extent" callers
+ * (e.g. `inlineConref.ts`'s own find-by-attribute discovery, which locates
+ * the opening tag a different way than `findElementExtentById`'s by-id
+ * lookup) can reuse the same depth-tracking core instead of reimplementing
+ * it.
  */
-export function findClosingTagEnd(searchableText: string, tagName: string, fromOffset: number): number | undefined {
-    const closeTag = `</${tagName}>`;
+export function findClosingTagEnd(searchableText: string, tagName: string, fromOffset: number): ClosingTagSpan | undefined {
+    // XML's ETag production is `</` Name `S?` `>` -- whitespace before the
+    // final `>` (e.g. `</p >`) is legal, so this has to search for the
+    // pattern, not an exact `</tagName>` substring (`indexOf` would miss
+    // that whitespace variant entirely and wrongly report the content as
+    // unclosed).
+    const closeTagPattern = new RegExp(`<\\/${tagName}\\s*>`, 'g');
     const tagOpenPattern = new RegExp(`<${tagName}\\b${TAG_ATTRS}\\/?>`, 'g');
     let depth = 1;
     let pos = fromOffset;
 
     while (depth > 0 && pos < searchableText.length) {
-        const nextClose = searchableText.indexOf(closeTag, pos);
-        if (nextClose === -1) {
+        closeTagPattern.lastIndex = pos;
+        const closeMatch = closeTagPattern.exec(searchableText);
+        if (!closeMatch) {
             return undefined; // Malformed/unclosed -- no reliable extent.
         }
+        const nextClose = closeMatch.index;
+        const closeTagEnd = nextClose + closeMatch[0].length;
 
         tagOpenPattern.lastIndex = pos;
         let openMatch: RegExpExecArray | null;
@@ -106,9 +132,9 @@ export function findClosingTagEnd(searchableText: string, tagName: string, fromO
 
         depth--;
         if (depth === 0) {
-            return nextClose + closeTag.length;
+            return { start: nextClose, end: closeTagEnd };
         }
-        pos = nextClose + closeTag.length;
+        pos = closeTagEnd;
     }
 
     return undefined;

@@ -33,7 +33,7 @@ import * as path from 'path';
 import { TextDocuments, TextEdit, WorkspaceEdit } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { stripCommentsAndCDATA, offsetToRange, uriToPath, isPathWithinWorkspace } from '../utils/textUtils';
+import { stripCommentsAndCDATA, offsetToRange, uriToPath, isPathWithinWorkspace, effectiveWorkspaceFolders } from '../utils/textUtils';
 import { parseReference, getTargetId } from '../utils/referenceParser';
 import { findElementExtentById, findClosingTagEnd, getElementInnerContent, ElementExtent } from '../utils/elementExtent';
 import { KeySpaceService } from '../services/keySpaceService';
@@ -82,8 +82,9 @@ function findConrefElementAtOffset(text: string, offset: number): ConrefElement 
 
         const start = match.index;
         const openTagEnd = match.index + match[0].length;
-        const end = isSelfClosing ? openTagEnd : findClosingTagEnd(searchableText, tagName, openTagEnd);
-        if (end === undefined) continue;
+        const closeTag = isSelfClosing ? { start: openTagEnd, end: openTagEnd } : findClosingTagEnd(searchableText, tagName, openTagEnd);
+        if (closeTag === undefined) continue;
+        const end = closeTag.end;
 
         if (start <= offset && offset <= end) {
             if (!best || (end - start) < (best.end - best.start)) {
@@ -91,6 +92,7 @@ function findConrefElementAtOffset(text: string, offset: number): ConrefElement 
                     start,
                     end,
                     openTagEnd,
+                    closeTagStart: closeTag.start,
                     tagName,
                     attrType: conrefMatch ? 'conref' : 'conkeyref',
                     attrValue: (conrefMatch ?? conkeyrefMatch)![1],
@@ -137,10 +139,17 @@ async function readDocOrFile(documents: TextDocuments<TextDocument>, filePath: s
 export async function handleComputeInlineConrefEdit(
     params: InlineConrefParams,
     documents: TextDocuments<TextDocument>,
-    keySpaceService: KeySpaceService | undefined,
-    workspaceFolders: readonly string[] = []
+    keySpaceService: KeySpaceService | undefined
 ): Promise<InlineConrefResult> {
     const sourcePath = uriToPath(params.uri);
+    // Computed from the *source* document's own path, not the raw
+    // workspace-folder list -- matches hover.ts/completion.ts/definition.ts's
+    // own pattern: a loose file opened outside every configured workspace
+    // folder has no workspace boundary to enforce for *its own* references
+    // (see effectiveWorkspaceFolders's doc comment), so this must be
+    // computed here rather than passed in pre-narrowed (or not narrowed at
+    // all) by the caller.
+    const workspaceFolders = effectiveWorkspaceFolders(sourcePath, keySpaceService?.getWorkspaceFolders() ?? []);
     const sourceContent = await readDocOrFile(documents, sourcePath);
     if (sourceContent === undefined) {
         return { edit: null, reason: 'Could not read the source file.' };

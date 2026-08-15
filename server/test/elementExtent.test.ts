@@ -63,6 +63,13 @@ suite('findElementExtentById', () => {
         assert.ok(extracted.includes('<p>Body.</p>'));
         assert.ok(extracted.endsWith('</section>'));
     });
+
+    test('finds a closing tag with whitespace before the final > (regression: legal per XML ETag S?)', () => {
+        const content = '<body><p id="target">Hello world.</p ></body>';
+        const extent = findElementExtentById(content, 'target');
+        assert.ok(extent);
+        assert.strictEqual(content.slice(extent!.start, extent!.end), '<p id="target">Hello world.</p >');
+    });
 });
 
 suite('getElementInnerContent', () => {
@@ -88,5 +95,14 @@ suite('getElementInnerContent', () => {
         const content = '<p id="target"></p>';
         const extent = findElementExtentById(content, 'target');
         assert.strictEqual(getElementInnerContent(content, extent!), '');
+    });
+
+    test('does not include the closing tag\'s pre-> whitespace in the inner content (regression)', () => {
+        // A fixed `tagName.length + 3` close-tag-length assumption used to
+        // miscompute the slice boundary for a `</p >`-style closing tag
+        // (5 chars, not 4), leaking a stray `<` into the returned content.
+        const content = '<p id="target">Hello world.</p ></wrapper>';
+        const extent = findElementExtentById(content, 'target');
+        assert.strictEqual(getElementInnerContent(content, extent!), 'Hello world.');
     });
 });
