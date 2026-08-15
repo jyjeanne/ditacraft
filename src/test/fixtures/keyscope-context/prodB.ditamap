@@ -2,6 +2,6 @@
 <!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
 <map>
     <title>Product B Map</title>
-    <keydef keys="overview" href="keyscope-overview-b.dita"/>
-    <topicref href="keyscope-topic-b.dita"/>
+    <keydef keys="overview" href="overview-b.dita"/>
+    <topicref href="topic-b.dita"/>
 </map>
