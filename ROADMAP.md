@@ -637,24 +637,24 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 - [x] npm run build-standalone command
 - [x] LSP smoke test via stdio
 
-### Refactoring Tools (deferred to v0.9.0)
-- [ ] Rename key across all usages
-- [ ] Rename element ID with reference updates
-- [ ] Move topic with reference updates
-- [ ] Extract topic from section
-- [ ] Inline conref (replace reference with content)
+### Refactoring Tools (deferred to v0.9.0) — see [docs/V0.9-IMPLEMENTATION-PLAN.md](docs/V0.9-IMPLEMENTATION-PLAN.md)
+- [x] Rename key across all usages (§3.1)
+- [x] Rename element ID with reference updates (pre-existing baseline feature, verified still in place)
+- [x] Move topic with reference updates (§4.4)
+- [x] Extract topic from section (§5.4)
+- [ ] Inline conref (replace reference with content) — Backlog, needs a design spike
 
 ### Templates & Scaffolding
-- [ ] Custom topic templates
-- [ ] Project initialization wizard
+- [x] Custom topic templates (§4.1)
+- [x] Project initialization wizard (§4.2)
 - [ ] Map scaffolding from outline
-- [ ] Import from Markdown/HTML
+- [ ] Import from Markdown/HTML — Backlog, needs a design spike
 
 ### Productivity Features
-- [ ] Multi-file find and replace (DITA-aware)
-- [ ] Batch insert/update metadata
-- [ ] Table editor (visual table manipulation)
-- [ ] Image insertion with automatic figure wrapper
+- [x] Multi-file find and replace (DITA-aware) (§5.1)
+- [x] Batch insert/update metadata (§5.2)
+- [ ] Table editor (visual table manipulation) — delivered as a scoped-down **insertion wizard** instead (§4.3: prompts for rows/columns/type, inserts a correctly-structured skeleton); a full bidirectional visual grid editor remains unbuilt
+- [x] Image insertion with automatic figure wrapper (§3.3)
 
 **Good First Issues:**
 - Add custom template support for new topics
@@ -662,29 +662,33 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 
 ---
 
-## Milestone 7: Publishing Enhancements (v0.9.0)
+## Milestone 7: Publishing Enhancements (v0.9.0) — Publishing Profiles & DITAVAL Integration ✅ COMPLETE
 
-**Focus:** Enhance publishing capabilities and workflow.
+**Focus:** Enhance publishing capabilities and workflow. See
+[docs/V0.9-IMPLEMENTATION-PLAN.md](docs/V0.9-IMPLEMENTATION-PLAN.md) for the
+detailed design/status of every shipped item below — Build System
+Integration and Output Formats were never part of that plan's actual v0.9.0
+scope (see its §7) and remain open for a future milestone.
 
-### Publishing Profiles
-- [ ] Save and reuse publishing configurations
-- [ ] Profile management UI
-- [ ] Quick switch between profiles
-- [ ] Share profiles via settings
+### Publishing Profiles ✅
+- [x] Save and reuse publishing configurations (§3.2)
+- [x] Profile management UI — `DITA: Manage Publishing Profiles`, a QuickPick-driven add/edit/delete flow rather than a WebView (§3.2)
+- [x] Quick switch between profiles (§3.2)
+- [x] Share profiles via settings (`ditacraft.publishingProfiles` in `.vscode/settings.json`) (§3.2)
 
-### DITAVAL Integration
+### DITAVAL Integration ✅
 - [x] DITAVAL IntelliSense, validation, and hover (completed in v0.5.0)
-- [ ] Visual condition editor
-- [ ] Preview with conditions applied
-- [ ] Condition highlighting in editor
+- [x] Visual condition editor (§5.3)
+- [x] Preview with conditions applied (§4.5 Piece 1)
+- [x] Condition highlighting in editor (§4.5 Piece 2)
 
-### Build System Integration
+### Build System Integration (not scoped into v0.9.0 — open for a future milestone)
 - [ ] VS Code task definitions for DITA workflows
-- [ ] Watch mode for continuous publishing
-- [ ] Incremental publishing (only changed files)
+- [ ] Watch mode for continuous publishing — see Backlog in the v0.9.0 plan
+- [ ] Incremental publishing (only changed files) — see Backlog in the v0.9.0 plan
 - [ ] Custom DITA-OT plugin management
 
-### Output Formats
+### Output Formats (not scoped into v0.9.0 — open for a future milestone)
 - [ ] Markdown output support
 - [ ] Custom transformation configurations
 - [ ] Post-processing hooks
