@@ -41,10 +41,16 @@ function extractRootId(text: string): { tagName: string; id: string; index: numb
 }
 
 /** Max concurrent file reads to avoid exhausting file descriptors. */
-const MAX_CONCURRENT_READS = 10;
+export const MAX_CONCURRENT_READS = 10;
 
-/** Run async tasks with bounded concurrency. */
-async function mapWithConcurrency<T, R>(
+/**
+ * Run async tasks with bounded concurrency. Exported for reuse by any
+ * feature that reads many files at once — `findReplace.ts`'s
+ * workspace-wide scan reuses this rather than an unbounded
+ * `Promise.all(files.map(...))`, which would open a file descriptor per
+ * file simultaneously and risk EMFILE on large workspaces.
+ */
+export async function mapWithConcurrency<T, R>(
     items: T[],
     limit: number,
     fn: (item: T) => Promise<R>

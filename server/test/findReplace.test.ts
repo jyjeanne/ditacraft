@@ -300,6 +300,65 @@ suite('handleComputeFindReplaceEdits', () => {
         assert.strictEqual(result.matchCount, 2, 'only the two standalone "cat" occurrences should match');
     });
 
+    test('matches a whole word ending in an accented character (regression: \\b is ASCII-only)', async () => {
+        const filePath = path.join(tmpDir, 'topic.dita');
+        fs.writeFileSync(filePath, '<topic id="t1"><p>Le café est chaud</p></topic>');
+
+        const result = await handleComputeFindReplaceEdits(
+            { ...baseParams, query: 'café', replacement: 'thé', wholeWord: true },
+            createDocs(),
+            [tmpDir]
+        );
+
+        assert.strictEqual(result.matchCount, 1, 'a bare \\b would fail to find a boundary after "é"');
+    });
+
+    test('does not match "café" as a substring of a longer accented word with wholeWord (regression)', async () => {
+        const filePath = path.join(tmpDir, 'topic.dita');
+        fs.writeFileSync(filePath, '<topic id="t1"><p>cafétéria</p></topic>');
+
+        const result = await handleComputeFindReplaceEdits(
+            { ...baseParams, query: 'café', replacement: 'thé', wholeWord: true },
+            createDocs(),
+            [tmpDir]
+        );
+
+        assert.strictEqual(result.matchCount, 0, '"café" inside "cafétéria" is not a standalone word');
+    });
+
+    test('does not rewrite a non-DITA file even when explicitly scoped to it (regression)', async () => {
+        const txtPath = path.join(tmpDir, 'notes.txt');
+        fs.writeFileSync(txtPath, 'needle');
+
+        const result = await handleComputeFindReplaceEdits(
+            { ...baseParams, query: 'needle', replacement: 'found', scopeUri: URI.file(txtPath).toString() },
+            createDocs(),
+            [tmpDir]
+        );
+
+        assert.deepStrictEqual(
+            result,
+            { edit: null, matchCount: 0, fileCount: 0 },
+            'a non-DITA scopeUri must be rejected, not silently rewritten'
+        );
+    });
+
+    test('correctly scans a file count larger than the bounded-concurrency limit (regression)', async () => {
+        const fileCount = 15; // > MAX_CONCURRENT_READS (10)
+        for (let i = 0; i < fileCount; i++) {
+            fs.writeFileSync(path.join(tmpDir, `topic-${i}.dita`), `<topic id="t${i}"><title>needle</title></topic>`);
+        }
+
+        const result = await handleComputeFindReplaceEdits(
+            { ...baseParams, query: 'needle', replacement: 'found' },
+            createDocs(),
+            [tmpDir]
+        );
+
+        assert.strictEqual(result.fileCount, fileCount, 'every file should be scanned regardless of the concurrency cap');
+        assert.strictEqual(result.matchCount, fileCount);
+    });
+
     test('does not hang on a zero-length-match-capable regex (regression)', async function() {
         this.timeout(5000);
         const filePath = path.join(tmpDir, 'topic.dita');

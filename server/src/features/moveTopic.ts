@@ -37,7 +37,14 @@ export interface ComputeMoveEditsParams {
 
 const DITA_FILE_EXTENSIONS = new Set(['.dita', '.ditamap', '.bookmap']);
 
-function isDitaFilePath(filePath: string): boolean {
+/**
+ * True for DITA *content* files (topic/map/bookmap) — excludes `.ditaval`,
+ * which carries filtering rules rather than content. Exported so other
+ * features needing the same "is this file in scope" check (e.g.
+ * `findReplace.ts`'s single-file scope option) reuse this rather than
+ * writing their own copy.
+ */
+export function isDitaFilePath(filePath: string): boolean {
     return DITA_FILE_EXTENSIONS.has(path.extname(filePath).toLowerCase());
 }
 
