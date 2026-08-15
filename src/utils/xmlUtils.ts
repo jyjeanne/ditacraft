@@ -16,3 +16,19 @@
 export function escapeXml(value: string): string {
     return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+/**
+ * Blank XML comments/CDATA while preserving line/character offsets, so a
+ * tag-like fragment inside one (e.g. `<!-- TODO: convert to <task> -->`)
+ * can never be mistaken for a real element. Shared by `sectionExtractor.ts`
+ * (§5.4) and its own callers rather than each writing a private copy —
+ * `keySpaceResolver.ts` has a third, inline instance of this same regex
+ * pair predating this export; left as-is rather than refactored in, since
+ * touching that file's existing, well-exercised map-parsing chain for a
+ * pure dedup win isn't worth the regression risk on its own.
+ */
+export function stripCommentsAndCDATA(text: string): string {
+    return text
+        .replace(/<!--[\s\S]*?-->/g, m => m.replace(/[^\n\r]/g, ' '))
+        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, m => m.replace(/[^\n\r]/g, ' '));
+}

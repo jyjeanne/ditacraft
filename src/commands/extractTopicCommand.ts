@@ -17,7 +17,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { logger } from '../utils/logger';
-import { escapeXml } from '../utils/xmlUtils';
+import { escapeXml, stripCommentsAndCDATA } from '../utils/xmlUtils';
 import { pathExists } from '../utils/pathUtils';
 import { validateFileName } from './fileCreationCommands';
 import { findEnclosingSection } from '../utils/sectionExtractor';
@@ -43,6 +43,7 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
     const document = editor.document;
     const text = document.getText();
     const offset = document.offsetAt(editor.selection.active);
+    const versionAtStart = document.version;
 
     const section = findEnclosingSection(text, offset);
     if (!section) {
@@ -56,6 +57,24 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
             'DitaCraft: This topic is a <task>, whose <taskbody> can\'t contain a <section> in valid DITA -- extraction is not supported here.'
         );
         return;
+    }
+
+    // `/code-review` note: the section's own `id` (if any) isn't rewritten
+    // anywhere -- extraction is a same-file text operation with no
+    // workspace-wide reference scan (unlike §4.4 Move Topic), so an
+    // existing `href="thisfile.dita#topicid/sectionid"` xref elsewhere
+    // would dangle. Warned about explicitly rather than silently dropped;
+    // updating those references automatically is real, separately-scoped
+    // future work (the same "not folded into this v1 pass" framing this
+    // feature's other scope notes already use).
+    if (section.id) {
+        const proceed = await vscode.window.showWarningMessage(
+            `DitaCraft: This section has id="${section.id}" -- any existing reference to it (e.g. an xref targeting #.../${section.id}) will need to be updated by hand after extraction.`,
+            { modal: false },
+            'Continue',
+            'Cancel'
+        );
+        if (proceed !== 'Continue') return;
     }
 
     const title = await vscode.window.showInputBox({
@@ -94,11 +113,21 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
         return;
     }
 
-    const replacement = `<p><xref href="${escapeXml(`${fileName}.dita`)}">${escapeXml(title)}</xref></p>`;
-    const applied = await editor.edit(editBuilder => {
-        const range = new vscode.Range(document.positionAt(section.start), document.positionAt(section.end));
-        editBuilder.replace(range, replacement);
-    });
+    // `/code-review` fix: `section.start`/`section.end` were computed from
+    // a document snapshot taken before two blocking prompts above -- an
+    // `await` boundary the document can genuinely change across (another
+    // edit, an external reload, a formatter). Applying those now-stale
+    // offsets to a changed document would silently replace the wrong
+    // span. `document.version` is bumped on every edit, so comparing it
+    // catches any change without needing to diff content.
+    let applied = false;
+    if (document.version === versionAtStart) {
+        const replacement = `<p><xref href="${escapeXml(`${fileName}.dita`)}">${escapeXml(title)}</xref></p>`;
+        applied = await editor.edit(editBuilder => {
+            const range = new vscode.Range(document.positionAt(section.start), document.positionAt(section.end));
+            editBuilder.replace(range, replacement);
+        });
+    }
 
     if (!applied) {
         vscode.window.showWarningMessage(
@@ -122,7 +151,13 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
  * classify.
  */
 export function detectNewTopicType(text: string): NewTopicType | undefined {
-    const match = ROOT_TAG_PATTERN.exec(text);
+    // `/code-review` fix: match against a comment/CDATA-blanked view, not
+    // the raw text -- a tag-like fragment inside a leading comment (e.g.
+    // `<!-- TODO: convert to <task> -->`) would otherwise be mistaken for
+    // the real root, either wrongly blocking a non-task source or, worse,
+    // letting a real <task> source slip past the block if the comment
+    // happened to mention <concept>/<reference> first.
+    const match = ROOT_TAG_PATTERN.exec(stripCommentsAndCDATA(text));
     const rootName = match?.[1];
     if (rootName === 'task') return undefined;
     if (rootName === 'concept') return 'concept';

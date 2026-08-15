@@ -13,10 +13,12 @@
  * `<section>` per the DTD content model), so unlike a general XML tree
  * walker this only needs to track depth for `<section>` tags themselves —
  * comments/CDATA are blanked first (offsets preserved) so a `<section>`-
- * looking fragment inside one can't be mistaken for a real tag, matching
- * `stripCommentsAndCDATA`'s established approach elsewhere in this project
- * (server-side: `textUtils.ts`; client-side: `keySpaceResolver.ts`).
+ * looking fragment inside one can't be mistaken for a real tag, using the
+ * shared `stripCommentsAndCDATA` (`xmlUtils.ts`) also reused by
+ * `extractTopicCommand.ts`'s own root-element detection.
  */
+
+import { stripCommentsAndCDATA } from './xmlUtils';
 
 export interface ExtractedSection {
     /** Offset of the `<` starting the `<section>` open tag. */
@@ -38,13 +40,6 @@ export interface ExtractedSection {
 const SECTION_TAG_PATTERN = /<(\/?)section\b((?:[^>"']|"[^"]*"|'[^']*')*?)(\/?)>/g;
 const ID_ATTR_PATTERN = /\bid\s*=\s*(["'])([^"']*)\1/;
 const LEADING_TITLE_PATTERN = /^\s*<title\b(?:[^>"']|"[^"]*"|'[^']*')*>([\s\S]*?)<\/title>\s*/;
-
-/** Blank XML comments/CDATA while preserving offsets, so a match inside one is never treated as a real tag. */
-function stripCommentsAndCDATA(text: string): string {
-    return text
-        .replace(/<!--[\s\S]*?-->/g, m => m.replace(/[^\n\r]/g, ' '))
-        .replace(/<!\[CDATA\[[\s\S]*?\]\]>/g, m => m.replace(/[^\n\r]/g, ' '));
-}
 
 /**
  * Find the innermost `<section>` element containing `offset`, if any.
