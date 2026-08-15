@@ -72,29 +72,6 @@ export function parseDitavalRules(content: string): DitavalRule[] {
 }
 
 /**
- * True if an element's own attribute map is excluded by any
- * `action="exclude"` rule. Only `exclude` actions are decoration-worthy —
- * `include`/`flag`/`passthrough` don't remove content from a filtered
- * publish, so highlighting them as "excluded" would be actively wrong, not
- * just unhelpful. A rule with `att` but no `val` matches the attribute
- * regardless of value; DITA profiling attributes are space-separated value
- * lists (e.g. `audience="internal external"`), so each token is checked
- * individually against a rule's `val`. A rule with no `att` at all is a
- * scheme-wide default action, not an attribute-specific one — out of scope
- * for per-element highlighting, so it's ignored here rather than matched
- * against every element.
- *
- * `/code-review` correctness fix: a `val`-specific rule for a given
- * attribute+value now takes precedence over a `val`-less default rule for
- * the same attribute, regardless of which appears first in the `.ditaval`
- * file — matching the standard "exclude by default, selectively include"
- * DITAVAL authoring pattern (`<prop action="exclude" att="platform"/>`
- * followed by `<prop action="include" att="platform" val="windows"/>`).
- * Without this, a val-less exclude default matched before its more
- * specific include exception was ever consulted, dimming content DITA-OT
- * would actually publish.
- */
-/**
  * Regenerate a complete `.ditaval` document from a flat list of rules —
  * used by the Visual DITAVAL Condition Editor (§5.3) to write back a
  * toggled condition set.
@@ -129,6 +106,29 @@ function escapeDitavalAttr(value: string): string {
     return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 }
 
+/**
+ * True if an element's own attribute map is excluded by any
+ * `action="exclude"` rule. Only `exclude` actions are decoration-worthy —
+ * `include`/`flag`/`passthrough` don't remove content from a filtered
+ * publish, so highlighting them as "excluded" would be actively wrong, not
+ * just unhelpful. A rule with `att` but no `val` matches the attribute
+ * regardless of value; DITA profiling attributes are space-separated value
+ * lists (e.g. `audience="internal external"`), so each token is checked
+ * individually against a rule's `val`. A rule with no `att` at all is a
+ * scheme-wide default action, not an attribute-specific one — out of scope
+ * for per-element highlighting, so it's ignored here rather than matched
+ * against every element.
+ *
+ * `/code-review` correctness fix: a `val`-specific rule for a given
+ * attribute+value now takes precedence over a `val`-less default rule for
+ * the same attribute, regardless of which appears first in the `.ditaval`
+ * file — matching the standard "exclude by default, selectively include"
+ * DITAVAL authoring pattern (`<prop action="exclude" att="platform"/>`
+ * followed by `<prop action="include" att="platform" val="windows"/>`).
+ * Without this, a val-less exclude default matched before its more
+ * specific include exception was ever consulted, dimming content DITA-OT
+ * would actually publish.
+ */
 export function isExcludedByRules(attrs: Record<string, string | undefined>, rules: readonly DitavalRule[]): boolean {
     for (const [attName, rawValue] of Object.entries(attrs)) {
         if (rawValue === undefined) {

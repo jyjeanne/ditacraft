@@ -130,7 +130,11 @@ export class DitavalConditionEditorPanel {
     }
 
     private async _toggleCondition(attribute: string, value: string, action: ConditionAction | null): Promise<void> {
-        if (!attribute || !value) return;
+        // `value` may legitimately be an empty string (a scheme/file can
+        // define `val=""`) -- only `attribute` being empty is a reason to
+        // bail. `/code-review` fix: a truthy check on `value` here used to
+        // silently swallow every toggle of such a chip.
+        if (!attribute) return;
         this._valueRules = applyConditionToggle(this._valueRules, attribute, value, action);
         await this._writeDocument();
         this._render();
@@ -199,7 +203,7 @@ export class DitavalConditionEditorPanel {
 
     private _getHtmlContent(): string {
         const nonce = this._getNonce();
-        const state = mergeAttributeState(this._schemeAttributes, this._valueRules);
+        const state = mergeAttributeState(this._schemeAttributes, this._valueRules, this._otherRules);
         const fileName = path.basename(this._ditavalPath);
 
         return `<!DOCTYPE html>
@@ -262,6 +266,24 @@ export class DitavalConditionEditorPanel {
             margin-bottom: 10px;
         }
         .attribute-name { font-weight: 600; margin-bottom: 8px; }
+        .default-badge {
+            font-weight: normal;
+            font-size: 0.8em;
+            opacity: 0.75;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1px 6px;
+        }
+        .default-badge[data-action="exclude"] { color: var(--exclude-bg); border-color: var(--exclude-bg); }
+        .default-badge[data-action="include"] { color: var(--include-bg); border-color: var(--include-bg); }
+        .default-badge[data-action="flag"] { color: var(--flag-bg); border-color: var(--flag-bg); }
+        /* code-review fix: this page's CSP has no 'unsafe-inline' on
+           style-src, so a static inline style="display:none" HTML
+           attribute is silently ignored (confirmed against real Chromium)
+           -- the "Other..." input used to render visible on first load
+           regardless of the dropdown selection. Toggling visibility goes
+           through this nonce-covered stylesheet class instead. */
+        .hidden { display: none; }
         .chips { display: flex; flex-wrap: wrap; gap: 6px; }
         .chip {
             border: 1px solid var(--border);
@@ -312,7 +334,7 @@ export class DitavalConditionEditorPanel {
             ${PROFILING_ATTRIBUTES.map(a => `<option value="${this._esc(a)}">${this._esc(a)}</option>`).join('')}
             <option value="">Other…</option>
         </select>
-        <input id="add-attr-custom" type="text" placeholder="attribute name" style="display:none">
+        <input id="add-attr-custom" type="text" placeholder="attribute name" class="hidden">
         <input id="add-val" type="text" placeholder="value">
         <button id="add-btn">Add Condition</button>
     </div>
@@ -327,7 +349,7 @@ export class DitavalConditionEditorPanel {
         const attrSelect = document.getElementById('add-attr');
         const attrCustom = document.getElementById('add-attr-custom');
         attrSelect.addEventListener('change', () => {
-            attrCustom.style.display = attrSelect.value === '' ? 'inline-block' : 'none';
+            attrCustom.classList.toggle('hidden', attrSelect.value !== '');
         });
 
         document.getElementById('add-btn').addEventListener('click', () => {
@@ -353,18 +375,36 @@ export class DitavalConditionEditorPanel {
     }
 
     private _renderGroup(group: ConditionAttributeState): string {
-        const chips = group.values.map(v => this._renderChip(group.attribute, v)).join('');
+        const chips = group.values.map(v => this._renderChip(group.attribute, v, group.defaultAction)).join('');
+        // `/code-review` fix: a value-less "default for this attribute"
+        // rule (e.g. `<prop action="exclude" att="platform"/>`) used to be
+        // preserved on save but never shown here at all, so every value
+        // with no rule of its own looked neutral even when this default
+        // was actually excluding/including/flagging it. Surfaced as a
+        // badge on the group, plus a per-chip hint below.
+        const defaultBadge = group.defaultAction
+            ? `<span class="default-badge" data-action="${this._esc(group.defaultAction)}">default: ${this._esc(group.defaultAction)}</span>`
+            : '';
         return `
             <div class="attribute-group">
-                <div class="attribute-name">${this._esc(group.attribute)}</div>
+                <div class="attribute-name">${this._esc(group.attribute)} ${defaultBadge}</div>
                 <div class="chips">${chips}</div>
             </div>
         `;
     }
 
-    private _renderChip(attribute: string, value: { value: string; hierarchyPath?: string; action: ConditionAction | null }): string {
+    private _renderChip(
+        attribute: string,
+        value: { value: string; hierarchyPath?: string; action: ConditionAction | null },
+        groupDefaultAction: ConditionAction | null
+    ): string {
         const nextAction = nextConditionAction(value.action) ?? 'none';
-        const label = value.action ? `${value.action}: ${value.value}` : value.value;
+        const effectiveDefault = value.action === null ? groupDefaultAction : null;
+        const label = value.action
+            ? `${value.action}: ${value.value}`
+            : effectiveDefault
+                ? `${value.value} (default: ${effectiveDefault})`
+                : value.value;
         const hier = value.hierarchyPath ? `<span class="hier">${this._esc(value.hierarchyPath)}</span>` : '';
         const actionAttr = value.action ? ` data-action="${this._esc(value.action)}"` : '';
         return `<span class="chip" data-attr="${this._esc(attribute)}" data-val="${this._esc(value.value)}" data-next-action="${this._esc(nextAction)}"${actionAttr}>${this._esc(label)}${hier}</span>`;

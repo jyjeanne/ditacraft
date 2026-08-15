@@ -44,6 +44,22 @@ export interface GetSubjectSchemeAttributesResult {
  * scoping `SubjectSchemeData` otherwise carries (needed to validate a
  * particular root element, e.g. `batchMetadata.ts`'s use) doesn't apply
  * to this enumeration.
+ *
+ * Known pre-existing limitation, inherited from `SubjectSchemeData`'s
+ * shape rather than introduced here: `hierarchyPaths` is a single flat
+ * `key -> path` map, not scoped per attribute — if two different
+ * attributes each define a same-named subject key (e.g. both `audience`
+ * and `otherprops` happen to use "internal"), `mergeSchemes()`'s
+ * first-definition-wins merge means both attributes' enumerated values
+ * show whichever hierarchy path was parsed first, which can be the wrong
+ * one for the other attribute. This condition editor is the first caller
+ * to display multiple attributes' values side by side in one UI, so it's
+ * the first place this can actually mislead a user (existing consumers —
+ * hover/completion/profiling validation — only ever look up one
+ * attribute's values at a time). Reworking `hierarchyPaths` to be keyed
+ * per attribute would fix it at the source but touches a shared data
+ * structure several other features depend on; left as a known, documented
+ * gap rather than expanding this feature's blast radius.
  */
 function enumerateAttributes(data: SubjectSchemeData): SchemeAttributeInfo[] {
     const result: SchemeAttributeInfo[] = [];
