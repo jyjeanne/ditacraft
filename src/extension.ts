@@ -36,7 +36,11 @@ import {
     findReplaceInFilesCommand,
     batchUpdateMetadataCommand,
     editDitavalConditionsCommand,
-    extractTopicFromSectionCommand
+    extractTopicFromSectionCommand,
+    startWatchModeCommand,
+    stopWatchModeCommand,
+    disposeWatchMode,
+    inlineConrefCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
 import { registerConditionHighlighting } from './providers/ditavalDecorationProvider';
@@ -187,6 +191,9 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Register Move Topic — updates references when a DITA file is moved/renamed
         registerMoveTopicFeature(context);
+
+        // Register Watch Mode — start/stop commands, no auto-start
+        registerWatchModeFeature(context);
 
         // Start Language Server
         outputChannel.appendLine('Starting DITA Language Server...');
@@ -633,6 +640,38 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
 }
 
 /**
+ * Register the `ditacraft.startWatchMode`/`ditacraft.stopWatchMode`
+ * commands. No auto-start on activation — a workspace opting into watch
+ * mode is a deliberate, session-scoped choice the user makes each time,
+ * matching the root-map status bar item's own "click to act" model rather
+ * than an always-on settings toggle (see `watchModeCommand.ts`'s own doc
+ * comment for the full design).
+ */
+function registerWatchModeFeature(context: vscode.ExtensionContext): void {
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.startWatchMode', async (uri?: vscode.Uri) => {
+            try {
+                logger.info('Command invoked: ditacraft.startWatchMode');
+                await startWatchModeCommand(uri);
+            } catch (error) {
+                logger.error('Unhandled error in startWatchModeCommand', error);
+                vscode.window.showErrorMessage(`Error starting watch mode: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        }),
+        vscode.commands.registerCommand('ditacraft.stopWatchMode', () => {
+            try {
+                logger.info('Command invoked: ditacraft.stopWatchMode');
+                stopWatchModeCommand();
+            } catch (error) {
+                logger.error('Unhandled error in stopWatchModeCommand', error);
+                vscode.window.showErrorMessage(`Error stopping watch mode: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        }),
+        { dispose: () => disposeWatchMode() }
+    );
+}
+
+/**
  * Register the save-triggered auto-refresh for the HTML5 preview.
  *
  * When `ditacraft.previewAutoRefresh` is enabled and the saved document is the
@@ -861,6 +900,19 @@ function registerCommands(context: vscode.ExtensionContext): void {
             } catch (error) {
                 logger.error('Unhandled error in extractTopicFromSectionCommand', error);
                 vscode.window.showErrorMessage(`Error extracting topic: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        })
+    );
+
+    // Command to inline the conref/conkeyref target's content at the cursor
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.inlineConref', async () => {
+            try {
+                logger.info('Command invoked: ditacraft.inlineConref');
+                await inlineConrefCommand();
+            } catch (error) {
+                logger.error('Unhandled error in inlineConrefCommand', error);
+                vscode.window.showErrorMessage(`Error inlining conref: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
         })
     );

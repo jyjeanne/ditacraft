@@ -31,3 +31,12 @@ export { findReplaceInFilesCommand } from './findReplaceCommand';
 export { batchUpdateMetadataCommand } from './batchMetadataCommand';
 export { editDitavalConditionsCommand } from './ditavalConditionEditorCommand';
 export { extractTopicFromSectionCommand, buildExtractedTopicContent, detectNewTopicType, slugify } from './extractTopicCommand';
+export {
+    startWatchModeCommand,
+    stopWatchModeCommand,
+    disposeWatchMode,
+    isWatchModeActive,
+    resolveWatchTarget,
+    resolveWatchPublishOptions,
+} from './watchModeCommand';
+export { inlineConrefCommand } from './inlineConrefCommand';
