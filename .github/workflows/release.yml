@@ -4,9 +4,10 @@ on:
   push:
     tags:
       - 'v*'
-  release:
-    types: [created]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   security:
@@ -101,3 +102,99 @@ jobs:
         name: ditacraft-vsix
         path: '*.vsix'
         retention-days: 30
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    # Only for an actual tag push (not workflow_dispatch), so this job never
+    # tries to create a release that isn't backed by a version tag.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install server dependencies
+      run: cd server && npm ci
+
+    - name: Resolve and verify release version
+      id: version
+      run: |
+        set -euo pipefail
+        TAG_VERSION="${GITHUB_REF_NAME#v}"
+        PKG_VERSION=$(node -p "require('./package.json').version")
+        SERVER_PKG_VERSION=$(node -p "require('./server/package.json').version")
+        if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+          echo "::error::Tag ${GITHUB_REF_NAME} (version ${TAG_VERSION}) does not match package.json version ${PKG_VERSION}. Bump package.json before tagging."
+          exit 1
+        fi
+        if [ "$TAG_VERSION" != "$SERVER_PKG_VERSION" ]; then
+          echo "::error::Tag ${GITHUB_REF_NAME} (version ${TAG_VERSION}) does not match server/package.json version ${SERVER_PKG_VERSION}. Bump server/package.json before tagging."
+          exit 1
+        fi
+        echo "version=${TAG_VERSION}" >> "$GITHUB_OUTPUT"
+
+    - name: Package VS Code extension (.vsix) and standalone bundles
+      # `vsce package` runs the `vscode:prepublish` script first, which
+      # (via esbuild.js) builds all four bundles in one pass: the client
+      # extension, the LSP server, and the standalone dist/lsp-server.js +
+      # dist/mcp-server.js bundles used below.
+      run: npm run package
+
+    - name: Assemble release assets
+      run: |
+        set -euo pipefail
+        VERSION="${{ steps.version.outputs.version }}"
+        mkdir -p release-assets
+
+        # .vsix — already a zip-based package format, shipped as-is.
+        mv "ditacraft-${VERSION}.vsix" release-assets/
+
+        # PDF user guide — shipped as-is (not zipped).
+        cp docs/user-guide/pdf/ditacraft-user-guide.pdf release-assets/
+
+        # Standalone server bundles — zipped.
+        zip -j "release-assets/lsp-server-${VERSION}.zip" dist/lsp-server.js
+        zip -j "release-assets/mcp-server-${VERSION}.zip" dist/mcp-server.js
+
+        ls -la release-assets/
+
+    - name: Extract changelog section for this version
+      run: |
+        set -euo pipefail
+        VERSION="${{ steps.version.outputs.version }}"
+        awk -v ver="$VERSION" '
+          /^## \[/ {
+            if (found) exit
+            if (index($0, "[" ver "]") > 0) { found=1; next }
+            next
+          }
+          found { print }
+        ' CHANGELOG.md > release-notes.md
+        if [ ! -s release-notes.md ]; then
+          echo "See CHANGELOG.md for details." > release-notes.md
+        fi
+
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "${{ github.ref_name }}" \
+          release-assets/*.vsix \
+          release-assets/*.zip \
+          release-assets/*.pdf \
+          --repo "${{ github.repository }}" \
+          --title "${{ github.ref_name }}" \
+          --notes-file release-notes.md
