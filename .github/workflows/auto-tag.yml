@@ -1,9 +1,18 @@
 name: Auto Tag Release
 
 # Tags a new release automatically whenever a version bump to package.json
-# lands on main. Pushing the `vX.Y.Z` tag then triggers the "Build and Test"
-# workflow's release.yml push-tags job, which builds, tests, packages, and
-# publishes the GitHub Release with all artifacts attached.
+# lands on main, then explicitly dispatches release.yml at that tag, which
+# builds, tests, packages, and publishes the GitHub Release with all
+# artifacts attached.
+#
+# Note: pushing the tag with the default GITHUB_TOKEN does NOT by itself
+# trigger release.yml's `on: push: tags: v*` -- GitHub deliberately excludes
+# GITHUB_TOKEN-authored pushes from re-triggering other workflow runs (to
+# avoid accidental infinite loops), with `workflow_dispatch` as one of the
+# few exempted event types. So this workflow pushes the tag for the repo's
+# git history, then dispatches release.yml itself via the API. A human
+# pushing the same tag manually (with their own credentials) still triggers
+# release.yml normally through its push trigger.
 
 on:
   push:
@@ -14,6 +23,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   tag:
@@ -56,10 +66,22 @@ jobs:
         git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
         git push origin "${{ steps.version.outputs.tag }}"
 
+    - name: Dispatch release workflow
+      # The tag push above used GITHUB_TOKEN, so it will NOT trigger
+      # release.yml's push-tags event (see note at the top of this file) --
+      # explicitly dispatch it at the new tag instead. workflow_dispatch is
+      # one of the few event types GITHUB_TOKEN is still allowed to trigger.
+      if: steps.check.outputs.exists == 'false'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        gh workflow run release.yml --ref "${{ steps.version.outputs.tag }}" --repo "${{ github.repository }}"
+
     - name: Summary
       run: |
         if [ "${{ steps.check.outputs.exists }}" = "true" ]; then
           echo "Tag ${{ steps.version.outputs.tag }} already exists — nothing to do." >> "$GITHUB_STEP_SUMMARY"
         else
-          echo "Pushed tag ${{ steps.version.outputs.tag }} — the release workflow will build and publish it." >> "$GITHUB_STEP_SUMMARY"
+          echo "Pushed tag ${{ steps.version.outputs.tag }} and dispatched the release workflow to build and publish it." >> "$GITHUB_STEP_SUMMARY"
         fi
