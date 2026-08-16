@@ -122,4 +122,34 @@
             <navtitle>MCP Integration</navtitle>
         </topicmeta>
     </topicref>
+
+    <topicref href="refactoring-tools.dita" keys="refactoring-tools">
+        <topicmeta>
+            <navtitle>Refactoring Tools</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="project-scaffolding.dita" keys="project-scaffolding">
+        <topicmeta>
+            <navtitle>Templates and Project Scaffolding</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="publishing-workflow.dita" keys="publishing-workflow">
+        <topicmeta>
+            <navtitle>Publishing Workflow Enhancements</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="authoring-productivity.dita" keys="authoring-productivity">
+        <topicmeta>
+            <navtitle>Authoring Productivity Tools</navtitle>
+        </topicmeta>
+    </topicref>
+
+    <topicref href="ditaval-condition-editor.dita" keys="ditaval-condition-editor">
+        <topicmeta>
+            <navtitle>Visual DITAVAL Condition Editor</navtitle>
+        </topicmeta>
+    </topicref>
 </map>

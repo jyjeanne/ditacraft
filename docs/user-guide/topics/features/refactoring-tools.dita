@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="refactoring-tools">
+    <title>Refactoring Tools</title>
+    <shortdesc>DitaCraft rewrites every reference to an ID, key, or moved file across your whole
+        workspace — including <codeph>conkeyref</codeph> matches, which are now verified against
+        the key space before they are touched.</shortdesc>
+
+    <conbody>
+
+        <section id="overview">
+            <title>Overview</title>
+            <p>DITA content grows fragile as it grows large: a single renamed ID or moved file can
+                silently break dozens of <codeph>conref</codeph>, <codeph>keyref</codeph>, and
+                    <codeph>conkeyref</codeph> pointers elsewhere in the workspace. DitaCraft's
+                refactoring tools rewrite the reference graph for you, so structural edits stay
+                safe even in large, multi-map projects.</p>
+        </section>
+
+        <section id="rename-key">
+            <title>Rename ID or Key</title>
+            <p>Place the cursor on an <codeph>id</codeph> attribute value, or on a single key name
+                inside a <codeph>keys="..."</codeph> attribute, and press
+                    <uicontrol>F2</uicontrol> (or right-click and choose <uicontrol>Rename
+                    Symbol</uicontrol>). DitaCraft updates every matching <codeph>href</codeph>,
+                    <codeph>conref</codeph>, <codeph>keyref</codeph>, and
+                    <codeph>conkeyref</codeph> across the workspace in one atomic edit.</p>
+            <p>Renaming a key now verifies every candidate <codeph>conkeyref</codeph> match against
+                the key space before rewriting it — a match on element-ID text alone is no longer
+                enough. A reference that looks like it points at the renamed key but cannot be
+                proven to resolve there is left untouched and logged instead of silently rewritten,
+                eliminating false-positive rewrites in workspaces that reuse the same ID or key name
+                in more than one scope.</p>
+            <note type="tip">Rename Symbol shows a preview of every file that will change before you
+                confirm — nothing is written until you accept.</note>
+        </section>
+
+        <section id="move-topic">
+            <title>Move Topic with Reference Updates</title>
+            <p>Move or rename a <filepath>.dita</filepath>, <filepath>.ditamap</filepath>, or
+                    <filepath>.bookmap</filepath> file the normal VS Code way — drag it in the
+                Explorer, or use <uicontrol>F2</uicontrol> on the file itself — and DitaCraft
+                rewrites every inbound <codeph>href</codeph> and <codeph>conref</codeph> that
+                pointed at its old path, in every file across the workspace that referenced
+                it.</p>
+            <p>VS Code shows a confirmation prompt (<uicontrol>Update references to this
+                    file?</uicontrol>) before applying the edits, so you can review or skip the
+                update on any individual move.</p>
+        </section>
+
+        <section id="extract-topic">
+            <title>Extract Topic from Section</title>
+            <p>Select — or simply place the cursor inside — a <codeph>&lt;section&gt;</codeph> in
+                the active topic and run <uicontrol>DITA: Extract Topic from Section</uicontrol>.
+                DitaCraft:</p>
+            <ol>
+                <li>Creates a new standalone topic file from the section's content.</li>
+                <li>Matches the new file's root element to the <i>source</i> topic's type — a
+                        <codeph>&lt;concept&gt;</codeph> section produces a new
+                        <codeph>&lt;concept&gt;</codeph>, a <codeph>&lt;reference&gt;</codeph>
+                    section produces a new <codeph>&lt;reference&gt;</codeph>, and anything else
+                    falls back to a generic <codeph>&lt;topic&gt;</codeph>.</li>
+                <li>Replaces the original section with an <codeph>&lt;xref&gt;</codeph> pointing at
+                    the new topic.</li>
+            </ol>
+            <note type="important">A <codeph>&lt;taskbody&gt;</codeph> does not allow
+                    <codeph>&lt;section&gt;</codeph> as a child at all — DITA tasks use
+                    <codeph>&lt;context&gt;</codeph>, <codeph>&lt;steps&gt;</codeph>, and
+                    <codeph>&lt;result&gt;</codeph> instead. Running this command inside a task
+                topic is blocked with a clear message rather than producing structurally invalid
+                content.</note>
+        </section>
+
+        <section id="inline-conref">
+            <title>Inline Conref</title>
+            <p>The reverse of content reuse: place the cursor on (or inside) an element that
+                carries a <codeph>conref</codeph> or <codeph>conkeyref</codeph> attribute and run
+                    <uicontrol>DITA: Inline Conref</uicontrol>. DitaCraft resolves the reference,
+                splices the target element's content into the current location, and removes the
+                reference attribute — stripping any nested descendant <codeph>id</codeph> values
+                from the spliced-in content so the result never introduces a duplicate-ID
+                violation.</p>
+            <p>The edit applies immediately to the active file, without a workspace-wide preview —
+                unlike Find &amp; Replace or Batch Metadata Update, this is a single, cursor-scoped
+                change. Undo with <uicontrol>Ctrl+Z</uicontrol> if you change your mind.</p>
+        </section>
+
+    </conbody>
+</concept>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="editing-commands">
+    <title>Editing and Refactoring Commands</title>
+    <shortdesc>Commands for restructuring content, inserting images and tables, and applying
+        multi-file edits.</shortdesc>
+
+    <refbody>
+        <section id="rename-symbol">
+            <title>Rename Symbol (F2)</title>
+            <p><b>Shortcut:</b> <uicontrol>F2</uicontrol></p>
+            <p>Place the cursor on an <codeph>id</codeph> attribute value, or a single key name
+                inside a <codeph>keys="..."</codeph> attribute, and press <uicontrol>F2</uicontrol>
+                to rename it and update every <codeph>href</codeph>, <codeph>conref</codeph>,
+                    <codeph>keyref</codeph>, and <codeph>conkeyref</codeph> reference across the
+                workspace. See <xref keyref="refactoring-tools"/> for details on how
+                    <codeph>conkeyref</codeph> matches are verified before rewriting.</p>
+        </section>
+
+        <section id="move-topic-command">
+            <title>Move or Rename a File</title>
+            <p>Drag a <filepath>.dita</filepath>, <filepath>.ditamap</filepath>, or
+                    <filepath>.bookmap</filepath> file to a new location in the Explorer, or press
+                    <uicontrol>F2</uicontrol> on the file itself, and confirm the prompt to update
+                every inbound reference. See <xref keyref="refactoring-tools"/>.</p>
+        </section>
+
+        <section id="extract-topic-command">
+            <title>DITA: Extract Topic from Section</title>
+            <p>Place the cursor inside a <codeph>&lt;section&gt;</codeph> in the active topic to
+                extract it into a new standalone topic file, replacing the original section with an
+                    <codeph>&lt;xref&gt;</codeph>. See <xref keyref="refactoring-tools"/>.</p>
+        </section>
+
+        <section id="inline-conref-command">
+            <title>DITA: Inline Conref</title>
+            <p>Place the cursor on an element carrying <codeph>conref</codeph> or
+                    <codeph>conkeyref</codeph> to resolve and splice the referenced content in
+                place, removing the reference attribute. See <xref keyref="refactoring-tools"/>.</p>
+        </section>
+
+        <section id="insert-image-command">
+            <title>DITA: Insert Image</title>
+            <p>Browse for an image file and insert a correctly structured
+                    <codeph>&lt;image&gt;</codeph> (optionally wrapped in
+                    <codeph>&lt;fig&gt;</codeph>) at the cursor. See
+                    <xref keyref="authoring-productivity"/>.</p>
+        </section>
+
+        <section id="insert-table-command">
+            <title>DITA: Insert Table</title>
+            <p>Prompts for table type, column/row counts, and an optional header row, then inserts
+                a <codeph>&lt;simpletable&gt;</codeph> or CALS <codeph>&lt;table&gt;</codeph>
+                skeleton at the cursor. See <xref keyref="authoring-productivity"/>.</p>
+        </section>
+
+        <section id="find-replace-command">
+            <title>DITA: Find and Replace in Files</title>
+            <p>Searches across the DITA files in your workspace and applies replacements through
+                VS Code's native multi-file Refactor Preview. See
+                    <xref keyref="authoring-productivity"/>.</p>
+        </section>
+
+        <section id="batch-metadata-command">
+            <title>DITA: Batch Update Metadata</title>
+            <p>Multi-select files in the DITA Explorer to set or clear a profiling attribute on all
+                of them at once, validated against your subject scheme first. See
+                    <xref keyref="authoring-productivity"/>.</p>
+        </section>
+
+        <section id="edit-ditaval-conditions-command">
+            <title>DITA: Edit DITAVAL Conditions</title>
+            <p>Opens the Visual DITAVAL Condition Editor for the selected
+                    <filepath>.ditaval</filepath> file. See
+                    <xref keyref="ditaval-condition-editor"/>.</p>
+        </section>
+    </refbody>
+</reference>

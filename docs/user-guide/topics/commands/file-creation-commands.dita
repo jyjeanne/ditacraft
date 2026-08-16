@@ -86,6 +86,24 @@
             </ul>
         </section>
 
+        <section id="init-project-command">
+            <title>DITA: Initialize DITA Project</title>
+            <p>Scaffolds a brand-new DITA project in one guided flow: a root map or bookmap, an
+                optional set of starter topics, an optional starter <filepath>.ditaval</filepath>
+                filter, and the recommended <filepath>topics/</filepath>, <filepath>maps/</filepath>,
+                and <filepath>images/</filepath> folder layout. See
+                    <xref keyref="project-scaffolding"/> for the full wizard walkthrough.</p>
+        </section>
+
+        <section id="custom-templates-note">
+            <title>Custom Topic Templates</title>
+            <p>All three file-creation commands above — and the Project Initialization Wizard —
+                honor <codeph>ditacraft.templatesPath</codeph> when it is set, generating new files
+                from your own template content instead of the built-in boilerplate shown above. See
+                    <xref keyref="project-scaffolding"/> for the recognized template file names and
+                placeholder syntax.</p>
+        </section>
+
         <section id="file-naming">
             <title>File Naming Best Practices</title>
             <ul>
