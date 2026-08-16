@@ -1,0 +1,65 @@
+name: Auto Tag Release
+
+# Tags a new release automatically whenever a version bump to package.json
+# lands on main. Pushing the `vX.Y.Z` tag then triggers the "Build and Test"
+# workflow's release.yml push-tags job, which builds, tests, packages, and
+# publishes the GitHub Release with all artifacts attached.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    name: Tag Release
+    runs-on: ubuntu-latest
+    # Skip commits the release workflow itself makes (e.g. the knowledge
+    # graph refresh commit tags "[skip ci]") to avoid pointless re-checks.
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+
+    - name: Determine version and tag
+      id: version
+      run: |
+        set -euo pipefail
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+        echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+    - name: Check whether tag already exists
+      id: check
+      run: |
+        set -euo pipefail
+        if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Create and push tag
+      if: steps.check.outputs.exists == 'false'
+      run: |
+        set -euo pipefail
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
+        git push origin "${{ steps.version.outputs.tag }}"
+
+    - name: Summary
+      run: |
+        if [ "${{ steps.check.outputs.exists }}" = "true" ]; then
+          echo "Tag ${{ steps.version.outputs.tag }} already exists — nothing to do." >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "Pushed tag ${{ steps.version.outputs.tag }} — the release workflow will build and publish it." >> "$GITHUB_STEP_SUMMARY"
+        fi
