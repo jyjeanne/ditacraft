@@ -116,6 +116,14 @@ git refs, and \`docs\` to render this bundle as an HTML site, PDF, or GraphML gr
 /** Link README.md from index.md's listing -- okf-rs validate's "no orphaned files" rule requires every concept to be reachable from index.md. */
 function linkReadmeFromIndex() {
     const indexPath = path.join(OUT_DIR, 'index.md');
+    if (!fs.existsSync(indexPath)) {
+        // Clear diagnostic instead of a raw ENOENT stack trace -- e.g. "okf-rs
+        // generate" found zero concepts to document (empty/misconfigured scan
+        // root, or an overly aggressive future .gitignore exclusion).
+        console.error(`[generate-okf-knowledge] Expected "${path.relative(ROOT, indexPath)}" after "okf-rs generate" but it was not created.`);
+        console.error('okf-rs may have found zero concepts to document. Nothing to link the README from.');
+        process.exit(1);
+    }
     const content = fs.readFileSync(indexPath, 'utf-8');
     if (content.includes('README.md')) return; // already linked (idempotent across re-runs)
     fs.writeFileSync(indexPath, content.trimEnd() + '\n- [README](README.md)\n');

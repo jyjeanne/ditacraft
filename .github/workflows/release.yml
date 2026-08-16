@@ -107,9 +107,14 @@ jobs:
     name: Publish GitHub Release
     needs: build-and-test
     runs-on: ubuntu-latest
-    # Only for an actual tag push (not workflow_dispatch), so this job never
-    # tries to create a release that isn't backed by a version tag.
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    # Only when the workflow ran against an actual version tag -- true for a
+    # human `git push` of a `vX.Y.Z` tag (push event), and also true when
+    # auto-tag.yml dispatches this workflow `--ref vX.Y.Z` (workflow_dispatch
+    # event, needed because GITHUB_TOKEN-authored tag pushes don't trigger
+    # the push event themselves; see auto-tag.yml). A workflow_dispatch run
+    # against a branch has github.ref = refs/heads/..., so this still never
+    # fires from an ordinary manual run on main.
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
 
