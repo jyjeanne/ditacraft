@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-13T08:47:54.018Z",
+  "generatedAt": "2026-08-16T08:12:40.955Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.graphify/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -103,30 +103,6 @@
       "warnings": []
     },
     {
-      "id": "flow:commands_publishcommand_publishcommand",
-      "name": "publishCommand",
-      "entryPoint": "commands_publishcommand_publishcommand",
-      "entryPointId": "commands_publishcommand_publishcommand",
-      "path": [
-        "commands_publishcommand_publishcommand",
-        "commands_publishcommand_executepublish",
-        "commands_publishcommand_validateandprepareforpublish"
-      ],
-      "qualifiedPath": [
-        "commands_publishcommand_publishcommand",
-        "commands_publishcommand_executepublish",
-        "commands_publishcommand_validateandprepareforpublish"
-      ],
-      "depth": 1,
-      "nodeCount": 3,
-      "fileCount": 1,
-      "files": [
-        "src/commands/publishCommand.ts"
-      ],
-      "criticality": 0.3267,
-      "warnings": []
-    },
-    {
       "id": "flow:commands_publishcommand_publishhtml5command",
       "name": "publishHTML5Command",
       "entryPoint": "commands_publishcommand_publishhtml5command",
@@ -222,6 +198,48 @@
         "server/src/features/validation.ts"
       ],
       "criticality": 0.305,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_previewcommand_pickpreviewfiltercommand",
+      "name": "pickPreviewFilterCommand",
+      "entryPoint": "commands_previewcommand_pickpreviewfiltercommand",
+      "entryPointId": "commands_previewcommand_pickpreviewfiltercommand",
+      "path": [
+        "commands_previewcommand_pickpreviewfiltercommand",
+        "commands_previewcommand_requestpreviewrefresh",
+        "commands_previewcommand_previewhtml5command",
+        "commands_previewcommand_displaypreview",
+        "commands_previewcommand_generatehtml5outputifneeded",
+        "commands_previewcommand_getandvalidatefileuri",
+        "commands_previewcommand_handlepreviewerror",
+        "commands_previewcommand_initializeandvalidateditaot",
+        "commands_previewcommand_validatefilepath",
+        "commands_previewcommand_validateinputfile",
+        "commands_previewcommand_findmainhtmlfile",
+        "commands_previewcommand_computefiltersuffix"
+      ],
+      "qualifiedPath": [
+        "commands_previewcommand_pickpreviewfiltercommand",
+        "commands_previewcommand_requestpreviewrefresh",
+        "commands_previewcommand_previewhtml5command",
+        "commands_previewcommand_displaypreview",
+        "commands_previewcommand_generatehtml5outputifneeded",
+        "commands_previewcommand_getandvalidatefileuri",
+        "commands_previewcommand_handlepreviewerror",
+        "commands_previewcommand_initializeandvalidateditaot",
+        "commands_previewcommand_validatefilepath",
+        "commands_previewcommand_validateinputfile",
+        "commands_previewcommand_findmainhtmlfile",
+        "commands_previewcommand_computefiltersuffix"
+      ],
+      "depth": 4,
+      "nodeCount": 12,
+      "fileCount": 1,
+      "files": [
+        "src/commands/previewCommand.ts"
+      ],
+      "criticality": 0.2942,
       "warnings": []
     },
     {
@@ -405,39 +423,29 @@
       "warnings": []
     },
     {
-      "id": "flow:commands_previewcommand_previewhtml5command",
-      "name": "previewHTML5Command",
-      "entryPoint": "commands_previewcommand_previewhtml5command",
-      "entryPointId": "commands_previewcommand_previewhtml5command",
+      "id": "flow:commands_publishcommand_publishcommand",
+      "name": "publishCommand",
+      "entryPoint": "commands_publishcommand_publishcommand",
+      "entryPointId": "commands_publishcommand_publishcommand",
       "path": [
-        "commands_previewcommand_previewhtml5command",
-        "commands_previewcommand_displaypreview",
-        "commands_previewcommand_generatehtml5outputifneeded",
-        "commands_previewcommand_getandvalidatefileuri",
-        "commands_previewcommand_handlepreviewerror",
-        "commands_previewcommand_initializeandvalidateditaot",
-        "commands_previewcommand_validatefilepath",
-        "commands_previewcommand_validateinputfile",
-        "commands_previewcommand_findmainhtmlfile"
+        "commands_publishcommand_publishcommand",
+        "commands_publishcommand_executepublish",
+        "commands_publishcommand_pickprofileorconfigureonce",
+        "commands_publishcommand_validateandprepareforpublish"
       ],
       "qualifiedPath": [
-        "commands_previewcommand_previewhtml5command",
-        "commands_previewcommand_displaypreview",
-        "commands_previewcommand_generatehtml5outputifneeded",
-        "commands_previewcommand_getandvalidatefileuri",
-        "commands_previewcommand_handlepreviewerror",
-        "commands_previewcommand_initializeandvalidateditaot",
-        "commands_previewcommand_validatefilepath",
-        "commands_previewcommand_validateinputfile",
-        "commands_previewcommand_findmainhtmlfile"
+        "commands_publishcommand_publishcommand",
+        "commands_publishcommand_executepublish",
+        "commands_publishcommand_pickprofileorconfigureonce",
+        "commands_publishcommand_validateandprepareforpublish"
       ],
-      "depth": 2,
-      "nodeCount": 9,
+      "depth": 1,
+      "nodeCount": 4,
       "fileCount": 1,
       "files": [
-        "src/commands/previewCommand.ts"
+        "src/commands/publishCommand.ts"
       ],
-      "criticality": 0.2811,
+      "criticality": 0.285,
       "warnings": []
     },
     {
@@ -1105,6 +1113,34 @@
       "warnings": []
     },
     {
+      "id": "flow:features_batchmetadata_processfile",
+      "name": "processFile",
+      "entryPoint": "features_batchmetadata_processfile",
+      "entryPointId": "features_batchmetadata_processfile",
+      "path": [
+        "features_batchmetadata_processfile",
+        "features_batchmetadata_buildattributeedit",
+        "features_batchmetadata_findrootelement",
+        "features_batchmetadata_validateagainstsubjectscheme",
+        "features_batchmetadata_escapexmlattrvalue"
+      ],
+      "qualifiedPath": [
+        "features_batchmetadata_processfile",
+        "features_batchmetadata_buildattributeedit",
+        "features_batchmetadata_findrootelement",
+        "features_batchmetadata_validateagainstsubjectscheme",
+        "features_batchmetadata_escapexmlattrvalue"
+      ],
+      "depth": 2,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/batchMetadata.ts"
+      ],
+      "criticality": 0.22,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_ditaotwrapper_ditaotwrapper_configureotpath",
       "name": ".configureOtPath",
       "entryPoint": "utils_ditaotwrapper_ditaotwrapper_configureotpath",
@@ -1198,6 +1234,200 @@
         "src/providers/previewPanel.ts"
       ],
       "criticality": 0.2113,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_resolvekey",
+      "name": ".resolveKey",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_resolvekey",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_resolvekey",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_resolvekey",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchain",
+        "services_keyspaceservice_keyspaceservice_resolvekeyentrywithscope",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_resolvekey",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchain",
+        "services_keyspaceservice_keyspaceservice_resolvekeyentrywithscope",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 6,
+      "nodeCount": 33,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.21,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_resolvekeyentry",
+      "name": ".resolveKeyEntry",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_resolvekeyentry",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_resolvekeyentry",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_resolvekeyentry",
+        "services_keyspaceservice_keyspaceservice_resolvekeyentrywithscope",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_resolvekeyentry",
+        "services_keyspaceservice_keyspaceservice_resolvekeyentrywithscope",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 6,
+      "nodeCount": 32,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.21,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_findreplacecommand_findreplaceinfilescommand",
+      "name": "findReplaceInFilesCommand",
+      "entryPoint": "commands_findreplacecommand_findreplaceinfilescommand",
+      "entryPointId": "commands_findreplacecommand_findreplaceinfilescommand",
+      "path": [
+        "commands_findreplacecommand_findreplaceinfilescommand",
+        "commands_findreplacecommand_buildconfirmableworkspaceedit",
+        "commands_findreplacecommand_describesearchlabel",
+        "commands_findreplacecommand_parsefindoptions",
+        "commands_findreplacecommand_validateregexquery"
+      ],
+      "qualifiedPath": [
+        "commands_findreplacecommand_findreplaceinfilescommand",
+        "commands_findreplacecommand_buildconfirmableworkspaceedit",
+        "commands_findreplacecommand_describesearchlabel",
+        "commands_findreplacecommand_parsefindoptions",
+        "commands_findreplacecommand_validateregexquery"
+      ],
+      "depth": 1,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/commands/findReplaceCommand.ts"
+      ],
+      "criticality": 0.21,
       "warnings": []
     },
     {
@@ -1349,6 +1579,7 @@
         "services_keyspaceservice_keyspaceservice_followkeyrefchainwithtrace",
         "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
         "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
         "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
         "services_keyspaceservice_keyspaceservice_cachekeyspace",
         "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
@@ -1383,6 +1614,7 @@
         "services_keyspaceservice_keyspaceservice_followkeyrefchainwithtrace",
         "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
         "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
         "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
         "services_keyspaceservice_keyspaceservice_cachekeyspace",
         "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
@@ -1410,7 +1642,7 @@
         "services_keyspaceservice_keyspaceservice_findinnercontent"
       ],
       "depth": 5,
-      "nodeCount": 32,
+      "nodeCount": 33,
       "fileCount": 1,
       "files": [
         "server/src/services/keySpaceService.ts"
@@ -1429,6 +1661,7 @@
         "services_keyspaceservice_keyspaceservice_findrootmap",
         "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
         "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
         "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
         "services_keyspaceservice_keyspaceservice_cachekeyspace",
         "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
@@ -1461,242 +1694,7 @@
         "services_keyspaceservice_keyspaceservice_findrootmap",
         "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
         "services_keyspaceservice_keyspaceservice_isbuildstale",
-        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
-        "services_keyspaceservice_keyspaceservice_cachekeyspace",
-        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
-        "services_keyspaceservice_keyspaceservice_extractmapreferences",
-        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
-        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
-        "services_keyspaceservice_keyspaceservice_fileexistsasync",
-        "services_keyspaceservice_keyspaceservice_issubjectschememap",
-        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
-        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
-        "services_keyspaceservice_keyspaceservice_stripreltables",
-        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
-        "services_keyspaceservice_keyspaceservice_parsemapelements",
-        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
-        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_maskranges",
-        "services_keyspaceservice_keyspaceservice_computelinenumber",
-        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
-        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
-        "services_keyspaceservice_keyspaceservice_collectxmlelements",
-        "services_keyspaceservice_keyspaceservice_findinnercontent"
-      ],
-      "depth": 5,
-      "nodeCount": 30,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/keySpaceService.ts"
-      ],
-      "criticality": 0.2,
-      "warnings": []
-    },
-    {
-      "id": "flow:services_keyspaceservice_keyspaceservice_getduplicatekeys",
-      "name": ".getDuplicateKeys",
-      "entryPoint": "services_keyspaceservice_keyspaceservice_getduplicatekeys",
-      "entryPointId": "services_keyspaceservice_keyspaceservice_getduplicatekeys",
-      "path": [
-        "services_keyspaceservice_keyspaceservice_getduplicatekeys",
-        "services_keyspaceservice_keyspaceservice_buildkeyspace",
-        "services_keyspaceservice_keyspaceservice_findrootmap",
-        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
-        "services_keyspaceservice_keyspaceservice_isbuildstale",
-        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
-        "services_keyspaceservice_keyspaceservice_cachekeyspace",
-        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
-        "services_keyspaceservice_keyspaceservice_extractmapreferences",
-        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
-        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
-        "services_keyspaceservice_keyspaceservice_fileexistsasync",
-        "services_keyspaceservice_keyspaceservice_issubjectschememap",
-        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
-        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
-        "services_keyspaceservice_keyspaceservice_stripreltables",
-        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
-        "services_keyspaceservice_keyspaceservice_parsemapelements",
-        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
-        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_maskranges",
-        "services_keyspaceservice_keyspaceservice_computelinenumber",
-        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
-        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
-        "services_keyspaceservice_keyspaceservice_collectxmlelements",
-        "services_keyspaceservice_keyspaceservice_findinnercontent"
-      ],
-      "qualifiedPath": [
-        "services_keyspaceservice_keyspaceservice_getduplicatekeys",
-        "services_keyspaceservice_keyspaceservice_buildkeyspace",
-        "services_keyspaceservice_keyspaceservice_findrootmap",
-        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
-        "services_keyspaceservice_keyspaceservice_isbuildstale",
-        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
-        "services_keyspaceservice_keyspaceservice_cachekeyspace",
-        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
-        "services_keyspaceservice_keyspaceservice_extractmapreferences",
-        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
-        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
-        "services_keyspaceservice_keyspaceservice_fileexistsasync",
-        "services_keyspaceservice_keyspaceservice_issubjectschememap",
-        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
-        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
-        "services_keyspaceservice_keyspaceservice_stripreltables",
-        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
-        "services_keyspaceservice_keyspaceservice_parsemapelements",
-        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
-        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_maskranges",
-        "services_keyspaceservice_keyspaceservice_computelinenumber",
-        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
-        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
-        "services_keyspaceservice_keyspaceservice_collectxmlelements",
-        "services_keyspaceservice_keyspaceservice_findinnercontent"
-      ],
-      "depth": 5,
-      "nodeCount": 30,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/keySpaceService.ts"
-      ],
-      "criticality": 0.2,
-      "warnings": []
-    },
-    {
-      "id": "flow:services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
-      "name": ".getSubjectSchemePaths",
-      "entryPoint": "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
-      "entryPointId": "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
-      "path": [
-        "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
-        "services_keyspaceservice_keyspaceservice_buildkeyspace",
-        "services_keyspaceservice_keyspaceservice_findrootmap",
-        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
-        "services_keyspaceservice_keyspaceservice_isbuildstale",
-        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
-        "services_keyspaceservice_keyspaceservice_cachekeyspace",
-        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
-        "services_keyspaceservice_keyspaceservice_extractmapreferences",
-        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
-        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
-        "services_keyspaceservice_keyspaceservice_fileexistsasync",
-        "services_keyspaceservice_keyspaceservice_issubjectschememap",
-        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
-        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
-        "services_keyspaceservice_keyspaceservice_stripreltables",
-        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
-        "services_keyspaceservice_keyspaceservice_parsemapelements",
-        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
-        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_maskranges",
-        "services_keyspaceservice_keyspaceservice_computelinenumber",
-        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
-        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
-        "services_keyspaceservice_keyspaceservice_collectxmlelements",
-        "services_keyspaceservice_keyspaceservice_findinnercontent"
-      ],
-      "qualifiedPath": [
-        "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
-        "services_keyspaceservice_keyspaceservice_buildkeyspace",
-        "services_keyspaceservice_keyspaceservice_findrootmap",
-        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
-        "services_keyspaceservice_keyspaceservice_isbuildstale",
-        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
-        "services_keyspaceservice_keyspaceservice_cachekeyspace",
-        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
-        "services_keyspaceservice_keyspaceservice_extractmapreferences",
-        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
-        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
-        "services_keyspaceservice_keyspaceservice_fileexistsasync",
-        "services_keyspaceservice_keyspaceservice_issubjectschememap",
-        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
-        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
-        "services_keyspaceservice_keyspaceservice_stripreltables",
-        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
-        "services_keyspaceservice_keyspaceservice_parsemapelements",
-        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
-        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_maskranges",
-        "services_keyspaceservice_keyspaceservice_computelinenumber",
-        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
-        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
-        "services_keyspaceservice_keyspaceservice_collectxmlelements",
-        "services_keyspaceservice_keyspaceservice_findinnercontent"
-      ],
-      "depth": 5,
-      "nodeCount": 30,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/keySpaceService.ts"
-      ],
-      "criticality": 0.2,
-      "warnings": []
-    },
-    {
-      "id": "flow:services_keyspaceservice_keyspaceservice_resolvekey",
-      "name": ".resolveKey",
-      "entryPoint": "services_keyspaceservice_keyspaceservice_resolvekey",
-      "entryPointId": "services_keyspaceservice_keyspaceservice_resolvekey",
-      "path": [
-        "services_keyspaceservice_keyspaceservice_resolvekey",
-        "services_keyspaceservice_keyspaceservice_buildkeyspace",
-        "services_keyspaceservice_keyspaceservice_findrootmap",
-        "services_keyspaceservice_keyspaceservice_followkeyrefchain",
-        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
-        "services_keyspaceservice_keyspaceservice_isbuildstale",
-        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
-        "services_keyspaceservice_keyspaceservice_cachekeyspace",
-        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
-        "services_keyspaceservice_keyspaceservice_extractmapreferences",
-        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
-        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
-        "services_keyspaceservice_keyspaceservice_fileexistsasync",
-        "services_keyspaceservice_keyspaceservice_issubjectschememap",
-        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
-        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
-        "services_keyspaceservice_keyspaceservice_stripreltables",
-        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
-        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
-        "services_keyspaceservice_keyspaceservice_parsemapelements",
-        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
-        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
-        "services_keyspaceservice_keyspaceservice_maskranges",
-        "services_keyspaceservice_keyspaceservice_computelinenumber",
-        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
-        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
-        "services_keyspaceservice_keyspaceservice_collectxmlelements",
-        "services_keyspaceservice_keyspaceservice_findinnercontent"
-      ],
-      "qualifiedPath": [
-        "services_keyspaceservice_keyspaceservice_resolvekey",
-        "services_keyspaceservice_keyspaceservice_buildkeyspace",
-        "services_keyspaceservice_keyspaceservice_findrootmap",
-        "services_keyspaceservice_keyspaceservice_followkeyrefchain",
-        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
-        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
         "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
         "services_keyspaceservice_keyspaceservice_cachekeyspace",
         "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
@@ -1728,6 +1726,268 @@
       "fileCount": 1,
       "files": [
         "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_getduplicatekeys",
+      "name": ".getDuplicateKeys",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_getduplicatekeys",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 31,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_getschemedata",
+      "name": ".getSchemeData",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getschemedata",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getschemedata",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_getschemedata",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_getschemedata",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
+      ],
+      "depth": 5,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+      "name": ".getSubjectSchemePaths",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
+        "services_keyspaceservice_keyspaceservice_buildkeyspace",
+        "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
+        "services_keyspaceservice_keyspaceservice_isbuildstale",
+        "services_keyspaceservice_keyspaceservice_dofindrootmap",
+        "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
+        "services_keyspaceservice_keyspaceservice_cachekeyspace",
+        "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitions",
+        "services_keyspaceservice_keyspaceservice_extractmapreferences",
+        "services_keyspaceservice_keyspaceservice_extractrootkeyscope",
+        "services_keyspaceservice_keyspaceservice_extracttopicreferences",
+        "services_keyspaceservice_keyspaceservice_fileexistsasync",
+        "services_keyspaceservice_keyspaceservice_issubjectschememap",
+        "services_keyspaceservice_keyspaceservice_processinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_registerinlinemaprefkeys",
+        "services_keyspaceservice_keyspaceservice_registerkeysforadditionalscope",
+        "services_keyspaceservice_keyspaceservice_stripreltables",
+        "services_keyspaceservice_keyspaceservice_cleanupexpiredcacheentries",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsfromelements",
+        "services_keyspaceservice_keyspaceservice_extractkeydefinitionsregex",
+        "services_keyspaceservice_keyspaceservice_parsemapelements",
+        "services_keyspaceservice_keyspaceservice_ispathwithinworkspace",
+        "services_keyspaceservice_keyspaceservice_extractinlinescopeblocks",
+        "services_keyspaceservice_keyspaceservice_maskranges",
+        "services_keyspaceservice_keyspaceservice_computelinenumber",
+        "services_keyspaceservice_keyspaceservice_extractmetadatafromnode",
+        "services_keyspaceservice_keyspaceservice_extractkeymetadata",
+        "services_keyspaceservice_keyspaceservice_collectxmlelements",
+        "services_keyspaceservice_keyspaceservice_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 31,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_keyspaceresolver_keyspaceresolver_resolvekey",
+      "name": ".resolveKey",
+      "entryPoint": "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+      "entryPointId": "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+      "path": [
+        "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+        "utils_keyspaceresolver_keyspaceresolver_buildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_findrootmap",
+        "utils_keyspaceresolver_keyspaceresolver_followkeyrefchain",
+        "utils_keyspaceresolver_keyspaceresolver_normalizepathforcomparison",
+        "utils_keyspaceresolver_keyspaceresolver_dobuildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_addscopedkeyentry",
+        "utils_keyspaceresolver_keyspaceresolver_cachekeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_combinescopeprefixes",
+        "utils_keyspaceresolver_keyspaceresolver_extractkeydefinitions",
+        "utils_keyspaceresolver_keyspaceresolver_extractmapreferences",
+        "utils_keyspaceresolver_keyspaceresolver_extractrootkeyscope",
+        "utils_keyspaceresolver_keyspaceresolver_extracttopicreferences",
+        "utils_keyspaceresolver_keyspaceresolver_fileexistsasync",
+        "utils_keyspaceresolver_keyspaceresolver_processinlinescopeblocks",
+        "utils_keyspaceresolver_keyspaceresolver_readfileasync",
+        "utils_keyspaceresolver_keyspaceresolver_registerinlinemaprefkeys",
+        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
+        "utils_keyspaceresolver_keyspaceresolver_extractinlinecontent",
+        "utils_keyspaceresolver_keyspaceresolver_getmaxmatches",
+        "utils_keyspaceresolver_keyspaceresolver_ispathwithinworkspace",
+        "utils_keyspaceresolver_keyspaceresolver_extractinlinescopeblocks",
+        "utils_keyspaceresolver_keyspaceresolver_maskranges",
+        "utils_keyspaceresolver_keyspaceresolver_findinnercontent"
+      ],
+      "qualifiedPath": [
+        "utils_keyspaceresolver_keyspaceresolver_resolvekey",
+        "utils_keyspaceresolver_keyspaceresolver_buildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_findrootmap",
+        "utils_keyspaceresolver_keyspaceresolver_followkeyrefchain",
+        "utils_keyspaceresolver_keyspaceresolver_normalizepathforcomparison",
+        "utils_keyspaceresolver_keyspaceresolver_dobuildkeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_addscopedkeyentry",
+        "utils_keyspaceresolver_keyspaceresolver_cachekeyspace",
+        "utils_keyspaceresolver_keyspaceresolver_combinescopeprefixes",
+        "utils_keyspaceresolver_keyspaceresolver_extractkeydefinitions",
+        "utils_keyspaceresolver_keyspaceresolver_extractmapreferences",
+        "utils_keyspaceresolver_keyspaceresolver_extractrootkeyscope",
+        "utils_keyspaceresolver_keyspaceresolver_extracttopicreferences",
+        "utils_keyspaceresolver_keyspaceresolver_fileexistsasync",
+        "utils_keyspaceresolver_keyspaceresolver_processinlinescopeblocks",
+        "utils_keyspaceresolver_keyspaceresolver_readfileasync",
+        "utils_keyspaceresolver_keyspaceresolver_registerinlinemaprefkeys",
+        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
+        "utils_keyspaceresolver_keyspaceresolver_extractinlinecontent",
+        "utils_keyspaceresolver_keyspaceresolver_getmaxmatches",
+        "utils_keyspaceresolver_keyspaceresolver_ispathwithinworkspace",
+        "utils_keyspaceresolver_keyspaceresolver_extractinlinescopeblocks",
+        "utils_keyspaceresolver_keyspaceresolver_maskranges",
+        "utils_keyspaceresolver_keyspaceresolver_findinnercontent"
+      ],
+      "depth": 5,
+      "nodeCount": 24,
+      "fileCount": 1,
+      "files": [
+        "src/utils/keySpaceResolver.ts"
       ],
       "criticality": 0.2,
       "warnings": []
@@ -1771,6 +2031,44 @@
       "warnings": []
     },
     {
+      "id": "flow:commands_insertimagecommand_insertimagecommand",
+      "name": "insertImageCommand",
+      "entryPoint": "commands_insertimagecommand_insertimagecommand",
+      "entryPointId": "commands_insertimagecommand_insertimagecommand",
+      "path": [
+        "commands_insertimagecommand_insertimagecommand",
+        "commands_insertimagecommand_buildimagesnippet",
+        "commands_insertimagecommand_iseligibledocument",
+        "commands_insertimagecommand_promptforimagesize",
+        "commands_insertimagecommand_resolveimagehref",
+        "commands_insertimagecommand_buildimageelement",
+        "commands_insertimagecommand_promptfornmtokenvalue",
+        "commands_insertimagecommand_computeimagehref",
+        "commands_insertimagecommand_copyimageintodirectory",
+        "commands_insertimagecommand_reportunresolvablehref"
+      ],
+      "qualifiedPath": [
+        "commands_insertimagecommand_insertimagecommand",
+        "commands_insertimagecommand_buildimagesnippet",
+        "commands_insertimagecommand_iseligibledocument",
+        "commands_insertimagecommand_promptforimagesize",
+        "commands_insertimagecommand_resolveimagehref",
+        "commands_insertimagecommand_buildimageelement",
+        "commands_insertimagecommand_promptfornmtokenvalue",
+        "commands_insertimagecommand_computeimagehref",
+        "commands_insertimagecommand_copyimageintodirectory",
+        "commands_insertimagecommand_reportunresolvablehref"
+      ],
+      "depth": 2,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "src/commands/insertImageCommand.ts"
+      ],
+      "criticality": 0.195,
+      "warnings": []
+    },
+    {
       "id": "flow:src_extension_activate",
       "name": "activate",
       "entryPoint": "src_extension_activate",
@@ -1780,8 +2078,10 @@
         "src_extension_registercommands",
         "src_extension_registerconfigurationlistener",
         "src_extension_registerloggercommands",
+        "src_extension_registermovetopicfeature",
         "src_extension_registerpreviewautorefresh",
         "src_extension_registerrootmapfeature",
+        "src_extension_registerwatchmodefeature",
         "src_extension_showwelcomemessage",
         "src_extension_suggestcspellsetup",
         "src_extension_verifyditaotinstallation",
@@ -1792,20 +2092,130 @@
         "src_extension_registercommands",
         "src_extension_registerconfigurationlistener",
         "src_extension_registerloggercommands",
+        "src_extension_registermovetopicfeature",
         "src_extension_registerpreviewautorefresh",
         "src_extension_registerrootmapfeature",
+        "src_extension_registerwatchmodefeature",
         "src_extension_showwelcomemessage",
         "src_extension_suggestcspellsetup",
         "src_extension_verifyditaotinstallation",
         "src_extension_updaterootmapstatusbar"
       ],
       "depth": 2,
-      "nodeCount": 10,
+      "nodeCount": 12,
       "fileCount": 1,
       "files": [
         "src/extension.ts"
       ],
-      "criticality": 0.195,
+      "criticality": 0.1908,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_handlemessage",
+      "name": "._handleMessage",
+      "entryPoint": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_handlemessage",
+      "entryPointId": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_handlemessage",
+      "path": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_handlemessage",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_parseaction",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_refresh",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_togglecondition",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_fetchschemeattributes",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_render",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_writedocument",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_gethtmlcontent",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_getnonce"
+      ],
+      "qualifiedPath": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_handlemessage",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_parseaction",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_refresh",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_togglecondition",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_fetchschemeattributes",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_render",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_writedocument",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_gethtmlcontent",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_getnonce"
+      ],
+      "depth": 4,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditavalConditionEditorPanel.ts"
+      ],
+      "criticality": 0.19,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_constructor",
+      "name": ".constructor",
+      "entryPoint": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_constructor",
+      "entryPointId": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_constructor",
+      "path": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_constructor",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_refresh",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_updatetitle",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_fetchschemeattributes",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_render",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_gethtmlcontent",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_getnonce"
+      ],
+      "qualifiedPath": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_constructor",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_refresh",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_updatetitle",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_fetchschemeattributes",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_render",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_gethtmlcontent",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_getnonce"
+      ],
+      "depth": 4,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditavalConditionEditorPanel.ts"
+      ],
+      "criticality": 0.19,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_createorshow",
+      "name": ".createOrShow",
+      "entryPoint": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_createorshow",
+      "entryPointId": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_createorshow",
+      "path": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_createorshow",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_refresh",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_updatetitle",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_fetchschemeattributes",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_render",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_gethtmlcontent",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_getnonce"
+      ],
+      "qualifiedPath": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_createorshow",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_refresh",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_updatetitle",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_fetchschemeattributes",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_render",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_gethtmlcontent",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_getnonce"
+      ],
+      "depth": 4,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditavalConditionEditorPanel.ts"
+      ],
+      "criticality": 0.19,
       "warnings": []
     },
     {
@@ -1838,52 +2248,6 @@
       "fileCount": 1,
       "files": [
         "src/utils/logger.ts"
-      ],
-      "criticality": 0.19,
-      "warnings": []
-    },
-    {
-      "id": "flow:utils_keyspaceresolver_keyspaceresolver_resolvekey",
-      "name": ".resolveKey",
-      "entryPoint": "utils_keyspaceresolver_keyspaceresolver_resolvekey",
-      "entryPointId": "utils_keyspaceresolver_keyspaceresolver_resolvekey",
-      "path": [
-        "utils_keyspaceresolver_keyspaceresolver_resolvekey",
-        "utils_keyspaceresolver_keyspaceresolver_buildkeyspace",
-        "utils_keyspaceresolver_keyspaceresolver_findrootmap",
-        "utils_keyspaceresolver_keyspaceresolver_followkeyrefchain",
-        "utils_keyspaceresolver_keyspaceresolver_dobuildkeyspace",
-        "utils_keyspaceresolver_keyspaceresolver_cachekeyspace",
-        "utils_keyspaceresolver_keyspaceresolver_extractkeydefinitions",
-        "utils_keyspaceresolver_keyspaceresolver_extractmapreferences",
-        "utils_keyspaceresolver_keyspaceresolver_fileexistsasync",
-        "utils_keyspaceresolver_keyspaceresolver_readfileasync",
-        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
-        "utils_keyspaceresolver_keyspaceresolver_extractinlinecontent",
-        "utils_keyspaceresolver_keyspaceresolver_getmaxmatches",
-        "utils_keyspaceresolver_keyspaceresolver_ispathwithinworkspace"
-      ],
-      "qualifiedPath": [
-        "utils_keyspaceresolver_keyspaceresolver_resolvekey",
-        "utils_keyspaceresolver_keyspaceresolver_buildkeyspace",
-        "utils_keyspaceresolver_keyspaceresolver_findrootmap",
-        "utils_keyspaceresolver_keyspaceresolver_followkeyrefchain",
-        "utils_keyspaceresolver_keyspaceresolver_dobuildkeyspace",
-        "utils_keyspaceresolver_keyspaceresolver_cachekeyspace",
-        "utils_keyspaceresolver_keyspaceresolver_extractkeydefinitions",
-        "utils_keyspaceresolver_keyspaceresolver_extractmapreferences",
-        "utils_keyspaceresolver_keyspaceresolver_fileexistsasync",
-        "utils_keyspaceresolver_keyspaceresolver_readfileasync",
-        "utils_keyspaceresolver_keyspaceresolver_cleanupexpiredcacheentries",
-        "utils_keyspaceresolver_keyspaceresolver_extractinlinecontent",
-        "utils_keyspaceresolver_keyspaceresolver_getmaxmatches",
-        "utils_keyspaceresolver_keyspaceresolver_ispathwithinworkspace"
-      ],
-      "depth": 4,
-      "nodeCount": 14,
-      "fileCount": 1,
-      "files": [
-        "src/utils/keySpaceResolver.ts"
       ],
       "criticality": 0.19,
       "warnings": []
@@ -2329,6 +2693,40 @@
       "warnings": []
     },
     {
+      "id": "flow:commands_publishprofilescommand_managepublishingprofilescommand",
+      "name": "managePublishingProfilesCommand",
+      "entryPoint": "commands_publishprofilescommand_managepublishingprofilescommand",
+      "entryPointId": "commands_publishprofilescommand_managepublishingprofilescommand",
+      "path": [
+        "commands_publishprofilescommand_managepublishingprofilescommand",
+        "commands_publishprofilescommand_describeprofile",
+        "commands_publishprofilescommand_getpublishingprofiles",
+        "commands_publishprofilescommand_promptforprofile",
+        "commands_publishprofilescommand_savepublishingprofiles",
+        "commands_publishprofilescommand_picktranstype",
+        "commands_publishprofilescommand_promptforditaval",
+        "commands_publishprofilescommand_storeditavalpath"
+      ],
+      "qualifiedPath": [
+        "commands_publishprofilescommand_managepublishingprofilescommand",
+        "commands_publishprofilescommand_describeprofile",
+        "commands_publishprofilescommand_getpublishingprofiles",
+        "commands_publishprofilescommand_promptforprofile",
+        "commands_publishprofilescommand_savepublishingprofiles",
+        "commands_publishprofilescommand_picktranstype",
+        "commands_publishprofilescommand_promptforditaval",
+        "commands_publishprofilescommand_storeditavalpath"
+      ],
+      "depth": 3,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "src/commands/publishProfilesCommand.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
       "id": "flow:services_keyspaceservice_keyspaceservice_constructor",
       "name": ".constructor",
       "entryPoint": "services_keyspaceservice_keyspaceservice_constructor",
@@ -2601,6 +2999,30 @@
       ],
       "depth": 2,
       "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/referenceParser.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_referenceparser_findreferencestokey",
+      "name": "findReferencesToKey",
+      "entryPoint": "utils_referenceparser_findreferencestokey",
+      "entryPointId": "utils_referenceparser_findreferencestokey",
+      "path": [
+        "utils_referenceparser_findreferencestokey",
+        "utils_referenceparser_referencematcheskey",
+        "utils_referenceparser_extractkeypart"
+      ],
+      "qualifiedPath": [
+        "utils_referenceparser_findreferencestokey",
+        "utils_referenceparser_referencematcheskey",
+        "utils_referenceparser_extractkeypart"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
       "fileCount": 1,
       "files": [
         "server/src/utils/referenceParser.ts"
@@ -2907,6 +3329,36 @@
       "warnings": []
     },
     {
+      "id": "flow:features_rename_handlerename",
+      "name": "handleRename",
+      "entryPoint": "features_rename_handlerename",
+      "entryPointId": "features_rename_handlerename",
+      "path": [
+        "features_rename_handlerename",
+        "features_rename_collectcrossfileedits",
+        "features_rename_collectmatchingedits",
+        "features_rename_handlekeyrename",
+        "features_rename_buildeditsforverifiedrefs",
+        "features_rename_collectmatchingkeyedits"
+      ],
+      "qualifiedPath": [
+        "features_rename_handlerename",
+        "features_rename_collectcrossfileedits",
+        "features_rename_collectmatchingedits",
+        "features_rename_handlekeyrename",
+        "features_rename_buildeditsforverifiedrefs",
+        "features_rename_collectmatchingkeyedits"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/rename.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
       "id": "flow:features_symbols_handleworkspacesymbol",
       "name": "handleWorkspaceSymbol",
       "entryPoint": "features_symbols_handleworkspacesymbol",
@@ -2928,6 +3380,46 @@
       "fileCount": 1,
       "files": [
         "server/src/features/symbols.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_filecreationcommands_initprojectcommand",
+      "name": "initProjectCommand",
+      "entryPoint": "commands_filecreationcommands_initprojectcommand",
+      "entryPointId": "commands_filecreationcommands_initprojectcommand",
+      "path": [
+        "commands_filecreationcommands_initprojectcommand",
+        "commands_filecreationcommands_getworkspacefolder",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_runprojectinit",
+        "commands_filecreationcommands_findexistingpaths",
+        "commands_filecreationcommands_findnondirectoryconflicts",
+        "commands_filecreationcommands_generateinitbookmapcontent",
+        "commands_filecreationcommands_generateinitmapcontent",
+        "commands_filecreationcommands_generatestarterditavalcontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_todayiso"
+      ],
+      "qualifiedPath": [
+        "commands_filecreationcommands_initprojectcommand",
+        "commands_filecreationcommands_getworkspacefolder",
+        "commands_filecreationcommands_promptforfilename",
+        "commands_filecreationcommands_runprojectinit",
+        "commands_filecreationcommands_findexistingpaths",
+        "commands_filecreationcommands_findnondirectoryconflicts",
+        "commands_filecreationcommands_generateinitbookmapcontent",
+        "commands_filecreationcommands_generateinitmapcontent",
+        "commands_filecreationcommands_generatestarterditavalcontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_todayiso"
+      ],
+      "depth": 2,
+      "nodeCount": 11,
+      "fileCount": 1,
+      "files": [
+        "src/commands/fileCreationCommands.ts"
       ],
       "criticality": 0.17,
       "warnings": []
@@ -2996,19 +3488,23 @@
       "path": [
         "commands_filecreationcommands_newbookmapcommand",
         "commands_filecreationcommands_createditafile",
-        "commands_filecreationcommands_generatebookmapcontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_getworkspacefolder",
         "commands_filecreationcommands_promptforfilename",
-        "commands_filecreationcommands_getworkspacefolder"
+        "commands_filecreationcommands_resolvetemplatedorgeneratedcontentwithtitle",
+        "commands_filecreationcommands_todayiso"
       ],
       "qualifiedPath": [
         "commands_filecreationcommands_newbookmapcommand",
         "commands_filecreationcommands_createditafile",
-        "commands_filecreationcommands_generatebookmapcontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_getworkspacefolder",
         "commands_filecreationcommands_promptforfilename",
-        "commands_filecreationcommands_getworkspacefolder"
+        "commands_filecreationcommands_resolvetemplatedorgeneratedcontentwithtitle",
+        "commands_filecreationcommands_todayiso"
       ],
       "depth": 2,
-      "nodeCount": 5,
+      "nodeCount": 7,
       "fileCount": 1,
       "files": [
         "src/commands/fileCreationCommands.ts"
@@ -3024,19 +3520,25 @@
       "path": [
         "commands_filecreationcommands_newmapcommand",
         "commands_filecreationcommands_createditafile",
-        "commands_filecreationcommands_generatemapcontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_getworkspacefolder",
         "commands_filecreationcommands_promptforfilename",
-        "commands_filecreationcommands_getworkspacefolder"
+        "commands_filecreationcommands_resolvetemplatedorgeneratedcontent",
+        "commands_filecreationcommands_humanizefilename",
+        "commands_filecreationcommands_todayiso"
       ],
       "qualifiedPath": [
         "commands_filecreationcommands_newmapcommand",
         "commands_filecreationcommands_createditafile",
-        "commands_filecreationcommands_generatemapcontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_getworkspacefolder",
         "commands_filecreationcommands_promptforfilename",
-        "commands_filecreationcommands_getworkspacefolder"
+        "commands_filecreationcommands_resolvetemplatedorgeneratedcontent",
+        "commands_filecreationcommands_humanizefilename",
+        "commands_filecreationcommands_todayiso"
       ],
       "depth": 2,
-      "nodeCount": 5,
+      "nodeCount": 8,
       "fileCount": 1,
       "files": [
         "src/commands/fileCreationCommands.ts"
@@ -3052,19 +3554,25 @@
       "path": [
         "commands_filecreationcommands_newtopiccommand",
         "commands_filecreationcommands_createditafile",
-        "commands_filecreationcommands_generatetopiccontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_getworkspacefolder",
         "commands_filecreationcommands_promptforfilename",
-        "commands_filecreationcommands_getworkspacefolder"
+        "commands_filecreationcommands_resolvetemplatedorgeneratedcontent",
+        "commands_filecreationcommands_humanizefilename",
+        "commands_filecreationcommands_todayiso"
       ],
       "qualifiedPath": [
         "commands_filecreationcommands_newtopiccommand",
         "commands_filecreationcommands_createditafile",
-        "commands_filecreationcommands_generatetopiccontent",
+        "commands_filecreationcommands_gettemplatecontext",
+        "commands_filecreationcommands_getworkspacefolder",
         "commands_filecreationcommands_promptforfilename",
-        "commands_filecreationcommands_getworkspacefolder"
+        "commands_filecreationcommands_resolvetemplatedorgeneratedcontent",
+        "commands_filecreationcommands_humanizefilename",
+        "commands_filecreationcommands_todayiso"
       ],
       "depth": 2,
-      "nodeCount": 5,
+      "nodeCount": 8,
       "fileCount": 1,
       "files": [
         "src/commands/fileCreationCommands.ts"
@@ -3125,6 +3633,38 @@
       "warnings": []
     },
     {
+      "id": "flow:commands_watchmodecommand_startwatchmodecommand",
+      "name": "startWatchModeCommand",
+      "entryPoint": "commands_watchmodecommand_startwatchmodecommand",
+      "entryPointId": "commands_watchmodecommand_startwatchmodecommand",
+      "path": [
+        "commands_watchmodecommand_startwatchmodecommand",
+        "commands_watchmodecommand_resolvewatchtarget",
+        "commands_watchmodecommand_runwatchpublish",
+        "commands_watchmodecommand_setwatchingstatus",
+        "commands_watchmodecommand_pathexists",
+        "commands_watchmodecommand_resolvewatchpublishoptions",
+        "commands_watchmodecommand_flashstatus"
+      ],
+      "qualifiedPath": [
+        "commands_watchmodecommand_startwatchmodecommand",
+        "commands_watchmodecommand_resolvewatchtarget",
+        "commands_watchmodecommand_runwatchpublish",
+        "commands_watchmodecommand_setwatchingstatus",
+        "commands_watchmodecommand_pathexists",
+        "commands_watchmodecommand_resolvewatchpublishoptions",
+        "commands_watchmodecommand_flashstatus"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/commands/watchModeCommand.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
       "id": "flow:providers_mapvisualizerpanel_mapvisualizerpanel_geterrorhtml",
       "name": "._getErrorHtml",
       "entryPoint": "providers_mapvisualizerpanel_mapvisualizerpanel_geterrorhtml",
@@ -3142,6 +3682,50 @@
       "fileCount": 1,
       "files": [
         "src/providers/mapVisualizerPanel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_renderchip",
+      "name": "._renderChip",
+      "entryPoint": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_renderchip",
+      "entryPointId": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_renderchip",
+      "path": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_renderchip",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc"
+      ],
+      "qualifiedPath": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_renderchip",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditavalConditionEditorPanel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_rendergroup",
+      "name": "._renderGroup",
+      "entryPoint": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_rendergroup",
+      "entryPointId": "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_rendergroup",
+      "path": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_rendergroup",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc"
+      ],
+      "qualifiedPath": [
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_rendergroup",
+        "providers_ditavalconditioneditorpanel_ditavalconditioneditorpanel_esc"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditavalConditionEditorPanel.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -3707,6 +4291,56 @@
       "warnings": []
     },
     {
+      "id": "flow:commands_batchmetadatacommand_batchupdatemetadatacommand",
+      "name": "batchUpdateMetadataCommand",
+      "entryPoint": "commands_batchmetadatacommand_batchupdatemetadatacommand",
+      "entryPointId": "commands_batchmetadatacommand_batchupdatemetadatacommand",
+      "path": [
+        "commands_batchmetadatacommand_batchupdatemetadatacommand",
+        "commands_batchmetadatacommand_describebatchlabel",
+        "commands_batchmetadatacommand_promptforattribute",
+        "commands_batchmetadatacommand_resolveselectedfileitems",
+        "commands_batchmetadatacommand_summarizeskipped"
+      ],
+      "qualifiedPath": [
+        "commands_batchmetadatacommand_batchupdatemetadatacommand",
+        "commands_batchmetadatacommand_describebatchlabel",
+        "commands_batchmetadatacommand_promptforattribute",
+        "commands_batchmetadatacommand_resolveselectedfileitems",
+        "commands_batchmetadatacommand_summarizeskipped"
+      ],
+      "depth": 1,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/commands/batchMetadataCommand.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditavalparser_buildditavaldocument",
+      "name": "buildDitavalDocument",
+      "entryPoint": "utils_ditavalparser_buildditavaldocument",
+      "entryPointId": "utils_ditavalparser_buildditavaldocument",
+      "path": [
+        "utils_ditavalparser_buildditavaldocument",
+        "utils_ditavalparser_escapeditavalattr"
+      ],
+      "qualifiedPath": [
+        "utils_ditavalparser_buildditavaldocument",
+        "utils_ditavalparser_escapeditavalattr"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditavalParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_ratelimiter_createcustomratelimiter",
       "name": "createCustomRateLimiter",
       "entryPoint": "utils_ratelimiter_createcustomratelimiter",
@@ -3861,6 +4495,32 @@
       "warnings": []
     },
     {
+      "id": "flow:commands_extracttopiccommand_extracttopicfromsectioncommand",
+      "name": "extractTopicFromSectionCommand",
+      "entryPoint": "commands_extracttopiccommand_extracttopicfromsectioncommand",
+      "entryPointId": "commands_extracttopiccommand_extracttopicfromsectioncommand",
+      "path": [
+        "commands_extracttopiccommand_extracttopicfromsectioncommand",
+        "commands_extracttopiccommand_buildextractedtopiccontent",
+        "commands_extracttopiccommand_detectnewtopictype",
+        "commands_extracttopiccommand_slugify"
+      ],
+      "qualifiedPath": [
+        "commands_extracttopiccommand_extracttopicfromsectioncommand",
+        "commands_extracttopiccommand_buildextractedtopiccontent",
+        "commands_extracttopiccommand_detectnewtopictype",
+        "commands_extracttopiccommand_slugify"
+      ],
+      "depth": 1,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/commands/extractTopicCommand.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_workspacescanner_findcrossfilereferences",
       "name": "findCrossFileReferences",
       "entryPoint": "utils_workspacescanner_findcrossfilereferences",
@@ -3878,6 +4538,100 @@
       "fileCount": 1,
       "files": [
         "server/src/utils/workspaceScanner.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_elementextent_findelementextentbyid",
+      "name": "findElementExtentById",
+      "entryPoint": "utils_elementextent_findelementextentbyid",
+      "entryPointId": "utils_elementextent_findelementextentbyid",
+      "path": [
+        "utils_elementextent_findelementextentbyid",
+        "utils_elementextent_findclosingtagend"
+      ],
+      "qualifiedPath": [
+        "utils_elementextent_findelementextentbyid",
+        "utils_elementextent_findclosingtagend"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/elementExtent.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_sectionextractor_findenclosingsection",
+      "name": "findEnclosingSection",
+      "entryPoint": "utils_sectionextractor_findenclosingsection",
+      "entryPointId": "utils_sectionextractor_findenclosingsection",
+      "path": [
+        "utils_sectionextractor_findenclosingsection",
+        "utils_sectionextractor_buildextractedsection"
+      ],
+      "qualifiedPath": [
+        "utils_sectionextractor_findenclosingsection",
+        "utils_sectionextractor_buildextractedsection"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/sectionExtractor.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_referenceparser_findfilereferences",
+      "name": "findFileReferences",
+      "entryPoint": "utils_referenceparser_findfilereferences",
+      "entryPointId": "utils_referenceparser_findfilereferences",
+      "path": [
+        "utils_referenceparser_findfilereferences",
+        "utils_referenceparser_parsereference"
+      ],
+      "qualifiedPath": [
+        "utils_referenceparser_findfilereferences",
+        "utils_referenceparser_parsereference"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/referenceParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_xmlelementscanner_findprofiledelements",
+      "name": "findProfiledElements",
+      "entryPoint": "utils_xmlelementscanner_findprofiledelements",
+      "entryPointId": "utils_xmlelementscanner_findprofiledelements",
+      "path": [
+        "utils_xmlelementscanner_findprofiledelements",
+        "utils_xmlelementscanner_findcommentspans",
+        "utils_xmlelementscanner_findmatchingclosetag",
+        "utils_xmlelementscanner_iswithinspans",
+        "utils_xmlelementscanner_parsetagattributes"
+      ],
+      "qualifiedPath": [
+        "utils_xmlelementscanner_findprofiledelements",
+        "utils_xmlelementscanner_findcommentspans",
+        "utils_xmlelementscanner_findmatchingclosetag",
+        "utils_xmlelementscanner_iswithinspans",
+        "utils_xmlelementscanner_parsetagattributes"
+      ],
+      "depth": 1,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/utils/xmlElementScanner.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -3929,6 +4683,28 @@
       "warnings": []
     },
     {
+      "id": "flow:commands_filecreationcommands_generatebookmapcontent",
+      "name": "generateBookmapContent",
+      "entryPoint": "commands_filecreationcommands_generatebookmapcontent",
+      "entryPointId": "commands_filecreationcommands_generatebookmapcontent",
+      "path": [
+        "commands_filecreationcommands_generatebookmapcontent",
+        "commands_filecreationcommands_todayiso"
+      ],
+      "qualifiedPath": [
+        "commands_filecreationcommands_generatebookmapcontent",
+        "commands_filecreationcommands_todayiso"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/commands/fileCreationCommands.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_ditaoterrorparser_getditaotdiagnostics",
       "name": "getDitaOtDiagnostics",
       "entryPoint": "utils_ditaoterrorparser_getditaotdiagnostics",
@@ -3968,6 +4744,56 @@
       "fileCount": 1,
       "files": [
         "src/utils/providerFactory.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_findreplace_handlecomputefindreplaceedits",
+      "name": "handleComputeFindReplaceEdits",
+      "entryPoint": "features_findreplace_handlecomputefindreplaceedits",
+      "entryPointId": "features_findreplace_handlecomputefindreplaceedits",
+      "path": [
+        "features_findreplace_handlecomputefindreplaceedits",
+        "features_findreplace_buildsearchpattern"
+      ],
+      "qualifiedPath": [
+        "features_findreplace_handlecomputefindreplaceedits",
+        "features_findreplace_buildsearchpattern"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/findReplace.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_inlineconref_handlecomputeinlineconrefedit",
+      "name": "handleComputeInlineConrefEdit",
+      "entryPoint": "features_inlineconref_handlecomputeinlineconrefedit",
+      "entryPointId": "features_inlineconref_handlecomputeinlineconrefedit",
+      "path": [
+        "features_inlineconref_handlecomputeinlineconrefedit",
+        "features_inlineconref_buildopentagwithoutrefattr",
+        "features_inlineconref_findconrefelementatoffset",
+        "features_inlineconref_readdocorfile",
+        "features_inlineconref_stripnestedids"
+      ],
+      "qualifiedPath": [
+        "features_inlineconref_handlecomputeinlineconrefedit",
+        "features_inlineconref_buildopentagwithoutrefattr",
+        "features_inlineconref_findconrefelementatoffset",
+        "features_inlineconref_readdocorfile",
+        "features_inlineconref_stripnestedids"
+      ],
+      "depth": 1,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/inlineConref.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -4023,6 +4849,28 @@
       "warnings": []
     },
     {
+      "id": "flow:features_ditavalconditions_handlegetsubjectschemeattributes",
+      "name": "handleGetSubjectSchemeAttributes",
+      "entryPoint": "features_ditavalconditions_handlegetsubjectschemeattributes",
+      "entryPointId": "features_ditavalconditions_handlegetsubjectschemeattributes",
+      "path": [
+        "features_ditavalconditions_handlegetsubjectschemeattributes",
+        "features_ditavalconditions_enumerateattributes"
+      ],
+      "qualifiedPath": [
+        "features_ditavalconditions_handlegetsubjectschemeattributes",
+        "features_ditavalconditions_enumerateattributes"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/ditavalConditions.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:features_references_handlereferences",
       "name": "handleReferences",
       "entryPoint": "features_references_handlereferences",
@@ -4045,23 +4893,73 @@
       "warnings": []
     },
     {
-      "id": "flow:features_rename_handlerename",
-      "name": "handleRename",
-      "entryPoint": "features_rename_handlerename",
-      "entryPointId": "features_rename_handlerename",
+      "id": "flow:utils_editorinsertutils_insertatcursor",
+      "name": "insertAtCursor",
+      "entryPoint": "utils_editorinsertutils_insertatcursor",
+      "entryPointId": "utils_editorinsertutils_insertatcursor",
       "path": [
-        "features_rename_handlerename",
-        "features_rename_collectmatchingedits"
+        "utils_editorinsertutils_insertatcursor",
+        "utils_editorinsertutils_indentcontinuationlines"
       ],
       "qualifiedPath": [
-        "features_rename_handlerename",
-        "features_rename_collectmatchingedits"
+        "utils_editorinsertutils_insertatcursor",
+        "utils_editorinsertutils_indentcontinuationlines"
       ],
       "depth": 1,
       "nodeCount": 2,
       "fileCount": 1,
       "files": [
-        "server/src/features/rename.ts"
+        "src/utils/editorInsertUtils.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_inserttablecommand_inserttablecommand",
+      "name": "insertTableCommand",
+      "entryPoint": "commands_inserttablecommand_inserttablecommand",
+      "entryPointId": "commands_inserttablecommand_inserttablecommand",
+      "path": [
+        "commands_inserttablecommand_inserttablecommand",
+        "commands_inserttablecommand_buildcalstablesnippet",
+        "commands_inserttablecommand_buildsimpletablesnippet",
+        "commands_inserttablecommand_iseligibledocument",
+        "commands_inserttablecommand_promptforcount"
+      ],
+      "qualifiedPath": [
+        "commands_inserttablecommand_inserttablecommand",
+        "commands_inserttablecommand_buildcalstablesnippet",
+        "commands_inserttablecommand_buildsimpletablesnippet",
+        "commands_inserttablecommand_iseligibledocument",
+        "commands_inserttablecommand_promptforcount"
+      ],
+      "depth": 1,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "src/commands/insertTableCommand.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_constants_isditacontenturi",
+      "name": "isDitaContentUri",
+      "entryPoint": "utils_constants_isditacontenturi",
+      "entryPointId": "utils_constants_isditacontenturi",
+      "path": [
+        "utils_constants_isditacontenturi",
+        "utils_constants_isditacontentpath"
+      ],
+      "qualifiedPath": [
+        "utils_constants_isditacontenturi",
+        "utils_constants_isditacontentpath"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/constants.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -4155,6 +5053,102 @@
       "warnings": []
     },
     {
+      "id": "flow:scripts_generate_okf_knowledge_main",
+      "name": "main",
+      "entryPoint": "scripts_generate_okf_knowledge_main",
+      "entryPointId": "scripts_generate_okf_knowledge_main",
+      "path": [
+        "scripts_generate_okf_knowledge_main",
+        "scripts_generate_okf_knowledge_findokfrs",
+        "scripts_generate_okf_knowledge_linkreadmefromindex",
+        "scripts_generate_okf_knowledge_run",
+        "scripts_generate_okf_knowledge_writefolderreadme"
+      ],
+      "qualifiedPath": [
+        "scripts_generate_okf_knowledge_main",
+        "scripts_generate_okf_knowledge_findokfrs",
+        "scripts_generate_okf_knowledge_linkreadmefromindex",
+        "scripts_generate_okf_knowledge_run",
+        "scripts_generate_okf_knowledge_writefolderreadme"
+      ],
+      "depth": 1,
+      "nodeCount": 5,
+      "fileCount": 1,
+      "files": [
+        "scripts/generate-okf-knowledge.js"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditavalconditionstate_mergeattributestate",
+      "name": "mergeAttributeState",
+      "entryPoint": "utils_ditavalconditionstate_mergeattributestate",
+      "entryPointId": "utils_ditavalconditionstate_mergeattributestate",
+      "path": [
+        "utils_ditavalconditionstate_mergeattributestate",
+        "utils_ditavalconditionstate_conditionkey"
+      ],
+      "qualifiedPath": [
+        "utils_ditavalconditionstate_mergeattributestate",
+        "utils_ditavalconditionstate_conditionkey"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditavalConditionState.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditavalparser_parseditavalrules",
+      "name": "parseDitavalRules",
+      "entryPoint": "utils_ditavalparser_parseditavalrules",
+      "entryPointId": "utils_ditavalparser_parseditavalrules",
+      "path": [
+        "utils_ditavalparser_parseditavalrules",
+        "utils_ditavalparser_parseattributes"
+      ],
+      "qualifiedPath": [
+        "utils_ditavalparser_parseditavalrules",
+        "utils_ditavalparser_parseattributes"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditavalParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditavaldecorationprovider_recompute",
+      "name": "recompute",
+      "entryPoint": "providers_ditavaldecorationprovider_recompute",
+      "entryPointId": "providers_ditavaldecorationprovider_recompute",
+      "path": [
+        "providers_ditavaldecorationprovider_recompute",
+        "providers_ditavaldecorationprovider_exceedslargefilethreshold",
+        "providers_ditavaldecorationprovider_loadactiverules"
+      ],
+      "qualifiedPath": [
+        "providers_ditavaldecorationprovider_recompute",
+        "providers_ditavaldecorationprovider_exceedslargefilethreshold",
+        "providers_ditavaldecorationprovider_loadactiverules"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditavalDecorationProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:providers_aicompletionprovider_registeraicompletionprovider",
       "name": "registerAICompletionProvider",
       "entryPoint": "providers_aicompletionprovider_registeraicompletionprovider",
@@ -4172,6 +5166,28 @@
       "fileCount": 1,
       "files": [
         "src/providers/aiCompletionProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:providers_ditavaldecorationprovider_registerconditionhighlighting",
+      "name": "registerConditionHighlighting",
+      "entryPoint": "providers_ditavaldecorationprovider_registerconditionhighlighting",
+      "entryPointId": "providers_ditavaldecorationprovider_registerconditionhighlighting",
+      "path": [
+        "providers_ditavaldecorationprovider_registerconditionhighlighting",
+        "providers_ditavaldecorationprovider_schedulerecompute"
+      ],
+      "qualifiedPath": [
+        "providers_ditavaldecorationprovider_registerconditionhighlighting",
+        "providers_ditavaldecorationprovider_schedulerecompute"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/providers/ditavalDecorationProvider.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -4196,6 +5212,30 @@
       "fileCount": 1,
       "files": [
         "src/providers/ditaLinkProvider.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_templateengine_rendertemplate",
+      "name": "renderTemplate",
+      "entryPoint": "utils_templateengine_rendertemplate",
+      "entryPointId": "utils_templateengine_rendertemplate",
+      "path": [
+        "utils_templateengine_rendertemplate",
+        "utils_templateengine_loadtemplateraw",
+        "utils_templateengine_substituteplaceholders"
+      ],
+      "qualifiedPath": [
+        "utils_templateengine_rendertemplate",
+        "utils_templateengine_loadtemplateraw",
+        "utils_templateengine_substituteplaceholders"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/templateEngine.ts"
       ],
       "criticality": 0.16,
       "warnings": []
