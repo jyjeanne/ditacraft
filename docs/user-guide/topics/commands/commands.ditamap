@@ -27,6 +27,12 @@
         </topicmeta>
     </topicref>
 
+    <topicref href="editing-commands.dita" keys="editing-commands">
+        <topicmeta>
+            <navtitle>Editing and Refactoring Commands</navtitle>
+        </topicmeta>
+    </topicref>
+
     <topicref href="navigation-commands.dita" keys="navigation-commands">
         <topicmeta>
             <navtitle>Navigation Commands</navtitle>

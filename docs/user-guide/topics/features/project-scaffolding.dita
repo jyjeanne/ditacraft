@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="project-scaffolding">
+    <title>Templates and Project Scaffolding</title>
+    <shortdesc>Start a new DITA project — or a new topic — from your own house style instead of
+        DitaCraft's generic generated structure.</shortdesc>
+
+    <conbody>
+
+        <section id="custom-templates">
+            <title>Custom Topic Templates</title>
+            <p>By default, <uicontrol>DITA: Create New Topic</uicontrol>,
+                    <uicontrol>DITA: Create New Map</uicontrol>, and
+                    <uicontrol>DITA: Create New Bookmap</uicontrol> generate minimal boilerplate.
+                Set <codeph>ditacraft.templatesPath</codeph> to a directory of your own template
+                files to override that boilerplate with your team's standard structure,
+                boilerplate notices, or starter content.</p>
+            <p><b>Recognized file names</b> (matched by topic/map type):</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Template file</stentry>
+                    <stentry>Used for</stentry>
+                </sthead>
+                <strow>
+                    <stentry><filepath>topic.dita</filepath></stentry>
+                    <stentry>Generic topic</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>concept.dita</filepath></stentry>
+                    <stentry>Concept topic</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>task.dita</filepath></stentry>
+                    <stentry>Task topic</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>reference.dita</filepath></stentry>
+                    <stentry>Reference topic</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>map.ditamap</filepath></stentry>
+                    <stentry>DITA map</stentry>
+                </strow>
+                <strow>
+                    <stentry><filepath>bookmap.bookmap</filepath></stentry>
+                    <stentry>Bookmap</stentry>
+                </strow>
+            </simpletable>
+            <p>Template files support <codeph>{{placeholder}}</codeph> substitution — for example
+                    <codeph>{{title}}</codeph>, <codeph>{{id}}</codeph>, <codeph>{{author}}</codeph>,
+                and <codeph>{{date}}</codeph> — filled in from the same prompts the built-in
+                generators already ask (file name, title, and so on).</p>
+            <note type="tip"><codeph>ditacraft.templatesPath</codeph> accepts the
+                    <codeph>${workspaceFolder}</codeph> variable, so a templates directory checked
+                into the project itself (for example <filepath>.dita-templates/</filepath>) works
+                the same for every contributor.</note>
+            <p>If no template file matches the requested type — or
+                    <codeph>ditacraft.templatesPath</codeph> is not set at all — DitaCraft falls
+                back to its built-in generator, so file creation always works even with zero
+                configuration.</p>
+        </section>
+
+        <section id="init-project">
+            <title>Project Initialization Wizard</title>
+            <p>Run <uicontrol>DITA: Initialize DITA Project</uicontrol> to scaffold a brand-new
+                DITA project in one guided flow, instead of creating a root map and its topics one
+                command at a time:</p>
+            <ol>
+                <li><b>Root type</b> — a plain DITA map, or a book-structured bookmap (front/back
+                    matter, chapters).</li>
+                <li><b>Title</b> — the project or book title, written into the root map.</li>
+                <li><b>Root file name</b> — defaults to <filepath>main</filepath> for a map, or
+                        <filepath>user-guide</filepath> for a bookmap.</li>
+                <li><b>Starter topics</b> — pick any combination of Concept, Task, Reference, and
+                    generic Topic to scaffold alongside the root map. Skipping this step is fine —
+                    it leaves you with just a root map, and more topics can always be added later
+                    with <uicontrol>DITA: Create New Topic</uicontrol>.</li>
+            </ol>
+            <p>You are also offered an optional starter <filepath>.ditaval</filepath> filter file,
+                and the wizard creates the recommended <filepath>topics/</filepath>,
+                    <filepath>maps/</filepath>, and <filepath>images/</filepath> folder layout for
+                the new project.</p>
+            <p>The wizard reuses the same file-generation logic as
+                    <uicontrol>DITA: Create New Topic</uicontrol>/<uicontrol>Map</uicontrol>/
+                    <uicontrol>Bookmap</uicontrol> — including any custom templates configured via
+                    <codeph>ditacraft.templatesPath</codeph> above.</p>
+        </section>
+
+    </conbody>
+</concept>

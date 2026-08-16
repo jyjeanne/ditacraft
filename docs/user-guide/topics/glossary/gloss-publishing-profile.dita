@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-publishing-profile">
+    <glossterm>Publishing Profile</glossterm>
+    <glossdef>
+        <p>A saved DITA-OT publish configuration — transtype, output directory, DITAVAL filter,
+            and extra arguments — that can be selected instead of re-entering the same options on
+            every publish. Managed via <b>DITA: Manage Publishing Profiles</b> and stored in the
+            <codeph>ditacraft.publishingProfiles</codeph> workspace setting.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/publishing-workflow.dita"/>
+    </related-links>
+</glossentry>

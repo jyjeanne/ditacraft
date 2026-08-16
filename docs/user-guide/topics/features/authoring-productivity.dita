@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="authoring-productivity">
+    <title>Authoring Productivity Tools</title>
+    <shortdesc>Insert correctly structured images and tables, and preview multi-file edits before
+        anything is written.</shortdesc>
+
+    <conbody>
+
+        <section id="insert-image">
+            <title>Insert Image</title>
+            <p>Run <uicontrol>DITA: Insert Image</uicontrol> to browse for an image file and insert
+                a correctly formed <codeph>&lt;image&gt;</codeph> element at the cursor —
+                    wrapped in a <codeph>&lt;fig&gt;&lt;title&gt;…&lt;/title&gt;…&lt;/fig&gt;</codeph>
+                skeleton when you give it a caption, or inserted bare otherwise.</p>
+            <p>Picking an image from outside the workspace (for example your OS file picker's
+                Downloads folder) offers to copy it into an <filepath>images/</filepath> folder
+                next to the current topic, rather than leaving you with a reference to a file the
+                topic can't portably point at. Optional width, height, or scale attributes can be
+                set on the inserted element as well.</p>
+            <note type="tip">DitaCraft does not check whether <codeph>&lt;fig&gt;</codeph> or
+                    <codeph>&lt;image&gt;</codeph> is valid at the cursor's exact position — if the
+                inserted markup lands somewhere the content model disallows it, the existing DTD
+                validation flags it immediately, the same as hand-typing invalid markup
+                would.</note>
+        </section>
+
+        <section id="insert-table">
+            <title>Insert Table</title>
+            <p>Run <uicontrol>DITA: Insert Table</uicontrol> to insert a correctly structured
+                table skeleton, eliminating the most common table authoring mistake — mismatched
+                    <codeph>&lt;entry&gt;</codeph> counts against <codeph>&lt;colspec&gt;</codeph>.
+                You are prompted for:</p>
+            <ol>
+                <li>Table type — <codeph>&lt;simpletable&gt;</codeph> or a full CALS
+                        <codeph>&lt;table&gt;</codeph>/<codeph>&lt;tgroup&gt;</codeph>.</li>
+                <li>Column and row counts.</li>
+                <li>Whether to include a header row.</li>
+                <li>A table title — offered only for the CALS variant, since
+                        <codeph>&lt;simpletable&gt;</codeph> has no <codeph>&lt;title&gt;</codeph>
+                    child in DITA's content model.</li>
+            </ol>
+            <p>This is an insertion wizard, not a visual grid editor — it produces the skeleton
+                markup with the right column and entry counts already matched up, ready for you to
+                fill in.</p>
+        </section>
+
+        <section id="find-replace">
+            <title>Multi-File Find and Replace</title>
+            <p>Run <uicontrol>DITA: Find and Replace in Files</uicontrol> to search across the DITA
+                files in your workspace with literal text, case sensitivity, whole-word, or regular
+                expression matching, then replace every match in one operation.</p>
+            <p>Matches are computed by the LSP server and applied as a workspace edit through VS
+                Code's native multi-file <b>Refactor Preview</b> — the same review UI used for a
+                cross-file rename — so you see every file and every match before anything is
+                written, and can uncheck individual changes you don't want applied.</p>
+        </section>
+
+        <section id="batch-metadata">
+            <title>Batch Metadata Update</title>
+            <p>Multi-select a set of files in the <uicontrol>DITA Explorer</uicontrol> (Ctrl-click
+                or Shift-click to select several, then right-click), choose
+                    <uicontrol>DITA: Batch Update Metadata</uicontrol>, pick a profiling attribute
+                    (<codeph>audience</codeph>, <codeph>platform</codeph>, <codeph>product</codeph>,
+                    <codeph>otherprops</codeph>, <codeph>props</codeph>, or
+                    <codeph>deliveryTarget</codeph>), and enter a value to set — or leave it empty
+                to remove the attribute — on every selected file's root element at once.</p>
+            <p>Each candidate value is validated server-side against your subject scheme's
+                controlled values before anything is written, so a batch edit can't introduce a
+                    <codeph>DITA-PROF-001</codeph> violation across many files simultaneously. Like
+                Find and Replace, every change goes through VS Code's native multi-file Refactor
+                Preview before it's applied.</p>
+        </section>
+
+    </conbody>
+</concept>

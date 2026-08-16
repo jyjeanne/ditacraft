@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="publishing-workflow">
+    <title>Publishing Workflow Enhancements</title>
+    <shortdesc>Save a publish configuration once and reuse it, or let DitaCraft republish
+        automatically every time you save.</shortdesc>
+
+    <conbody>
+
+        <section id="publishing-profiles">
+            <title>Publishing Profiles</title>
+            <p>A <b>publishing profile</b> is a saved combination of transtype (output format),
+                output directory, DITAVAL filter, and extra DITA-OT arguments — so you don't have
+                to re-enter the same publish configuration every time. Run
+                    <uicontrol>DITA: Manage Publishing Profiles</uicontrol> from the Command
+                Palette to create, edit, delete, or select the active profile.</p>
+            <p><b>Profile fields:</b></p>
+            <simpletable>
+                <sthead>
+                    <stentry>Field</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry>Name</stentry>
+                    <stentry>A label you choose, shown in the profile picker</stentry>
+                </strow>
+                <strow>
+                    <stentry>Transtype</stentry>
+                    <stentry>Output format — <codeph>html5</codeph>, <codeph>pdf</codeph>,
+                            <codeph>xhtml</codeph>, <codeph>epub</codeph>,
+                            <codeph>htmlhelp</codeph>, <codeph>markdown</codeph>, or any transtype
+                        your DITA-OT installation supports</stentry>
+                </strow>
+                <strow>
+                    <stentry>Output directory</stentry>
+                    <stentry>Optional; supports <codeph>${workspaceFolder}</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry>DITAVAL path</stentry>
+                    <stentry>Optional filter file, also supports
+                            <codeph>${workspaceFolder}</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry>Additional arguments</stentry>
+                    <stentry>Extra <codeph>-D</codeph> flags or other DITA-OT command-line
+                        options</stentry>
+                </strow>
+            </simpletable>
+            <p>Profiles are stored in the <codeph>ditacraft.publishingProfiles</codeph> workspace
+                setting — commit <filepath>.vscode/settings.json</filepath> to share the same
+                profiles with your whole team. DitaCraft remembers the last-used profile and
+                pre-selects it the next time you publish.</p>
+        </section>
+
+        <section id="watch-mode">
+            <title>Watch Mode</title>
+            <p>Run <uicontrol>DITA: Start Watch Mode</uicontrol> to have DitaCraft automatically
+                re-run a full publish every time a watched DITA file changes — no more manually
+                re-triggering <uicontrol>DITA: Publish</uicontrol> after every edit while reviewing
+                formatted output. Stop it with <uicontrol>DITA: Stop Watch Mode</uicontrol>.</p>
+            <p><b>What gets published</b> on each change, in priority order:</p>
+            <ol>
+                <li>The file you started watch mode on (for example, by right-clicking a map in the
+                    DITA Explorer).</li>
+                <li>Otherwise, the map configured via the <codeph>ditacraft.rootMap</codeph>
+                    setting, if one is set.</li>
+                <li>Otherwise, the active editor's <filepath>.dita</filepath>,
+                        <filepath>.ditamap</filepath>, or <filepath>.bookmap</filepath> file.</li>
+            </ol>
+            <p>The format and output directory come from your last-used publishing profile when
+                one exists, falling back to a plain HTML5 publish otherwise.</p>
+            <p>A single status bar item shows the current state —
+                    <uicontrol>Watching</uicontrol>, <uicontrol>Publishing…</uicontrol>, a
+                transient <uicontrol>Published</uicontrol> confirmation, or a persistent
+                    <uicontrol>Publish failed</uicontrol> until the next successful run. Publish
+                output still goes through the same DITA-OT build output channel and Problems panel
+                a manual publish uses.</p>
+            <note type="important">Watch Mode re-runs the <i>full</i> publish on every change — it
+                is not incremental. DITA-OT itself has no first-class incremental build mode, so
+                large projects will see the same publish time on every save that a manual publish
+                would take.</note>
+        </section>
+
+    </conbody>
+</concept>

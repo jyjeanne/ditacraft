@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="ditaval-condition-editor">
+    <title>Visual DITAVAL Condition Editor</title>
+    <shortdesc>Build and preview DITAVAL conditional-processing profiles with a form-based editor
+        instead of hand-writing XML.</shortdesc>
+
+    <conbody>
+
+        <section id="overview">
+            <title>Overview</title>
+            <p>While <xref keyref="ditaval-support"/> covers IntelliSense for authoring
+                    <filepath>.ditaval</filepath> files directly, the <b>Visual DITAVAL Condition
+                    Editor</b> is a dedicated panel for building and reviewing conditions without
+                writing XML by hand. Run <uicontrol>DITA: Edit DITAVAL Conditions</uicontrol> on a
+                    <filepath>.ditaval</filepath> file — from the DITA Explorer, the file
+                Explorer's context menu, or the active editor — to open it.</p>
+        </section>
+
+        <section id="condition-editing">
+            <title>Editing Conditions</title>
+            <p>The panel lists every <codeph>&lt;prop&gt;</codeph> condition in the file as a form
+                row — attribute (<codeph>audience</codeph>, <codeph>platform</codeph>,
+                    <codeph>product</codeph>, and so on), value, and action
+                    (<codeph>include</codeph>, <codeph>exclude</codeph>,
+                    <codeph>passthrough</codeph>, or <codeph>flag</codeph>) — instead of raw
+                attribute-value XML. Add, edit, reorder, or remove conditions from the form, and
+                the underlying <filepath>.ditaval</filepath> file is kept in sync.</p>
+        </section>
+
+        <section id="live-preview">
+            <title>Live Preview with Conditions Applied</title>
+            <p>The editor renders the content the DITAVAL profile currently resolves to, so you can
+                see the effect of a condition change immediately rather than publishing to check
+                it. Toggle individual conditions on or off to compare included and excluded
+                content side by side.</p>
+        </section>
+
+        <section id="condition-highlighting">
+            <title>Condition Highlighting in the Editor</title>
+            <p>With a <filepath>.ditaval</filepath> file active in the condition editor, content in
+                open DITA topics that matches an <codeph>exclude</codeph> or <codeph>flag</codeph>
+                condition is highlighted directly in the text editor — so you can see exactly which
+                passages a given profile affects without leaving your topic files.</p>
+        </section>
+
+    </conbody>
+</concept>

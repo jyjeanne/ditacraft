@@ -29,7 +29,11 @@
                 </dlentry>
                 <dlentry>
                     <dt>File Creation Commands</dt>
-                    <dd>Create new DITA topics, maps, and bookmaps</dd>
+                    <dd>Create new DITA topics, maps, and bookmaps — or scaffold a whole new project at once</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Editing and Refactoring Commands</dt>
+                    <dd>Rename, move, extract, and inline content; insert images and tables; apply multi-file edits</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Navigation Commands</dt>
@@ -105,6 +109,61 @@
                     <stentry>DITA: Open File</stentry>
                     <stentry>-</stentry>
                     <stentry>Open a file from the DITA Explorer tree</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Initialize DITA Project</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Scaffold a new project: root map, starter topics, folder layout</stentry>
+                </strow>
+                <strow>
+                    <stentry>Rename Symbol</stentry>
+                    <stentry>F2</stentry>
+                    <stentry>Rename an ID or key and update every reference workspace-wide</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Extract Topic from Section</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Extract a section into a new topic, replaced with an xref</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Inline Conref</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Splice a conref/conkeyref target's content in place</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Insert Image</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Insert an image element, optionally wrapped in a fig</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Insert Table</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Insert a simpletable or CALS table skeleton</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Find and Replace in Files</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Multi-file search and replace with Refactor Preview</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Batch Update Metadata</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Set or clear a profiling attribute across selected files</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Edit DITAVAL Conditions</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Open the visual DITAVAL condition editor</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Manage Publishing Profiles</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Create, edit, or select a saved publish configuration</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Start Watch Mode</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Automatically republish whenever a watched file changes</stentry>
                 </strow>
             </simpletable>
         </section>

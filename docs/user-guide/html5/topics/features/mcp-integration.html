@@ -1,0 +1,143 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="DitaCraft exposes its DITA intelligence — validation, key space resolution, context snapshots, and map analysis — to external AI agents via the Model Context Protocol (MCP)."><meta name="prodname" content="DitaCraft"><meta name="version" content="0"><meta name="release" content="9"><meta name="modification" content="0"><title>MCP Server Integration</title><link rel="stylesheet" type="text/css" href="../../commonltr.css"><link rel="stylesheet" type="text/css" href="../../custom.css"></head><body id="mcp-integration"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DitaCraft</span>
+      <span class="ditacraft-header__version">v0.7.3</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DitaCraft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/editing-commands.html">Editing and Refactoring Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li><li><a href="../../topics/features/ai-features.html">AI Features</a></li><li class="active"><a href="../../topics/features/mcp-integration.html">MCP Server Integration</a></li><li><a href="../../topics/features/refactoring-tools.html">Refactoring Tools</a></li><li><a href="../../topics/features/project-scaffolding.html">Templates and Project Scaffolding</a></li><li><a href="../../topics/features/publishing-workflow.html">Publishing Workflow Enhancements</a></li><li><a href="../../topics/features/authoring-productivity.html">Authoring Productivity Tools</a></li><li><a href="../../topics/features/ditaval-condition-editor.html">Visual DITAVAL Condition Editor</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-publishing-profile.html">Publishing Profile</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-watch-mode.html">Watch Mode</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">MCP Server Integration</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">DitaCraft exposes its DITA intelligence — validation, key space resolution, context
+        snapshots, and map analysis — to external AI agents via the Model Context Protocol
+        (MCP).</p>
+
+        <section class="section" id="mcp-integration__overview"><h2 class="title sectiontitle">Overview</h2>
+            
+            <p class="p">The <strong class="ph b">MCP server</strong> lets AI coding agents like opencode, Claude Desktop, Cursor, and
+                Continue read and query your DITA workspace. It runs as a standalone Node.js process
+                with no VS Code dependency — agents spawn it directly via stdio.</p>
+            <p class="p">The server exposes <strong class="ph b">6 tools</strong> and <strong class="ph b">3 resources</strong>:</p>
+            <table class="simpletable"><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="mcp-integration__overview__stentry__1">Tool</th>
+                    <th class="stentry" scope="col" id="mcp-integration__overview__stentry__2">Description</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="mcp-integration__overview__stentry__1"><code class="ph codeph">dita_validate</code></td>
+                    <td class="stentry" headers="mcp-integration__overview__stentry__2">Validate a DITA file or XML fragment and return diagnostics with error
+                        counts and severity</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="mcp-integration__overview__stentry__1"><code class="ph codeph">dita_context_snapshot</code></td>
+                    <td class="stentry" headers="mcp-integration__overview__stentry__2">Token-budgeted map snapshot for LLM prompt injection (Levels
+                        1/2/3)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="mcp-integration__overview__stentry__1"><code class="ph codeph">dita_key_space</code></td>
+                    <td class="stentry" headers="mcp-integration__overview__stentry__2">List all defined keys and their resolved targets with scope and
+                        provenance filters</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="mcp-integration__overview__stentry__1"><code class="ph codeph">dita_map_structure</code></td>
+                    <td class="stentry" headers="mcp-integration__overview__stentry__2">Return map topic hierarchy as JSON, tree text, or CSV</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="mcp-integration__overview__stentry__1"><code class="ph codeph">dita_resolve_reference</code></td>
+                    <td class="stentry" headers="mcp-integration__overview__stentry__2">Resolve href, keyref, conref, or conkeyref to target file and
+                        element</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="mcp-integration__overview__stentry__1"><code class="ph codeph">dita_explain_key</code></td>
+                    <td class="stentry" headers="mcp-integration__overview__stentry__2">Step-by-step key resolution trace with scope and keyref chain
+                        details</td>
+                </tr></tbody></table>
+            <p class="p"><strong class="ph b">Resources:</strong>
+                <code class="ph codeph">dita://workspace/maps</code>,
+                <code class="ph codeph">dita://workspace/diagnostics</code>,
+                <code class="ph codeph">dita://workspace/keys</code></p>
+        </section>
+
+        <section class="section" id="mcp-integration__building"><h2 class="title sectiontitle">Building the MCP Server</h2>
+            
+            <p class="p">Run the standalone build command from the DitaCraft project root:</p>
+            <pre class="pre codeblock"><code>npm run build-standalone
+# → dist/mcp-server.js  (3.2 MB)
+# → dist/lsp-server.js  (2.0 MB)</code></pre>
+            <p class="p">Both bundles are self-contained — no <code class="ph codeph">node_modules</code> needed at
+                runtime.</p>
+        </section>
+
+        <section class="section" id="mcp-integration__opencode"><h2 class="title sectiontitle">Using with opencode</h2>
+            
+            <p class="p">Add the DitaCraft MCP server to your opencode configuration:</p>
+            <pre class="pre codeblock"><code>// ~/.config/opencode/opencode.json
+{
+  "mcpServers": {
+    "ditacraft": {
+      "command": "node",
+      "args": ["/path/to/ditacraft/dist/mcp-server.js"],
+      "env": {
+        "WORKSPACE": "/home/user/projects/my-dita-docs"
+      }
+    }
+  }
+}</code></pre>
+            <p class="p">Then use opencode to interact with your DITA workspace:</p>
+            <pre class="pre codeblock"><code>&gt; @ditacraft validate topics/intro.dita
+&gt; @ditacraft show me the map structure as a tree
+&gt; @ditacraft explain why keyref install-guide isn't resolving
+&gt; @ditacraft what diagnostics does the workspace have?</code></pre>
+        </section>
+
+        <section class="section" id="mcp-integration__claude-desktop"><h2 class="title sectiontitle">Using with Claude Desktop</h2>
+            
+            <p class="p">Add the server to your Claude Desktop config:</p>
+            <pre class="pre codeblock"><code>// macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+// Windows: %APPDATA%\Claude\claude_desktop_config.json
+{
+  "mcpServers": {
+    "ditacraft": {
+      "command": "node",
+      "args": ["/absolute/path/to/dist/mcp-server.js"],
+      "env": { "WORKSPACE": "/path/to/dita/project" }
+    }
+  }
+}</code></pre>
+        </section>
+
+        <section class="section" id="mcp-integration__standalone-lsp"><h2 class="title sectiontitle">Standalone LSP Server</h2>
+            
+            <p class="p">DitaCraft also ships a standalone LSP server bundle for embedding in other Node.js
+                projects:</p>
+            <pre class="pre codeblock"><code>node dist/lsp-server.js --stdio</code></pre>
+            <p class="p">Set the <code class="ph codeph">DITACRAFT_EXTENSION_ROOT</code> environment variable to point to
+                the directory containing the <span class="ph filepath">dtds/</span> folder. The LSP server uses
+                stdin/stdout for JSON-RPC communication.</p>
+            <p class="p">Embed programmatically:</p>
+            <pre class="pre codeblock"><code>const { spawn } = require('child_process');
+const server = spawn('node', ['lsp-server.js', '--stdio'], {
+    env: { DITACRAFT_EXTENSION_ROOT: __dirname },
+});
+// Communicate via server.stdin / server.stdout</code></pre>
+        </section>
+
+        <section class="section" id="mcp-integration__security"><h2 class="title sectiontitle">Workspace Security</h2>
+            
+            <p class="p">The MCP server enforces workspace isolation:</p>
+            <ul class="ul">
+                <li class="li">All file paths are resolved relative to the <code class="ph codeph">WORKSPACE</code>
+                    environment variable</li>
+                <li class="li">Path traversal attacks (<code class="ph codeph">../../</code> beyond 8 levels) are
+                    rejected</li>
+                <li class="li">HTTP URLs, UNC paths, and null bytes are rejected</li>
+                <li class="li">No document content is ever transmitted to external services</li>
+            </ul>
+            <div class="note tip note_tip"><span class="note__title">Tip:</span> <div class="note__body">The MCP server uses stdio transport by default, which means all
+                communication stays local to the machine. No network configuration is
+                required.</div></div>
+        </section>
+
+    </div>
+</article></main></body></html>

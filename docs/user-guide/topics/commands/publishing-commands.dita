@@ -53,6 +53,22 @@
             <note type="tip">The preview uses a lightweight renderer that does not require DITA-OT, making it instant for quick content review.</note>
         </section>
 
+        <section id="manage-publishing-profiles">
+            <title>DITA: Manage Publishing Profiles</title>
+            <p>Create, edit, delete, or select a saved publish configuration — transtype, output
+                directory, DITAVAL filter, and extra DITA-OT arguments — instead of re-entering the
+                same options on every publish. See <xref keyref="publishing-workflow"/> for the
+                full field reference.</p>
+        </section>
+
+        <section id="watch-mode-commands">
+            <title>DITA: Start Watch Mode / DITA: Stop Watch Mode</title>
+            <p>Starts (or stops) automatically re-running a full publish whenever a watched DITA
+                file changes, using the last-used publishing profile when one exists. See
+                    <xref keyref="publishing-workflow"/> for target-resolution order and status bar
+                behavior.</p>
+        </section>
+
         <section id="configure-dita-ot">
             <title>DITA: Configure DITA-OT Path</title>
             <p>Opens a folder picker to select your DITA-OT installation directory.</p>

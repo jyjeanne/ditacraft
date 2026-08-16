@@ -69,6 +69,26 @@
                     <dt>Localized Diagnostics</dt>
                     <dd>All diagnostic messages are localized with support for English and French. The language follows your VS Code display language setting automatically. See <xref keyref="localization"/> for details.</dd>
                 </dlentry>
+                <dlentry>
+                    <dt>Refactoring Tools</dt>
+                    <dd>Rename an ID or key across every usage — with <codeph>conkeyref</codeph> matches verified against the key space before rewriting — move a topic with automatic reference updates, extract a section into a new topic, and inline a conref/conkeyref back into the referencing element. See <xref keyref="refactoring-tools"/> for details.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Templates and Project Scaffolding</dt>
+                    <dd>Generate new topics, maps, and bookmaps from your own template files instead of the built-in boilerplate, and scaffold a complete new project — root map, starter topics, folder layout — with a guided wizard. See <xref keyref="project-scaffolding"/> for details.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Publishing Profiles and Watch Mode</dt>
+                    <dd>Save and reuse a publish configuration (transtype, output directory, DITAVAL filter, extra arguments), and automatically republish whenever a watched file changes. See <xref keyref="publishing-workflow"/> for details.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Authoring Productivity Tools</dt>
+                    <dd>Insert correctly structured images and tables, and preview multi-file find-and-replace or batch metadata edits with VS Code's native Refactor Preview before anything is written. See <xref keyref="authoring-productivity"/> for details.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Visual DITAVAL Condition Editor</dt>
+                    <dd>Build DITAVAL conditions in a form-based panel with a live preview of the content each condition affects, and see excluded/flagged passages highlighted directly in the editor. See <xref keyref="ditaval-condition-editor"/> for details.</dd>
+                </dlentry>
             </dl>
         </section>
 
