@@ -28,9 +28,17 @@ jobs:
 
     - name: Run security audit
       run: |
+        # Without pipefail, `if npm audit | tee file; then` evaluates tee's
+        # exit code (always 0), not npm audit's -- "release blocked" below
+        # would never actually trigger regardless of what audit finds.
+        set -o pipefail
         echo "## 🔒 Release Security Audit" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        if npm audit --audit-level=high 2>&1 | tee audit-output.txt; then
+        # Scoped to production dependencies: devDependencies (e.g. the
+        # @sentropic/graphify knowledge-graph tool) are never bundled into
+        # the shipped .vsix/dist/*.js, so their transitive vulnerabilities
+        # are a different risk category and shouldn't block a release.
+        if npm audit --omit=dev --audit-level=high 2>&1 | tee audit-output.txt; then
           echo "✅ **No high or critical vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Security vulnerabilities detected — release blocked**" >> $GITHUB_STEP_SUMMARY

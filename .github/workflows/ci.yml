@@ -33,11 +33,18 @@ jobs:
     - name: Run security audit
       id: audit
       run: |
+        # Without pipefail, `if npm audit | tee file; then` evaluates tee's
+        # exit code (always 0), not npm audit's -- this step's failure
+        # branch would never actually run regardless of what audit finds.
+        set -o pipefail
         echo "## 🔒 Security Audit Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Run audit and capture output
-        if npm audit --audit-level=high 2>&1 | tee audit-output.txt; then
+        # Scoped to production dependencies: devDependencies (e.g. the
+        # @sentropic/graphify knowledge-graph tool) are never bundled into
+        # the shipped .vsix/dist/*.js, so their transitive vulnerabilities
+        # are a different risk category and shouldn't block CI.
+        if npm audit --omit=dev --audit-level=high 2>&1 | tee audit-output.txt; then
           echo "✅ **No high or critical vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Security vulnerabilities detected**" >> $GITHUB_STEP_SUMMARY
