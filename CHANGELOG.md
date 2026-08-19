@@ -5,6 +5,12 @@ All notable changes to the "DitaCraft" extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-08-19
+
+### Changed
+
+- Version bump to exercise the [Auto Tag Release](.github/workflows/auto-tag.yml) GitHub Action, which tags and publishes a release whenever a version bump to `package.json` lands on `main`.
+
 ## [0.9.0] - 2026-08-15
 
 The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — every prioritized item shipped, plus two of three Backlog items taken on as natural follow-ons (Import from Markdown/HTML deferred, as the one item genuinely needing a design spike first).
