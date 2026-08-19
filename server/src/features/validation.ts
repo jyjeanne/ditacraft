@@ -127,7 +127,13 @@ function hasNonPredefinedEntityRef(value: string): boolean {
  * Locate a DOCTYPE's internal subset (the `[ ... ]` block) using a single
  * linear scan — quote-aware so a `]` or `>` inside a quoted literal (e.g. an
  * entity value) doesn't end the scan early, matching the intent of the
- * regex this replaces.
+ * regex this replaces. XML comments (`<!-- ... -->`) are skipped wholesale
+ * rather than scanned character-by-character: unlike the backtracking regex
+ * this replaces, a linear quote-toggle scan cannot recover from a lone
+ * unmatched quote (e.g. an apostrophe in prose like "don't"), so without
+ * this a single such comment would desync the scan and make it treat the
+ * rest of the document — including the real closing `]`/`>` — as still
+ * "inside a quote", silently disabling the entity-expansion/XXE check.
  *
  * The previous implementation used `<!DOCTYPE\s[\s\S]*?\[(...)*\]\s*>` —
  * a lazy `[\s\S]*?` that, on a DOCTYPE with no internal subset, searched
@@ -157,6 +163,12 @@ function extractDoctypeInternalSubset(
             if (ch === quote) quote = null;
             continue;
         }
+        if (text.startsWith('<!--', i)) {
+            const closeIdx = text.indexOf('-->', i + 4);
+            if (closeIdx === -1) return null; // unterminated comment — malformed
+            i = closeIdx + 2; // loop's i++ lands just past '-->'
+            continue;
+        }
         if (ch === '"' || ch === '\'') {
             quote = ch;
         } else if (ch === '[') {
@@ -173,7 +185,9 @@ function extractDoctypeInternalSubset(
 /**
  * Scan forward from just after a DOCTYPE's opening `[`, tracking nested
  * brackets and quotes, to find the matching `]`. Linear in the subset's
- * length — no alternation, no backtracking.
+ * length — no alternation, no backtracking. Comments are skipped wholesale
+ * (see {@link extractDoctypeInternalSubset}) so a stray unmatched quote in
+ * comment prose can't desync the quote-toggle tracking.
  */
 function extractBracketedSubset(text: string, subsetStart: number): { subset: string; offset: number } | null {
     let depth = 1;
@@ -183,6 +197,12 @@ function extractBracketedSubset(text: string, subsetStart: number): { subset: st
         const ch = text[i];
         if (quote) {
             if (ch === quote) quote = null;
+            continue;
+        }
+        if (text.startsWith('<!--', i)) {
+            const closeIdx = text.indexOf('-->', i + 4);
+            if (closeIdx === -1) return null; // unterminated comment — malformed
+            i = closeIdx + 2; // loop's i++ lands just past '-->'
             continue;
         }
         if (ch === '"' || ch === '\'') {

@@ -764,5 +764,28 @@ suite('validateDITADocument', () => {
                 assert.ok(Array.isArray(diags));
             });
         });
+
+        // Regression test: the linear quote-tracking scan that replaced the
+        // ReDoS-prone regex (#125) cannot backtrack past an unmatched quote the
+        // way the old regex could. A DTD comment containing a single apostrophe
+        // (ordinary English prose) used to desync the scan and make it silently
+        // treat the rest of the document as "inside a quote", skipping the real
+        // closing `]`/`>` and disabling the entity-expansion/XXE check entirely.
+        test('a comment with an unmatched apostrophe in the internal subset does not suppress external-entity detection', () => {
+            const xml = [
+                '<!DOCTYPE topic [',
+                "<!-- Don't add entities here -->",
+                '<!ENTITY xxe SYSTEM "file:///etc/passwd">',
+                ']>',
+                '<topic id="t1"><title>T</title></topic>',
+            ].join('\n');
+            const diags = validate(xml);
+            const externalDiags = diags.filter(d => d.code === 'DITA-SEC-002');
+            assert.strictEqual(
+                externalDiags.length,
+                1,
+                'external SYSTEM entity should still be flagged despite the apostrophe in the preceding comment'
+            );
+        });
     });
 });
