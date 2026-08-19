@@ -7278,7 +7278,7 @@
   <circle cx="935.9795866204993" cy="416.296302615163" r="4.048780487804878" fill="#FF9DA7" opacity="0.9"/>
   <text x="935.9795866204993" y="430.34508310296786" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">deactivate()</text>
   <circle cx="935.990927335851" cy="417.5308406299008" r="16" fill="#E15759" opacity="0.9"/>
-  <text x="935.990927335851" y="443.5308406299008" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">0c190c3 fix(server): comments in DOCTYPE subset desync the linear ReDoS-fix scan</text>
+  <text x="935.990927335851" y="443.5308406299008" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">9a9436d Bump version to 0.9.1</text>
   <circle cx="935.997731826307" cy="418.76541198084306" r="4.048780487804878" fill="#E15759" opacity="0.9"/>
   <text x="935.997731826307" y="432.81419246864795" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">main</text>
   <circle cx="20" cy="20" r="5" fill="#4E79A7"/>
