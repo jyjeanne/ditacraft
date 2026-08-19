@@ -698,5 +698,71 @@ suite('validateDITADocument', () => {
             const excessDiags = diags.filter(d => d.code === 'DITA-SEC-003');
             assert.strictEqual(excessDiags.length, 1, 'external entities should be counted toward the limit');
         });
+
+        // Regression tests for #125: a DOCTYPE with no internal subset used to
+        // make the entity-expansion pre-check scan past the declaration for the
+        // next stray '[' anywhere in the document, then backtrack catastrophically
+        // trying to match content shaped like a mix of nested brackets and
+        // multiple quoted "key": "value" pairs (e.g. JSON inside a <codeblock>).
+        suite('ReDoS resistance (#125)', () => {
+            test('does not hang on a DOCTYPE without internal subset followed by JSON-like codeblock content', function () {
+                this.timeout(2000);
+                const xml = [
+                    '<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">',
+                    '<topic id="t1"><title>T</title><body><p>',
+                    '<codeblock xml:space="preserve">',
+                    '[',
+                    '  {',
+                    '    "name": "org.dita.docbook",',
+                    '    "description": "Convert DITA to DocBook.",',
+                    '    "keywords": ["DocBook"],',
+                    '    "homepage": "https://github.com/dita-ot/org.dita.docbook/",',
+                    '    "vers": "2.3.0",',
+                    '    "license": "Apache-2.0",',
+                    '    "deps": [',
+                    '      {',
+                    '        "name": "org.dita.base",',
+                    '        "req": ">=2.3.0"',
+                    '      }',
+                    '    ],',
+                    '    "url": "https://github.com/dita-ot/org.dita.docbook/archive/2.3.zip",',
+                    '    "cksum": "eaf06b0dca8d942bd4152615e39ee8cfb73a624b96d70e10ab269ed6f8a13e21"',
+                    '  }',
+                    ']',
+                    '</codeblock>',
+                    '</p></body></topic>',
+                ].join('\n');
+                const t0 = Date.now();
+                const diags = validate(xml);
+                assert.ok(Date.now() - t0 < 1000, 'validation should complete quickly, not hang');
+                assert.ok(Array.isArray(diags));
+            });
+
+            test('does not hang when the document has no DOCTYPE at all but contains bracket-heavy content', function () {
+                this.timeout(2000);
+                const xml = [
+                    '<topic id="t1"><title>T</title><body><p><codeblock>',
+                    '[{"a":"1","b":"2","c":["x","y"],"d":{"e":"f"}}]'.repeat(20),
+                    '</codeblock></p></body></topic>',
+                ].join('\n');
+                const t0 = Date.now();
+                const diags = validate(xml);
+                assert.ok(Date.now() - t0 < 1000, 'validation should complete quickly, not hang');
+                assert.ok(Array.isArray(diags));
+            });
+
+            test('a malformed/unterminated internal subset is ignored rather than hanging', function () {
+                this.timeout(2000);
+                const xml = [
+                    '<!DOCTYPE topic [',
+                    '  <!ENTITY foo ' + '"a"'.repeat(30), // no closing '>' or ']'
+                    '<topic id="t1"><title>T</title></topic>',
+                ].join('\n');
+                const t0 = Date.now();
+                const diags = validate(xml);
+                assert.ok(Date.now() - t0 < 1000, 'validation should complete quickly, not hang');
+                assert.ok(Array.isArray(diags));
+            });
+        });
     });
 });
