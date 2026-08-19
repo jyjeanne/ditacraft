@@ -69,15 +69,16 @@ export function validateDITADocument(
     return diagnostics;
 }
 
-// Regex to extract the DOCTYPE internal subset (content between [ and ]).
-// Uses quote-aware alternation so a ']>' sequence inside a quoted entity value
-// does not terminate the match prematurely and bypass the entity security checks.
-const DOCTYPE_INTERNAL_SUBSET_RE = /<!DOCTYPE\s[\s\S]*?\[((\"[^\"]*\"|'[^']*'|[^\]])*)\]\s*>/i;
+// Regex to locate the start of a DOCTYPE declaration. Only used to find where
+// to begin the linear internal-subset scan below — never to match the whole
+// declaration, so it can't itself become a backtracking hazard.
+const DOCTYPE_START_RE = /<!DOCTYPE\s/i;
 
-// Regex to match ALL ENTITY declarations (both internal and external) for counting.
-// Uses quote-aware alternation to avoid terminating early on '>' inside SYSTEM ids.
-// Captures: (1) optional % for parameter entities, (2) entity name.
-const ENTITY_ANY_RE = /<!ENTITY\s+(%\s+)?(\S+)\s+(?:"[^"]*"|'[^']*'|[^>])*>/gi;
+// Regex used only to COUNT entity declarations (both internal and external).
+// Deliberately a bare `<!ENTITY` search rather than a full declaration match
+// (which would need alternation up to a closing '>' — see #125) so counting
+// can never itself become a backtracking hazard.
+const ENTITY_COUNT_RE = /<!ENTITY\s/gi;
 
 // Regex to match internal ENTITY declarations with a quoted value.
 // Captures: (1) optional %, (2) name, (3) quote char, (4) value.
@@ -123,6 +124,81 @@ function hasNonPredefinedEntityRef(value: string): boolean {
 }
 
 /**
+ * Locate a DOCTYPE's internal subset (the `[ ... ]` block) using a single
+ * linear scan — quote-aware so a `]` or `>` inside a quoted literal (e.g. an
+ * entity value) doesn't end the scan early, matching the intent of the
+ * regex this replaces.
+ *
+ * The previous implementation used `<!DOCTYPE\s[\s\S]*?\[(...)*\]\s*>` —
+ * a lazy `[\s\S]*?` that, on a DOCTYPE with no internal subset, searched
+ * past the declaration into the rest of the document for the next stray
+ * `[`. A `[` far away (e.g. a JSON array inside a `<codeblock>`) combined
+ * with enough quoted-looking content for the starred alternation to
+ * backtrack over made the regex hang indefinitely on ordinary, well-formed
+ * documents (catastrophic backtracking — see #125). A hand-rolled scan
+ * can't backtrack, so it's immune by construction, and — as a side effect
+ * of being correct — it also stops considering a `[` outside the DOCTYPE
+ * declaration itself as the start of an internal subset.
+ *
+ * Returns the raw subset text, its offset in `text`, and the offset of the
+ * `<!DOCTYPE` keyword itself — or null when there is no DOCTYPE, or the
+ * DOCTYPE has no internal subset (or is malformed).
+ */
+function extractDoctypeInternalSubset(
+    text: string
+): { subset: string; offset: number; doctypeOffset: number } | null {
+    const doctypeStart = DOCTYPE_START_RE.exec(text);
+    if (!doctypeStart) return null;
+
+    let quote: string | null = null;
+    for (let i = doctypeStart.index + doctypeStart[0].length; i < text.length; i++) {
+        const ch = text[i];
+        if (quote) {
+            if (ch === quote) quote = null;
+            continue;
+        }
+        if (ch === '"' || ch === '\'') {
+            quote = ch;
+        } else if (ch === '[') {
+            const bracketed = extractBracketedSubset(text, i + 1);
+            return bracketed ? { ...bracketed, doctypeOffset: doctypeStart.index } : null;
+        } else if (ch === '>') {
+            // DOCTYPE closes with no internal subset.
+            return null;
+        }
+    }
+    return null; // Unterminated DOCTYPE — no subset to report.
+}
+
+/**
+ * Scan forward from just after a DOCTYPE's opening `[`, tracking nested
+ * brackets and quotes, to find the matching `]`. Linear in the subset's
+ * length — no alternation, no backtracking.
+ */
+function extractBracketedSubset(text: string, subsetStart: number): { subset: string; offset: number } | null {
+    let depth = 1;
+    let quote: string | null = null;
+    let i = subsetStart;
+    for (; i < text.length; i++) {
+        const ch = text[i];
+        if (quote) {
+            if (ch === quote) quote = null;
+            continue;
+        }
+        if (ch === '"' || ch === '\'') {
+            quote = ch;
+        } else if (ch === '[') {
+            depth++;
+        } else if (ch === ']') {
+            depth--;
+            if (depth === 0) break;
+        }
+    }
+    if (depth !== 0) return null; // Unterminated subset — malformed DOCTYPE.
+    return { subset: text.slice(subsetStart, i), offset: subsetStart };
+}
+
+/**
  * Defense-in-depth pre-check for dangerous entity patterns in DOCTYPE.
  * Detects: recursive entity expansion (billion laughs), XXE (external entities),
  * and excessive entity counts — before content reaches the XML parser.
@@ -132,16 +208,15 @@ function checkEntityExpansion(
     textDocument: TextDocument,
     diagnostics: Diagnostic[]
 ): void {
-    const subsetMatch = DOCTYPE_INTERNAL_SUBSET_RE.exec(text);
-    if (!subsetMatch) {
+    const subsetResult = extractDoctypeInternalSubset(text);
+    if (!subsetResult) {
         return;
     }
 
-    const subset = subsetMatch[1];
-    const subsetOffset = subsetMatch.index + subsetMatch[0].indexOf('[') + 1;
+    const { subset, offset: subsetOffset, doctypeOffset } = subsetResult;
 
     // Count ALL entity declarations (internal + external)
-    const countRegex = new RegExp(ENTITY_ANY_RE.source, ENTITY_ANY_RE.flags);
+    const countRegex = new RegExp(ENTITY_COUNT_RE.source, ENTITY_COUNT_RE.flags);
     let totalEntityCount = 0;
     while (countRegex.exec(subset) !== null) {
         totalEntityCount++;
@@ -184,7 +259,6 @@ function checkEntityExpansion(
 
     // Check for excessive entity count (includes both internal and external)
     if (totalEntityCount > MAX_ENTITY_COUNT) {
-        const doctypeOffset = subsetMatch.index;
         const pos = textDocument.positionAt(doctypeOffset);
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
