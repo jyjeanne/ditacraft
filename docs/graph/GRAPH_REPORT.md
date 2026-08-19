@@ -1,13 +1,13 @@
-# Graph Report - .  (2026-08-18)
+# Graph Report - .  (2026-08-19)
 
 ## Corpus Check
-- Large corpus: 1869 files · ~568,605 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 1869 files · ~569,669 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
-- 1708 nodes · 3858 edges · 87 communities detected
+- 1710 nodes · 3862 edges · 87 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
-- Edge kinds: contains: 1032 · imports: 874 · calls: 682 · imports_from: 537 · method: 411 · MODIFIES: 245 · re_exports: 62 · implements: 9 · inherits: 5 · ON_BRANCH: 1
+- Edge kinds: contains: 1034 · imports: 874 · calls: 684 · imports_from: 537 · method: 411 · MODIFIES: 245 · re_exports: 62 · implements: 9 · inherits: 5 · ON_BRANCH: 1
 
 
 ## Input Scope
@@ -18,7 +18,7 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `972c074`
+- Built from Git commit: `0c190c3`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 82 edges
@@ -34,7 +34,7 @@
 
 ## Surprising Connections (you probably didn't know these)
 - `validateDITADocument()` --calls--> `checkEntityExpansion()`  [EXTRACTED]
-  server/src/features/validation.ts → server/src/features/validation.ts  _Bridges community 59 → community 25_
+  server/src/features/validation.ts → server/src/features/validation.ts  _Bridges community 59 → community 22_
 - `registerAICompletionProvider()` --calls--> `AICompletionProvider`  [EXTRACTED]
   src/providers/aiCompletionProvider.ts → src/providers/aiCompletionProvider.ts  _Bridges community 20 → community 82_
 - `findContainingWorkspaceFolder()` --calls--> `normalizeFsPath()`  [EXTRACTED]
@@ -68,7 +68,7 @@ Nodes (9): DitaLinkProvider, getGlobalKeySpaceResolver(), PendingKeyLink, regist
 
 ### Community 6 - "Community 6"
 Cohesion: 0.07
-Nodes (36): createClassMatcher(), DitaClassMatcher, isLocalDita(), KEYREF_ELEMENTS, MAP_MAP, MAP_RELCOLSPEC, MAP_RELTABLE, MAP_TOPICMETA (+28 more)
+Nodes (37): createClassMatcher(), DitaClassMatcher, isLocalDita(), KEYREF_ELEMENTS, MAP_MAP, MAP_RELCOLSPEC, MAP_RELTABLE, MAP_TOPICMETA (+29 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.07
@@ -131,20 +131,20 @@ Cohesion: 0.18
 Nodes (20): executePublish(), pickProfileOrConfigureOnce(), publishCommand(), publishHTML5Command(), PublishOverrides, validateAndPrepareForPublish(), describeProfile(), FALLBACK_TRANSTYPES (+12 more)
 
 ### Community 22 - "Community 22"
+Cohesion: 0.16
+Nodes (22): TOPIC_TYPE_NAMES, checkEmptyElements(), checkEntityExpansion(), checkTopicrefsWithoutHref(), CODES, createRange(), DITA_ROOT_ELEMENTS, entityRange() (+14 more)
+
+### Community 23 - "Community 23"
 Cohesion: 0.14
 Nodes (19): buildMapNode(), ContextGraph, countElements(), GetContextGraphParams, handleGetContextGraph(), KeyDef, MapNode, readShortDesc() (+11 more)
 
-### Community 23 - "Community 23"
+### Community 24 - "Community 24"
 Cohesion: 0.10
 Nodes (11): enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue, ISubjectSchemeService, SubjectDefinition (+3 more)
 
-### Community 24 - "Community 24"
+### Community 25 - "Community 25"
 Cohesion: 0.15
 Nodes (15): executeValidation(), GuideValidationContext, mapToValidationIssues(), validateGuideCommand(), validateGuidePrerequisites(), disposeDitaOtDiagnostics(), DitaOtDiagnostics, DitaOtError (+7 more)
-
-### Community 25 - "Community 25"
-Cohesion: 0.17
-Nodes (21): MAP_TYPE_NAMES, TOPIC_TYPE_NAMES, checkEmptyElements(), checkEntityExpansion(), checkTopicrefsWithoutHref(), CODES, createRange(), DITA_ROOT_ELEMENTS (+13 more)
 
 ### Community 26 - "Community 26"
 Cohesion: 0.11
@@ -172,7 +172,7 @@ Nodes (1): Logger
 
 ### Community 32 - "Community 32"
 Cohesion: 0.10
-Nodes (4): main, 972c074 [npm]: bump the production-dependencies group across 1 directory with 2 updates, DitaCraftAPI, detectDitaVersion()
+Nodes (4): main, 0c190c3 fix(server): comments in DOCTYPE subset desync the linear ReDoS-fix scan, DitaCraftAPI, detectDitaVersion()
 
 ### Community 33 - "Community 33"
 Cohesion: 0.14
@@ -433,11 +433,11 @@ Nodes (1): vscode
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `KeySpaceService` connect `Community 3` to `Community 56`, `Community 4`, `Community 49`, `Community 19`, `Community 23`, `Community 66`, `Community 11`, `Community 44`, `Community 58`, `Community 38`, `Community 2`, `Community 7`, `Community 12`, `Community 13`, `Community 15`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
+- **Why does `KeySpaceService` connect `Community 3` to `Community 56`, `Community 4`, `Community 49`, `Community 19`, `Community 24`, `Community 66`, `Community 11`, `Community 44`, `Community 58`, `Community 38`, `Community 2`, `Community 7`, `Community 12`, `Community 13`, `Community 15`?**
+  _High betweenness centrality (0.063) - this node is a cross-community bridge._
 - **Why does `KeySpaceResolver` connect `Community 16` to `Community 5`, `Community 27`, `Community 73`?**
   _High betweenness centrality (0.041) - this node is a cross-community bridge._
-- **Why does `Logger` connect `Community 31` to `Community 43`, `Community 1`, `Community 60`, `Community 61`, `Community 10`, `Community 34`, `Community 21`, `Community 24`, `Community 28`, `Community 55`, `Community 5`, `Community 0`, `Community 40`, `Community 36`, `Community 20`, `Community 17`, `Community 81`, `Community 27`, `Community 18`?**
+- **Why does `Logger` connect `Community 31` to `Community 43`, `Community 1`, `Community 60`, `Community 61`, `Community 10`, `Community 34`, `Community 21`, `Community 25`, `Community 28`, `Community 55`, `Community 5`, `Community 0`, `Community 40`, `Community 36`, `Community 20`, `Community 17`, `Community 81`, `Community 27`, `Community 18`?**
   _High betweenness centrality (0.032) - this node is a cross-community bridge._
 - **What connects `esbuild`, `minify`, `sourcemap` to the rest of the system?**
   _299 weakly-connected nodes found - possible documentation gaps or missing edges._

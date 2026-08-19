@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-18T08:08:29.598Z",
+  "generatedAt": "2026-08-19T22:09:33.453Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.graphify/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -151,56 +151,6 @@
       "warnings": []
     },
     {
-      "id": "flow:features_validation_validateditadocument",
-      "name": "validateDITADocument",
-      "entryPoint": "features_validation_validateditadocument",
-      "entryPointId": "features_validation_validateditadocument",
-      "path": [
-        "features_validation_validateditadocument",
-        "features_validation_checkentityexpansion",
-        "features_validation_validateditastructure",
-        "features_validation_validateids",
-        "features_validation_validatexml",
-        "features_validation_entityrange",
-        "features_validation_hasnonpredefinedentityref",
-        "features_validation_checkemptyelements",
-        "features_validation_createrange",
-        "features_validation_getfileextension",
-        "features_validation_validatebookmapstructure",
-        "features_validation_validateditavalstructure",
-        "features_validation_validatemapstructure",
-        "features_validation_validatetopicstructure",
-        "features_validation_getenclosingelement",
-        "features_validation_checktopicrefswithouthref"
-      ],
-      "qualifiedPath": [
-        "features_validation_validateditadocument",
-        "features_validation_checkentityexpansion",
-        "features_validation_validateditastructure",
-        "features_validation_validateids",
-        "features_validation_validatexml",
-        "features_validation_entityrange",
-        "features_validation_hasnonpredefinedentityref",
-        "features_validation_checkemptyelements",
-        "features_validation_createrange",
-        "features_validation_getfileextension",
-        "features_validation_validatebookmapstructure",
-        "features_validation_validateditavalstructure",
-        "features_validation_validatemapstructure",
-        "features_validation_validatetopicstructure",
-        "features_validation_getenclosingelement",
-        "features_validation_checktopicrefswithouthref"
-      ],
-      "depth": 3,
-      "nodeCount": 16,
-      "fileCount": 1,
-      "files": [
-        "server/src/features/validation.ts"
-      ],
-      "criticality": 0.305,
-      "warnings": []
-    },
-    {
       "id": "flow:commands_previewcommand_pickpreviewfiltercommand",
       "name": "pickPreviewFilterCommand",
       "entryPoint": "commands_previewcommand_pickpreviewfiltercommand",
@@ -240,6 +190,60 @@
         "src/commands/previewCommand.ts"
       ],
       "criticality": 0.2942,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_validation_validateditadocument",
+      "name": "validateDITADocument",
+      "entryPoint": "features_validation_validateditadocument",
+      "entryPointId": "features_validation_validateditadocument",
+      "path": [
+        "features_validation_validateditadocument",
+        "features_validation_checkentityexpansion",
+        "features_validation_validateditastructure",
+        "features_validation_validateids",
+        "features_validation_validatexml",
+        "features_validation_entityrange",
+        "features_validation_extractdoctypeinternalsubset",
+        "features_validation_hasnonpredefinedentityref",
+        "features_validation_checkemptyelements",
+        "features_validation_createrange",
+        "features_validation_getfileextension",
+        "features_validation_validatebookmapstructure",
+        "features_validation_validateditavalstructure",
+        "features_validation_validatemapstructure",
+        "features_validation_validatetopicstructure",
+        "features_validation_getenclosingelement",
+        "features_validation_extractbracketedsubset",
+        "features_validation_checktopicrefswithouthref"
+      ],
+      "qualifiedPath": [
+        "features_validation_validateditadocument",
+        "features_validation_checkentityexpansion",
+        "features_validation_validateditastructure",
+        "features_validation_validateids",
+        "features_validation_validatexml",
+        "features_validation_entityrange",
+        "features_validation_extractdoctypeinternalsubset",
+        "features_validation_hasnonpredefinedentityref",
+        "features_validation_checkemptyelements",
+        "features_validation_createrange",
+        "features_validation_getfileextension",
+        "features_validation_validatebookmapstructure",
+        "features_validation_validateditavalstructure",
+        "features_validation_validatemapstructure",
+        "features_validation_validatetopicstructure",
+        "features_validation_getenclosingelement",
+        "features_validation_extractbracketedsubset",
+        "features_validation_checktopicrefswithouthref"
+      ],
+      "depth": 3,
+      "nodeCount": 18,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/validation.ts"
+      ],
+      "criticality": 0.2911,
       "warnings": []
     },
     {
