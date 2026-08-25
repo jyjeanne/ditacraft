@@ -14,11 +14,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 1869 · Candidates: 2412
-- Excluded: 0 untracked · 48719 ignored · 21 sensitive · 0 missing committed
+- Excluded: 0 untracked · 48828 ignored · 21 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `954144f`
+- Built from Git commit: `aa74fe6`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 82 edges
@@ -172,7 +172,7 @@ Nodes (1): Logger
 
 ### Community 32 - "Community 32"
 Cohesion: 0.10
-Nodes (4): main, 954144f fix(build): bump engines.vscode to match @types/vscode 1.134.0, DitaCraftAPI, detectDitaVersion()
+Nodes (4): main, aa74fe6 [npm]: bump the production-dependencies group with 4 updates, DitaCraftAPI, detectDitaVersion()
 
 ### Community 33 - "Community 33"
 Cohesion: 0.14
