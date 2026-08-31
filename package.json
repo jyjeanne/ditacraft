@@ -1069,7 +1069,7 @@
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@sentropic/graphify": "^0.17.1",
     "@types/mocha": "^10.0.1",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.4.0",
     "@types/sinon": "^22.0.0",
     "@types/vscode": "^1.134.0",
     "@vscode/test-electron": "^3.1.0",
@@ -1083,7 +1083,7 @@
     "nyc": "^18.0.0",
     "sinon": "^22.1.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.67.0"
+    "typescript-eslint": "^8.68.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
