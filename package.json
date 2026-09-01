@@ -1086,13 +1086,13 @@
     "typescript-eslint": "^8.68.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.120.0",
+    "@anthropic-ai/sdk": "^0.122.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@xmldom/xmldom": "^0.9.12",
-    "fast-xml-parser": "^5.11.0",
-    "openai": "^7.5.0",
-    "typesxml": "^2.4.1",
-    "vscode-languageclient": "^10.1.0"
+    "fast-xml-parser": "^5.11.1",
+    "openai": "^7.8.0",
+    "typesxml": "^2.5.0",
+    "vscode-languageclient": "^10.1.1"
   },
   "overrides": {
     "serialize-javascript": ">=7.0.5",
