@@ -1,4 +1,4 @@
-# Graph Report - .  (2026-09-01)
+# Graph Report - .  (2026-09-02)
 
 ## Corpus Check
 - Large corpus: 1869 files · ~569,701 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
@@ -14,11 +14,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 1869 · Candidates: 2412
-- Excluded: 0 untracked · 48844 ignored · 21 sensitive · 0 missing committed
+- Excluded: 0 untracked · 49266 ignored · 21 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `0ce500a`
+- Built from Git commit: `9f45273`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 82 edges
@@ -172,7 +172,7 @@ Nodes (1): Logger
 
 ### Community 32 - "Community 32"
 Cohesion: 0.10
-Nodes (4): main, 0ce500a [npm]: bump the dev-dependencies group with 2 updates, DitaCraftAPI, detectDitaVersion()
+Nodes (4): main, 9f45273 [npm]: bump the production-dependencies group across 1 directory with 5 updates, DitaCraftAPI, detectDitaVersion()
 
 ### Community 33 - "Community 33"
 Cohesion: 0.14
