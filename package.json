@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/jyjeanne/ditacraft#readme",
   "engines": {
+    "node": ">=20.19.0",
     "vscode": "^1.134.0"
   },
   "categories": [

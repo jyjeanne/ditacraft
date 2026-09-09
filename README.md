@@ -236,7 +236,7 @@ If you want to install the plugin locally from source code for development or te
 
 #### Step 1: Prerequisites
 Ensure you have the following installed:
-- **Node.js** 18.x or 20.x ([Download](https://nodejs.org/))
+- **Node.js** 20.19.0 or newer ([Download](https://nodejs.org/))
 - **npm** (comes with Node.js)
 - **VS Code** 1.80 or higher
 - **Git** (optional, for cloning)
@@ -308,7 +308,7 @@ npm install -g @vscode/vsce
 
 #### Issue: `npm install` fails
 **Solution:**
-- Check Node.js version: `node --version` (should be 18.x or 20.x)
+- Check Node.js version: `node --version` (should be >= 20.19.0)
 - Clear npm cache: `npm cache clean --force`
 - Delete `node_modules` and `package-lock.json`, then run `npm install` again
 
@@ -363,7 +363,7 @@ npm run lint
 
 ### Required
 - **VS Code** 1.80 or higher
-- **Node.js** 18.x or 20.x (for development)
+- **Node.js** 20.19.0 or newer (for development)
 
 ### For Publishing
 - **DITA-OT** 4.2.1 or higher ([Download](https://www.dita-ot.org/download))
