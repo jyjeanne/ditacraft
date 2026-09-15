@@ -18,7 +18,7 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `00b944a`
+- Built from Git commit: `928223c`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 82 edges
@@ -172,7 +172,7 @@ Nodes (1): Logger
 
 ### Community 32 - "Community 32"
 Cohesion: 0.10
-Nodes (4): main, 00b944a [npm]: bump mocha from 11.8.0 to 12.0.1, DitaCraftAPI, detectDitaVersion()
+Nodes (4): main, 928223c fix: bump engines.vscode to ^1.137.0 to match @types/vscode, DitaCraftAPI, detectDitaVersion()
 
 ### Community 33 - "Community 33"
 Cohesion: 0.14
