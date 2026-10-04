@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="guide-validation">
     <title>Guide Validation (DITA-OT)</title>
-    <shortdesc>DitaCraft can validate your entire guide by running DITA-OT against the root map, producing a detailed WebView report with filtering, search, and export.</shortdesc>
+    <shortdesc>DITA Craft can validate your entire guide by running DITA-OT against the root map, producing a detailed WebView report with filtering, search, and export.</shortdesc>
 
     <conbody>
         <section id="overview">
@@ -45,7 +45,7 @@
 
         <section id="transtype-selection">
             <title>Transtype Selection</title>
-            <p>DitaCraft automatically selects the best transtype for validation:</p>
+            <p>DITA Craft automatically selects the best transtype for validation:</p>
             <ul>
                 <li><b>dita</b> (preferred) — An identity transform available in DITA-OT 3.6+ that
                     runs the full preprocessing pipeline without generating output files. This is the
@@ -112,7 +112,7 @@
 
         <section id="error-catalog">
             <title>DITA-OT Error Code Catalog</title>
-            <p>DitaCraft includes a built-in catalog of 160+ DITA-OT error codes with
+            <p>DITA Craft includes a built-in catalog of 160+ DITA-OT error codes with
                 human-readable descriptions and module categorization. Error codes follow the format
                 <codeph>[PREFIX][NUMBER][SEVERITY]</codeph> where:</p>
             <ul>
@@ -125,7 +125,7 @@
             </ul>
             <p>The severity suffix indicates: <b>E</b> = Error, <b>W</b> = Warning, <b>F</b> =
                 Fatal, <b>I</b> = Info.</p>
-            <p>DitaCraft recognizes both the legacy format (<codeph>[DOTJ013E][ERROR]</codeph>) and
+            <p>DITA Craft recognizes both the legacy format (<codeph>[DOTJ013E][ERROR]</codeph>) and
                 the modern severity-first format used by DITA-OT 3.x and 4.x
                 (<codeph>[ERROR] [DOTJ013E]</codeph>), ensuring error codes are correctly extracted
                 regardless of your DITA-OT version.</p>

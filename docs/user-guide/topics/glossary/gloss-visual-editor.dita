@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-visual-editor">
+    <glossterm>Visual Editor</glossterm>
+    <glossdef>
+        <p>An alternative editor for DITA topics in which you write on a page that looks like the
+            output, while DITA Craft writes the XML. Each change reaches the file as a minimal text
+            edit; unchanged XML stays byte for byte. Open it with <uicontrol>DITA: Open in Visual
+                Editor</uicontrol>.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/visual-editor.dita"/>
+    </related-links>
+</glossentry>

@@ -1280,8 +1280,21 @@ export class KeySpaceResolver implements vscode.Disposable {
             logger.debug('No root map found for context file', { contextFile: contextFilePath });
             return null;
         }
+        return this.resolveKeyInMap(keyName, rootMap, contextFilePath);
+    }
 
-        // Build key space
+    /**
+     * Resolve a key in the key space of a given root map — a topic's map context (the visual
+     * preview and editor, spec §13.8 M4) — in a given key scope (`scope`, e.g. "prodA" or
+     * "product.lib"; "" for the root scope). Without `scope`, the scope the key space recorded
+     * for `contextFilePath` (its first reference) is used, as `resolveKey` does.
+     */
+    public async resolveKeyInMap(
+        keyName: string,
+        rootMap: string,
+        contextFilePath: string,
+        scope?: string
+    ): Promise<KeyDefinition | null> {
         const keySpace = await this.buildKeySpace(rootMap);
 
         // Context-aware resolution: when the authoring file lives inside a
@@ -1290,7 +1303,7 @@ export class KeySpaceResolver implements vscode.Disposable {
         // ("version"). The PushDown pass already added inherited ancestor
         // keys under the child scope namespace, so a child-scope override
         // always beats an ancestor definition at this lookup point.
-        const scopePrefix = keySpace.topicToScope.get(this.normalizePathForComparison(contextFilePath));
+        const scopePrefix = scope ?? keySpace.topicToScope.get(this.normalizePathForComparison(contextFilePath));
         if (scopePrefix) {
             const qualifiedName = `${scopePrefix}.${keyName}`;
             const scopedDef = keySpace.keys.get(qualifiedName);

@@ -3,7 +3,7 @@
 <glossentry id="gloss-subject-scheme">
     <glossterm>Subject Scheme</glossterm>
     <glossdef>
-        <p>A type of DITA map that defines controlled vocabularies for profiling attributes. Subject scheme maps specify allowed values for attributes such as audience, platform, product, and otherprops. DitaCraft uses subject schemes to validate that profiling attribute values conform to the defined vocabulary.</p>
+        <p>A type of DITA map that defines controlled vocabularies for profiling attributes. Subject scheme maps specify allowed values for attributes such as audience, platform, product, and otherprops. DITA Craft uses subject schemes to validate that profiling attribute values conform to the defined vocabulary.</p>
     </glossdef>
     <related-links>
         <link href="../features/profiling-validation.dita"/>

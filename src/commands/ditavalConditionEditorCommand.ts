@@ -23,19 +23,19 @@ export async function editDitavalConditionsCommand(arg?: DitaExplorerItem | vsco
     } else {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
-            vscode.window.showWarningMessage('DitaCraft: No file is currently open.');
+            vscode.window.showWarningMessage('DITA Craft: No file is currently open.');
             return;
         }
         filePath = editor.document.uri.fsPath;
     }
 
     if (!filePath) {
-        vscode.window.showWarningMessage('DitaCraft: No file path available.');
+        vscode.window.showWarningMessage('DITA Craft: No file path available.');
         return;
     }
 
     if (!filePath.toLowerCase().endsWith('.ditaval')) {
-        vscode.window.showWarningMessage('DitaCraft: The DITAVAL Condition Editor requires a .ditaval file.');
+        vscode.window.showWarningMessage('DITA Craft: The DITAVAL Condition Editor requires a .ditaval file.');
         return;
     }
 

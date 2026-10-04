@@ -4,11 +4,18 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as path from 'path';
-import { z } from 'zod';
+// zod/v4 (in the zod 3.25 package): the MCP SDK takes v4 schemas as they are; v3 ones go through its
+// compatibility types, whose inference made each registerTool cost ~5 million type instantiations
+// (TS2589 "excessively deep", and the type-check ran out of memory).
+import { z } from 'zod/v4';
 
 import { log, setLevel } from './logger';
 import { DiagnosticsStore } from './diagnosticsStore';
 import { McpContext } from './types';
+import { queryParameters, queryTemplate } from './resources/query';
+import { DIAGNOSTICS_PARAMETERS, DIAGNOSTICS_URI } from './resources/diagnostics';
+import { KEYS_PARAMETERS, KEYS_URI } from './resources/keys';
+import { version } from '../../package.json';
 
 export type { McpContext };
 
@@ -78,8 +85,9 @@ const ctx: McpContext = {
 
 const server = new McpServer({
     name: 'ditacraft-mcp',
-    version: '0.8.0',
-    description: 'DitaCraft MCP Server — DITA validation, key space, snapshots, and map analysis',
+    // The extension's version (esbuild bundles this one property of package.json).
+    version,
+    description: 'DITA Craft MCP Server — DITA validation, key space, snapshots, and map analysis',
 });
 
 // ── Tools ──────────────────────────────────────────────────────────────────
@@ -88,12 +96,12 @@ server.registerTool(
     'dita_validate',
     {
         description: 'Validate a DITA file or XML fragment and return diagnostics.',
-        inputSchema: z.object({
+        inputSchema: z.looseObject({
             uri: z.string().optional().describe('File to validate. Relative to workspace or file:// URI.'),
             fragment: z.string().optional().describe('Raw XML string to validate in-memory.'),
             fragmentType: z.enum(['map', 'topic', 'topicref', 'element']).optional()
                 .describe('Required when fragment is provided.'),
-        }).passthrough(),
+        }),
     },
     async (args) => {
         const { handleDitaValidate } = await import('./tools/ditaValidate');
@@ -106,12 +114,12 @@ server.registerTool(
     'dita_context_snapshot',
     {
         description: 'Return a token-budgeted text representation of a DITA map for LLM injection.',
-        inputSchema: z.object({
+        inputSchema: z.looseObject({
             uri: z.string().describe('Map file to snapshot.'),
             maxTokens: z.number().optional().default(8000),
             strategy: z.enum(['breadth-first', 'depth-first', 'by-relevance']).optional().default('breadth-first'),
             focusUri: z.string().optional(),
-        }).passthrough(),
+        }),
     },
     async (args) => {
         const { handleDitaContextSnapshot } = await import('./tools/ditaContextSnapshot');
@@ -124,11 +132,11 @@ server.registerTool(
     'dita_key_space',
     {
         description: 'List all defined keys and their resolved targets from the key space.',
-        inputSchema: z.object({
+        inputSchema: z.looseObject({
             mapUri: z.string().optional().describe('Root map file (auto-discovered if omitted).'),
             includeScopes: z.boolean().optional().default(true),
             includeProvenance: z.boolean().optional().default(false),
-        }).passthrough(),
+        }),
     },
     async (args) => {
         const { handleDitaKeySpace } = await import('./tools/ditaKeySpace');
@@ -141,12 +149,12 @@ server.registerTool(
     'dita_map_structure',
     {
         description: 'Return the full topic hierarchy and metadata for a DITA map.',
-        inputSchema: z.object({
+        inputSchema: z.looseObject({
             mapUri: z.string().describe('Map file to analyze.'),
             depth: z.number().optional().default(4),
             includeMetadata: z.boolean().optional().default(true),
             format: z.enum(['json', 'tree', 'csv']).optional().default('json'),
-        }).passthrough(),
+        }),
     },
     async (args) => {
         const { handleDitaMapStructure } = await import('./tools/ditaMapStructure');
@@ -159,11 +167,11 @@ server.registerTool(
     'dita_resolve_reference',
     {
         description: 'Resolve an href, keyref, conref, or conkeyref to its target file and element.',
-        inputSchema: z.object({
+        inputSchema: z.looseObject({
             fromUri: z.string().optional().describe('Source file URI for relative path resolution.'),
             reference: z.string().describe('The attribute value.'),
             referenceType: z.enum(['href', 'keyref', 'conref', 'conkeyref']).describe('Type of reference.'),
-        }).passthrough(),
+        }),
     },
     async (args) => {
         const { handleDitaResolveReference } = await import('./tools/ditaResolveReference');
@@ -176,10 +184,10 @@ server.registerTool(
     'dita_explain_key',
     {
         description: 'Return a detailed trace of how a key resolves through scopes and keyref chains.',
-        inputSchema: z.object({
+        inputSchema: z.looseObject({
             keyName: z.string().describe('The key name to trace.'),
             contextFilePath: z.string().describe('The file from which the key is referenced.'),
-        }).passthrough(),
+        }),
     },
     async (args) => {
         const { handleDitaExplainKey } = await import('./tools/ditaExplainKey');
@@ -204,38 +212,62 @@ server.registerResource(
     },
 );
 
+// The diagnostics and keys resources take optional query parameters: each is registered as a
+// resource (read without parameters) and as a template for the same URI with a query string
+// (see resources/query.ts — a query string used to make them "not found").
+
+async function readDiagnostics(uri: URL) {
+    const { readDiagnosticsResource } = await import('./resources/diagnostics');
+    const data = await readDiagnosticsResource(queryParameters(uri, DIAGNOSTICS_URI, DIAGNOSTICS_PARAMETERS), ctx);
+    return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
+}
+
 server.registerResource(
     'workspace-diagnostics',
-    'dita://workspace/diagnostics',
+    DIAGNOSTICS_URI,
     {
         description: 'Current validation diagnostics across workspace files.',
         mimeType: 'application/json',
     },
-    async (uri) => {
-        const { readDiagnosticsResource } = await import('./resources/diagnostics');
-        const url = new URL(uri instanceof URL ? uri.href : String(uri));
-        const params: Record<string, string> = {};
-        url.searchParams.forEach((v, k) => { params[k] = v; });
-        const data = await readDiagnosticsResource(params, ctx);
-        return { contents: [{ uri: 'dita://workspace/diagnostics', mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
-    },
+    (uri) => readDiagnostics(uri),
 );
 
 server.registerResource(
+    'workspace-diagnostics-filtered',
+    queryTemplate(DIAGNOSTICS_URI, DIAGNOSTICS_PARAMETERS),
+    {
+        description: 'Validation diagnostics, filtered: severity (comma-separated: error, warning, information, hint), ' +
+            'limit (the most to return, default 100, 0 for all), filePattern (a glob on the file paths). All optional, in any order.',
+        mimeType: 'application/json',
+    },
+    (uri) => readDiagnostics(uri),
+);
+
+async function readKeys(uri: URL) {
+    const { readKeysResource } = await import('./resources/keys');
+    const data = await readKeysResource(queryParameters(uri, KEYS_URI, KEYS_PARAMETERS), ctx);
+    return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
+}
+
+server.registerResource(
     'workspace-keys',
-    'dita://workspace/keys',
+    KEYS_URI,
     {
         description: 'All defined keys with their resolved targets.',
         mimeType: 'application/json',
     },
-    async (uri) => {
-        const { readKeysResource } = await import('./resources/keys');
-        const url = new URL(typeof uri === 'string' ? uri : uri.href);
-        const params: Record<string, string> = {};
-        url.searchParams.forEach((v, k) => { params[k] = v; });
-        const data = await readKeysResource(params, ctx);
-        return { contents: [{ uri: 'dita://workspace/keys', mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
+    (uri) => readKeys(uri),
+);
+
+server.registerResource(
+    'workspace-keys-filtered',
+    queryTemplate(KEYS_URI, KEYS_PARAMETERS),
+    {
+        description: 'Defined keys, filtered: search (a case-insensitive substring of the key name), ' +
+            'includeScopes (true or false: key names with their scope, default true). All optional, in any order.',
+        mimeType: 'application/json',
     },
+    (uri) => readKeys(uri),
 );
 
 // ── Startup ────────────────────────────────────────────────────────────────

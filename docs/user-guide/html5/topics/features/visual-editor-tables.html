@@ -1,0 +1,86 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="Insert and edit CALS and simple tables on the page: rows, columns, merged cells and column widths, with the table markup kept consistent for you."><meta name="prodname" content="DITA Craft"><meta name="version" content="0"><meta name="release" content="10"><meta name="modification" content="0"><title>Tables in the Visual Editor</title><link rel="stylesheet" type="text/css" href="../../commonltr.css">
+<link rel="stylesheet" type="text/css" href="..\../common-extended.css"><link rel="stylesheet" type="text/css" href="../../custom.css">
+</head><body id="visual-editor-tables"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DITA Craft</span>
+      <span class="ditacraft-header__version">v0.9.1</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DITA Craft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/editing-commands.html">Editing and Refactoring Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/visual-editor.html">Visual Editor</a><ul><li><a href="../../topics/features/visual-editor-basics.html">Working in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-writing.html">Writing on the Page</a></li><li class="active"><a href="../../topics/features/visual-editor-tables.html">Tables in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-images-links.html">Images and Links in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-reuse.html">Reused Content, Keys and Link Titles</a></li><li><a href="../../topics/features/visual-editor-problems.html">Problems and Quick Fixes in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-maps.html">Maps and Bookmaps in the Visual Editor</a></li><li><a href="../../topics/features/properties-view.html">Properties View</a></li></ul></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li><li><a href="../../topics/features/ai-features.html">AI Features</a></li><li><a href="../../topics/features/mcp-integration.html">MCP Server Integration</a></li><li><a href="../../topics/features/refactoring-tools.html">Refactoring Tools</a></li><li><a href="../../topics/features/project-scaffolding.html">Templates and Project Scaffolding</a></li><li><a href="../../topics/features/publishing-workflow.html">Publishing Workflow Enhancements</a></li><li><a href="../../topics/features/authoring-productivity.html">Authoring Productivity Tools</a></li><li><a href="../../topics/features/ditaval-condition-editor.html">Visual DITAVAL Condition Editor</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-properties-view.html">Properties View</a></li><li><a href="../../topics/glossary/gloss-publishing-profile.html">Publishing Profile</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-visual-editor.html">Visual Editor</a></li><li><a href="../../topics/glossary/gloss-watch-mode.html">Watch Mode</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Tables in the Visual Editor</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">Insert and edit CALS and simple tables on the page: rows, columns, merged cells and
+        column widths, with the table markup kept consistent for you.</p>
+        <section class="section" id="visual-editor-tables__commands"><h2 class="title sectiontitle">Table Commands</h2>
+            
+            <p class="p"><span class="ph uicontrol">Table</span> in the toolbar inserts a CALS table with a header row and
+                column specifications. With the cursor in a cell, the same menu — and
+                    <span class="ph uicontrol">Table</span> in the right-click menu — edits the table:</p>
+            <table class="simpletable"><colgroup><col style="width:35%"><col style="width:65%"></colgroup><thead><tr class="sthead">
+                    <th class="stentry" scope="col" id="visual-editor-tables__commands__stentry__1">Command</th>
+                    <th class="stentry" scope="col" id="visual-editor-tables__commands__stentry__2">What it writes</th>
+                </tr></thead><tbody><tr class="strow">
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__1">Insert row above / below</td>
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__2">A row with one cell per free column; a cell spanning rows across the new
+                        row grows (<code class="ph codeph">morerows</code>)</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__1">Delete row</td>
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__2">The row; spans into it shrink, a span starting in it moves to the next
+                        row</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__1">Insert column left / right</td>
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__2">A cell in every row, a new <code class="ph codeph">&lt;colspec&gt;</code>, and
+                            <code class="ph codeph">@cols</code> + 1; a span across the new column widens</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__1">Delete column</td>
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__2">The cells of the column, its colspec, and <code class="ph codeph">@cols</code> −
+                        1</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__1">Merge right / down</td>
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__2">One cell spanning both (<code class="ph codeph">namest</code>/<code class="ph codeph">nameend</code>
+                        or <code class="ph codeph">morerows</code>), contents joined</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__1">Split cell</td>
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__2">A merged cell becomes one cell per slot again</td>
+                </tr><tr class="strow">
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__1">Header row on/off</td>
+                    <td class="stentry" headers="visual-editor-tables__commands__stentry__2">The first body row becomes the header row (<code class="ph codeph">thead</code>), or
+                        back</td>
+                </tr></tbody></table>
+            <p class="p"><span class="ph uicontrol">Tab</span> and <span class="ph uicontrol">Shift+Tab</span> move to the next and
+                previous cell; <span class="ph uicontrol">Tab</span> in the last cell adds a row. Simple tables
+                    (<code class="ph codeph">simpletable</code>) work the same way, with
+                    <code class="ph codeph">@relcolwidth</code> following column changes. A command that would break
+                the table is not offered. Rows and cells a command does not change are written back
+                as they were.</p>
+        </section>
+
+        <section class="section" id="visual-editor-tables__column-widths"><h2 class="title sectiontitle">Column Widths</h2>
+            
+            <p class="p">Tables show their column widths (<code class="ph codeph">colspec/@colwidth</code>, or a simple
+                table's <code class="ph codeph">@relcolwidth</code>). Drag the border between two columns to move
+                width from one to the other: a guide shows the two new widths; release to set them
+                    (<span class="ph uicontrol">Escape</span> cancels, <span class="ph uicontrol">Ctrl+Z</span> undoes).</p>
+            <figure class="fig fignone" id="visual-editor-tables__fig-column-widths"><figcaption><span class="fig--title-label">Figure 1. </span>Dragging a column border</figcaption>
+                
+                <br><div class="imagecenter"><img class="image imagecenter" src="../../images/visual-editor-table.png" width="624" alt="A three-column table of settings; the border between the first two columns is being dragged and a guide shows the new widths 41* and 14*."></div><br>
+            </figure>
+            <ul class="ul">
+                <li class="li">Proportional widths are written as whole numbers out of 100
+                        (<code class="ph codeph">30*</code>, <code class="ph codeph">70*</code>); a table whose proportions do not
+                    add up to 100 has them rewritten that way the first time.</li>
+                <li class="li">Fixed widths (<code class="ph codeph">50pt</code>, <code class="ph codeph">2cm</code>…) keep their unit.</li>
+                <li class="li">A CALS table without colspecs gets them.</li>
+            </ul>
+        </section>
+    </div>
+<nav role="navigation" class="related-links"><div class="familylinks"><div class="parentlink"><strong>Parent topic:</strong> <a class="link" href="visual-editor.html" title="Edit a DITA topic on a page that looks like your output, while DITA Craft writes clean XML: every change reaches the file as a small, precise text edit, and everything you do not touch stays exactly as it was.">Visual Editor</a></div></div></nav></article></main></body></html>

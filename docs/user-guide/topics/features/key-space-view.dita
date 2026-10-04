@@ -7,7 +7,7 @@
     <conbody>
         <section id="overview">
             <title>Overview</title>
-            <p>The Key Space view in the DitaCraft Activity Bar shows every DITA key across your workspace, grouped by its resolution status. This helps you identify missing key definitions, find unused keys, and navigate to key usages.</p>
+            <p>The Key Space view in the DITA Craft Activity Bar shows every DITA key across your workspace, grouped by its resolution status. This helps you identify missing key definitions, find unused keys, and navigate to key usages.</p>
             <p><b>Command:</b> <uicontrol>DITA: Refresh Key Space</uicontrol></p>
         </section>
 
@@ -47,7 +47,7 @@
 
         <section id="key-scanning">
             <title>How Keys Are Collected</title>
-            <p>DitaCraft builds the key space using a DITA 1.3 spec-compliant BFS traversal:</p>
+            <p>DITA Craft builds the key space using a DITA 1.3 spec-compliant BFS traversal:</p>
             <ol>
                 <li>Starting from the root map, traverses the map hierarchy in breadth-first order</li>
                 <li>Extracts <codeph>&lt;keydef&gt;</codeph> and key-bearing <codeph>&lt;topicref&gt;</codeph> elements; first definition wins (DITA precedence rule)</li>

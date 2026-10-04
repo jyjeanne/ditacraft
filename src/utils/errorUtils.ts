@@ -250,7 +250,7 @@ export function formatDitaError(
         case 'publishing':
             if (errorMessage.includes('DITA-OT')) {
                 suggestions.push('Verify DITA-OT is properly installed and configured');
-                suggestions.push('Check the DITA-OT path in DitaCraft settings');
+                suggestions.push('Check the DITA-OT path in DITA Craft settings');
             }
             if (errorMessage.includes('timeout')) {
                 suggestions.push('Increase the DITA-OT timeout in settings');
@@ -266,14 +266,14 @@ export function formatDitaError(
             break;
 
         case 'general':
-            suggestions.push('Check the DitaCraft output channel for detailed logs');
+            suggestions.push('Check the DITA Craft output channel for detailed logs');
             suggestions.push('Try restarting VS Code');
             break;
     }
 
     // Add common DITA suggestions
     suggestions.push('Consult the DITA specification for your document type');
-    suggestions.push('Check the DitaCraft documentation for troubleshooting tips');
+    suggestions.push('Check the DITA Craft documentation for troubleshooting tips');
 
     return formatErrorMessage(error, `DITA ${errorType.charAt(0).toUpperCase() + errorType.slice(1)}`, suggestions);
 }

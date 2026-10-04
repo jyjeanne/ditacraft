@@ -43,7 +43,8 @@ export class DiagnosticsStore {
                     line: diag.range.start.line + 1,
                     column: diag.range.start.character + 1,
                     code: typeof diag.code === 'string' ? diag.code : String(diag.code ?? ''),
-                    message: diag.message,
+                    // LSP 3.18 types allow a MarkupContent message; the server sends strings.
+                    message: typeof diag.message === 'string' ? diag.message : diag.message.value,
                     severity: diagnosticSeverityLabel(diag.severity),
                 });
             }

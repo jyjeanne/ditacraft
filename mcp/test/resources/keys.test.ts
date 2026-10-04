@@ -65,18 +65,36 @@ suite('workspace-keys resource', () => {
         }
     });
 
+    // Query parameters used to make the resource "not found"; these tests failed (and passed
+    // vacuously on an empty result).
+
     test('search param filters keys by name substring', async () => {
-        const data = await readKeys('search=product');
-        for (const k of data.keys) {
-            assert.ok((k.keyName as string).toLowerCase().includes('product'));
-        }
+        const data = await readKeys('search=PRODUCT');
+        assert.deepStrictEqual(data.keys.map((k) => k.keyName), ['product-name'], 'case-insensitive');
+        assert.strictEqual(data.totalKeys, 1);
+        assert.strictEqual((await readKeys('search=nothing-like-it')).totalKeys, 0);
     });
 
     test('includeScopes=false omits scope prefix', async () => {
-        const data = await readKeys('includeScopes=false');
-        for (const k of data.keys) {
+        const data = await readKeys('includeScopes=false&search=install');
+        assert.deepStrictEqual(data.keys.map((k) => k.keyName), ['install-guide']);
+        for (const k of (await readKeys('includeScopes=false')).keys) {
             assert.ok(!(k.keyName as string).includes('.'));
         }
+    });
+
+    test('an unknown parameter or value is an error that says what to use', async () => {
+        const error = async (query: string) => {
+            try { await readKeys(query); return 'no error'; } catch (e) { return (e as Error).message; }
+        };
+        assert.match(await error('find=product'), /Unknown parameter "find" for dita:\/\/workspace\/keys: use includeScopes, search/);
+        assert.match(await error('includeScopes=maybe'), /"includeScopes" must be true or false, not "maybe"/);
+    });
+
+    test('the filtered form is listed as a URI template', async () => {
+        const { resourceTemplates } = await ws.client.listResourceTemplates();
+        assert.ok(resourceTemplates.some((t) => t.uriTemplate === 'dita://workspace/keys{?includeScopes,search}'),
+            JSON.stringify(resourceTemplates.map((t) => t.uriTemplate)));
     });
 
     test('returns empty keys array when workspace has no maps', async () => {

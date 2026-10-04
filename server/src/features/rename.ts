@@ -1,7 +1,10 @@
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import {
+    ErrorCodes,
     PrepareRenameParams,
     RenameParams,
+    ResponseError,
     TextDocuments,
     WorkspaceEdit,
     TextEdit,
@@ -14,28 +17,60 @@ import { URI } from 'vscode-uri';
 import {
     findIdAtOffset,
     findKeyAtOffset,
+    findReferenceAtOffset,
     findReferencesToId,
     findReferencesToKey,
+    findElementByIdOffset,
     countKeyDefinitionOccurrences,
     extractKeyPart,
+    parseReference,
+    referencePartAtOffset,
+    ReferenceAtOffset,
     ReferenceOccurrence,
+    ReferencePart,
     KeyAtOffset,
 } from '../utils/referenceParser';
 
 import { collectDitaFilesAsync, referenceMatchesTarget } from '../utils/workspaceScanner';
-import { offsetToPosition, uriToPath, normalizeFsPath } from '../utils/textUtils';
+import { offsetToPosition, uriToPath, normalizeFsPath, stripCommentsAndCDATA, escapeRegex, isPathWithinWorkspace } from '../utils/textUtils';
 import { KeySpaceService, KeyDefinition } from '../services/keySpaceService';
+import { MAP_TYPE_NAMES, TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
 import { mapWithConcurrency, MAX_CONCURRENT_READS } from './workspaceValidation';
+
+interface IdAtOffset {
+    id: string;
+    valueStart: number;
+    valueEnd: number;
+}
+
+/** A renamable part of a reference value under the cursor (a usage of a key or an id). */
+interface Usage {
+    ref: ReferenceAtOffset;
+    part: ReferencePart;
+}
+
+/** The definition a usage names — where the rename is made — or why it cannot be found. */
+type ResolvedUsage =
+    | { kind: 'key'; document: TextDocument; keyResult: KeyAtOffset }
+    | { kind: 'id'; document: TextDocument; idResult: IdAtOffset; isTopicId: boolean }
+    | { reason: string };
 
 /**
  * Handle Prepare Rename request.
- * Validates the cursor is on an id attribute value, or a single key-name
- * token within a `keys="..."` attribute, and returns its range.
+ * Validates the cursor is on something renamable and returns its range: an
+ * id attribute value, a single key-name token within a `keys="..."`
+ * attribute, or a usage of either — the key of a `keyref`/`conkeyref`, the
+ * topic or element id in an `href`/`conref` fragment, the element id after a
+ * key (`key/elementid`). A usage is renamed at its definition, so it must be
+ * found first: when it can't be (key not defined, element not found…), the
+ * request fails with the reason, which VS Code shows at the cursor.
  */
-export function handlePrepareRename(
+export async function handlePrepareRename(
     params: PrepareRenameParams,
-    documents: TextDocuments<TextDocument>
-): Range | null {
+    documents: TextDocuments<TextDocument>,
+    keySpaceService?: KeySpaceService,
+    workspaceFolders?: readonly string[]
+): Promise<Range | null> {
     const document = documents.get(params.textDocument.uri);
     if (!document) return null;
 
@@ -58,7 +93,13 @@ export function handlePrepareRename(
         );
     }
 
-    return null;
+    const usage = usageAtOffset(text, offset);
+    if (!usage) return null;
+    const definition = await resolveUsage(document, usage, documents, keySpaceService, workspaceFolders);
+    if ('reason' in definition) {
+        throw new ResponseError(ErrorCodes.InvalidRequest, definition.reason);
+    }
+    return Range.create(document.positionAt(usage.part.start), document.positionAt(usage.part.end));
 }
 
 /**
@@ -66,7 +107,9 @@ export function handlePrepareRename(
  * Renames an id attribute value (and updates all references to it), or a
  * key-name token in a `keys="..."` attribute (and updates all keyref/
  * conkeyref usages verified to resolve to that same key definition),
- * whichever the cursor is on.
+ * whichever the cursor is on — or, on a usage of either (see
+ * `handlePrepareRename`), the definition it names, in whichever file it is,
+ * with all its usages.
  */
 export async function handleRename(
     params: RenameParams,
@@ -82,18 +125,195 @@ export async function handleRename(
     const offset = document.offsetAt(params.position);
 
     const idResult = findIdAtOffset(text, offset);
-    if (!idResult) {
-        const keyResult = findKeyAtOffset(text, offset);
-        if (keyResult) {
-            return handleKeyRename(
-                document, text, keyResult, params.newName, documents, workspaceFolders, keySpaceService, log
-            );
-        }
-        return null;
+    if (idResult) {
+        return handleIdRename(
+            document, text, idResult, params.newName, isTopicIdAt(text, idResult.valueStart),
+            documents, workspaceFolders, keySpaceService, log
+        );
+    }
+    const keyResult = findKeyAtOffset(text, offset);
+    if (keyResult) {
+        return handleKeyRename(
+            document, text, keyResult, params.newName, documents, workspaceFolders, keySpaceService, log
+        );
     }
 
+    const usage = usageAtOffset(text, offset);
+    if (!usage) return null;
+    const definition = await resolveUsage(document, usage, documents, keySpaceService, workspaceFolders);
+    if ('reason' in definition) {
+        log?.(`Rename: ${definition.reason}`);
+        return null;
+    }
+    if (definition.kind === 'key') {
+        return handleKeyRename(
+            definition.document, definition.document.getText(), definition.keyResult, params.newName,
+            documents, workspaceFolders, keySpaceService, log
+        );
+    }
+    return handleIdRename(
+        definition.document, definition.document.getText(), definition.idResult, params.newName, definition.isTopicId,
+        documents, workspaceFolders, keySpaceService, log
+    );
+}
+
+/** The renamable part of a `keyref`/`conkeyref`/`href`/`conref` value at `offset`, if any. */
+function usageAtOffset(text: string, offset: number): Usage | undefined {
+    const ref = findReferenceAtOffset(text, offset);
+    const part = ref ? referencePartAtOffset(ref, offset) : undefined;
+    return ref && part ? { ref, part } : undefined;
+}
+
+/**
+ * The definition a usage names: for a key, its `keys` token in the map that
+ * defines it as seen from this file (`resolveKeyEntry`, keyscope-aware); for
+ * an id, its `id` attribute in the file the reference points to (an element
+ * id within the reference's topic when it names one).
+ */
+async function resolveUsage(
+    document: TextDocument,
+    usage: Usage,
+    documents: TextDocuments<TextDocument>,
+    keySpaceService: KeySpaceService | undefined,
+    workspaceFolders: readonly string[] | undefined
+): Promise<ResolvedUsage> {
+    const filePath = uriToPath(document.uri);
+    const { ref, part } = usage;
+    if (part.kind === 'key') {
+        if (!keySpaceService) {
+            return { reason: `No key space is available to find the definition of key "${part.name}".` };
+        }
+        const definition = await keySpaceService.resolveKeyEntry(part.name, filePath);
+        if (!definition) {
+            return { reason: `Key "${part.name}" is not defined in this file's key space.` };
+        }
+        const map = await openDocument(definition.sourceMap, documents);
+        const keyResult = map ? findKeyDefinition(map.getText(), part.name, definition.sourceLine) : null;
+        if (!map || !keyResult) {
+            return {
+                reason: part.name.includes('.')
+                    ? `"${part.name}" is a scope-qualified key reference: rename the key from its definition in ${path.basename(definition.sourceMap)}.`
+                    : `The definition of key "${part.name}" was not found in ${path.basename(definition.sourceMap)}.`,
+            };
+        }
+        return { kind: 'key', document: map, keyResult };
+    }
+
+    let targetPath: string;
+    let topicId: string | undefined;
+    if (ref.type === 'href' || ref.type === 'conref') {
+        const parsed = parseReference(ref.value);
+        targetPath = parsed.filePath ? path.resolve(path.dirname(filePath), parsed.filePath) : filePath;
+        const first = parsed.fragment.split('/')[0];
+        topicId = part.role === 'element' && first !== '.' ? first : undefined;
+    } else {
+        const key = extractKeyPart(ref.value);
+        if (!keySpaceService) {
+            return { reason: `No key space is available to find what key "${key}" points to.` };
+        }
+        const definition = await keySpaceService.resolveKey(key, filePath);
+        if (!definition?.targetFile) {
+            return { reason: `Key "${key}" does not point to a file.` };
+        }
+        targetPath = definition.targetFile;
+    }
+    if (workspaceFolders && workspaceFolders.length > 0 && !isPathWithinWorkspace(targetPath, workspaceFolders)) {
+        return { reason: `${path.basename(targetPath)} is outside the workspace.` };
+    }
+    const target = await openDocument(targetPath, documents);
+    if (!target) {
+        return { reason: `Could not read ${path.basename(targetPath)}.` };
+    }
+    const idResult = findIdDefinition(target.getText(), part.name, topicId);
+    if (!idResult) {
+        return { reason: `No ${part.role === 'topic' ? 'topic' : 'element'} with id "${part.name}" in ${path.basename(targetPath)}.` };
+    }
+    return { kind: 'id', document: target, idResult, isTopicId: part.role === 'topic' };
+}
+
+/** A file as a TextDocument: the open one (unsaved changes included), else read from disk. */
+async function openDocument(filePath: string, documents: TextDocuments<TextDocument>): Promise<TextDocument | undefined> {
+    const uri = URI.file(filePath).toString();
+    const open = documents.get(uri);
+    if (open) return open;
+    try {
+        return TextDocument.create(uri, 'dita', 0, await fs.readFile(filePath, 'utf-8'));
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * The `keys` token defining `keyName` in a map's text: the only one, or the
+ * one on `sourceLine` (1-based, as `KeyDefinition.sourceLine`) when the map
+ * defines the name more than once.
+ */
+function findKeyDefinition(text: string, keyName: string, sourceLine: number | undefined): KeyAtOffset | null {
+    const searchable = stripCommentsAndCDATA(text);
+    const candidates: KeyAtOffset[] = [];
+    const pattern = /\bkeys\s*=\s*(["'])([^"']*)\1/g;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(searchable)) !== null) {
+        const valueStart = match.index + match[0].length - 1 - match[2].length;
+        const tokens = /\S+/g;
+        let token: RegExpExecArray | null;
+        while ((token = tokens.exec(match[2])) !== null) {
+            if (token[0] === keyName) {
+                candidates.push({ key: keyName, valueStart: valueStart + token.index, valueEnd: valueStart + token.index + keyName.length });
+            }
+        }
+    }
+    if (candidates.length === 1) return candidates[0];
+    const lineOf = (offset: number): number => text.slice(0, offset).split('\n').length;
+    return candidates.find(c => lineOf(c.valueStart) === sourceLine) ?? null;
+}
+
+/** The `id` attribute value `id` in `text` — after the element with id `topicId`, when given. */
+function findIdDefinition(text: string, id: string, topicId: string | undefined): IdAtOffset | null {
+    const searchable = stripCommentsAndCDATA(text);
+    const pattern = new RegExp(`(?<=\\s)id\\s*=\\s*(["'])${escapeRegex(id)}\\1`, 'g');
+    if (topicId) {
+        const topicStart = findElementByIdOffset(text, topicId);
+        if (topicStart < 0) return null;
+        pattern.lastIndex = topicStart;
+    }
+    const match = pattern.exec(searchable);
+    if (!match) return null;
+    const valueStart = match.index + match[0].length - 1 - id.length;
+    return { id, valueStart, valueEnd: valueStart + id.length };
+}
+
+/**
+ * Whether the `id` attribute at `offset` belongs to a topic: a topic type by
+ * name, or the document's root element when the document is not a map (a
+ * specialized topic type).
+ */
+function isTopicIdAt(text: string, offset: number): boolean {
+    const tagStart = text.lastIndexOf('<', offset);
+    const name = /^<([\w.:-]+)/.exec(text.slice(tagStart))?.[1];
+    if (!name) return false;
+    if (TOPIC_TYPE_NAMES.has(name)) return true;
+    const root = /<(?![?!/])([\w.:-]+)/.exec(stripCommentsAndCDATA(text));
+    return root !== null && root.index === tagStart && !MAP_TYPE_NAMES.has(name);
+}
+
+/**
+ * Rename an id attribute value (`idResult`, in `document`) and every
+ * reference to it in the workspace (see `referenceMatchesId`; `isTopicId`:
+ * the topic part of `#topicid/elementid` references is renamed too).
+ */
+async function handleIdRename(
+    document: TextDocument,
+    text: string,
+    idResult: IdAtOffset,
+    newId: string,
+    isTopicId: boolean,
+    documents: TextDocuments<TextDocument>,
+    workspaceFolders?: readonly string[],
+    keySpaceService?: KeySpaceService,
+    log?: (msg: string) => void
+): Promise<WorkspaceEdit | null> {
     const oldId = idResult.id;
-    const newId = params.newName;
     const changes: { [uri: string]: TextEdit[] } = {};
 
     // 1. Rename the id attribute value itself
@@ -112,9 +332,9 @@ export async function handleRename(
     // shares the same id text, and must not be rewritten.
     const targetFilePath = uriToPath(document.uri);
     const normalizedTargetPath = normalizeFsPath(targetFilePath);
-    const refs = findReferencesToId(text, oldId);
+    const refs = findReferencesToId(text, oldId, isTopicId);
     const selfEdits = await collectMatchingEdits(
-        refs, text, targetFilePath, normalizedTargetPath, oldId, newId, keySpaceService, log
+        refs, text, targetFilePath, normalizedTargetPath, oldId, newId, isTopicId, keySpaceService, log
     );
     currentEdits.push(...selfEdits);
     changes[document.uri] = currentEdits;
@@ -125,9 +345,9 @@ export async function handleRename(
     // matches otherwise resolve one at a time.
     Object.assign(changes, await collectCrossFileEdits(
         workspaceFolders, document.uri, documents,
-        (content) => findReferencesToId(content, oldId),
+        (content) => findReferencesToId(content, oldId, isTopicId),
         (fileRefs, content, filePath) => collectMatchingEdits(
-            fileRefs, content, filePath, normalizedTargetPath, oldId, newId, keySpaceService, log
+            fileRefs, content, filePath, normalizedTargetPath, oldId, newId, isTopicId, keySpaceService, log
         )
     ));
 
@@ -247,6 +467,7 @@ async function collectMatchingEdits(
     normalizedTargetPath: string,
     oldId: string,
     newId: string,
+    isTopicId: boolean,
     keySpaceService: KeySpaceService | undefined,
     log?: (msg: string) => void
 ): Promise<TextEdit[]> {
@@ -254,21 +475,25 @@ async function collectMatchingEdits(
         refs,
         content,
         (ref) => referenceMatchesTarget(ref, contextFilePath, normalizedTargetPath, keySpaceService, log),
-        (ref) => replaceIdInReference(ref.type, ref.value, oldId, newId)
+        (ref) => replaceIdInReference(ref.type, ref.value, oldId, newId, isTopicId)
     );
 }
 
 /**
- * Replace the ID portion in a reference value while preserving the rest.
+ * Replace the ID portion in a reference value while preserving the rest:
+ * the element part of `keyname/elementid` (`conkeyref`, `keyref`) or of
+ * `#topicid/elementid`, a whole `#id` fragment, and — for a topic id — the
+ * topic part of `#topicid/elementid`.
  */
 function replaceIdInReference(
     type: string,
     value: string,
     oldId: string,
-    newId: string
+    newId: string,
+    isTopicId = false
 ): string {
-    if (type === 'conkeyref') {
-        // conkeyref format: "keyname/elementid"
+    if (type === 'conkeyref' || type === 'keyref') {
+        // "keyname/elementid"
         const slashIdx = value.indexOf('/');
         if (slashIdx >= 0 && value.slice(slashIdx + 1) === oldId) {
             return value.slice(0, slashIdx + 1) + newId;
@@ -286,6 +511,9 @@ function replaceIdInReference(
     if (slashIdx >= 0 && fragment.slice(slashIdx + 1) === oldId) {
         // Format: file.dita#topicid/elementid
         return value.slice(0, hashIdx + 1) + fragment.slice(0, slashIdx + 1) + newId;
+    } else if (slashIdx >= 0 && isTopicId && fragment.slice(0, slashIdx) === oldId) {
+        // Format: file.dita#topicid/elementid, renaming the topic
+        return value.slice(0, hashIdx + 1) + newId + fragment.slice(slashIdx);
     } else if (fragment === oldId) {
         // Format: #elementid
         return value.slice(0, hashIdx + 1) + newId;
@@ -460,7 +688,7 @@ async function collectMatchingKeyEdits(
             const resolved = await keySpaceService.resolveKeyEntry(keyName, contextFilePath);
             return sameKeyDefinition(resolved, targetSourceMap, targetSourceLine, targetKeyUnambiguousInOwnFile);
         },
-        (ref) => replaceKeyInReference(ref.type, ref.value, newKey)
+        (ref) => replaceKeyInReference(ref.value, newKey)
     );
 }
 
@@ -511,15 +739,13 @@ function sameKeyDefinition(
 
 /**
  * Replace the key-name portion of a keyref/conkeyref value with the new key
- * name, preserving any conkeyref element-id suffix. The counterpart to
- * `replaceIdInReference`, which replaces the *suffix* (element id) for ID
- * rename — key rename replaces the *prefix* (key name) instead.
+ * name, preserving any element-id suffix — a conkeyref's (`key/elem`) and a
+ * keyref's too: DITA allows `keyref="key/elem"` on an xref or link to point at
+ * an element of the key's topic. The counterpart to `replaceIdInReference`,
+ * which replaces the *suffix* (element id) for ID rename — key rename
+ * replaces the *prefix* (key name) instead.
  */
-function replaceKeyInReference(type: string, value: string, newKey: string): string {
-    if (type === 'conkeyref') {
-        const slashIdx = value.indexOf('/');
-        return slashIdx >= 0 ? newKey + value.slice(slashIdx) : newKey;
-    }
-    // keyref: the whole value is the key name.
-    return newKey;
+function replaceKeyInReference(value: string, newKey: string): string {
+    const slashIdx = value.indexOf('/');
+    return slashIdx >= 0 ? newKey + value.slice(slashIdx) : newKey;
 }

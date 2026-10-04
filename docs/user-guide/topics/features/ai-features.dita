@@ -2,14 +2,14 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="ai-features">
     <title>AI Features</title>
-    <shortdesc>DitaCraft integrates GitHub Copilot and other LLM providers to assist with DITA map
+    <shortdesc>DITA Craft integrates GitHub Copilot and other LLM providers to assist with DITA map
         restructuring, error explanation, element analysis, and content reuse discovery.</shortdesc>
 
     <conbody>
 
         <section id="overview">
             <title>Overview</title>
-            <p>DitaCraft's AI features connect to an LLM provider — GitHub Copilot by default — and
+            <p>DITA Craft's AI features connect to an LLM provider — GitHub Copilot by default — and
                 layer context-aware DITA intelligence on top of plain chat. All AI commands use the
                 current document's DITA context (topic hierarchy, key space, validation
                 diagnostics), not just raw text.</p>
@@ -17,39 +17,61 @@
             <ol>
                 <li><b>GitHub Copilot</b> — integrated; no API key required when Copilot is
                     installed.</li>
-                <li><b>Anthropic (Claude)</b> — requires an API key stored via <uicontrol>DitaCraft:
-                        Configure AI</uicontrol>.</li>
-                <li><b>OpenAI (GPT-4o)</b> — requires an API key stored via <uicontrol>DitaCraft:
-                        Configure AI</uicontrol>.</li>
+                <li><b>Anthropic (Claude)</b> — requires an API key stored via <uicontrol>DITA Craft:
+                        Configure AI Settings</uicontrol>.</li>
+                <li><b>OpenAI (GPT-6.1 Sol by default)</b> — requires an API key stored via <uicontrol>DITA Craft:
+                        Configure AI Settings</uicontrol>.</li>
                 <li><b>Ollama</b> — local inference; requires Ollama running on
                         <codeph>localhost:11434</codeph> and
                         <codeph>ditacraft.ai.provider.ollama.enabled</codeph> set to
                         <codeph>true</codeph>.</li>
             </ol>
-            <p>Use <b>DitaCraft: Configure AI</b> from the Command Palette to view provider status
-                and store API keys securely via VS Code SecretStorage.</p>
+            <p>Use <b>DITA Craft: Configure AI Settings</b> from the Command Palette to view provider
+                status and store API keys securely via VS Code SecretStorage.</p>
         </section>
 
         <section id="configure-ai">
-            <title>Configure AI</title>
-            <p>Run <menucascade><uicontrol>Command Palette</uicontrol><uicontrol>DitaCraft: Configure AI</uicontrol></menucascade> to open the AI Settings panel.</p>
+            <title>Configure AI Settings</title>
+            <p>Run <menucascade><uicontrol>Command Palette</uicontrol><uicontrol>DITA Craft: Configure
+                        AI Settings</uicontrol></menucascade> to open the DITA Craft AI Settings
+                panel.</p>
             <p>The panel shows:</p>
             <ul>
-                <li>Live status for each provider (available / not configured / unavailable)</li>
-                <li>Input fields for Anthropic and OpenAI API keys. Keys are stored in VS Code
-                    SecretStorage (OS keychain integration) — never in plain-text settings or
-                    workspace files.</li>
-                <li>AI mode selector (<codeph>auto</codeph>, <codeph>copilot-only</codeph>,
-                        <codeph>byok-only</codeph>, or <codeph>local-only</codeph>)</li>
+                <li>The <uicontrol>AI mode</uicontrol> selector (<codeph>auto</codeph>,
+                        <codeph>copilot-only</codeph>, <codeph>byok-only</codeph>, or
+                        <codeph>local-only</codeph>), which sets
+                        <codeph>ditacraft.ai.mode</codeph>, and the active provider.</li>
+                <li>Every provider with its status and the reason: <uicontrol>Available</uicontrol>,
+                        <uicontrol>Unavailable</uicontrol> (no Copilot chat model, Ollama not
+                    reachable, a key that is not usable), <uicontrol>Not configured</uicontrol> (no
+                    API key), <uicontrol>Not used</uicontrol> (the AI mode leaves it out), or
+                        <uicontrol>Turned off</uicontrol> (Ollama, by
+                        <codeph>ditacraft.ai.provider.ollama.enabled</codeph>).</li>
+                <li>API key fields for Anthropic and OpenAI, with <uicontrol>Save</uicontrol> and
+                        <uicontrol>Delete</uicontrol>. Keys are stored in VS Code SecretStorage (OS
+                    keychain integration) — never in plain-text settings or workspace files. Ollama
+                    needs no key; <uicontrol>Server Settings</uicontrol> opens its server and model
+                    settings.</li>
+                <li>A <uicontrol>Test</uicontrol> button per provider, which checks the connection
+                    without generating text, so it uses no tokens: for Anthropic and OpenAI, the
+                    service looks up the configured model with your API key; for Ollama, the server
+                    must answer and have the model installed; for GitHub Copilot, VS Code must offer
+                    its chat models. The result shows in the provider's row — for example, a
+                    refused key, a model that does not exist, or a server that cannot be reached. A
+                    provider that passes becomes the active provider. <uicontrol>Refresh</uicontrol>
+                    detects the providers again from the settings and keys.</li>
             </ul>
-            <note type="tip">With <codeph>auto</codeph> mode (the default), DitaCraft tries each
+            <p>A saved or deleted key, a new AI mode and a change to the provider settings are used
+                at once, without restarting VS Code. When <codeph>ditacraft.ai.enabled</codeph> is
+                off, the panel says so and still lets you set everything up.</p>
+            <note type="tip">With <codeph>auto</codeph> mode (the default), DITA Craft tries each
                 provider in priority order and falls back automatically if one is
                 unavailable.</note>
         </section>
 
         <section id="chat-participant">
             <title>@ditacraft Chat Participant</title>
-            <p>DitaCraft registers a Copilot Chat participant named <b>@ditacraft</b>. Open the
+            <p>DITA Craft registers a Copilot Chat participant named <b>@ditacraft</b>. Open the
                 Copilot Chat panel (<uicontrol>Ctrl+Alt+I</uicontrol>) and prefix your message with
                     <codeph>@ditacraft</codeph> to access the following slash commands.</p>
 
@@ -63,7 +85,7 @@
                         <p><b>Example:</b>
                             <codeph>@ditacraft /restructure Group topics by audience: admin first,
                                 then end user</codeph></p>
-                        <p>DitaCraft builds a DITA context snapshot from the active
+                        <p>DITA Craft builds a DITA context snapshot from the active
                                 <filepath>.ditamap</filepath>, sends it to the LLM, and streams back
                             valid DITA XML. The response is validated by the LSP before being
                             presented. The active tab must be a <filepath>.ditamap</filepath>
@@ -79,7 +101,7 @@
                             <codeph>@ditacraft /validate [optional question]</codeph></p>
                         <p><b>Example:</b>
                             <codeph>@ditacraft /validate why does DITA require unique IDs?</codeph></p>
-                        <p>DitaCraft reads the first diagnostic on the current line, includes the
+                        <p>DITA Craft reads the first diagnostic on the current line, includes the
                             surrounding XML context, and asks the LLM to explain the error and
                             suggest a fix. If no diagnostics are present, the response confirms the
                             file is valid.</p>
@@ -112,7 +134,7 @@
                         <p><b>Example:</b>
                             <codeph>@ditacraft /suggest-reuse focus on installation topics
                                 only</codeph></p>
-                        <p>DitaCraft analyzes the map structure and topic content, then returns a
+                        <p>DITA Craft analyzes the map structure and topic content, then returns a
                             list of concrete reuse suggestions with code examples. The active tab
                             must be a <filepath>.ditamap</filepath> file.</p>
                     </dd>
@@ -122,16 +144,17 @@
 
         <section id="restructure-map-command">
             <title>F2: Restructure Map Command</title>
-            <p>The <b>DitaCraft: Restructure Map with AI</b> command provides a full
+            <p>The <b>DITA Craft: Restructure Active DITA Map</b> command provides a full
                 diff-and-apply workflow for restructuring a DITA map.</p>
             <p><b>How to use:</b></p>
             <ol>
                 <li>Open a <filepath>.ditamap</filepath> file (it must be the active tab).</li>
-                <li>Open the Command Palette and run <uicontrol>DitaCraft: Restructure Map with
-                        AI</uicontrol>. Alternatively, right-click the file in the Explorer and
-                    choose <uicontrol>Restructure Map with AI</uicontrol>.</li>
+                <li>Open the Command Palette and run <uicontrol>DITA Craft: Restructure Active DITA
+                        Map</uicontrol>, or click its button in the editor title bar.
+                    Alternatively, right-click the file in the Explorer and choose
+                        <uicontrol>DITA Craft: Restructure Active DITA Map</uicontrol>.</li>
                 <li>Enter your restructuring intention in the InputBox that appears.</li>
-                <li>DitaCraft opens a <b>diff editor</b> showing the current map (left) and the
+                <li>DITA Craft opens a <b>diff editor</b> showing the current map (left) and the
                     proposed restructure (right).</li>
                 <li>A dialog asks <b>Apply restructured map?</b> — click <uicontrol>Apply</uicontrol>
                     to save or <uicontrol>Cancel</uicontrol> to discard.</li>
@@ -142,10 +165,10 @@
 
         <section id="ai-quick-fix">
             <title>F3: AI Quick Fix</title>
-            <p>For supported diagnostic codes, DitaCraft offers an <b>✨ Fix with DitaCraft AI</b>
+            <p>For supported diagnostic codes, DITA Craft offers an <b>✨ Fix with DITA Craft AI</b>
                 code action alongside the built-in quick fixes.</p>
             <p>To use: click the lightbulb icon or press <uicontrol>Ctrl+.</uicontrol> on a
-                flagged element, then select <uicontrol>✨ Fix with DitaCraft AI</uicontrol>.</p>
+                flagged element, then select <uicontrol>✨ Fix with DITA Craft AI</uicontrol>.</p>
             <p>Supported diagnostic codes:</p>
             <simpletable>
                 <sthead>
@@ -184,10 +207,10 @@
         <section id="ai-completion">
             <title>F4: AI Completion</title>
             <p>When <codeph>ditacraft.ai.completion.enabled</codeph> is <codeph>true</codeph>
-                (default), DitaCraft appends AI-suggested elements to the standard LSP completion
+                (default), DITA Craft appends AI-suggested elements to the standard LSP completion
                 list.</p>
             <p>AI completions are identified by the <b>(AI)</b> suffix and the
-                    <codeph>DitaCraft AI</codeph> detail label. They appear below the native LSP
+                    <codeph>DITA Craft AI</codeph> detail label. They appear below the native LSP
                 completions (sorted last). The AI suggestion is generated with a 500 ms timeout
                 budget — if the LLM does not respond in time, only native completions are
                 shown.</p>
@@ -198,7 +221,7 @@
 
         <section id="ai-resilience">
             <title>Resilience and Fallback</title>
-            <p>DitaCraft uses a <b>circuit breaker</b> to prevent cascading failures when an LLM
+            <p>DITA Craft uses a <b>circuit breaker</b> to prevent cascading failures when an LLM
                 provider is unavailable:</p>
             <ul>
                 <li>After 3 consecutive failures within 5 minutes, the provider's circuit opens and
@@ -207,14 +230,14 @@
                     succeeds, the circuit closes; if not, the cooldown resets.</li>
                 <li>Cancelled requests (user pressed Escape) do not count as failures.</li>
             </ul>
-            <p>When the active provider's circuit is open, DitaCraft automatically falls back to the
+            <p>When the active provider's circuit is open, DITA Craft automatically falls back to the
                 next available provider in the cascade (Copilot → Anthropic → OpenAI → Ollama).</p>
         </section>
 
         <section id="ai-metrics">
             <title>Metrics and Telemetry</title>
             <p>When <codeph>ditacraft.ai.telemetry.enabled</codeph> is <codeph>true</codeph>,
-                DitaCraft logs AI call metrics to the <uicontrol>DitaCraft</uicontrol> output
+                DITA Craft logs AI call metrics to the <uicontrol>DITA Craft</uicontrol> output
                 channel in the format:</p>
             <codeblock>[AI] ✔ validate via copilot 1842ms ~340tok</codeblock>
             <p>Each line shows: command name, provider used, latency in milliseconds, and estimated
@@ -233,6 +256,15 @@
                     <stentry>Default</stentry>
                     <stentry>Description</stentry>
                 </sthead>
+                <strow>
+                    <stentry><codeph>ditacraft.ai.enabled</codeph></stentry>
+                    <stentry>boolean</stentry>
+                    <stentry><codeph>true</codeph></stentry>
+                    <stentry>Turns every DITA Craft AI feature on or off. Off, the
+                            <codeph>@ditacraft</codeph> chat participant, the restructure command,
+                        AI quick fixes and AI completions are unavailable; validation, navigation
+                        and publishing are unaffected.</stentry>
+                </strow>
                 <strow>
                     <stentry><codeph>ditacraft.ai.mode</codeph></stentry>
                     <stentry>string</stentry>

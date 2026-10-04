@@ -1,8 +1,8 @@
 {
   "name": "ditacraft",
-  "displayName": "DitaCraft",
+  "displayName": "DITA Craft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/jyjeanne/ditacraft#readme",
   "engines": {
-    "vscode": "^1.138.0"
+    "vscode": "^1.125.0"
   },
   "categories": [
     "Programming Languages",
@@ -49,7 +49,10 @@
     "workspaceContains:**/*.bookmap",
     "onView:ditacraft.ditaExplorer",
     "onView:ditacraft.keySpaceView",
-    "onView:ditacraft.diagnosticsView"
+    "onView:ditacraft.diagnosticsView",
+    "onView:ditacraft.propertiesView",
+    "onWebviewPanel:ditacraft.visualPreview",
+    "onCustomEditor:ditacraft.visualEditor"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -57,7 +60,7 @@
       {
         "id": "ditacraft",
         "name": "ditacraft",
-        "description": "DitaCraft AI assistant for DITA documentation — restructure maps, explain errors, and more.",
+        "description": "DITA Craft AI assistant for DITA documentation — restructure maps, explain errors, and more.",
         "isSticky": true,
         "commands": [
           {
@@ -106,7 +109,7 @@
       "activitybar": [
         {
           "id": "ditacraft-explorer",
-          "title": "DitaCraft",
+          "title": "DITA Craft",
           "icon": "resources/ditacraft-activity.svg"
         }
       ]
@@ -116,6 +119,11 @@
         {
           "id": "ditacraft.ditaExplorer",
           "name": "DITA Explorer"
+        },
+        {
+          "type": "webview",
+          "id": "ditacraft.propertiesView",
+          "name": "Properties"
         },
         {
           "id": "ditacraft.keySpaceView",
@@ -171,13 +179,50 @@
       },
       {
         "command": "ditacraft.previewHTML5",
-        "title": "DITA: Preview HTML5",
+        "title": "DITA: Preview",
         "icon": "$(open-preview)"
       },
       {
         "command": "ditacraft.previewFilter",
         "title": "DITA: Set Preview DITAVAL Filter",
         "icon": "$(filter)"
+      },
+      {
+        "command": "ditacraft.previewDitaOt",
+        "title": "DITA: Preview with DITA-OT",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "ditacraft.previewToggleMarkup",
+        "title": "DITA: Preview — Show/Hide Markup"
+      },
+      {
+        "command": "ditacraft.previewOpenSource",
+        "title": "DITA: Preview — Go to Source"
+      },
+      {
+        "command": "ditacraft.previewLock",
+        "title": "DITA: Preview — Lock/Unlock to This Topic"
+      },
+      {
+        "command": "ditacraft.openVisualEditor",
+        "title": "DITA: Open in Visual Editor",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "ditacraft.openSourceEditor",
+        "title": "DITA: Open Source",
+        "icon": "$(code)"
+      },
+      {
+        "command": "ditacraft.showProperties",
+        "title": "DITA: Show Properties",
+        "icon": "$(symbol-property)"
+      },
+      {
+        "command": "ditacraft.chooseMapContext",
+        "title": "DITA: Choose Map Context",
+        "icon": "$(list-tree)"
       },
       {
         "command": "ditacraft.newTopic",
@@ -324,13 +369,13 @@
       },
       {
         "command": "ditacraft.configureAI",
-        "title": "DitaCraft: Configure AI Settings",
-        "category": "DitaCraft"
+        "title": "DITA Craft: Configure AI Settings",
+        "category": "DITA Craft"
       },
       {
         "command": "ditacraft.restructureMap",
-        "title": "DitaCraft: Restructure Active DITA Map",
-        "category": "DitaCraft",
+        "title": "DITA Craft: Restructure Active DITA Map",
+        "category": "DITA Craft",
         "icon": "$(wand)"
       }
     ],
@@ -338,7 +383,7 @@
       "editor/title": [
         {
           "command": "ditacraft.restructureMap",
-          "when": "resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "when": "(resourceExtname == .ditamap || resourceExtname == .bookmap) && config.ditacraft.ai.enabled",
           "group": "navigation@4"
         },
         {
@@ -369,6 +414,16 @@
         {
           "command": "ditacraft.editDitavalConditions",
           "when": "resourceExtname == .ditaval",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ditacraft.openVisualEditor",
+          "when": "resourceExtname =~ /^\\.(dita|ditamap|bookmap)$/ && activeEditor == workbench.editors.files.textFileEditor",
+          "group": "navigation@2.5"
+        },
+        {
+          "command": "ditacraft.openSourceEditor",
+          "when": "activeCustomEditorId == ditacraft.visualEditor",
           "group": "navigation@1"
         }
       ],
@@ -485,6 +540,33 @@
           "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
         },
         {
+          "command": "ditacraft.previewDitaOt",
+          "when": "resourceLangId == dita || resourceExtname == .dita || resourceExtname == .ditamap || resourceExtname == .bookmap"
+        },
+        {
+          "command": "ditacraft.previewToggleMarkup",
+          "when": "ditacraft.visualPreviewOpen"
+        },
+        {
+          "command": "ditacraft.previewOpenSource",
+          "when": "ditacraft.visualPreviewOpen"
+        },
+        {
+          "command": "ditacraft.previewLock",
+          "when": "ditacraft.visualPreviewOpen"
+        },
+        {
+          "command": "ditacraft.openVisualEditor",
+          "when": "resourceExtname =~ /^\\.(dita|ditamap|bookmap)$/"
+        },
+        {
+          "command": "ditacraft.openSourceEditor",
+          "when": "activeCustomEditorId == ditacraft.visualEditor"
+        },
+        {
+          "command": "ditacraft.showProperties"
+        },
+        {
           "command": "ditacraft.showMapVisualizer",
           "when": "resourceExtname == .ditamap || resourceExtname == .bookmap"
         },
@@ -494,7 +576,7 @@
         },
         {
           "command": "ditacraft.restructureMap",
-          "when": "resourceExtname == .ditamap || resourceExtname == .bookmap"
+          "when": "(resourceExtname == .ditamap || resourceExtname == .bookmap) && config.ditacraft.ai.enabled"
         },
         {
           "command": "ditacraft.insertImage",
@@ -520,7 +602,7 @@
       "explorer/context": [
         {
           "command": "ditacraft.restructureMap",
-          "when": "resourceExtname == .ditamap || resourceExtname == .bookmap",
+          "when": "(resourceExtname == .ditamap || resourceExtname == .bookmap) && config.ditacraft.ai.enabled",
           "group": "ditacraft@1"
         },
         {
@@ -556,7 +638,7 @@
       }
     ],
     "configuration": {
-      "title": "DitaCraft",
+      "title": "DITA Craft",
       "properties": {
         "ditacraft.ditaOtPath": {
           "type": "string",
@@ -590,10 +672,24 @@
           "description": "Automatically validate DITA files on save.",
           "order": 4
         },
+        "ditacraft.previewEngine": {
+          "type": "string",
+          "default": "visual",
+          "enum": [
+            "visual",
+            "dita-ot"
+          ],
+          "enumDescriptions": [
+            "Live page rendered by DITA Craft from the DITA source and its DTD grammar — no DITA-OT, updates as you type",
+            "HTML5 built by DITA-OT (needs DITA-OT; refreshes on save)"
+          ],
+          "description": "Engine used by 'DITA: Preview'. Maps always preview with DITA-OT. 'DITA: Preview with DITA-OT' is available with either setting.",
+          "order": 5
+        },
         "ditacraft.previewAutoRefresh": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically refresh HTML5 preview when file is saved.",
+          "description": "Automatically refresh the DITA-OT HTML5 preview when the file is saved. (The visual preview is always live.)",
           "order": 5
         },
         "ditacraft.previewTheme": {
@@ -609,25 +705,69 @@
             "Always use light theme",
             "Always use dark theme"
           ],
-          "description": "Theme for the HTML5 preview panel.",
+          "description": "Theme for the preview panel.",
           "order": 6
         },
         "ditacraft.previewCustomCss": {
           "type": "string",
           "default": "",
-          "description": "Path to a custom CSS file to apply to the preview. Supports ${workspaceFolder} variable.",
+          "description": "Path to a custom CSS file applied to the preview (visual and DITA-OT). Supports ${workspaceFolder}. The visual preview emits DITA-OT HTML5 class names and data-class=\"…\" attributes, so DITA-OT selectors and selectors such as [data-class~=\"topic/note\"] both work. Not applied in Restricted Mode.",
           "order": 7
+        },
+        "ditacraft.imagePasteFolder": {
+          "type": "string",
+          "default": "images",
+          "description": "Where the visual editor saves images pasted (or dropped from outside VS Code) into a topic: a folder relative to the topic's folder, or absolute. Supports ${workspaceFolder}. Files are named after the topic: <topic>-1.png, <topic>-2.png…",
+          "order": 47
         },
         "ditacraft.previewScrollSync": {
           "type": "boolean",
           "default": true,
-          "description": "Enable bidirectional scroll synchronization between the source editor and HTML5 preview.",
+          "description": "Enable bidirectional scroll synchronization between the source editor and the preview, and cursor and scroll synchronization between the source editor and the visual editor.",
+          "order": 8
+        },
+        "ditacraft.previewPageWidth": {
+          "type": "number",
+          "default": 760,
+          "minimum": 0,
+          "description": "Visual preview: page width in pixels (0 = fluid).",
+          "order": 8
+        },
+        "ditacraft.previewShowMarkup": {
+          "type": "boolean",
+          "default": false,
+          "description": "Visual preview: initially show markup that is not on a published page — prolog metadata, comments, processing instructions, index terms, data and draft comments.",
+          "order": 8
+        },
+        "ditacraft.previewShowExcluded": {
+          "type": "boolean",
+          "default": false,
+          "description": "Visual preview: dim content the active DITAVAL filter excludes instead of removing it.",
+          "order": 8
+        },
+        "ditacraft.previewResolveReferences": {
+          "type": "boolean",
+          "default": true,
+          "description": "Visual preview: resolve keyref, conref/conkeyref, cross-reference titles and coderef/mathmlref/svgref targets.",
+          "order": 8
+        },
+        "ditacraft.previewResolveOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Visual preview: re-resolve references (re-read reused files and keys) when the previewed file is saved.",
+          "order": 8
+        },
+        "ditacraft.previewUpdateDelayMs": {
+          "type": "number",
+          "default": 150,
+          "minimum": 0,
+          "description": "Visual preview: delay in milliseconds between an edit and the page update.",
           "order": 8
         },
         "ditacraft.conditionHighlightingEnabled": {
           "type": "boolean",
           "default": true,
-          "description": "Dim elements in the editor that the active preview DITAVAL filter (DITA: Set Preview DITAVAL Filter) would exclude from a filtered publish.",
+          "description": "Dim elements in the editor that the active preview DITAVAL filter (DITA: Set Preview DITAVAL Filter) would exclude from a filtered publish, and show the elements it flags with their flag's colour, style and start/end flags.",
           "order": 46
         },
         "ditacraft.showProgressNotifications": {
@@ -846,7 +986,7 @@
         "ditacraft.ai.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable or disable all DitaCraft AI features. When disabled, the LSP validation, navigation, and publishing features remain fully functional.",
+          "description": "Enable or disable all DITA Craft AI features. When disabled, the LSP validation, navigation, and publishing features remain fully functional.",
           "order": 30
         },
         "ditacraft.ai.mode": {
@@ -864,19 +1004,19 @@
             "Only use a local Ollama server. No data is sent to external services."
           ],
           "default": "auto",
-          "description": "LLM provider selection strategy for DitaCraft AI features.",
+          "description": "LLM provider selection strategy for DITA Craft AI features.",
           "order": 31
         },
         "ditacraft.ai.provider.anthropic.model": {
           "type": "string",
-          "default": "claude-3-5-sonnet-20241022",
-          "description": "Anthropic Claude model to use when a BYOK Anthropic API key is configured.",
+          "default": "claude-sonnet-5-5",
+          "description": "Anthropic Claude model to use when a BYOK Anthropic API key is configured (e.g. claude-sonnet-5-5, claude-opus-5-5, claude-haiku-4-5-20251001). Test in DITA Craft: Configure AI Settings checks that your key can use it.",
           "order": 32
         },
         "ditacraft.ai.provider.openai.model": {
           "type": "string",
-          "default": "gpt-4o",
-          "description": "OpenAI model to use when a BYOK OpenAI API key is configured.",
+          "default": "gpt-6.1-sol",
+          "description": "OpenAI model to use when a BYOK OpenAI API key is configured (e.g. gpt-6.1-sol, gpt-6-astra, gpt-6-luna, or an older chat model such as gpt-4o). Test in DITA Craft: Configure AI Settings checks that your key can use it.",
           "order": 33
         },
         "ditacraft.ai.provider.ollama.baseUrl": {
@@ -914,13 +1054,13 @@
         "ditacraft.ai.telemetry.enabled": {
           "type": "boolean",
           "default": false,
-          "description": "Send anonymised usage metrics (latency, success/failure rates) to the DitaCraft team. No document content or personal data is included.",
+          "description": "Send anonymised usage metrics (latency, success/failure rates) to the DITA Craft team. No document content or personal data is included.",
           "order": 39
         },
         "ditacraft.ai.completion.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable AI-enriched DITA completions (F4). When enabled, DitaCraft requests AI suggestions if fewer than 3 native completions are available. Non-blocking: abandoned after 500ms.",
+          "description": "Enable AI-enriched DITA completions (F4). When enabled, DITA Craft requests AI suggestions if fewer than 3 native completions are available. Non-blocking: abandoned after 500ms.",
           "order": 40
         },
         "ditacraft.ai.provider.ollama.enabled": {
@@ -976,7 +1116,7 @@
         "ditacraft.templatesPath": {
           "type": "string",
           "default": "",
-          "description": "Path to a directory of .dita/.ditamap/.bookmap template files (supports ${workspaceFolder}). A template named e.g. topic.dita, concept.dita, task.dita, reference.dita, map.ditamap, or bookmap.bookmap is used by 'DITA: Create New Topic/Map/Bookmap' instead of the built-in skeleton when present. Placeholders: {{title}}, {{id}}, {{author}}, {{date}}. Leave empty to always use the built-in skeletons.",
+          "description": "Path to a directory of .dita/.ditamap/.bookmap template files (supports ${workspaceFolder}). A template named e.g. topic.dita, concept.dita, task.dita, reference.dita, map.ditamap, or bookmap.bookmap is used by 'DITA: Create New Topic/Map/Bookmap' instead of the built-in skeleton when present. Placeholders: {{title}}, {{id}}, {{author}}, {{date}} (today, YYYY-MM-DD). Leave empty to always use the built-in skeletons.",
           "order": 44
         },
         "ditacraft.templateAuthor": {
@@ -992,6 +1132,24 @@
         "language": "dita",
         "path": "./snippets/dita.json"
       }
+    ],
+    "customEditors": [
+      {
+        "viewType": "ditacraft.visualEditor",
+        "displayName": "DITA Visual Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.dita"
+          },
+          {
+            "filenamePattern": "*.ditamap"
+          },
+          {
+            "filenamePattern": "*.bookmap"
+          }
+        ],
+        "priority": "option"
+      }
     ]
   },
   "scripts": {
@@ -1006,7 +1164,7 @@
     "package": "vsce package",
     "esbuild-base": "node esbuild.js",
     "build-standalone": "node esbuild-standalone.js",
-    "check-types": "tsc --noEmit && tsc --noEmit --project server/tsconfig.json",
+    "check-types": "tsc --noEmit && tsc --noEmit --project server/tsconfig.json && tsc --noEmit --project tsconfig.webview.json",
     "pretest": "npm run compile-tests && npm run lint",
     "compile-tests": "tsc -p ./",
     "lint": "eslint",
@@ -1014,31 +1172,9 @@
     "test:mcp": "cd mcp && npx tsc -p test/tsconfig.json && npx mocha \"out/test/mcp/test/*.test.js\" \"out/test/mcp/test/**/*.test.js\" --ui tdd --timeout 30000",
     "coverage": "npx c8 npm test",
     "coverage:check": "npx c8 check-coverage",
-    "coverage:report": "npx c8 report --reporter=html --reporter=text --reporter=lcov"
-  },
-  "c8": {
-    "include": [
-      "out/**/*.js"
-    ],
-    "exclude": [
-      "out/test/**",
-      "**/*.test.js",
-      "**/*.d.ts"
-    ],
-    "reporter": [
-      "text",
-      "html",
-      "lcov"
-    ],
-    "report-dir": "coverage",
-    "temp-directory": ".c8_output",
-    "clean": true,
-    "all": false,
-    "check-coverage": true,
-    "lines": 61,
-    "statements": 61,
-    "functions": 63,
-    "branches": 73
+    "coverage:report": "npx c8 report --reporter=html --reporter=text --reporter=lcov",
+    "test:shared": "npm run compile-tests && mocha \"out/test/shared/**/*.test.js\" --ui tdd --timeout 60000",
+    "grammars": "node scripts/compile-grammars.js --force"
   },
   "nyc": {
     "_NOTE": "nyc does not work with VS Code extension tests - use c8 instead",
@@ -1067,32 +1203,41 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
-    "@sentropic/graphify": "^0.19.0",
+    "@sentropic/graphify": "^0.17.1",
     "@types/mocha": "^10.0.1",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.2.0",
     "@types/sinon": "^22.0.0",
-    "@types/vscode": "^1.138.0",
+    "@types/vscode": "^1.125.0",
     "@vscode/test-electron": "^3.1.0",
-    "@vscode/vsce": "^4.0.0",
+    "@vscode/vsce": "^3.9.2",
     "c8": "^12.0.0",
     "esbuild": "^0.28.2",
-    "eslint": "^10.11.0",
+    "eslint": "^10.8.1",
     "glob": "^13.0.1",
-    "mocha": "^12.0.2",
+    "mocha": "^11.8.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^18.0.0",
+    "prosemirror-commands": "^1.7.2",
+    "prosemirror-dropcursor": "^1.8.4",
+    "prosemirror-gapcursor": "^1.4.1",
+    "prosemirror-history": "^1.5.1",
+    "prosemirror-keymap": "^1.2.3",
+    "prosemirror-model": "^1.25.12",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-transform": "^1.12.2",
+    "prosemirror-view": "^1.42.6",
     "sinon": "^22.1.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.1"
+    "typescript-eslint": "^8.67.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.128.0",
-    "@modelcontextprotocol/sdk": "^1.30.1",
-    "@xmldom/xmldom": "^0.9.12",
-    "fast-xml-parser": "^5.11.1",
-    "openai": "7.23.0",
-    "typesxml": "^2.6.0",
-    "vscode-languageclient": "^10.1.2"
+    "@anthropic-ai/sdk": "^0.117.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@xmldom/xmldom": "^0.9.11",
+    "fast-xml-parser": "^5.10.1",
+    "openai": "^7.4.0",
+    "typesxml": "^2.4.1",
+    "vscode-languageclient": "^10.1.0"
   },
   "overrides": {
     "serialize-javascript": ">=7.0.5",

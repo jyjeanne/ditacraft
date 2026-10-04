@@ -2,12 +2,12 @@
 <!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
 <reference id="keyboard-shortcuts">
     <title>Keyboard Shortcuts</title>
-    <shortdesc>Quick reference for all DitaCraft keyboard shortcuts.</shortdesc>
+    <shortdesc>Quick reference for all DITA Craft keyboard shortcuts.</shortdesc>
 
     <refbody>
         <section id="overview">
             <title>Overview</title>
-            <p>DitaCraft provides keyboard shortcuts for common operations. This reference lists shortcuts for both Windows/Linux and macOS.</p>
+            <p>DITA Craft provides keyboard shortcuts for common operations. This reference lists shortcuts for both Windows/Linux and macOS.</p>
         </section>
 
         <section id="validation-shortcuts">
@@ -106,6 +106,110 @@
             </simpletable>
         </section>
 
+        <section id="visual-editor-shortcuts">
+            <title>Visual Editor</title>
+            <simpletable>
+                <sthead>
+                    <stentry>Windows/Linux</stentry>
+                    <stentry>Mac</stentry>
+                    <stentry>Action</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><uicontrol>Enter</uicontrol></stentry>
+                    <stentry><uicontrol>Return</uicontrol></stentry>
+                    <stentry>New block</stentry>
+                    <stentry>Next paragraph, list item or step, as the DTD allows</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Tab</uicontrol> / <uicontrol>Shift+Tab</uicontrol></stentry>
+                    <stentry><uicontrol>Tab</uicontrol> / <uicontrol>Shift+Tab</uicontrol></stentry>
+                    <stentry>Nest / unnest</stentry>
+                    <stentry>A list item in or out; in a table, the next or previous cell</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Ctrl+B</uicontrol>, <uicontrol>Ctrl+I</uicontrol>, <uicontrol>Ctrl+U</uicontrol>, <uicontrol>Ctrl+E</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+B</uicontrol>, <uicontrol>Cmd+I</uicontrol>, <uicontrol>Cmd+U</uicontrol>, <uicontrol>Cmd+E</uicontrol></stentry>
+                    <stentry>Highlighting</stentry>
+                    <stentry>Bold, italic, underline, code</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Ctrl+K</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+K</uicontrol></stentry>
+                    <stentry>Link</stentry>
+                    <stentry>Insert a link, or change the link's target</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Ctrl+.</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+.</uicontrol></stentry>
+                    <stentry>Quick fix</stentry>
+                    <stentry>The fixes of the problem at the cursor</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Shift+F10</uicontrol> / <uicontrol>Menu</uicontrol></stentry>
+                    <stentry>Right-click</stentry>
+                    <stentry>Context menu</stentry>
+                    <stentry>The right-click menu at the cursor</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Ctrl+Z</uicontrol> / <uicontrol>Ctrl+Y</uicontrol></stentry>
+                    <stentry><uicontrol>Cmd+Z</uicontrol> / <uicontrol>Cmd+Shift+Z</uicontrol></stentry>
+                    <stentry>Undo / redo</stentry>
+                    <stentry>On the page, and in the document</stentry>
+                </strow>
+            </simpletable>
+            <p>In a map, with a row selected (see <xref keyref="visual-editor-maps"/>):</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Key</stentry>
+                    <stentry>Action</stentry>
+                </sthead>
+                <strow>
+                    <stentry><uicontrol>Up</uicontrol> / <uicontrol>Down</uicontrol></stentry>
+                    <stentry>The previous / next row shown</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Left</uicontrol> / <uicontrol>Right</uicontrol></stentry>
+                    <stentry>Fold / unfold the row (or go to the row above it / its first row)</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Enter</uicontrol></stentry>
+                    <stentry>Open the row's target beside the map</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Tab</uicontrol> / <uicontrol>Shift+Tab</uicontrol></stentry>
+                    <stentry>Put the row into the row before it / take it out</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>F2</uicontrol></stentry>
+                    <stentry>Edit the row's label</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Ctrl+K</uicontrol> (<uicontrol>Cmd+K</uicontrol>)</stentry>
+                    <stentry>Change the row's target</stentry>
+                </strow>
+            </simpletable>
+            <p>In a relationship table, with a cell selected:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Key</stentry>
+                    <stentry>Action</stentry>
+                </sthead>
+                <strow>
+                    <stentry><uicontrol>Up</uicontrol> / <uicontrol>Down</uicontrol> / <uicontrol>Left</uicontrol> / <uicontrol>Right</uicontrol></stentry>
+                    <stentry>The cell above / below / left / right</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Tab</uicontrol> / <uicontrol>Shift+Tab</uicontrol></stentry>
+                    <stentry>The next / previous cell (Tab past the last cell adds a row)</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Enter</uicontrol></stentry>
+                    <stentry>Add a reference into the cell</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
         <section id="vscode-shortcuts">
             <title>VS Code General Shortcuts</title>
             <p>These VS Code shortcuts are useful when working with DITA files:</p>
@@ -120,7 +224,7 @@
                     <stentry><uicontrol>Ctrl+Shift+P</uicontrol></stentry>
                     <stentry><uicontrol>Cmd+Shift+P</uicontrol></stentry>
                     <stentry>Command Palette</stentry>
-                    <stentry>Open Command Palette to access all DitaCraft commands</stentry>
+                    <stentry>Open Command Palette to access all DITA Craft commands</stentry>
                 </strow>
                 <strow>
                     <stentry><uicontrol>Ctrl+P</uicontrol></stentry>
@@ -277,7 +381,7 @@
 
         <section id="cheat-sheet">
             <title>Quick Cheat Sheet</title>
-            <p>Most frequently used DitaCraft shortcuts:</p>
+            <p>Most frequently used DITA Craft shortcuts:</p>
             <simpletable>
                 <sthead>
                     <stentry>Action</stentry>
@@ -300,7 +404,7 @@
                     <stentry><uicontrol>Cmd+Shift+B</uicontrol></stentry>
                 </strow>
                 <strow>
-                    <stentry>Preview HTML5</stentry>
+                    <stentry>Live Preview</stentry>
                     <stentry><uicontrol>Ctrl+Shift+H</uicontrol></stentry>
                     <stentry><uicontrol>Cmd+Shift+H</uicontrol></stentry>
                 </strow>

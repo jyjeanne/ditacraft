@@ -13,6 +13,7 @@ import * as path from 'path';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
 import { logger } from '../utils/logger';
 import { substituteWorkspaceFolderVar } from '../utils/pathUtils';
+import { movedPath, type PathMove } from '../utils/movedPaths';
 
 /** A saved publishing configuration. Mirrors `PublishOptions` (minus `inputFile`,
  * which is always the file being published) so a profile is, structurally,
@@ -37,6 +38,42 @@ async function savePublishingProfiles(profiles: PublishingProfile[]): Promise<vo
         .update('publishingProfiles', profiles, vscode.ConfigurationTarget.Workspace);
 }
 
+/**
+ * After files or folders moved: every profile whose DITAVAL file moved (or
+ * was in a moved folder) points at its new path, stored as
+ * `storeDitavalPath` stores a picked file — in the settings it came from
+ * (workspace or user). Returns how many profiles changed.
+ */
+export async function followDitavalMoves(moves: readonly PathMove[]): Promise<number> {
+    const config = vscode.workspace.getConfiguration('ditacraft');
+    const inspected = config.inspect<PublishingProfile[]>('publishingProfiles');
+    let changed = 0;
+    const levels: [PublishingProfile[] | undefined, vscode.ConfigurationTarget][] = [
+        [inspected?.workspaceValue, vscode.ConfigurationTarget.Workspace],
+        [inspected?.globalValue, vscode.ConfigurationTarget.Global],
+    ];
+    for (const [profiles, target] of levels) {
+        if (!Array.isArray(profiles)) {
+            continue;
+        }
+        let levelChanged = false;
+        const updated = profiles.map(profile => {
+            const resolved = resolveDitavalPath(profile.ditavalPath);
+            const moved = resolved ? movedPath(resolved, moves) : undefined;
+            if (!moved) {
+                return profile;
+            }
+            levelChanged = true;
+            changed++;
+            return { ...profile, ditavalPath: storeDitavalPath(vscode.Uri.file(moved), vscode.workspace.workspaceFolders) };
+        });
+        if (levelChanged) {
+            await config.update('publishingProfiles', updated, target);
+        }
+    }
+    return changed;
+}
+
 /** Name of the most recently used profile, so the publish picker can surface it first. */
 export function getLastUsedProfileName(): string | undefined {
     const name = vscode.workspace.getConfiguration('ditacraft').get<string>('lastUsedPublishingProfile', '');
@@ -51,10 +88,12 @@ export async function rememberLastUsedProfile(name: string): Promise<void> {
 /**
  * Resolve a profile's `ditavalPath` to an absolute path before handing it to
  * `DitaOtWrapper.publish()`. Stored values are workspace-relative (that's
- * what `promptForDitaval` writes via `asRelativePath`), but a hand-edited
+ * what `promptForDitaval` writes via `storeDitavalPath`), but a hand-edited
  * `settings.json` could supply an absolute path directly — both are
- * accepted. Returns undefined if unset or no workspace folder is open to
- * resolve a relative path against.
+ * accepted. A relative value may use `/` or `\` (`storeDitavalPath` writes
+ * `/`, earlier versions wrote Windows separators into the shared workspace
+ * settings), so it resolves on every platform. Returns undefined if unset or
+ * no workspace folder is open to resolve a relative path against.
  */
 export function resolveDitavalPath(ditavalPath: string | undefined): string | undefined {
     if (!ditavalPath) return undefined;
@@ -63,7 +102,7 @@ export function resolveDitavalPath(ditavalPath: string | undefined): string | un
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) return undefined;
 
-    return path.join(workspaceFolder.uri.fsPath, ditavalPath);
+    return path.join(workspaceFolder.uri.fsPath, ...ditavalPath.split(/[\\/]+/));
 }
 
 /**
@@ -273,6 +312,9 @@ export async function promptForDitaval(existingPath?: string): Promise<string | 
  * `resolveDitavalPath` would later re-join against the wrong root. Falling
  * back to an absolute path when the file isn't under folder[0] (or no
  * workspace is open) keeps storage and resolution consistent.
+ *
+ * A relative path is written with `/` whatever the platform: profiles live in
+ * the workspace settings, shared with teammates on other systems.
  */
 export function storeDitavalPath(
     uri: vscode.Uri,
@@ -282,7 +324,7 @@ export function storeDitavalPath(
     if (primary) {
         const rel = path.relative(primary.uri.fsPath, uri.fsPath);
         if (rel.length > 0 && !rel.startsWith('..') && !path.isAbsolute(rel)) {
-            return rel;
+            return rel.split(path.sep).join('/');
         }
     }
     return uri.fsPath;

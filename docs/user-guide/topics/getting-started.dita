@@ -2,11 +2,11 @@
 <!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
 <task id="getting-started">
     <title>Getting Started</title>
-    <shortdesc>Learn how to install and configure DitaCraft for your first DITA project.</shortdesc>
+    <shortdesc>Learn how to install and configure DITA Craft for your first DITA project.</shortdesc>
 
     <taskbody>
         <prereq>
-            <p>Before installing DitaCraft, ensure you have:</p>
+            <p>Before installing DITA Craft, ensure you have:</p>
             <ul>
                 <li>Visual Studio Code 1.80 or higher</li>
                 <li>DITA-OT 4.2.1 or higher (for publishing features)</li>
@@ -14,12 +14,12 @@
         </prereq>
 
         <context>
-            <p>This guide walks you through installing DitaCraft and creating your first DITA file.</p>
+            <p>This guide walks you through installing DITA Craft and creating your first DITA file.</p>
         </context>
 
         <steps>
             <step>
-                <cmd>Install DitaCraft from VS Code Marketplace</cmd>
+                <cmd>Install DITA Craft from VS Code Marketplace</cmd>
                 <substeps>
                     <substep>
                         <cmd>Open VS Code</cmd>
@@ -90,15 +90,15 @@
                 <cmd>Preview your content (optional)</cmd>
                 <substeps>
                     <substep>
-                        <cmd>Press <uicontrol>Ctrl+Shift+H</uicontrol> to open HTML5 preview</cmd>
+                        <cmd>Press <uicontrol>Ctrl+Shift+H</uicontrol> to open the live preview, or run <uicontrol>DITA: Open in Visual Editor</uicontrol> to edit the topic on the page</cmd>
                     </substep>
                 </substeps>
-                <stepresult>A side-by-side preview panel opens showing your rendered DITA content.</stepresult>
+                <stepresult>A side-by-side preview panel opens showing your rendered DITA content, updated as you type.</stepresult>
             </step>
         </steps>
 
         <result>
-            <p>You now have DitaCraft installed and configured. You can:</p>
+            <p>You now have DITA Craft installed and configured. You can:</p>
             <ul>
                 <li>Create DITA topics, maps, and bookmaps</li>
                 <li>Validate your content in real-time</li>

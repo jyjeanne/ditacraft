@@ -1,18 +1,29 @@
 /**
  * Move Topic with Reference Updates
  * Backs the `dita/computeMoveEdits` request: given one or more file moves
- * (as reported by VS Code's `onDidRenameFiles`), finds every `href`/`conref`
- * in the workspace that pointed at a moved file's *old* path and returns a
- * `WorkspaceEdit` rewriting each to the new relative path.
+ * (as reported by VS Code's `onDidRenameFiles`), returns a `WorkspaceEdit`
+ * that keeps every relative file reference pointing where it did:
  *
- * **Scope: inbound references only.** A moved file's own outbound hrefs
- * (which go stale too, but only when it moves to a *different directory* —
- * not on an in-place rename) are not rewritten here — see
- * `docs/V0.9-IMPLEMENTATION-PLAN.md` §4.4's status note for the reasoning.
- * Folder-level moves aren't handled either: VS Code reports a folder
- * rename as a single `{oldUri: folder, newUri: renamedFolder}` pair, not
- * one entry per contained file, so files relocated via a folder rename
- * are never individually reported to this handler.
+ * - **inbound** — in every other DITA file, a reference that pointed at a
+ *   moved file's *old* path is rewritten to its new relative path;
+ * - **outbound** — in each moved file, every relative reference is
+ *   re-resolved from the folder the file was in and rewritten relative to
+ *   the folder it is in now (to the target's new path when the target moved
+ *   in the same operation). An in-place rename changes none of them, except
+ *   references to the file itself or to another moved file.
+ *
+ * References are the `href`, `conref`, `conrefend`, `data`, `codebase` and
+ * `longdescref` attributes with a relative file part (`relativeFileReferences`):
+ * fragment-only references, URLs, absolute paths, and references inside
+ * comments or CDATA sections (code samples) are left as written.
+ *
+ * A moved folder — VS Code reports a folder rename as a single
+ * `{oldUri: folder, newUri: renamedFolder}` pair, not one entry per contained
+ * file — counts as a move of every file in it: each DITA file it holds is a
+ * moved file (outbound), and a reference into it from outside — to a topic,
+ * an image, any file — follows it (inbound). References between files of
+ * the folder are unchanged. Any other moved file (an image, a `.ditaval`, a
+ * PDF…) is only referred to: the references to it follow it (inbound).
  */
 
 import * as fs from 'fs/promises';
@@ -20,9 +31,8 @@ import * as path from 'path';
 import { TextDocuments, TextEdit, WorkspaceEdit, Range } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { findFileReferences, parseReference } from '../utils/referenceParser';
 import { collectDitaFilesAsync } from '../utils/workspaceScanner';
-import { offsetToPosition, uriToPath, normalizeFsPath } from '../utils/textUtils';
+import { offsetToPosition, uriToPath, normalizeFsPath, stripCommentsAndCDATA } from '../utils/textUtils';
 import { mapWithConcurrency, MAX_CONCURRENT_READS } from './workspaceValidation';
 
 // ── Request/response types (mirrored on the client, src/extension.ts) ──────
@@ -65,6 +75,88 @@ function toHrefPath(relativePath: string): string | undefined {
     return relativePath.split(path.sep).join('/');
 }
 
+/** A relative file reference: an attribute value and its file part and fragment. */
+export interface FileReference {
+    value: string;
+    valueStart: number;
+    valueEnd: number;
+    /** The file part, as written (percent-encoding included). */
+    file: string;
+    /** After `#`, undefined when there is none. */
+    fragment?: string;
+}
+
+const REFERENCE_PATTERN = /(?<=\s)(href|conref|conrefend|data|codebase|longdescref)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+
+/**
+ * Every reference attribute in `content` with a relative file part: not
+ * fragment-only, not a URL (a scheme of 2+ characters; `C:` is a drive) or
+ * an absolute path. Comments and CDATA sections are skipped — a code sample
+ * is not a reference. Exported for testing.
+ */
+export function relativeFileReferences(content: string): FileReference[] {
+    const searchable = stripCommentsAndCDATA(content);
+    const references: FileReference[] = [];
+    REFERENCE_PATTERN.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = REFERENCE_PATTERN.exec(searchable)) !== null) {
+        const value = match[2] ?? match[3];
+        const hash = value.indexOf('#');
+        const file = (hash < 0 ? value : value.slice(0, hash)).trim();
+        if (file === '' || /^[a-z][\w+.-]+:/i.test(file) || path.isAbsolute(file) || file.startsWith('/')) {
+            continue;
+        }
+        const valueStart = match.index + match[0].length - 1 - value.length;
+        references.push({ value, valueStart, valueEnd: valueStart + value.length, file, fragment: hash < 0 ? undefined : value.slice(hash + 1) });
+    }
+    return references;
+}
+
+/** The absolute path a reference's file part names, written in a file in `fromDir`. */
+function resolveReference(fromDir: string, file: string): string {
+    let decoded = file;
+    try {
+        decoded = decodeURI(file);
+    } catch {
+        // Malformed escapes: use the reference as written.
+    }
+    return path.resolve(fromDir, decoded);
+}
+
+/** The value naming `targetPath` from a file in `fromDir`, written like `original` (encoded spaces, a folder's trailing `/`, fragment). */
+function referenceValue(fromDir: string, targetPath: string, original: FileReference): string | undefined {
+    let relative = toHrefPath(path.relative(fromDir, targetPath));
+    if (relative === undefined) {
+        return undefined;
+    }
+    if (/[\\/]$/.test(original.file)) {
+        relative = relative === '' ? './' : `${relative}/`;
+    }
+    const file = original.file.includes('%') ? relative.replace(/ /g, '%20') : relative;
+    return original.fragment === undefined ? file : `${file}#${original.fragment}`;
+}
+
+async function isDirectory(filePath: string): Promise<boolean> {
+    try {
+        return (await fs.stat(filePath)).isDirectory();
+    } catch {
+        return false;
+    }
+}
+
+/** The text of a file: its open document (unsaved changes included), else the disk. */
+async function readContent(filePath: string, documents: TextDocuments<TextDocument>): Promise<string | undefined> {
+    const openDoc = documents.get(URI.file(filePath).toString());
+    if (openDoc) {
+        return openDoc.getText();
+    }
+    try {
+        return await fs.readFile(filePath, 'utf-8');
+    } catch {
+        return undefined;
+    }
+}
+
 export async function handleComputeMoveEdits(
     params: ComputeMoveEditsParams,
     documents: TextDocuments<TextDocument>,
@@ -74,12 +166,30 @@ export async function handleComputeMoveEdits(
         return null;
     }
 
-    // Only moves whose *old* path was a DITA file need inbound refs fixed.
-    const ditaMoves = params.moves
-        .map(m => ({ oldPath: uriToPath(m.oldUri), newPath: uriToPath(m.newUri) }))
-        .filter(m => isDitaFilePath(m.oldPath))
-        .map(m => ({ ...m, normalizedOldPath: normalizeFsPath(m.oldPath) }));
-    if (ditaMoves.length === 0) {
+    // A moved DITA file (its references to fix too), a moved folder (whatever it holds moved
+    // with it), or another moved file — an image, a .ditaval… — only referred to.
+    const ditaMoves: { oldPath: string; newPath: string; normalizedOldPath: string }[] = [];
+    const folderMoves: { oldPath: string; newPath: string }[] = [];
+    const otherMoves = new Map<string, string>();
+    for (const m of params.moves) {
+        const oldPath = uriToPath(m.oldUri);
+        const newPath = uriToPath(m.newUri);
+        if (isDitaFilePath(oldPath)) {
+            ditaMoves.push({ oldPath, newPath, normalizedOldPath: normalizeFsPath(oldPath) });
+        } else if (await isDirectory(newPath)) {
+            folderMoves.push({ oldPath, newPath });
+        } else {
+            otherMoves.set(normalizeFsPath(oldPath), newPath);
+        }
+    }
+    // Every DITA file a folder carried is a moved file too (its references to fix).
+    for (const folder of folderMoves) {
+        for (const newPath of await collectDitaFilesAsync([folder.newPath])) {
+            const oldPath = path.join(folder.oldPath, path.relative(folder.newPath, newPath));
+            ditaMoves.push({ oldPath, newPath, normalizedOldPath: normalizeFsPath(oldPath) });
+        }
+    }
+    if (ditaMoves.length === 0 && folderMoves.length === 0 && otherMoves.size === 0) {
         return null;
     }
     // Keyed by normalizedOldPath so each reference resolves its matching
@@ -87,6 +197,25 @@ export async function handleComputeMoveEdits(
     // move/rename can move many files at once, each scanned against every
     // reference in every other workspace file).
     const ditaMovesByOldPath = new Map(ditaMoves.map(m => [m.normalizedOldPath, m]));
+    /**
+     * Where a file (or folder) is now: its new path if it moved, or if a
+     * moved folder held it — any file, an image as much as a topic — else
+     * the same path.
+     */
+    const currentPath = (filePath: string): string => {
+        const normalized = normalizeFsPath(filePath);
+        const moved = ditaMovesByOldPath.get(normalized)?.newPath ?? otherMoves.get(normalized);
+        if (moved) {
+            return moved;
+        }
+        for (const folder of folderMoves) {
+            const inside = path.relative(folder.oldPath, filePath);
+            if (!inside.startsWith('..') && !path.isAbsolute(inside)) {
+                return inside === '' ? folder.newPath : path.join(folder.newPath, inside);
+            }
+        }
+        return filePath;
+    };
 
     // `/code-review` fix: this used to be a synchronous `collectDitaFiles`
     // walk followed by `fs.readFileSync` inside an unbounded
@@ -101,66 +230,57 @@ export async function handleComputeMoveEdits(
     // and `batchMetadata.ts` already establish for the identical
     // "read every DITA file" operation.
     const ditaFiles = await collectDitaFilesAsync(workspaceFolders);
-    // Never rewrite anything *inside* a moved file itself -- see the module
-    // doc comment's "inbound references only" scope note.
+    // The moved files are handled by the outbound pass below, from where they are now.
     const movedNewPaths = new Set(ditaMoves.map(m => normalizeFsPath(m.newPath)));
 
     const changes: { [uri: string]: TextEdit[] } = {};
+    const edit = (content: string, ref: FileReference, newText: string): TextEdit => ({
+        range: Range.create(offsetToPosition(content, ref.valueStart), offsetToPosition(content, ref.valueEnd)),
+        newText,
+    });
 
+    // Inbound: references to a moved file (or into a moved folder) from the files that stayed.
     await mapWithConcurrency(ditaFiles, MAX_CONCURRENT_READS, async (filePath) => {
         if (movedNewPaths.has(normalizeFsPath(filePath))) {
             return;
         }
-
-        const fileUri = URI.file(filePath).toString();
-        const openDoc = documents.get(fileUri);
-        let content: string;
-        if (openDoc) {
-            content = openDoc.getText();
-        } else {
-            try {
-                content = await fs.readFile(filePath, 'utf-8');
-            } catch {
-                return;
-            }
-        }
-
-        const refs = findFileReferences(content);
-        if (refs.length === 0) {
+        const content = await readContent(filePath, documents);
+        if (content === undefined) {
             return;
         }
-
         const fileDir = path.dirname(filePath);
         const edits: TextEdit[] = [];
-
-        for (const ref of refs) {
-            const { filePath: refFilePath, fragment } = parseReference(ref.value);
-            if (!refFilePath) {
-                continue;
+        for (const ref of relativeFileReferences(content)) {
+            const target = resolveReference(fileDir, ref.file);
+            const now = currentPath(target);
+            const newValue = normalizeFsPath(now) !== normalizeFsPath(target) ? referenceValue(fileDir, now, ref) : undefined;
+            if (newValue !== undefined && newValue !== ref.value) {
+                edits.push(edit(content, ref, newValue));
             }
-            const resolvedRefPath = normalizeFsPath(path.resolve(fileDir, refFilePath));
-            const move = ditaMovesByOldPath.get(resolvedRefPath);
-            if (!move) {
-                continue;
-            }
-
-            const newHrefPath = toHrefPath(path.relative(fileDir, move.newPath));
-            if (newHrefPath === undefined) {
-                continue;
-            }
-            const newValue = fragment ? `${newHrefPath}#${fragment}` : newHrefPath;
-
-            edits.push({
-                range: Range.create(
-                    offsetToPosition(content, ref.valueStart),
-                    offsetToPosition(content, ref.valueEnd)
-                ),
-                newText: newValue
-            });
         }
-
         if (edits.length > 0) {
-            changes[fileUri] = edits;
+            changes[URI.file(filePath).toString()] = edits;
+        }
+    });
+
+    // Outbound: each moved file's own references, re-resolved from where it was.
+    await mapWithConcurrency(ditaMoves, MAX_CONCURRENT_READS, async (move) => {
+        const content = await readContent(move.newPath, documents);
+        if (content === undefined) {
+            return;
+        }
+        const oldDir = path.dirname(move.oldPath);
+        const newDir = path.dirname(move.newPath);
+        const edits: TextEdit[] = [];
+        for (const ref of relativeFileReferences(content)) {
+            const target = currentPath(resolveReference(oldDir, ref.file));
+            const newValue = referenceValue(newDir, target, ref);
+            if (newValue !== undefined && newValue !== ref.value) {
+                edits.push(edit(content, ref, newValue));
+            }
+        }
+        if (edits.length > 0) {
+            changes[URI.file(move.newPath).toString()] = edits;
         }
     });
 

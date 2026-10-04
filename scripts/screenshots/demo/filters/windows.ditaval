@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The Windows edition of the guide. Conditions this file does not name are flagged for review. -->
+<val>
+  <prop action="flag" color="#d97706"><startflag><alt-text>[Check]</alt-text></startflag></prop>
+  <prop action="include" att="platform" val="windows"/>
+  <prop action="exclude" att="platform"/>
+  <prop action="flag" att="audience" val="admin" color="#2f7fe0" style="italics">
+    <startflag><alt-text>[Admin]</alt-text></startflag>
+  </prop>
+  <revprop action="flag" val="2.0" color="#16a34a" style="bold">
+    <startflag><alt-text>[New in 2.0]</alt-text></startflag>
+  </revprop>
+</val>

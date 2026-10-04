@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="sync-options">
+  <title>Sync options</title>
+  <shortdesc>The settings of a sync profile in <keyword keyref="product-name"/>, and their
+    defaults.</shortdesc>
+  <refbody>
+    <section id="defaults">
+      <title>Default settings</title>
+      <table frame="all" id="defaults-table">
+        <title>Profile settings and their defaults</title>
+        <tgroup cols="3">
+          <colspec colname="c1" colwidth="30*"/>
+          <colspec colname="c2" colwidth="25*"/>
+          <colspec colname="c3" colwidth="45*"/>
+          <thead>
+            <row>
+              <entry>Setting</entry>
+              <entry>Default</entry>
+              <entry>Effect</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>Schedule</entry>
+              <entry>every 30 min</entry>
+              <entry>How often the folders are compared</entry>
+            </row>
+            <row>
+              <entry>Conflicts</entry>
+              <entry>keep both</entry>
+              <entry>A file changed on both sides is kept twice</entry>
+            </row>
+            <row>
+              <entry>Bandwidth limit</entry>
+              <entry>none</entry>
+              <entry>Caps the transfer rate during work hours</entry>
+            </row>
+            <row>
+              <entry>Hidden files</entry>
+              <entry>skipped</entry>
+              <entry>Files whose name starts with a dot</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="status-icons">
+      <title>Status icons</title>
+      <p>The tray icon shows the state of every profile: <image href="../images/tray-icons.svg" width="260"/></p>
+    </section>
+  </refbody>
+</reference>

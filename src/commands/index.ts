@@ -16,9 +16,10 @@ export {
     getLastUsedProfileName,
     rememberLastUsedProfile,
     resolveDitavalPath,
+    followDitavalMoves,
 } from './publishProfilesCommand';
 export type { PublishingProfile } from './publishProfilesCommand';
-export { previewHTML5Command, initializePreview, shouldAutoRefreshPreview, pickPreviewFilterCommand, requestPreviewRefresh, isPreviewRefreshInFlight } from './previewCommand';
+export { previewHTML5Command, previewDitaOtCommand, initializePreview, shouldAutoRefreshPreview, pickPreviewFilterCommand, requestPreviewRefresh, isPreviewRefreshInFlight, getActiveDitavalPath, onDidChangeActiveDitaval, followActiveDitavalMove } from './previewCommand';
 export { newTopicCommand, newMapCommand, newBookmapCommand, initProjectCommand } from './fileCreationCommands';
 export { configureDitaOTCommand } from './configureCommand';
 export { setupCSpellCommand } from './cspellSetupCommand';

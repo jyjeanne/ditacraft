@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="280" viewBox="0 0 640 280" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="640" height="280" fill="#ffffff"/>
+  <!-- This computer -->
+  <g transform="translate(40 70)">
+    <rect x="10" y="0" width="140" height="92" rx="8" fill="#f2fbfb" stroke="#0f8b8d" stroke-width="3"/>
+    <rect x="0" y="92" width="160" height="12" rx="6" fill="#0f8b8d"/>
+    <path d="M45 30 h24 l8 9 h38 v38 h-70 z" fill="#ffd66b" stroke="#b8860b" stroke-width="2" stroke-linejoin="round"/>
+    <text x="80" y="140" text-anchor="middle" font-size="16" fill="#1c2b33">This computer</text>
+    <text x="80" y="160" text-anchor="middle" font-size="13" fill="#5b6b75">Documents/Reports</text>
+  </g>
+  <!-- The sync service -->
+  <g transform="translate(320 90)">
+    <path d="M-62 40 a30 30 0 0 1 22 -46 a40 40 0 0 1 76 6 a26 26 0 0 1 22 40 z" fill="#f4f0ff" stroke="#6d4aff" stroke-width="3" stroke-linejoin="round"/>
+    <text x="0" y="28" text-anchor="middle" font-size="15" font-weight="600" fill="#4b2fd6">Sync service</text>
+    <text x="0" y="78" text-anchor="middle" font-size="13" fill="#5b6b75">checks both sides</text>
+  </g>
+  <!-- Workspace -->
+  <g transform="translate(460 70)">
+    <rect x="0" y="0" width="140" height="104" rx="10" fill="#f2fbfb" stroke="#0f8b8d" stroke-width="3"/>
+    <circle cx="40" cy="38" r="12" fill="#0f8b8d"/>
+    <circle cx="70" cy="30" r="12" fill="#3fb6a8"/>
+    <circle cx="100" cy="38" r="12" fill="#6d4aff"/>
+    <path d="M35 66 h70 v20 h-70 z" fill="#ffd66b" stroke="#b8860b" stroke-width="2"/>
+    <text x="70" y="140" text-anchor="middle" font-size="16" fill="#1c2b33">Team workspace</text>
+    <text x="70" y="160" text-anchor="middle" font-size="13" fill="#5b6b75">Shared/Reports</text>
+  </g>
+  <!-- Arrows -->
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#6d4aff"/>
+    </marker>
+  </defs>
+  <g stroke="#6d4aff" stroke-width="3" fill="none" marker-end="url(#head)">
+    <path d="M205 108 C 230 98, 240 98, 252 104"/>
+    <path d="M384 104 C 400 98, 420 98, 452 108"/>
+    <path d="M452 140 C 420 150, 400 150, 384 142"/>
+    <path d="M252 142 C 240 150, 230 150, 205 140"/>
+  </g>
+  <text x="320" y="266" text-anchor="middle" font-size="14" fill="#1c2b33">A sync profile keeps one local folder and one workspace folder in step</text>
+</svg>

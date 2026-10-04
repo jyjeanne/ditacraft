@@ -14,6 +14,7 @@ import {
     generateMapContent,
     generateBookmapContent,
     humanizeFileName,
+    todayIso,
     newTopicCommand,
     newMapCommand,
     newBookmapCommand,
@@ -452,6 +453,16 @@ suite('File Creation Commands Test Suite', () => {
         });
     });
 
+    suite('todayIso Function', () => {
+        test('Should give the date on the author\'s calendar, not the UTC date (regression: yesterday past midnight in Europe)', () => {
+            // Built from local parts, so the expected day holds in any time zone.
+            assert.strictEqual(todayIso(new Date(2026, 9, 4, 0, 30)), '2026-10-04', 'just after local midnight');
+            assert.strictEqual(todayIso(new Date(2026, 9, 3, 23, 45)), '2026-10-03', 'late in the local evening');
+            assert.strictEqual(todayIso(new Date(2027, 0, 9, 12, 0)), '2027-01-09', 'month and day zero-padded');
+            assert.match(todayIso(), /^\d{4}-\d{2}-\d{2}$/);
+        });
+    });
+
     /**
      * These suites stub vscode.workspace.workspaceFolders to point at a
      * real temp directory (the sinon pattern already established in
@@ -481,8 +492,10 @@ suite('File Creation Commands Test Suite', () => {
         teardown(async () => {
             sandbox.restore();
             await vscode.commands.executeCommand('workbench.action.closeAllEditors');
-            fs.rmSync(workspaceDir, { recursive: true, force: true });
-            fs.rmSync(templatesDir, { recursive: true, force: true });
+            // On Windows VS Code still holds the folder of files it just closed for a moment:
+            // retry EPERM instead of failing the hook (which skips the rest of the suite).
+            fs.rmSync(workspaceDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+            fs.rmSync(templatesDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
             await config().update('templatesPath', undefined, vscode.ConfigurationTarget.Global);
             await config().update('templateAuthor', undefined, vscode.ConfigurationTarget.Global);
         });
@@ -638,7 +651,7 @@ suite('File Creation Commands Test Suite', () => {
         teardown(async () => {
             sandbox.restore();
             await vscode.commands.executeCommand('workbench.action.closeAllEditors');
-            fs.rmSync(workspaceDir, { recursive: true, force: true });
+            fs.rmSync(workspaceDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); // see above
         });
 
         test('Should scaffold a map, starter topics, folder layout, and a starter .ditaval', async () => {

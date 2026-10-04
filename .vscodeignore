@@ -1,3 +1,20 @@
+# Build output: only the bundles and their runtime assets ship. vsce applies the `!`
+# re-includes after every exclusion, whatever their order, so they name exact file types:
+# `!out/webview/**` would bring back the source maps of a `--sourcemap` build.
+# out/: not the per-module output of the test build (`npm run compile-tests`).
+out/**
+!out/extension.js
+!out/grammars/**/*.json
+!out/webview/*.js
+!out/webview/*.css
+# server/: the language server bundle only — not its sources, tests, coverage report
+# or .c8_output (the release workflow runs the server's coverage before packaging).
+server/**
+!server/out/server.js
+# The standalone LSP and MCP bundles are separate release assets; MCP sources and tests.
+dist/**
+mcp/**
+
 # Source files
 .vscode/**
 .vscode-test/**
@@ -33,6 +50,15 @@ out/test/
 out/commands/
 out/providers/
 out/utils/
+# Visual preview: keep out/grammars/ and out/webview/ (runtime assets); drop the
+# tsc test-build output of the bundled modules and the grammar build tool.
+out/shared/
+out/preview/
+out/editor/
+out/properties/
+out/tools/
+webview/**
+tsconfig.webview.json
 
 # Node modules (all dependencies are bundled by esbuild)
 node_modules/**
@@ -66,7 +92,21 @@ nul
 add-missing-data.png
 *.png
 !resources/*.png
-!resources/*.svg
+!resources/ditacraft-activity.svg
+# The user guide cover's traced logo (scripts/cover/): not used by the extension.
+resources/ditacraft-logo.svg
+
+# Development files
+AGENTS.md
+CLAUDE.md
+TEST_PLAN.md
+okf.toml
+eslint.config.mjs
+esbuild-standalone.js
+.graphifyignore
+.cspellrc.json
+.c8rc.json
+test-workspace/**
 
 # Development docs (not needed in production)
 docs/**

@@ -7,7 +7,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { DitaOtWrapper } from '../../utils/ditaOtWrapper';
+import { DitaOtWrapper, parseTranstypes } from '../../utils/ditaOtWrapper';
 
 suite('DITA-OT Wrapper Test Suite', () => {
     const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
@@ -194,6 +194,18 @@ suite('DITA-OT Wrapper Test Suite', () => {
             assert.ok(Array.isArray(transtypes), 'Should return an array');
             assert.ok(transtypes.length > 0, 'Should have at least one transtype');
             assert.ok(transtypes.includes('html5'), 'Should include html5 transtype');
+        });
+
+        test('parseTranstypes reads bare names, one per line (regression: DITA-OT 4.x output always fell back to the static list)', () => {
+            const output = 'xhtml\r\nhtmlhelp\r\npdf\r\npdf2\r\nhtml5\r\nbase-html\r\nhtml5-bootstrap\r\neclipsehelp\r\ndita\r\nvalidate\r\nmarkdown\r\nmarkdown_github\r\n';
+            assert.deepStrictEqual(parseTranstypes(output), ['base-html', 'dita', 'eclipsehelp', 'html5', 'html5-bootstrap', 'htmlhelp',
+                'markdown', 'markdown_github', 'pdf', 'pdf2', 'validate', 'xhtml']);
+        });
+
+        test('parseTranstypes reads "name - description" lines and skips warnings', () => {
+            const output = 'Picked up JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8\n  html5 - HTML5 output\n  pdf - PDF output\n\nWARNING: something happened\n';
+            assert.deepStrictEqual(parseTranstypes(output), ['html5', 'pdf']);
+            assert.deepStrictEqual(parseTranstypes(''), []);
         });
     });
 

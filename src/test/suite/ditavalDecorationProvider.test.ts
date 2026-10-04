@@ -4,7 +4,9 @@
  * The decoration recompute/debounce logic itself lives in module-private
  * functions in ditavalDecorationProvider.ts and is exercised indirectly —
  * its matching logic is covered directly by ditavalParser.test.ts and
- * xmlElementScanner.test.ts's pure-function tests. This suite verifies the
+ * xmlElementScanner.test.ts's pure-function tests, and what it dims and flags
+ * (with each flag's look) by test/shared/previewHost.test.ts's condition
+ * highlighting test over preview/conditionMarks.ts. This suite verifies the
  * registration surface: the extension activates (which calls
  * registerConditionHighlighting during activation) without throwing, and
  * the setting that gates the feature is correctly declared.

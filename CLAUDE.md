@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **DitaCraft** is a comprehensive VS Code extension for editing and publishing DITA (Darwin Information Typing Architecture) XML files. It provides syntax highlighting, real-time validation, smart navigation, LSP-based IntelliSense, live HTML preview, and one-click DITA-OT publishing. The project uses a **client-server architecture**: the client extension handles UI commands and a separate LSP server handles all language intelligence.
 
 **Key Stats:**
-- 2,183+ tests (966 client + 1,134 server + 83 MCP)
+- 2,900+ tests (1,371 client + 1,167 server + 307 visual preview/editor core + 88 MCP)
 - 50,000+ lines of TypeScript code
 - Client: ES2020, CommonJS, esbuild bundled
 - Server: 13-phase validation pipeline, LSP 3.17+
@@ -82,6 +82,14 @@ Runs integration tests using `@vscode/test-electron`. Timeout: 10 seconds per te
 
 To run a single test: Modify `src/test/suite/index.ts` to filter tests by name.
 
+### Visual Preview Core Tests (Standalone Mocha, No VS Code)
+```bash
+npm run test:shared
+```
+Compiles the client tests and runs `out/test/shared/**/*.test.js` with plain Mocha: the CST round-trip gate over every DITA file in the repo (add a corpus with `DITACRAFT_CORPUS=<folder>`), the grammar compiler over every bundled DTD shell (including ProseMirror schema instantiation and the catalog PUBLIC-id audit), the renderer, the preview's resolver/DITAVAL/grammar-selection modules, and the visual editor core (lossless round trip, edit and command fuzzing over the corpus — `DITACRAFT_FUZZ_SEED/_RUNS/_STEPS` run it harder). See `docs/VISUAL_PREVIEW.md` and `docs/VISUAL_EDITOR.md`.
+
+The visual editor's invariant: an edit on the page reaches the document as one minimal text edit, and every node unchanged since load is written back byte for byte (`src/shared/editor/toSource.ts`). Any change to the editor core must keep the corpus fuzz suites green.
+
 ### Server Tests (Standalone Mocha, No VS Code)
 ```bash
 cd server
@@ -102,7 +110,7 @@ Example: `npm test -- --grep "validateDITADocument"`
 ```bash
 npm run coverage
 ```
-Enforces: 63% lines, 63% statements, 70% functions, 73% branches.
+Configured in `.c8rc.json` (a `c8` key in `package.json` was not applied): 61% lines and statements, 63% functions, 73% branches, checked by `npm run coverage:check`. The bundled language server (`server/**`), which the tests start as a child process, is excluded: the server has its own gate.
 
 **Server:**
 ```bash
@@ -174,7 +182,26 @@ src/                          # Client extension
   commands/                   # Command handlers
   providers/                  # VS Code API (validators, views, webviews)
   utils/                      # DITA-OT wrapper, key space, config, logger
-  test/                       # 966 client tests
+  shared/                     # Visual preview core, environment-neutral (no vscode import):
+    cst/                      #   format-preserving XML tree, element ids/offsets, CALS grid
+    grammar/                  #   DTD → grammar JSON compiler (typesxml), ProseMirror schema spec
+    render/                   #   CST → HTML renderer (DITA-OT class contract), labels, entities
+    editor/                   #   visual editor core: grammar → ProseMirror schema, source ⇄ editor doc
+                              #   (lossless writer toSource.ts), DITA commands, edit sync, map rows (maps.ts), their editing (mapCommands.ts), relationship tables (relTables.ts)
+  preview/                    # Visual preview host: panel, grammar selection, resolver, DITAVAL (also the text editor's condition highlighting marks: conditionMarks.ts), map context of topics (mapContext.ts, mapContexts.ts)
+  editor/                     # Visual editor host: CustomTextEditorProvider (ditacraft.visualEditor), protocol,
+                              #   Replace with copy (reuseCopy.ts: DITA conref resolution of the copy, references rebased),
+                              #   image files (imageFiles.ts: hrefs, pasted images), link picker
+                              #   (linkPicker.ts QuickPick + Open link target; linkTargets.ts items, no vscode)
+  properties/                 # Properties view (side bar): follows the visual or text editor, edits attributes
+  test/                       # 1,371 client tests; test/shared/ = plain-Mocha suites for shared/ + preview/ (307)
+webview/preview/              # Visual preview page script + stylesheet (bundled to out/webview/)
+webview/editor/               # Visual editor page (ProseMirror; map rows: mapView.ts) + stylesheet (bundled to out/webview/)
+webview/properties/           # Properties view page + stylesheet (bundled to out/webview/)
+scripts/compile-grammars.js   # Builds out/grammars/ from dtds/ (run by esbuild.js; cached)
+scripts/screenshots/          # README/user-guide screenshots of the visual editor in a real VS Code window (shoot.js, demo project)
+scripts/cover/                # User guide cover image: cover.html → docs/user-guide/front_page_picture.png (node scripts/cover/render.js);
+                              #   trace-logo.js traces resources/ditacraft-logo.png into resources/ditacraft-logo.svg (needs `npm install --no-save potrace@2 pngjs@7`)
 
 server/
   src/
@@ -186,7 +213,7 @@ server/
     utils/                    # Shared utilities (xmlTokenizer, referenceParser, workspaceScanner)
     messages/                 # Localization (en.json, fr.json)
     data/                     # Static schema data (ditaSchema.ts, ditaSpecialization.ts)
-  test/                       # 1,134 server tests (standalone Mocha)
+  test/                       # 1,167 server tests (standalone Mocha)
 
 dtds/                         # DITA 1.2, 1.3, 2.0 DTDs + OASIS catalogs
 docs/                         # Architecture docs

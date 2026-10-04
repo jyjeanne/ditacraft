@@ -265,7 +265,7 @@ The MCP server is a standalone process that bundles `server/src/` modules and ex
 | `llm/secretManager.ts` | API key storage via VS Code `SecretStorage` (never in plain-text settings) |
 | `llm/providers/copilotProvider.ts` | GitHub Copilot LLM provider via VS Code `vscode.lm` API (no external package needed) |
 | `llm/providers/anthropicProvider.ts` | Anthropic Claude provider via `@anthropic-ai/sdk` |
-| `llm/providers/openaiProvider.ts` | OpenAI GPT-4o provider via `openai` SDK |
+| `llm/providers/openaiProvider.ts` | OpenAI provider via `openai` SDK (default `gpt-6.1-sol`; reasoning-model parameters) |
 | `llm/providers/ollamaProvider.ts` | Ollama local provider via native `fetch`; `streamCompleted` flag guards incomplete streams |
 | `chat/ditacraftParticipant.ts` | `@ditacraft` Copilot Chat participant with `/restructure`, `/validate`, `/explain`, `/suggest-reuse` |
 

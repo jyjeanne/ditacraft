@@ -107,7 +107,8 @@ export async function handleDitaValidate(
         if (sev === 'warning') warningCount++;
         return {
             code: typeof d.code === 'string' ? d.code : String(d.code ?? ''),
-            message: d.message,
+            // LSP 3.18 types allow a MarkupContent message; the server sends strings.
+            message: typeof d.message === 'string' ? d.message : d.message.value,
             severity: sev,
             line: d.range.start.line + 1,
             column: d.range.start.character + 1,

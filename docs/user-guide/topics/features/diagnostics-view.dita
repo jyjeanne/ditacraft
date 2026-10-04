@@ -7,7 +7,7 @@
     <conbody>
         <section id="overview">
             <title>Overview</title>
-            <p>The Diagnostics view in the DitaCraft Activity Bar aggregates all DITA-related validation issues from across your workspace. Unlike the built-in Problems panel, this view filters specifically for DITA diagnostics and offers two grouping modes for easier triage.</p>
+            <p>The Diagnostics view in the DITA Craft Activity Bar aggregates all DITA-related validation issues from across your workspace. Unlike the built-in Problems panel, this view filters specifically for DITA diagnostics and offers two grouping modes for easier triage.</p>
             <p><b>Command:</b> <uicontrol>DITA: Refresh Diagnostics</uicontrol></p>
         </section>
 

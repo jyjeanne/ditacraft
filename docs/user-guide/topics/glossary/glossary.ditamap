@@ -47,6 +47,7 @@
 
     <!-- P -->
     <topicref href="gloss-profiling.dita" keys="gloss-profiling"/>
+    <topicref href="gloss-properties-view.dita" keys="gloss-properties-view"/>
     <topicref href="gloss-publishing-profile.dita" keys="gloss-publishing-profile"/>
 
     <!-- M -->
@@ -72,6 +73,7 @@
     <!-- V -->
     <topicref href="gloss-validation.dita" keys="gloss-validation"/>
     <topicref href="gloss-validation-engine.dita" keys="gloss-validation-engine"/>
+    <topicref href="gloss-visual-editor.dita" keys="gloss-visual-editor"/>
 
     <!-- W -->
     <topicref href="gloss-watch-mode.dita" keys="gloss-watch-mode"/>

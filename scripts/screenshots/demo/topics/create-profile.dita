@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="create-profile">
+  <title>Creating a sync profile</title>
+  <shortdesc>A sync profile tells <keyword keyref="product-name"/> which folders to keep in
+    step, and how often.</shortdesc>
+  <taskbody>
+    <prereq>
+      <p>Install the desktop client first: see <xref keyref="install-client"/>. You also need
+        write access to the workspace folder you want to share.</p>
+    </prereq>
+    <context>
+      <note conref="../shared/notices.dita#notices/pair-once"/>
+      <p>A profile pairs one folder on this computer with one folder in your workspace.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Open <uicontrol>Settings</uicontrol> and select the <uicontrol>Profiles</uicontrol>
+          tab.</cmd>
+      </step>
+      <step>
+        <cmd>Click <uicontrol>New profile</uicontrol> and give it a <b>short, unique</b> name.</cmd>
+        <info>
+          <p>The name appears in the tray menu and in the activity log.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Choose the local folder and the workspace folder to pair.</cmd>
+        <info>
+          <fig id="fig-pairing">
+            <title>How a profile pairs two folders</title>
+            <image keyref="sync-diagram" width="440"><alt>A laptop folder and a workspace folder
+                linked by two arrows through the sync service</alt></image>
+          </fig>
+        </info>
+      </step>
+      <step>
+        <cmd>Set the schedule, for example <codeph>every 15 min</codeph>, and click
+            <uicontrol>Save</uicontrol>.</cmd>
+      </step>
+    </steps>
+    <result>
+      <p>The first sync starts at once. Its settings are described in
+        <xref href="sync-options.dita#sync-options/defaults"/>.</p>
+    </result>
+  </taskbody>
+</task>

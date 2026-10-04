@@ -20,7 +20,7 @@ export class Logger {
     private enableConsoleLogging: boolean;
 
     private constructor() {
-        this.outputChannel = vscode.window.createOutputChannel('DitaCraft');
+        this.outputChannel = vscode.window.createOutputChannel('DITA Craft');
 
         // Initialize with empty values - will be set by loadConfiguration
         this.logLevel = LogLevel.INFO;

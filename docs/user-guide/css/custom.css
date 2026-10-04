@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DitaCraft User Guide — Custom Stylesheet
+   DITA Craft User Guide — Custom Stylesheet
    Targets DITA-OT 4.x HTML5 output classes for precise rendering.
    ========================================================================== */
 
@@ -127,7 +127,7 @@ body > main[role="main"] {
 }
 
 /* --------------------------------------------------------------------------
-   4. CUSTOM HEADER (DitaCraft brand bar)
+   4. CUSTOM HEADER (DITA Craft brand bar)
    -------------------------------------------------------------------------- */
 
 .ditacraft-header {

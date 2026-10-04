@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor-reuse">
+    <title>Reused Content, Keys and Link Titles</title>
+    <shortdesc>The visual editor shows reused content, keys' texts, link targets' titles and keyed
+        images resolved on the page, as your output will show them — and lets you open the source of
+        reused content or make a local copy of it.</shortdesc>
+
+    <conbody>
+        <section id="reused-content">
+            <title>Reused Content</title>
+            <p>An element reused with <codeph>conref</codeph> or <codeph>conkeyref</codeph> shows in
+                a box: the reference above, then the reused content as the preview renders it — keys,
+                    <codeph>conrefend</codeph> ranges, reuse inside reused content and images
+                resolved. It is read only, and follows changes in the reused file, saved or not. Reuse
+                that cannot be resolved (a missing file, element or key) says why.</p>
+            <p>Click the box: a bar offers two actions.</p>
+            <fig id="fig-reuse">
+                <title>A reused note, selected</title>
+                <image href="../../images/visual-editor-reuse.png" placement="break" align="center" width="6.5in">
+                    <alt>An important note reused from shared/notices.dita shown in a box on the page;
+                        below it, a bar with Open source and Replace with copy.</alt>
+                </image>
+            </fig>
+            <dl>
+                <dlentry>
+                    <dt>Open source</dt>
+                    <dd>Opens the reused element in its own file, at the element.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Replace with copy</dt>
+                    <dd>Replaces the reference with a copy of what it reuses, to change it in this
+                        topic only. <uicontrol>Ctrl+Z</uicontrol> on the page puts the reference
+                        back.</dd>
+                </dlentry>
+            </dl>
+            <p>The copy is what DITA's conref resolution gives: the element keeps its own attributes
+                and takes the reused element's other attributes (not its <codeph>@id</codeph>); a
+                    <codeph>conrefend</codeph> range becomes every element of the range. Relative
+                references in the copy are rewritten so they still point to the same files, and an
+                    <codeph>@id</codeph> the topic already uses is dropped.</p>
+        </section>
+
+        <section id="keys-and-links">
+            <title>Keys, Link Titles and Keyed Images</title>
+            <ul>
+                <li>A phrase given by a key (<codeph>&lt;keyword keyref="product-name"/&gt;</codeph>)
+                    shows the key's text, with a dotted underline.</li>
+                <li>An empty link (<codeph>&lt;xref href="…"/&gt;</codeph> or
+                        <codeph>&lt;xref keyref="…"/&gt;</codeph>) shows its target's title.</li>
+                <li>An image given by a key shows the file the key points to.</li>
+            </ul>
+            <p>Hover them to see where they come from. They follow changes to the target, its title or
+                the maps. A key that is not defined, or a target that cannot be found, shows
+                    <codeph>[key]</codeph> or the address, marked, with the reason on hover.</p>
+            <note type="tip">Resolved texts are shown, never written: the file keeps its
+                    <codeph>keyref</codeph> and empty links exactly as they are.</note>
+        </section>
+    </conbody>
+</concept>

@@ -3,7 +3,7 @@
 <glossentry id="gloss-live-preview">
     <glossterm>Live Preview</glossterm>
     <glossdef>
-        <p>A DitaCraft feature that renders DITA content as HTML5 in real-time. The preview updates automatically as you edit and supports bidirectional scroll synchronization. Shortcut: <uicontrol>Ctrl+Shift+H</uicontrol>.</p>
+        <p>A DITA Craft feature that shows a topic as a formatted page beside its source. The visual preview (the default) renders the topic itself as you type — no DITA-OT, no save — with keys, reuse and link titles resolved and bidirectional scroll synchronization; the DITA-OT preview shows real DITA-OT HTML5 output. Shortcut: <uicontrol>Ctrl+Shift+H</uicontrol>.</p>
     </glossdef>
     <related-links>
         <link href="../features/preview.dita"/>

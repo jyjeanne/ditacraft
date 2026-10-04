@@ -7,7 +7,7 @@
  */
 
 import * as vscode from 'vscode';
-import { ILLMProvider, LLMRequest, LLMResponse } from '../types';
+import { ConnectionCheck, ILLMProvider, LLMRequest, LLMResponse } from '../types';
 
 export class CopilotLLMProvider implements ILLMProvider {
     readonly id = 'copilot';
@@ -24,6 +24,24 @@ export class CopilotLLMProvider implements ILLMProvider {
             return models.length > 0;
         } catch {
             return false;
+        }
+    }
+
+    /**
+     * Lists Copilot's chat models through VS Code, which offers them only while Copilot is signed in.
+     * No request is sent: one would use Copilot quota (and ask for the user's consent on first use).
+     */
+    async checkConnection(): Promise<ConnectionCheck> {
+        try {
+            const models = await vscode.lm.selectChatModels({ vendor: 'copilot' });
+            if (models.length === 0) {
+                return { ok: false, detail: 'No Copilot chat model found: install GitHub Copilot and sign in.' };
+            }
+            const names = [...new Set(models.map(m => m.name))];
+            const shown = names.slice(0, 3).join(', ') + (names.length > 3 ? '…' : '');
+            return { ok: true, detail: `GitHub Copilot is signed in: ${models.length} chat model${models.length === 1 ? '' : 's'} (${shown}).` };
+        } catch (error: unknown) {
+            return { ok: false, detail: `GitHub Copilot did not answer: ${error instanceof Error ? error.message : String(error)}` };
         }
     }
 

@@ -2,18 +2,18 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="activity-bar">
     <title>Activity Bar Views</title>
-    <shortdesc>DitaCraft provides a dedicated sidebar in the VS Code Activity Bar with three tree views for project navigation, key management, and diagnostics.</shortdesc>
+    <shortdesc>DITA Craft provides a dedicated sidebar in the VS Code Activity Bar with three tree views for project navigation, key management, and diagnostics.</shortdesc>
 
     <conbody>
         <section id="overview">
             <title>Overview</title>
-            <p>The DitaCraft Activity Bar adds a dedicated icon to the VS Code sidebar. Clicking it reveals three specialized views that give you an at-a-glance overview of your DITA project:</p>
+            <p>The DITA Craft Activity Bar adds a dedicated icon to the VS Code sidebar. Clicking it reveals three specialized views that give you an at-a-glance overview of your DITA project:</p>
             <ul>
                 <li><b>DITA Explorer:</b> Browse all workspace maps with expandable hierarchy and type-specific icons</li>
                 <li><b>Key Space:</b> View all defined, undefined, and unused keys with usage locations</li>
                 <li><b>Diagnostics:</b> Centralized DITA validation issues grouped by file or severity</li>
             </ul>
-            <p>To open the DitaCraft sidebar, click the DitaCraft icon in the Activity Bar on the left side of VS Code.</p>
+            <p>To open the DITA Craft sidebar, click the DITA Craft icon in the Activity Bar on the left side of VS Code.</p>
             <p>Additionally, the VS Code status bar shows the current <b>root map</b> status. Click it to set or change the root map for key resolution and cross-reference validation. See <xref keyref="root-map"/> for details.</p>
         </section>
 
@@ -37,7 +37,7 @@
 
         <section id="welcome-content">
             <title>Welcome Content</title>
-            <p>When a view has no data to display, DitaCraft shows helpful welcome messages:</p>
+            <p>When a view has no data to display, DITA Craft shows helpful welcome messages:</p>
             <ul>
                 <li><b>DITA Explorer (no maps):</b> Suggests creating a new map or bookmap</li>
                 <li><b>DITA Explorer (no folder):</b> Suggests opening a folder containing DITA files</li>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor-problems">
+    <title>Problems and Quick Fixes in the Visual Editor</title>
+    <shortdesc>The language server's errors and warnings are marked on the page where they are, and
+        their quick fixes are one keystroke away.</shortdesc>
+
+    <conbody>
+        <section id="marks">
+            <title>Problems on the Page</title>
+            <p>The problems listed in the <uicontrol>Problems</uicontrol> panel — DTD validation, DITA
+                rules, references, your custom rules — are marked on the page as you edit:</p>
+            <ul>
+                <li>a problem in the text of a paragraph underlines that text (wavy: red for errors,
+                    orange for warnings, blue for information);</li>
+                <li>a problem on an element — an attribute such as a duplicate <codeph>@id</codeph>,
+                    or an element shown as a box such as an image or reused content — marks the
+                    element.</li>
+            </ul>
+            <p>Hover a mark for its messages. With the cursor in a mark, the status line shows the
+                message; the problem count next to it goes to the next problem. Marks move with the
+                text while you type, and are refreshed a moment after you stop.</p>
+        </section>
+
+        <section id="quick-fixes">
+            <title>Quick Fixes</title>
+            <p>With the cursor in a mark, press <uicontrol>Ctrl+.</uicontrol>, choose
+                    <uicontrol>Quick Fix…</uicontrol> at the top of the right-click menu, or click the
+                message in the status line. The menu lists the fixes VS Code offers for that problem
+                — the same as the light bulb in the text editor; the recommended fix is marked
+                with a star.</p>
+            <fig id="fig-quick-fix">
+                <title>The quick fix of an image without alternative text</title>
+                <image href="../../images/visual-editor-quick-fix.png" placement="break" align="center" width="6.5in">
+                    <alt>An image marked with a dashed outline; below it, the quick fix menu with the
+                        message of the problem and the fix Add alt element. The status line shows the
+                        same message and 1 problem.</alt>
+                </image>
+            </fig>
+            <p>The language server's fixes include adding a missing <codeph>&lt;alt&gt;</codeph>,
+                    <codeph>&lt;title&gt;</codeph> or <codeph>@id</codeph>, making a duplicate
+                    <codeph>@id</codeph> unique, removing an empty element, adding
+                    <codeph>@otherrole</codeph> and turning <codeph>@alt</codeph> into
+                    <codeph>&lt;alt&gt;</codeph>. With AI set up, <uicontrol>Fix with DITA Craft
+                    AI</uicontrol> is offered too (see <xref keyref="ai-features"/>).</p>
+            <dl>
+                <dlentry>
+                    <dt>Fixes made on the page</dt>
+                    <dd>A fix that only changes this topic is made on the page like your own edits:
+                            <uicontrol>Ctrl+Z</uicontrol> on the page takes it back, and only what it
+                        changes is rewritten.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Fixes applied to the document</dt>
+                    <dd>A fix the page cannot make — one before the root element such as
+                            <uicontrol>Add DOCTYPE</uicontrol>, a command such as <uicontrol>Fix with
+                            DITA Craft AI</uicontrol>, or one that changes other files — is applied to
+                        the document directly. The page then follows the document as after a change in
+                        the text editor; the text editor's undo still has the fix.</dd>
+                </dlentry>
+            </dl>
+        </section>
+    </conbody>
+</concept>

@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="cross-ref-validation">
     <title>Cross-Reference Validation</title>
-    <shortdesc>DitaCraft validates cross-file references including href, conref, keyref, and conkeyref attributes to catch broken links before publishing.</shortdesc>
+    <shortdesc>DITA Craft validates cross-file references including href, conref, keyref, and conkeyref attributes to catch broken links before publishing.</shortdesc>
 
     <conbody>
         <section id="overview">

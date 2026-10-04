@@ -3,7 +3,7 @@
 <glossentry id="gloss-auto-validate">
     <glossterm>Auto-validation</glossterm>
     <glossdef>
-        <p>A DitaCraft feature that automatically validates DITA files when they are opened, saved, or modified. Controlled by the <codeph>ditacraft.autoValidate</codeph> setting.</p>
+        <p>A DITA Craft feature that automatically validates DITA files when they are opened, saved, or modified. Controlled by the <codeph>ditacraft.autoValidate</codeph> setting.</p>
     </glossdef>
     <related-links>
         <link href="../settings/validation-settings.dita"/>

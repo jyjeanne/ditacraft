@@ -3,7 +3,7 @@
 <glossentry id="gloss-watch-mode">
     <glossterm>Watch Mode</glossterm>
     <glossdef>
-        <p>A DitaCraft mode, started with <b>DITA: Start Watch Mode</b>, that automatically re-runs
+        <p>A DITA Craft mode, started with <b>DITA: Start Watch Mode</b>, that automatically re-runs
             a full DITA-OT publish whenever a watched DITA file changes. Not incremental — DITA-OT
             has no first-class incremental build mode, so every change triggers a complete
             republish.</p>

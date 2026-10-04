@@ -1,56 +1,136 @@
-# DitaCraft
+# DITA Craft
 
 **The easiest way to edit and publish your DITA files**
 
-[![VS Code](https://img.shields.io/badge/VS%20Code-1.80+-blue.svg)](https://code.visualstudio.com/)
+[![VS Code](https://img.shields.io/badge/VS%20Code-1.125+-blue.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-0.9.0-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.0-orange.svg)](CHANGELOG.md)
 
-DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, real-time validation, smart navigation, AI-powered assistance, an MCP server for external AI agents, and seamless integration with DITA-OT for multi-format publishing.
+DITA Craft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, real-time validation, smart navigation, AI-powered assistance, an MCP server for external AI agents, and seamless integration with DITA-OT for multi-format publishing. And now a **visual editor**: edit your topics on a formatted page — tables, images, links, reused content, problems and quick fixes included — and your maps and bookmaps as rows that show each topic's title, while DITA Craft keeps your DITA content clean, with a live **visual preview** and a **Properties view** for attributes.
 
-## Table of Contents
+![The DITA Craft visual editor on the left and the same topic's XML on the right, the cursor on the same word in both](docs/images/visual-editor.png)
 
-- [Highlights](#highlights)
-- [Features](#features)
-  - [Language Server Protocol (LSP)](#%EF%B8%8F-language-server-protocol-lsp)
-  - [AI-Powered Features](#-ai-powered-features-github-copilot-integration)
-  - [Smart Navigation](#-smart-navigation)
-  - [Advanced Validation](#-advanced-validation)
-  - [One-Click Publishing](#-one-click-publishing)
-  - [Live Preview](#%EF%B8%8F-live-preview)
-  - [Activity Bar Views](#-activity-bar-views)
-  - [Map Visualizer](#%EF%B8%8F-map-visualizer)
+*The visual editor (left) and the DITA topic (right): each change on the page is one small edit of the XML, and the two cursors follow each other.*
+
+## ✨ New: the visual editor
+
+Open a topic or a map with **DITA: Open in Visual Editor** — or right-click its tab → **Reopen Editor With…** → **DITA Visual Editor**. Every change reaches the file as a small text edit, so undo, save, Git diffs, validation and publishing work exactly as with the text editor.
+
+### Your page and your XML, side by side
+
+- **Write naturally** — Enter starts the next paragraph, list item or step; Tab nests lists; `Ctrl+B`, `Ctrl+I`, `Ctrl+E` for bold, italic and code
+- **Guided by your DTD** — the Style list, the **Insert** menu and Enter offer only what your document type allows; specializations behave like what they specialize
+- **Cursors in step** — next to the text editor, the page and the source follow each other's cursor and scrolling, to the character
+- **Minimal edits** — the rest of the file stays as it was: line breaks, entities, comments, attribute order. A Git diff shows your change and nothing else
+
+### Everything the DTD allows, one right-click away
+
+![The right-click menu on selected words, with Wrap in open: common phrase elements first, the others by domain](docs/images/visual-editor-context-menu.png)
+
+- **Insert after** and **Insert inline / Wrap in** — common elements first, the others grouped by domain (Programming, Software, User interface…)
+- **Change to**, **Table**, and on the element at the cursor: **Select**, **Move up/down**, **Remove tags**, **Delete**, **Attributes…**
+- Fully usable from the keyboard: Menu key or `Shift+F10`, arrows, type-ahead
+
+### Tables on the CALS grid
+
+![A CALS table of sync settings: a column border is dragged and a guide shows the new column widths](docs/images/visual-editor-table.png)
+
+- Insert and delete rows and columns, merge and split cells, header row, `Tab` between cells
+- `colspec`, `namest`/`nameend`, `morerows` and `@cols` stay consistent; simple tables too
+- **Drag a column border** to set widths — written as `30*`/`70*`, fixed units kept
+
+### Reused content, keys and links — resolved
+
+![A note reused from a shared topic, in its box and selected: Open source and Replace with copy](docs/images/visual-editor-reuse.png)
+
+- `conref`/`conkeyref` boxes show the reused content, updated when its file changes — even unsaved
+- **Open source** opens the reused element; **Replace with copy** makes a local copy, references rewritten (undoable)
+- Phrases given by a key show the key's text, empty links their target's title, keyed images their file
+
+### Images, links and the Properties view
+
+![An image given by a key, selected: its resize handle on the page and its attributes in the Properties view of the DITA Craft side bar](docs/images/visual-editor-properties.png)
+
+- **Images** — insert one in the text, on its own line or in a figure; paste a screenshot or drop image files; **drag the corner to resize**
+- **Properties view** — the attributes of the element at the cursor, from the DTD: lists of allowed values, defaults, required marks, subject-scheme values, id checks. A change rewrites only that attribute — in the visual editor and in the text editor
+- **Links** — **`Ctrl+K`** links the selected text, or inserts an empty link that shows its target's title:
+
+![The link target picker: elements of this topic, keys of the root map, topics and maps of the workspace, web addresses](docs/images/visual-editor-link-picker.png)
+
+### Problems and quick fixes on the page
+
+![An image without alternative text marked on the page; Ctrl+. lists its quick fix, Add alt element](docs/images/visual-editor-quick-fix.png)
+
+- The language server's errors and warnings are marked where they are, as you type; the status line shows the message at the cursor
+- **`Ctrl+.`** lists the quick fixes — made on the page, undone with `Ctrl+Z`
+
+### Maps and bookmaps, row by row
+
+![A DITA map in the visual editor next to its XML: key definitions with their keys, two topic heads with their topics' titles, a row selected and the XML cursor on the same reference](docs/images/visual-editor-map.png)
+
+- **Every reference is a row** — `topicref`, `chapter`, `keydef`, `topichead`, `mapref`… nested as in the map, with its kind, its keys and its target
+- **Titles, not file names** — a row shows its navtitle, or the title of the topic or map it points to (through the key for `keyref`), kept up to date; a missing target is marked
+- **Open target** — double-click, `Ctrl+click` or `Enter` opens the topic beside the map
+- **Add and retarget references from a picker** — keys, topics and maps of the workspace; **F2** edits a row's label (its navtitle)
+- **Rearrange by hand** — drag rows, or `Tab`/`Shift+Tab` to nest them, wherever the DTD allows; moved XML is re-indented, nothing else changes
+- **Fold and navigate** — fold rows, move between them with the arrow keys, set their attributes in the Properties view
+- **Topics in their map's context** — the preview and the editor resolve a topic's keys in the map (and key scope) it is used in, with the language and filtering the map gives it; choose the place from the status line
+- **Relationship tables as tables** — column types as headers, references in the cells; rows and columns added, moved and deleted as a grid, references added or dragged into cells
+
+## 👁️ Live visual preview
+
+![A topic in the text editor with the live visual preview beside it](docs/images/visual-preview.png)
+
+- **`DITA: Preview`** (`Ctrl+Shift+H`) renders the topic as you type — no DITA-OT, no Java, no save
+- Keys, reuse, link titles, glossary terms, the DITAVAL filter and problems resolved and shown on the page — keys in the topic's map context (its map and key scope)
+- Exact scroll sync both ways; click the page to put the cursor there
+- DITA-OT HTML5 class names, so your `ditacraft.previewCustomCss` keeps working; `DITA: Preview with DITA-OT` is one command away
+
+Choose a `.ditaval` file with **DITA: Set Preview DITAVAL Filter** and both sides show it: the preview leaves out what the filter excludes and shows its flags, and the text editor dims the excluded elements and gives flagged ones their flag's colour, style and start/end flags:
+
+![A task filtered for Windows: in the text editor the macOS and Linux steps are dimmed and struck through, and the steps flagged Admin, Check and New in 2.0 are tinted in their flags' colours; the visual preview beside it shows the same flags without the excluded steps](docs/images/condition-highlighting.png)
+
+The page follows your theme — light, dark or VS Code's:
+
+![The visual editor with a dark page](docs/images/visual-editor-dark.png)
+
+## Contents
+
+- [All Features](#all-features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Commands](#commands)
 - [Configuration](#configuration)
 - [AI Provider Configuration](#ai-provider-configuration)
 - [MCP Server Integration](#mcp-server-integration-external-ai-agents)
-- [Development](#development)
+- [Workflows](#workflows)
+- [Troubleshooting](#troubleshooting)
+- [Documentation](#documentation)
+- [Recent Updates](#recent-updates)
 - [Roadmap](#roadmap)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## Highlights
 
+✍️ **Visual Editor** - Edit topics on a formatted page, side by side with their XML, and maps as rows of titled references; every change is a minimal text edit, the rest of the file stays as it was
+👁️ **Visual Preview** - A live page of the topic as you type — no DITA-OT, no save — with keys, reuse, DITAVAL, problems and exact scroll sync
+🧩 **Properties View** - The attributes of the element at the cursor, from the DTD, for the visual and the text editor
 🔗 **Smart Navigation** - Ctrl+Click on `href`, `conref`, `keyref`, and `conkeyref` attributes with full key space resolution
-🔑 **Key Space Resolution** - Full DITA 1.3 spec-compliant key space construction: keyref chains, keyscope inheritance (PushDown), inline scope branches, provenance tracking, scope explosion protection (50 k cap), and `explainKey()` resolution diagnostics
-✅ **13-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG (salve-annos) + 43 DITA rules + custom rules with DITA 1.2/1.3/2.0 support, per-phase error isolation, severity overrides, and comment-based suppression
-🌍 **Localized Diagnostics** - All 76+ diagnostic messages translatable (English + French included)
-⚡ **Real-time Validation** - Smart debouncing (300ms topics, 1000ms maps) with per-document cancellation
-🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, command injection prevention, and quote-aware entity pre-checks (billion-laughs / XXE bypass-proof)
+🔑 **Key Space Resolution** - Full DITA 1.3 key space: keyref chains, keyscopes, provenance tracking and `explainKey()` diagnostics
+✅ **13-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG + 43 DITA rules + custom rules for DITA 1.2/1.3/2.0, with severity overrides and comment-based suppression
+🌍 **Localized** - Diagnostics and the visual editor in English and French
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
-👁️ **Live Preview** - Side-by-side HTML5 preview with auto-refresh and bidirectional scroll sync
-🗺️ **Map Visualizer** - Interactive tree view of DITA map hierarchies with navigation
-📂 **Activity Bar Views** - DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
-📝 **21 Smart Snippets** - Comprehensive DITA code snippets for rapid editing
-🛡️ **Rate Limiting** - Built-in DoS protection for validation operations
-🤖 **AI-Powered Features** - GitHub Copilot integration: `@ditacraft` chat participant, AI Quick Fix, AI Completion, map restructuring, and multi-provider cascade (Copilot → Anthropic → OpenAI → Ollama)
-🔌 **MCP Server** - Standalone Model Context Protocol server for external AI agents (opencode, Claude Desktop, Cursor, Continue) — 6 tools, 3 resources, zero VS Code dependency
-🧪 **2183+ Tests** - Extensively tested with comprehensive integration, security, and LSP server tests
-📚 **DITA User Guide** - Comprehensive documentation written in DITA (~80 files, bookmap structure)
+🗺️ **Map Visualizer** & 📂 **Activity Bar Views** - Map hierarchies, DITA Explorer, Key Space and Diagnostics views
+🛠️ **Refactoring Tools** - Rename keys, move topics with reference updates, extract topics, inline conrefs
+🤖 **AI-Powered Features** - `@ditacraft` chat participant, AI Quick Fix, AI Completion, map restructuring (Copilot, Anthropic, OpenAI, Ollama)
+🔌 **MCP Server** - Model Context Protocol server for external AI agents (opencode, Claude Desktop, Cursor, Continue)
+🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, command injection prevention, bounded entity expansion
+🧪 **2183+ Tests** - Integration, security, LSP server, and editing fuzz tests
+📚 **DITA User Guide** - Complete documentation written in DITA (bookmap structure)
 
-## Features
+## All Features
 
 ### 🖥️ **Language Server Protocol (LSP)**
 - Full-featured DITA Language Server running in a separate process for performance
@@ -81,8 +161,8 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **Provider Cascade** — Auto mode: Copilot → Anthropic → OpenAI → Ollama; supports `copilot-only`, `byok-only`, `local-only` modes
 - **Circuit Breaker** — Per-provider resilience: 3 failures in 5 min opens the breaker (10 min cooldown); zero-dependency on unavailable providers
 - **Streaming Support** — AI responses stream in real time via `vscode.lm` (Copilot) or server-sent events (Anthropic/OpenAI); Ollama uses `/api/generate` with streaming chunks
-- **Metrics Dashboard** — Request counts, latency, and error rates per provider; visible in the Configure AI panel
-- **DitaCraft: Configure AI** — Guided setup for provider selection, API keys (stored securely via OS keychain), and feature toggles
+- **Metrics** — Provider, latency and estimated tokens of each AI call, logged to the DITA Craft output channel when `ditacraft.ai.telemetry.enabled` is on
+- **DITA Craft: Configure AI Settings** — Every provider's status and why (available, not configured, unavailable, not used in the AI mode), the AI mode, API keys (stored securely via the OS keychain) and a Test button per provider that checks the connection, key and model without using tokens; changes apply at once
 
 ### ✍️ **Syntax Highlighting & Snippets**
 
@@ -169,14 +249,11 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - Real-time progress tracking with visual indicators
 - Smart caching for faster preview generation
 
-### 👁️ **Live Preview**
-- Side-by-side HTML5 preview with WebView panel
-- Auto-refresh on save with configurable behavior
-- **Bidirectional scroll sync** - Editor and preview scroll positions stay synchronized
-- **Theme support** - Light, dark, and auto modes (follows VS Code theme)
-- **Custom CSS** - Apply custom stylesheets to preview
-- **Print preview mode** - Print-optimized view with dedicated print button
-- Navigate directly from source to preview
+### 👁️ **Visual Editor & Live Preview**
+
+- **Visual editor** (`DITA: Open in Visual Editor`) — edit topics on the page, and maps and bookmaps as rows; see [New: the visual editor](#-new-the-visual-editor) and [docs/VISUAL_EDITOR.md](docs/VISUAL_EDITOR.md)
+- **Visual preview** (`DITA: Preview`, the default engine) — a live page of the topic as you type, no DITA-OT; see [Live visual preview](#%EF%B8%8F-live-visual-preview) and [docs/VISUAL_PREVIEW.md](docs/VISUAL_PREVIEW.md)
+- **DITA-OT preview** (`DITA: Preview with DITA-OT`, also used for maps) — side-by-side HTML5 preview of real DITA-OT output, auto-refreshed on save, with bidirectional scroll sync, themes, custom CSS and a print preview mode
 
 ### 📊 **Build Output**
 - **Syntax-highlighted output** - DITA-OT build output with automatic colorization
@@ -186,7 +263,7 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 - **Validation report** - Full guide validation results in WebView panel with filtering, search, and export
 
 ### 📂 **Activity Bar Views**
-- **DitaCraft sidebar** in the Activity Bar with three dedicated tree views
+- **DITA Craft sidebar** in the Activity Bar with three dedicated tree views
 - **DITA Explorer** — All workspace maps with expandable hierarchy, type icons, click-to-open navigation
 - **Key Space View** — Defined, undefined, and unused keys with usage locations and key scope support
 - **Diagnostics View** — Aggregated DITA issues, group by file or severity, click-to-navigate
@@ -230,134 +307,8 @@ DitaCraft is a comprehensive Visual Studio Code extension for editing and publis
 4. Click `...` menu → "Install from VSIX..."
 5. Select the downloaded file
 
-### Local Installation for Development
-
-If you want to install the plugin locally from source code for development or testing:
-
-#### Step 1: Prerequisites
-Ensure you have the following installed:
-- **Node.js** 18.x or 20.x ([Download](https://nodejs.org/))
-- **npm** (comes with Node.js)
-- **VS Code** 1.80 or higher
-- **Git** (optional, for cloning)
-
-#### Step 2: Get the Source Code
-```bash
-# Clone the repository (or download ZIP from GitHub)
-git clone https://github.com/jyjeanne/ditacraft.git
-cd ditacraft
-
-# OR if you downloaded as ZIP:
-# Extract the ZIP file and navigate to the extracted folder
-cd DitaCraft
-```
-
-#### Step 3: Install Dependencies
-```bash
-npm install
-```
-This will install all required npm packages (~429 packages).
-
-#### Step 4: Compile TypeScript
-```bash
-npm run compile
-```
-This compiles the TypeScript source code to JavaScript in the `out/` directory.
-
-#### Step 5: Package the Extension
-```bash
-npm run package
-```
-This creates a `.vsix` file in the project root (e.g., `ditacraft-0.1.0.vsix`).
-
-**Note:** If you don't have `vsce` installed, install it first:
-```bash
-npm install -g @vscode/vsce
-```
-
-#### Step 6: Install in VS Code
-**Option A: Install from VSIX**
-1. Open VS Code
-2. Press `Ctrl+Shift+X` (or `Cmd+Shift+X` on macOS) to open Extensions
-3. Click the `...` menu at the top right
-4. Select "Install from VSIX..."
-5. Navigate to your project folder
-6. Select the `ditacraft-0.1.0.vsix` file
-7. Click "Install"
-8. Reload VS Code when prompted
-
-**Option B: Run in Development Mode** (Recommended for testing)
-1. Open the `ditacraft` folder in VS Code
-2. Press `F5` (or Run → Start Debugging)
-3. A new VS Code window opens with the extension loaded
-4. Test the extension in this window
-5. Make changes to code, save, and press `Ctrl+R` in the Extension Host window to reload
-
-#### Step 7: Verify Installation
-1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-2. Type "DITA" - you should see all DitaCraft commands
-3. Try creating a new topic: "DITA: Create New Topic"
-
-#### Step 8: Configure DITA-OT (Optional, for publishing)
-1. Download DITA-OT from https://www.dita-ot.org/download
-2. Extract to a location (e.g., `C:\DITA-OT-4.2.1`)
-3. In VS Code, run "DITA: Configure DITA-OT Path"
-4. Select your DITA-OT installation directory
-
-### Troubleshooting Local Installation
-
-#### Issue: `npm install` fails
-**Solution:**
-- Check Node.js version: `node --version` (should be 18.x or 20.x)
-- Clear npm cache: `npm cache clean --force`
-- Delete `node_modules` and `package-lock.json`, then run `npm install` again
-
-#### Issue: Compilation errors
-**Solution:**
-- Ensure TypeScript is installed: `npm install -g typescript`
-- Check for syntax errors in `.ts` files
-- Run `npm run lint` to check for code issues
-
-#### Issue: Extension not appearing in VS Code
-**Solution:**
-- Verify the `.vsix` file was created successfully
-- Check VS Code version is 1.80 or higher
-- Try uninstalling any existing version first
-- Restart VS Code completely
-
-#### Issue: "Cannot find module" errors
-**Solution:**
-- Run `npm install` again
-- Check that `node_modules` directory exists
-- Verify `package.json` has all dependencies
-
-### Development Workflow
-
-For active development on the extension:
-
-```bash
-# Terminal 1: Watch mode (auto-compile on changes)
-npm run watch
-
-# Terminal 2: Run extension in debug mode
-# Press F5 in VS Code (or Run → Start Debugging)
-```
-
-**Making Changes:**
-1. Edit TypeScript files in `src/`
-2. Watch mode auto-compiles to `out/`
-3. In Extension Host window, press `Ctrl+R` (or `Cmd+R`) to reload
-4. Test your changes
-
-**Running Tests:**
-```bash
-npm test
-```
-
-**Linting Code:**
-```bash
-npm run lint
-```
+### From source
+To build and install DITA Craft from its source code (development, testing), see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Prerequisites
 
@@ -376,7 +327,7 @@ npm run lint
 ### 1. Install DITA-OT
 Download and install DITA-OT from https://www.dita-ot.org/download
 
-### 2. Configure DitaCraft
+### 2. Configure DITA Craft
 1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Type "DITA: Configure DITA-OT Path"
 3. Select your DITA-OT installation directory
@@ -387,7 +338,12 @@ Download and install DITA-OT from https://www.dita-ot.org/download
 3. Select topic type (concept, task, reference)
 4. Enter file name
 
-### 4. Publish
+### 4. Edit visually
+1. Open a topic, then run `DITA: Open in Visual Editor` (or right-click its tab → **Reopen Editor With…** → **DITA Visual Editor**)
+2. Edit on the page; the XML is updated as you type
+3. `DITA: Preview` (`Ctrl+Shift+H`) shows a live page of the topic you edit in the text editor
+
+### 5. Publish
 1. Open your `.dita`, `.ditamap`, or `.bookmap` file
 2. Press `Ctrl+Shift+B` / `Cmd+Shift+B`
 3. Select output format (HTML5, PDF, etc.)
@@ -402,7 +358,15 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Validate Current File** | `Ctrl+Shift+V` | Validate DITA syntax and structure |
 | **DITA: Publish (Select Format)** | `Ctrl+Shift+B` | Publish with format selection |
 | **DITA: Publish to HTML5** | - | Quick publish to HTML5 |
-| **DITA: Preview HTML5** | `Ctrl+Shift+H` | Show live HTML5 preview |
+| **DITA: Preview** | `Ctrl+Shift+H` | Show the visual preview (live, no DITA-OT); maps use DITA-OT |
+| **DITA: Preview with DITA-OT** | - | Show the DITA-OT HTML5 preview |
+| **DITA: Set Preview DITAVAL Filter** | - | Filter both previews through a `.ditaval` file |
+| **DITA: Preview — Show/Hide Markup** | - | Show prolog, comments, index terms and draft comments in the visual preview |
+| **DITA: Preview — Go to Source** | - | Open the source at the element selected in the visual preview |
+| **DITA: Preview — Lock/Unlock to This Topic** | - | Keep the visual preview on one topic instead of following the editor |
+| **DITA: Open in Visual Editor** | - | Edit the topic on the page (an alternative editor; the text editor stays the default) |
+| **DITA: Open Source** | - | Back from the visual editor to the text editor |
+| **DITA: Show Properties** | - | Show the attributes of the element at the cursor (text or visual editor) |
 | **DITA: Show Map Visualizer** | - | Show interactive map hierarchy |
 | **DITA: Create New Topic** | - | Create new DITA topic |
 | **DITA: Create New Map** | - | Create new DITA map |
@@ -412,13 +376,13 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Clear Root Map** | - | Revert to automatic root map discovery |
 | **DITA: Validate Workspace** | - | Validate all DITA files across workspace |
 | **DITA: Validate Entire Guide** | - | Full DITA-OT validation of root map with report panel |
-| **DITA: Configure AI Settings** | - | Configure AI provider, API keys, and feature toggles |
-| **DITA: Restructure Map with AI** | `F2` | AI-driven map restructuring with diff review |
+| **DITA Craft: Configure AI Settings** | - | AI providers' status, AI mode, API keys |
+| **DITA Craft: Restructure Active DITA Map** | - | AI-driven map restructuring with diff review |
 | **DITA: Setup cSpell Configuration** _(deprecated)_ | - | Create a lean cSpell config for DITA files |
 
 ## Spell Checking with cSpell
 
-DitaCraft provides a lean `.cspellrc.json` template that works alongside the LSP server. Rather than maintaining a large DITA word list (which is now handled by the LSP), the configuration uses regex-based patterns to silently ignore XML tags and attribute syntax, so cSpell focuses exclusively on prose spelling errors in your content.
+DITA Craft provides a lean `.cspellrc.json` template that works alongside the LSP server. Rather than maintaining a large DITA word list (which is now handled by the LSP), the configuration uses regex-based patterns to silently ignore XML tags and attribute syntax, so cSpell focuses exclusively on prose spelling errors in your content.
 
 ### What the config does
 
@@ -435,7 +399,7 @@ The generated `.cspellrc.json`:
 **Option 1: Run the command** _(still works, now creates the lean config)_
 1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Type "DITA: Setup cSpell Configuration"
-3. Click the command — DitaCraft creates a `.cspellrc.json` in your workspace root
+3. Click the command — DITA Craft creates a `.cspellrc.json` in your workspace root
 
 **Option 2: Manual setup**
 
@@ -478,10 +442,18 @@ Create `.cspellrc.json` at your workspace root:
 | `ditacraft.defaultTranstype` | string | `"html5"` | Default output format |
 | `ditacraft.outputDirectory` | string | `"${workspaceFolder}/out"` | Output directory |
 | `ditacraft.autoValidate` | boolean | `true` | Auto-validate on save |
-| `ditacraft.previewAutoRefresh` | boolean | `true` | Auto-refresh preview |
-| `ditacraft.previewScrollSync` | boolean | `true` | Bidirectional scroll sync |
+| `ditacraft.previewEngine` | string | `"visual"` | Engine of `DITA: Preview`: `visual` (live, no DITA-OT) or `dita-ot` |
+| `ditacraft.previewAutoRefresh` | boolean | `true` | Auto-refresh the DITA-OT preview on save |
+| `ditacraft.previewScrollSync` | boolean | `true` | Bidirectional scroll sync (preview); cursor and scroll sync (visual editor beside the text editor) |
 | `ditacraft.previewTheme` | string | `"auto"` | Preview theme (auto/light/dark) |
 | `ditacraft.previewCustomCss` | string | `""` | Custom CSS for preview |
+| `ditacraft.imagePasteFolder` | string | `"images"` | Where the visual editor saves pasted images (relative to the topic's folder; `${workspaceFolder}` supported) |
+| `ditacraft.previewPageWidth` | number | `760` | Visual preview page width in px (`0` = fluid) |
+| `ditacraft.previewShowMarkup` | boolean | `false` | Visual preview: show prolog, comments, index terms, draft comments |
+| `ditacraft.previewShowExcluded` | boolean | `false` | Visual preview: dim DITAVAL-excluded content instead of removing it |
+| `ditacraft.previewResolveReferences` | boolean | `true` | Visual preview: resolve keys, reuse and link titles |
+| `ditacraft.previewResolveOnSave` | boolean | `true` | Visual preview: re-resolve references on save |
+| `ditacraft.previewUpdateDelayMs` | number | `150` | Visual preview: delay between an edit and the page update |
 | `ditacraft.showProgressNotifications` | boolean | `true` | Show progress notifications |
 | `ditacraft.validationEngine` | string | `"built-in"` | Validation engine (built-in/typesxml/xmllint) |
 | `ditacraft.ditaOtArgs` | array | `[]` | Custom DITA-OT arguments |
@@ -497,11 +469,10 @@ Create `.cspellrc.json` at your workspace root:
 | `ditacraft.largeFileThresholdKB` | number | `500` | Skip heavy validation phases for files larger than this (0 = disabled) |
 | `ditacraft.customRulesFile` | string | `""` | Absolute path to a JSON file defining custom regex validation rules |
 
-📖 **See the [All Settings](#all-settings) reference table above for the full list of configuration options.**
 
 ## AI Provider Configuration
 
-DitaCraft supports four LLM backends with automatic fallback. This section shows how to set up each one.
+DITA Craft supports four LLM backends with automatic fallback. This section shows how to set up each one.
 
 ### Provider Overview
 
@@ -509,7 +480,7 @@ DitaCraft supports four LLM backends with automatic fallback. This section shows
 |----------|----------|---------|----------|
 | **GitHub Copilot** | Active Copilot subscription | Data sent to GitHub | Default — zero config |
 | **Anthropic Claude** | `ANTHROPIC_API_KEY` (BYOK) | Data sent to Anthropic | Best reasoning quality |
-| **OpenAI (ChatGPT / GPT-4o)** | `OPENAI_API_KEY` (BYOK) | Data sent to OpenAI | Broad compatibility |
+| **OpenAI (GPT-6.1 Sol by default)** | `OPENAI_API_KEY` (BYOK) | Data sent to OpenAI | Broad compatibility |
 | **Ollama (local)** | Ollama running on your machine | **Stays local** | Air-gapped / privacy-first |
 
 The active mode is set with `ditacraft.ai.mode`:
@@ -531,7 +502,7 @@ The active mode is set with `ditacraft.ai.mode`:
 
 ### 🤖 GitHub Copilot (Default — No Setup Required)
 
-DitaCraft uses the built-in `vscode.lm` API; no npm package or API key needed.
+DITA Craft uses the built-in `vscode.lm` API; no npm package or API key needed.
 
 **Requirements:**
 - GitHub Copilot extension installed and signed in
@@ -540,7 +511,7 @@ DitaCraft uses the built-in `vscode.lm` API; no npm package or API key needed.
 **Steps:**
 1. Install the [GitHub Copilot extension](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot)
 2. Sign in with your GitHub account
-3. DitaCraft auto-detects Copilot and uses it immediately — nothing else to configure
+3. DITA Craft auto-detects Copilot and uses it immediately — nothing else to configure
 
 **Optional override (to use a specific Copilot model):**
 ```json
@@ -555,42 +526,42 @@ DitaCraft uses the built-in `vscode.lm` API; no npm package or API key needed.
 
 Claude is the highest-quality model available for structured content tasks like DITA map restructuring.
 
-**Supported models:** `claude-3-5-sonnet-20241022` (default), `claude-3-opus-20240229`, `claude-3-haiku-20240307`
+**Models:** `claude-sonnet-5-5` (default), `claude-opus-5-5`, `claude-haiku-4-5-20251001`, or any other model ID your key can use. **Test** in the panel checks that your key can use the configured model.
 
 **Steps:**
 1. Get an API key from [console.anthropic.com](https://console.anthropic.com/)
-2. Open the Command Palette and run **DitaCraft: Configure AI Settings**
-3. In the panel, paste your key into the **Anthropic** field and click **Save Key**
+2. Open the Command Palette and run **DITA Craft: Configure AI Settings**
+3. In the panel, paste your key into the **Anthropic Claude** field and click **Save** (it is used at once)
 4. The key is stored in your OS keychain via `vscode.SecretStorage` — never in `settings.json`
 5. Optionally choose your model:
 
 ```json
 {
   "ditacraft.ai.mode": "byok-only",
-  "ditacraft.ai.provider.anthropic.model": "claude-3-5-sonnet-20241022"
+  "ditacraft.ai.provider.anthropic.model": "claude-opus-5-5"
 }
 ```
 
-> **Key format:** Anthropic API keys start with `sk-ant-`. Keys not matching this prefix are rejected before any network call.
+> **Key format:** Anthropic API keys start with `sk-ant-`. Keys not matching this prefix are rejected before any network call. **Test** in the panel checks the key and the model with Anthropic (no tokens used).
 
 ---
 
 ### 💬 OpenAI / ChatGPT (BYOK)
 
-Supports GPT-4o (default), GPT-4 Turbo, and other OpenAI Chat Completions models.
+Supports OpenAI's Chat Completions models: GPT-6.1 Sol by default. With a reasoning model (the o-series, GPT-5 and later), DITA Craft asks for low reasoning effort and leaves room for the model's reasoning tokens.
 
-**Supported models:** `gpt-4o` (default), `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`
+**Models:** `gpt-6.1-sol` (default), `gpt-6-astra`, `gpt-6-luna`, or any other chat model your key can use (such as `gpt-4o`). **Test** in the panel checks that your key can use the configured model.
 
 **Steps:**
 1. Get an API key from [platform.openai.com](https://platform.openai.com/api-keys)
-2. Run **DitaCraft: Configure AI Settings** from the Command Palette
-3. Paste your key into the **OpenAI** field and click **Save Key**
+2. Run **DITA Craft: Configure AI Settings** from the Command Palette
+3. Paste your key into the **OpenAI** field and click **Save**
 4. Optionally set the model:
 
 ```json
 {
   "ditacraft.ai.mode": "byok-only",
-  "ditacraft.ai.provider.openai.model": "gpt-4o"
+  "ditacraft.ai.provider.openai.model": "gpt-6-astra"
 }
 ```
 
@@ -618,7 +589,7 @@ Ollama lets you run open-source models entirely on your machine — no data ever
 **Steps:**
 1. Install and start Ollama: `ollama serve`
 2. Pull your preferred model: `ollama pull llama3`
-3. Configure DitaCraft:
+3. Configure DITA Craft:
 
 ```json
 {
@@ -629,7 +600,7 @@ Ollama lets you run open-source models entirely on your machine — no data ever
 }
 ```
 
-4. Run **DitaCraft: Configure AI Settings** and click **Test Connection** to verify Ollama is reachable
+4. Run **DITA Craft: Configure AI Settings**: the **Ollama** row shows whether the server is reachable, and **Test** checks that it answers and has the model installed
 
 **Custom Ollama endpoint (remote server / Docker):**
 ```json
@@ -660,8 +631,8 @@ Track progress: see the [Roadmap](ROADMAP.md#milestone-7-publishing-enhancements
 {
   "ditacraft.ai.enabled": true,
   "ditacraft.ai.mode": "auto",
-  "ditacraft.ai.provider.anthropic.model": "claude-3-5-sonnet-20241022",
-  "ditacraft.ai.provider.openai.model": "gpt-4o",
+  "ditacraft.ai.provider.anthropic.model": "claude-sonnet-5-5",
+  "ditacraft.ai.provider.openai.model": "gpt-6.1-sol",
   "ditacraft.ai.provider.ollama.enabled": true,
   "ditacraft.ai.provider.ollama.baseUrl": "http://localhost:11434",
   "ditacraft.ai.provider.ollama.model": "llama3",
@@ -676,15 +647,15 @@ Track progress: see the [Roadmap](ROADMAP.md#milestone-7-publishing-enhancements
 
 ## MCP Server Integration (External AI Agents)
 
-DitaCraft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
+DITA Craft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
 
-> **Status:** MCP server is **available** since v0.8.0 (current release: v0.9.0). Build with `npm run build-standalone` to produce `dist/mcp-server.js` and `dist/lsp-server.js`.
+> **Status:** MCP server is **available** since v0.8.0 (current release: v0.10.0). Download `mcp-server-<version>.zip` and `lsp-server-<version>.zip` from the [GitHub releases](https://github.com/jyjeanne/ditacraft/releases), or build them with `npm run build-standalone` (`dist/mcp-server.js` and `dist/lsp-server.js`).
 
 ### What is MCP?
 
 [Model Context Protocol](https://modelcontextprotocol.io) is an open standard (by Anthropic) that lets AI agents call tools and read resources from external servers. Compatible agents include **opencode**, **Claude Desktop**, **Continue**, **Cursor**, and any MCP-aware tool.
 
-### DitaCraft MCP Server
+### DITA Craft MCP Server
 
 Run `npm run build-standalone` then configure your agent:
 
@@ -700,10 +671,10 @@ Run `npm run build-standalone` then configure your agent:
 | Resource | Description |
 |----------|-------------|
 | `dita://workspace/maps` | All DITA maps in the workspace |
-| `dita://workspace/diagnostics` | Current validation diagnostics |
-| `dita://workspace/keys` | Full key space |
+| `dita://workspace/diagnostics` | Current validation diagnostics; optional filters `?severity=error,warning&limit=50&filePattern=topics/**` (severity: `error`, `warning`, `information`, `hint`; limit: default 100, `0` for all) |
+| `dita://workspace/keys` | Full key space; optional filters `?search=product&includeScopes=false` |
 
-### Using DitaCraft with opencode
+### Using DITA Craft with opencode
 
 ```jsonc
 // ~/.config/opencode/opencode.json
@@ -726,7 +697,7 @@ Run `npm run build-standalone` then configure your agent:
 > @ditacraft explain why keyref install-guide isn't resolving
 ```
 
-### Using DitaCraft with Claude Desktop
+### Using DITA Craft with Claude Desktop
 
 ```json
 // macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
@@ -744,7 +715,7 @@ Run `npm run build-standalone` then configure your agent:
 
 ### Standalone LSP Server
 
-DitaCraft also ships a **standalone LSP server** bundle for embedding in other Node.js projects:
+DITA Craft also ships a **standalone LSP server** bundle for embedding in other Node.js projects:
 
 ```bash
 npm run build-standalone
@@ -766,7 +737,7 @@ const server = spawn('node', ['lsp-server.js', '--stdio'], {
 
 ## Supported Output Formats
 
-DitaCraft supports all DITA-OT transtypes:
+DITA Craft supports all DITA-OT transtypes:
 
 - **HTML5** - Modern responsive HTML
 - **PDF** - PDF via Apache FOP
@@ -805,13 +776,21 @@ Additional formats available through DITA-OT plugins.
 6. Publish: `Ctrl+Shift+B` → Select format
 7. Open output folder
 
+### Editing a Topic Visually
+
+1. Open a `.dita` topic and run `DITA: Open in Visual Editor`
+2. Write on the page: Enter for a new paragraph or step, `Ctrl+B`/`Ctrl+I`, the Style list, **Insert** and the right-click menu for any element the DTD allows
+3. `Ctrl+K` to link, **🖼** to insert an image, **Table** for tables
+4. Click **Open source** to see the XML beside it — both follow each other's cursor
+5. Save as usual: the file contains your XML, changed only where you edited
+
 ### Previewing Changes
 
-1. Open `.dita` file
-2. Make edits
-3. Press `Ctrl+Shift+H` to preview
-4. Preview auto-refreshes on save
-5. Toggle between source and preview
+1. Open a `.dita` file in the text editor
+2. Press `Ctrl+Shift+H`: the visual preview opens beside it
+3. Type: the preview follows within a fraction of a second, no save needed
+4. Click on the preview to put the cursor there; Ctrl+click follows a link
+5. `DITA: Preview with DITA-OT` shows the real DITA-OT HTML5 output (updated on save)
 
 ### Using Filters (DITAVAL)
 
@@ -821,161 +800,6 @@ Additional formats available through DITA-OT plugins.
         "--filter=filters/product-a.ditaval"
     ]
 }
-```
-
-## Development
-
-### Building from Source
-
-```bash
-# Clone repository
-git clone https://github.com/jyjeanne/ditacraft.git
-cd ditacraft
-
-# Install dependencies
-npm install
-
-# Compile TypeScript
-npm run compile
-
-# Run tests
-npm test
-
-# Package extension
-npm run package
-```
-
-### Project Structure
-
-```
-ditacraft/
-├── src/                         # Client-side extension code
-│   ├── extension.ts             # Entry point
-│   ├── commands/                # Command handlers
-│   ├── providers/               # Tree views, validation, link & decoration providers
-│   ├── utils/                   # Utilities (DITA-OT, key space, map parser, rate limiter)
-│   └── test/                    # Client test suites (683+ tests)
-├── server/                      # LSP Language Server (separate process)
-│   ├── src/
-│   │   ├── server.ts            # Server entry point & capability registration
-│   │   ├── serverHandlers.ts    # Extracted LSP handler wiring & capabilities
-│   │   ├── features/            # LSP feature handlers
-│   │   │   ├── validation.ts    # Diagnostics (XML, DITA structure, IDs)
-│   │   │   ├── completion.ts    # IntelliSense completions
-│   │   │   ├── hover.ts         # Hover documentation
-│   │   │   ├── symbols.ts       # Document & workspace symbols
-│   │   │   ├── definition.ts    # Go to definition
-│   │   │   ├── references.ts    # Find references
-│   │   │   ├── rename.ts        # Rename with reference updates
-│   │   │   ├── formatting.ts    # XML formatting
-│   │   │   ├── codeActions.ts   # Quick fixes (12 actions)
-│   │   │   ├── linkedEditing.ts # Tag name sync editing
-│   │   │   ├── folding.ts       # Folding ranges
-│   │   │   ├── documentLinks.ts # Clickable links
-│   │   │   ├── crossRefValidation.ts    # Cross-file reference + scope validation
-│   │   │   ├── circularRefDetection.ts  # Circular reference detection (DFS)
-│   │   │   ├── workspaceValidation.ts   # Cross-file duplicate IDs, unused topics
-│   │   │   ├── ditaRulesValidator.ts    # 43 Schematron-equivalent DITA rules (incl. DITA 2.0)
-│   │   │   ├── profilingValidation.ts   # Subject scheme controlled values
-│   │   │   └── customRulesValidator.ts  # User-defined regex validation rules
-│   │   ├── services/            # Domain services with caching
-│   │   │   ├── validationPipeline.ts       # 13-phase orchestration
-│   │   │   ├── suppressionEngine.ts        # Comment-based rule suppression
-│   │   │   ├── interfaces.ts               # Service interfaces (IKeySpaceService, etc.)
-│   │   │   ├── catalogValidationService.ts # DTD validation (TypesXML)
-│   │   │   ├── rngValidationService.ts     # RNG validation (salve-annos)
-│   │   │   ├── keySpaceService.ts          # Key space resolution + caching
-│   │   │   └── subjectSchemeService.ts     # Subject scheme parsing
-│   │   ├── utils/               # Server utilities
-│   │   │   ├── types.ts                    # Shared types (DitaVersion, RuleCategory)
-│   │   │   ├── diagnosticCodes.ts          # Central diagnostic code registry (78 codes)
-│   │   │   ├── textUtils.ts               # Comment stripping, offsetToRange, offsetToPosition
-│   │   │   ├── xmlTokenizer.ts            # Error-tolerant state-machine tokenizer
-│   │   │   ├── i18n.ts                    # Localization (80+ messages EN+FR)
-│   │   │   └── ...
-│   │   ├── messages/            # Localization bundles (en.json, fr.json — 80+ message keys)
-│   │   └── data/                # DITA schema & specialization data (@class matching)
-│   └── test/                    # Server test suites (881+ tests)
-├── mcp/                         # Standalone MCP server (Model Context Protocol)
-│   ├── src/
-│   │   └── server.ts            # MCP entry point (6 tools, 3 resources)
-│   └── test/                    # MCP test suites + smoke tests
-├── dist/                        # Standalone bundles (built by npm run build-standalone)
-│   ├── mcp-server.js            # Self-contained MCP server (3.2 MB)
-│   └── lsp-server.js            # Self-contained LSP server (2.0 MB)
-├── dtds/                        # DITA 1.2, 1.3, and 2.0 DTD files (master catalog)
-├── docs/                        # Documentation
-│   ├── architecture.puml        # Architecture diagram (PlantUML)
-│   └── user-guide/              # DITA user guide (~80 files, bookmap structure)
-├── ARCHITECTURE.md
-├── DITA_LSP_ARCHITECTURE.md     # LSP server architecture documentation
-├── ROADMAP.md
-├── TEST_PLAN.md                 # LSP feature test plan
-└── CHANGELOG.md
-```
-
-### Quality & Testing
-
-DitaCraft includes comprehensive test coverage across client and server:
-
-**Client Tests (683+ tests):**
-- DTD validation, real-time validation, command & auto-detection
-- Link navigation with key resolution, key space building & caching
-- Security (path traversal, XXE protection), rate limiting
-- Preview, file creation, configuration integration
-- Activity bar views: DITA Explorer, Key Space, Diagnostics, file decorations
-- Map hierarchy parser (25 tests)
-
-**LSP Server Tests (881+ tests):**
-- Reference parser (40 tests) - all 6 exported parsing functions
-- XML tokenizer (26 tests) - state machine, error recovery, CRLF, context detection, Unicode/CJK
-- XML formatting (25 tests) - indentation, inline, preformatted, edge cases, range formatting
-- Folding ranges (10 tests) - elements, comments, CDATA, CRLF
-- Workspace scanner (8 tests) - offset-to-position conversion
-- Validation diagnostics (30 tests) - XML, DITA structure, IDs, maps, DITAVAL
-- Completions (19 tests) - element, attribute, value, DITAVAL, subject scheme completions
-- Hover (17 tests) - documentation, fallback, non-tag, DITAVAL, conref preview
-- Document symbols (13 tests) - outline, titles, maps, self-closing
-- Workspace symbols (8 tests) - cross-file search, in-memory preference
-- Code actions (19 tests) - all 12 quick fixes + edge cases
-- Linked editing (15 tests) - tag pairing, nesting, boundaries
-- Cross-reference validation - href, conref, keyref target validation
-- DITA rules validator - 43 Schematron-equivalent rules (5 categories incl. DITA 2.0) + 25 DITA 2.0 tests
-- Custom rules validator - 23 tests (regex matching, fileTypes, caching, severity mapping, ReDoS protection)
-- Profiling validation - subject scheme controlled value checks
-- Validation pipeline - severity overrides, comment-based suppression, large file optimization, pipeline budget
-- Subject scheme service - parsing, caching, hierarchy, value constraints
-- DITA specialization - @class matching, topic/map type names, utility functions
-- DITA version detector - version detection from content (1.0-2.0)
-- Key space service - 100+ tests: keyref chains, keyscope nesting/inheritance/inline branches, provenance, scope explosion cap, explainKey reporting
-- Server handlers - 31 wiring tests + 19 settings tests
-- Edge cases - empty files, long lines, mixed CRLF, Unicode/CJK content
-
-**MCP Server Tests (standalone Mocha):**
-- Tool tests: `dita_validate`, `dita_context_snapshot`, `dita_key_space`, `dita_map_structure`, `dita_resolve_reference`, `dita_explain_key`
-- Resource tests: all 3 workspace resources
-- Security tests: path traversal rejection, workspace isolation
-- Smoke test: `npx tsx mcp/test/smoke-test.ts` (end-to-end tools + resources)
-
-**Running Tests:**
-```bash
-# Run client tests (requires VS Code)
-npm test
-
-# Run server tests (standalone, no VS Code needed)
-cd server && npm test
-
-# Run a single server test suite
-cd server && npm test -- --grep "KeySpaceService"
-
-# Run MCP server tests (standalone, no VS Code needed)
-cd mcp && npx tsc -p test/tsconfig.json && npx mocha out/test/mcp/test/*.test.js --ui tdd --timeout 30000
-
-# MCP smoke test (validates tools + resources end-to-end)
-npx tsx mcp/test/smoke-test.ts
-
-# Compile everything
-npm run compile
 ```
 
 ## Known Limitations
@@ -1002,17 +826,11 @@ The current implementation provides comprehensive navigation support. Remaining 
 - ✅ Scope explosion protection (50,000-key cap)
 - ✅ Automatic root map discovery and tiered caching
 
-### Contributing
+### Visual Editor
 
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Add tests for new features
-5. Ensure all tests pass (`npm test`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+- The visual editor opens topics; maps and bookmaps are edited in the text editor (with the Map Visualizer and DITA Explorer)
+- Some content is shown on the page but edited in the source: prolog metadata, footnotes, related links, objects, MathML and SVG
+- Reused content, keys' texts and link titles are shown resolved and read only — edit them where they come from, or use **Replace with copy**
 
 ## Troubleshooting
 
@@ -1058,7 +876,7 @@ Contributions are welcome! Please:
 3. Make sure you're clicking on the href value itself (e.g., `introduction.dita`), not the attribute name `href=`
 4. Check that the referenced file path is correct and file exists
 5. Try reloading VS Code window (`Ctrl+R` / `Cmd+R` in VS Code)
-6. Verify extension is activated (look for "DitaCraft" in Extensions)
+6. Verify extension is activated (look for "DITA Craft" in Extensions)
 
 **Example of correct usage:**
 ```xml
@@ -1067,9 +885,9 @@ Contributions are welcome! Please:
          Ctrl+Click here (on the value)
 ```
 
-### Preview Not Showing
+### DITA-OT Preview Not Showing
 
-**Problem:** Preview panel is blank or shows error
+**Problem:** The DITA-OT preview panel (`DITA: Preview with DITA-OT`) is blank or shows an error (the visual preview does not need DITA-OT)
 
 **Solution:**
 1. Verify HTML5 output was generated
@@ -1079,21 +897,23 @@ Contributions are welcome! Please:
 
 ## Documentation
 
-DitaCraft includes comprehensive documentation written in DITA format:
+DITA Craft includes comprehensive documentation written in DITA format:
 
 ### 📖 User Guide (`docs/user-guide/`)
 
-A complete DITA bookmap with ~80 files covering:
+A complete DITA bookmap with ~100 files covering:
 
 | Section | Contents |
 |---------|----------|
 | **Part I: Getting Started** | Introduction, Installation & Setup |
-| **Part II: Using DitaCraft** | Commands (validation, publishing, file creation, navigation, guide validation), Features (smart navigation, validation, preview, map visualizer, key resolution) |
+| **Part II: Using DITA Craft** | Commands (validation, publishing, file creation, navigation, guide validation), Features (visual editor, visual preview, Properties view, smart navigation, validation, map visualizer, key resolution) |
 | **Part III: Configuration** | Settings (general, validation, publishing, preview) |
 | **Appendix** | Keyboard Shortcuts reference |
 | **Backmatter** | Glossary (40 terms), Index |
 
-The user guide demonstrates DitaCraft's own capabilities - you can open it in VS Code to test validation, navigation, preview, and publishing features.
+The user guide demonstrates DITA Craft's own capabilities - you can open it in VS Code to test validation, navigation, preview, and publishing features.
+
+Developer documentation: [docs/VISUAL_EDITOR.md](docs/VISUAL_EDITOR.md), [docs/VISUAL_PREVIEW.md](docs/VISUAL_PREVIEW.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Resources
 
@@ -1108,16 +928,50 @@ The user guide demonstrates DitaCraft's own capabilities - you can open it in VS
 
 ## Recent Updates
 
-### Version 0.9.0 (Current)
+### Version 0.10.0 — Visual Editor & Visual Preview
+
+**Added — Visual preview** (`DITA: Preview`): a live, formatted page of the topic rendered by DITA Craft itself — no DITA-OT, no Java, no save. Keys, reuse (with `conrefend` ranges, nested and chained reuse), link titles, glossary terms, DITAVAL filtering and flags, problems on the page, exact scroll sync, DITA-OT class names for your custom CSS. Condition highlighting in the text editor shows the same exclusions and flags.
+
+**Added — Visual editor** (`DITA: Open in Visual Editor`):
+- **Minimal edits** — each change reaches the file as one small text edit; the rest of the file stays as it was
+- **DTD-aware** — Style list, Insert menu, Enter and the right-click menu offer only what the document type allows
+- **Tables** on the CALS grid, column widths dragged on the page
+- **Reused content** shown in its box, **Open source** and **Replace with copy**; keys' texts, link titles and keyed images resolved
+- **Images** inserted, pasted, dropped, replaced and resized on the page; **links** from a target picker (`Ctrl+K`)
+- **Problems and quick fixes** on the page (`Ctrl+.`), undoable there
+- **Side by side with the text editor** — cursors and scrolling follow each other
+- **Properties view** — the attributes of the element at the cursor, from the DTD (also for the text editor)
+- **Maps and bookmaps** — one row per reference with its target's title, kind and keys; fold, keyboard, Open target; references added and retargeted from a picker, labels edited on the row, rows dragged or nested with Tab; relationship tables edited as grids; topics shown in their map's context (keys, scope, language, filtering)
+
+**Changed:**
+- The extension is now displayed as **DITA Craft** (its ID, settings and commands are unchanged)
+- **DITAVAL** filtering follows DITA's rules (an attribute excludes only when all its values are excluded; filter-wide defaults); condition highlighting shows flags as well as exclusions
+- **Rename (F2)** works from a usage — a key reference, the topic or element part of a link — not only at the definition
+
+**Fixed:**
+- **Moving files and folders** keeps every reference working: the moved files' own links, references into and out of a moved folder, images and other referenced files, and the settings and publishing profiles that name a moved file
+- **Find and Replace in Files** searches text only (never markup); it and **Batch Update Metadata** apply their changes after a confirmation instead of a Refactor Preview with every change unticked
+- **Inline Conref** keeps the reused element's attributes and rewrites the references inside the copy
+- **AI**: the Configure AI Settings panel works (every provider listed, AI mode selector, a real connection **Test**), the AI quick fix is offered, `ditacraft.ai.enabled` turns every AI feature off, the AI modes use only their providers, and the default models are current (`claude-sonnet-5-5`, `gpt-6.1-sol`, OpenAI reasoning models supported)
+- The DITAVAL condition editor works from the keyboard; template dates use your time zone; every installed DITA-OT output format is offered
+- **MCP server**: the filters of the diagnostics and keys resources work (`?severity=error&limit=10`, `?search=product`), and bad parameters are explained
+
+**Security:** dependencies updated; no known vulnerability in the shipped dependencies.
+
+**2,900+ Total Tests** — Client (1,371) + Server (1,167) + Visual preview & editor core (307) + MCP (88)
+
+See the [CHANGELOG](CHANGELOG.md) for details.
+
+### Version 0.9.0
 **Refactoring Tools, Templates & Scaffolding, Productivity Features, Publishing Enhancements**
 
 The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — every prioritized item shipped, plus two of three Backlog items taken on as natural follow-ons (only Import from Markdown/HTML deferred, as the one item genuinely needing a design spike first).
 
 **Added — Refactoring Tools:**
-- **Rename key across all usages** — safely renames a `keys="..."` value and every `keyref`/`conkeyref` pointing at it, workspace-wide, with `conkeyref` matches verified against the key space (not just element-ID text) before rewriting
-- **Move topic with reference updates** — moving/renaming a `.dita`/`.ditamap`/`.bookmap` file in the Explorer rewrites every inbound `href`/`conref` that pointed at its old path
+- **Rename key across all usages** — safely renames a `keys="..."` value and every `keyref`/`conkeyref` pointing at it, workspace-wide, with `conkeyref` matches verified against the key space (not just element-ID text) before rewriting; **F2** works on a usage too (a `keyref`/`conkeyref` key, the topic or element part of a fragment), renaming the key or id at its definition
+- **Move topic with reference updates** — moving/renaming a `.dita`/`.ditamap`/`.bookmap` file in the Explorer rewrites every inbound `href`/`conref`/`conrefend` that pointed at its old path, and the moved file's own relative references when it changes folder; moving a whole folder updates the references in and out of it, and renaming an image or any other referenced file updates the references to it (a `.ditaval` also in the publishing profiles and the preview filter); settings naming a moved file or folder — the root map, templates, XML catalog, custom CSS, custom rules — follow it
 - **Extract topic from section** — select a `<section>`, extract it into a new standalone topic (type inferred from the source topic), and replace it with an `xref`
-- **Inline conref** — resolve a `conref`/`conkeyref` reference and splice the target content in place, stripping the reference attribute; strips nested descendant ids to avoid duplicate-id violations
+- **Inline conref** — resolve a `conref`/`conkeyref` reference and write the element as DITA resolves it in place (the target's content, and its attributes the element does not set), stripping the reference attribute; strips nested descendant ids to avoid duplicate-id violations
 
 **Added — Templates & Scaffolding:**
 - **Custom topic templates** and a **project initialization wizard** — scaffold a new DITA project (maps, topics, `.ditaval`) from configurable templates
@@ -1125,7 +979,7 @@ The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — ever
 **Added — Productivity Features:**
 - **Publishing profiles** — save/reuse transtype + output-dir + DITAVAL + extra-args combinations, remembers the last-used profile
 - **Image insertion** and **table insertion** (CALS/simple) helpers with `<fig>` wrapper generation
-- **Multi-file DITA-aware find & replace** and **batch metadata update** (profiling attributes across multiple selected files), both previewed via VS Code's native refactor-preview UI before applying
+- **Multi-file DITA-aware find & replace** (text content, attribute values as an option, never markup) and **batch metadata update** (profiling attributes across multiple selected files), both confirmed before applying or reviewed in VS Code's native refactor-preview UI
 - **Visual DITAVAL condition editor** plus **live preview with conditions applied** and **condition highlighting** in the editor
 - **Watch mode** (`DITA: Start/Stop Watch Mode`) — re-runs a full publish automatically whenever a watched DITA file changes, with quiet status-bar-only feedback (not incremental — DITA-OT has no first-class incremental build mode)
 
@@ -1138,289 +992,29 @@ The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — ever
 
 **2183+ Total Tests** — Client (966) + Server (1134) + MCP (83)
 
-### Version 0.8.2
-**Security Hardening, Key Space & Validation Race Fixes, Knowledge Graph**
-
-**Added:**
-- **Knowledge Graph (graphify)** — `npm run graph` generates a queryable codebase graph (`docs/graph/graph.json`, `GRAPH_REPORT.md`, `graph.svg`, interactive studio viewer, `flows.json`) via local tree-sitter AST extraction — no LLM/API keys. Auto-regenerates in `npm run watch` and on every push to `main`.
-
-**Fixed — Security / path traversal:**
-- Shared `isPathWithinWorkspace()` guard applied consistently across hover, completion, definition, cross-reference validation, circular-reference detection, document links, and the MCP context-graph handler
-- Documents opened outside every workspace folder no longer misapply workspace-boundary checks to same-directory sibling references
-
-**Fixed — Key space / cross-file references:**
-- Diamond-shaped `@keyscope` map graphs no longer lose keys from re-visited submaps
-- Windows case-mismatch in key-space path comparisons resolved (could silently miss key lookups/cache invalidation)
-- Rename and Find All References now verify `conkeyref` matches resolve to the target file via the key space before rewriting/reporting, instead of matching on element-ID text alone
-- Cross-file reference/rename `resolveKey` calls now run in parallel
-
-**Fixed — Validation pipeline races and caching:**
-- Timed-out/cancelled async validation phases no longer cache their empty fallback as a valid result (could mask broken links up to 5 minutes)
-- Cancellation/budget-exceeded exits now still apply severity overrides, comment suppression, and the diagnostics cap
-- Profiling validation now uses an immutable per-document subject-scheme snapshot instead of shared cross-document state
-- AI Quick Fix now checks document version/closed state before applying an edit, preventing stale-edit application after a slow LLM call
-- Settings cache no longer permanently poisoned by a single transient configuration-fetch failure
-- Saving a `.dita` topic now correctly invalidates cross-reference diagnostics cached in other open documents
-
-**Fixed — Editing / navigation:**
-- Consolidated a recurring mismatched-closing-tag stack-desync bug (found across content model validation, symbols, folding, completion) into a shared `resyncStackToMatch()` helper
-- DITA-SCH-011 quick fix no longer rewrites the wrong `<image>` element
-- `body`/`conbody`/`section` content models now accept `parml`, `screen`, `syntaxdiagram`
-- DITA-OT progress percentages no longer misapplied as cumulative increments
-
-**Dependencies:** `@anthropic-ai/sdk` → 0.112.4, `vscode-languageclient` → 10.0.1, `fast-xml-parser` → 5.10.1, `typesxml` → 2.2.1, `c8` → 12.0.0, plus dev-dependency and `actions/setup-node` bumps
-
-**1770+ Total Tests** — Client (710) + Server (977) + MCP (83)
-
-### Version 0.8.1
-**Preview Auto-Refresh Fix & Build Tooling**
-- **Preview auto-refresh on save** (#96) — `ditacraft.previewAutoRefresh` now actually re-renders the preview when the previewed source file is saved (debounced 500ms, serialized refreshes, focus-preserving)
-- **CommonJS test build fix** — resolved a `MODULE_TYPELESS_PACKAGE_JSON` failure in the test runner
-- **vscode-languageclient 10 resolution fix** — corrected `moduleResolution` for the new `exports`-based package layout
-- **Minimum VS Code version raised to 1.125.0** to match the bumped `@types/vscode`, restoring `vsce package`
-- **Dependencies** — `vscode-languageclient` 9.0.1 → 10.0.0, `@vscode/test-electron` 2.5.2 → 3.0.0, `@types/node` 25.9.3 → 26.0.0, `actions/checkout` 6 → 7
-
-### Version 0.8.0
-**MCP Server, Standalone LSP Server & Standalone Bundles**
-
-**MCP Server (`mcp/`):**
-- **Standalone MCP server** — `dist/mcp-server.js` (3.2 MB, no `node_modules` needed); exposes DitaCraft's DITA intelligence to any MCP-aware AI agent (opencode, Claude Desktop, Cursor, Continue)
-- **6 MCP tools** — `dita_validate`, `dita_context_snapshot`, `dita_key_space`, `dita_map_structure`, `dita_resolve_reference`, `dita_explain_key`
-- **3 MCP resources** — `dita://workspace/maps`, `dita://workspace/diagnostics`, `dita://workspace/keys`
-- **Workspace isolation** — Path traversal protection, HTTP/UNC/null-byte rejection; all communication stays local via stdio transport
-- **Smoke test** — `npx tsx mcp/test/smoke-test.ts` validates all tools and resources end-to-end
-
-**Standalone LSP Server (`dist/lsp-server.js`):**
-- Self-contained bundle (2.0 MB); no `node_modules` needed at runtime
-- Launch via `node dist/lsp-server.js --stdio`; embed via `child_process.spawn` in any Node.js LSP client
-- Set `DITACRAFT_EXTENSION_ROOT` to point to the directory containing `dtds/`
-
-**Build Commands:**
-- `npm run build-standalone` — produces both `dist/mcp-server.js` and `dist/lsp-server.js`
-- `npm run package` — produces the VS Code extension `.vsix` file
-
-**Testing:**
-- MCP server tests: `cd mcp && npx tsc -p test/tsconfig.json && npx mocha out/test/mcp/test/*.test.js --ui tdd --timeout 30000`
-- LSP standalone smoke test: `npx tsx mcp/test/lsp-smoke-test.ts`
-
-**1564+ Total Tests** — Client (683) + Server (881)
-
----
-
-### Version 0.7.4
-**AI Integration — GitHub Copilot, Anthropic, OpenAI & Ollama**
-
-**AI Infrastructure:**
-- **LLMRouterService** — Provider cascade with automatic fallback: Copilot (`vscode.lm`) → Anthropic → OpenAI → Ollama; `auto`, `copilot-only`, `byok-only`, `local-only` modes
-- **CircuitBreaker** — Per-provider resilience: 3 failures in 5 min opens the breaker (10 min cooldown); AbortError (cancellations) never counted as failures
-- **MetricsCollector** — Rolling buffer (1000 entries) tracking request count, latency, and error rate per provider
-- **SecretManager** — API keys stored via `vscode.SecretStorage` (OS keychain); no plaintext settings
-
-**AI Features:**
-- **@ditacraft Chat Participant** — 4 slash commands: `/restructure`, `/validate`, `/explain`, `/suggest-reuse`
-- **F2: AI Map Restructure** — AI proposes restructured map hierarchy; diff view with user confirmation before writing
-- **F3: AI Quick Fix** — Code Actions "Fix with AI" for 12 diagnostic codes (CM-001/002/003, XREF-001/003/004, STRUCT-003/004/005/008, DTD-001, XML-001)
-- **F4: AI Completion** — AI-enriched IntelliSense for element content and attribute values
-- **Configure AI WebView** — Guided setup for provider selection, API keys, feature toggles, and live metrics
-
-**LSP Additions:**
-- `dita/getContextGraph`, `dita/validateFragment`, `dita/buildContextSnapshot` (Levels 1/2/3 sliding window)
-
-**1537+ Total Tests** — Client (642) + Server (895)
-
-### Version 0.7.3
-**Key Space Algorithm Completion, Validation Pipeline Hardening, TypeScript 6.0 & TypesXML 2.0**
-
-**Key Space (7-gap improvement plan complete):**
-- **Keyref Chains** — Multi-hop keyref resolution across scopes; chain scope prefix bug fixed so chains inside scoped peer maps resolve correctly
-- **Keyscope Inheritance & Inline Branches** — PushDown scope inheritance and `@keyscope` on non-map topicrefs treated as anonymous scope branches per DITA 1.3 spec; three additional cascade/fallback/peer-map spec improvements
-- **Provenance Tracking** — `sourceLine` (1-based) added to `KeyDefinition`; qualified scope aliases inherit source line from their origin definition
-- **Scope Explosion Cap** — `MAX_KEY_SPACE_ENTRIES` (50,000) gates all 6 qualified-alias insertion sites; `scopeExplosionWarning` flag set on `KeySpace` when cap is hit
-- **Resolution Reporting** — `explainKey()` returns `KeyResolutionReport` with full lookup trace and keyref chain steps; `reportKeySpace()` / `formatResolutionReport()` provide human-readable key-space summaries
-- **Bug Fixes (4)** — XMLParser is now a class-level singleton (was re-instantiated per call), topicmeta array guard for duplicate `<topicmeta>` elements, `?xml` PI pseudo-node skipping in `collectXmlElements`
-
-**Validation Pipeline:**
-- **Pipeline Budget** — Configurable `pipelineBudgetMs` (default 30 s) with early-exit before each major phase; prevents runaway validation on large or complex files
-- **ReDoS Protection** — Custom regex rules screened for nested-quantifier patterns; 10,000-match iteration cap and 2 s timeout enforced per rule
-- **LSP 3.17 Conformance** — `executeCommandProvider`, `serverInfo` (name + version from package.json), and `interFileDependencies: true` advertised in `InitializeResult`
-- **Range Formatting Fix** — Falls back to full-document replacement when structural reflow detected, preventing silent content loss
-- **DITA-OT Error Parsing** — Severity-first log format (`[ERROR] [DOTJ013E]`) now recognized alongside legacy `[DOTJ013E][ERROR]` format
-
-**Dependencies & Tooling:**
-- **TypesXML 2.0.0** — Upgraded from 1.19.0
-- **TypeScript 6.0** — Upgraded from 5.9.3; `moduleResolution: node` with `ignoreDeprecations: "6.0"`, explicit `typeRoots` in all tsconfig files
-
-**Earlier 0.7.3 changes:**
-- **cSpell Simplification** — Replaced 350-term DITA word list with two `ignoreRegExpList` patterns; `DITA: Setup cSpell Configuration` command deprecated
-- **LSP Async File I/O** — All sync `fs` calls in `hover.ts` converted to `fs/promises`; `[object Promise]` in hover output fixed
-- **Security: DOCTYPE `]>` Bypass Fix** — Quote-aware regex prevents `]>` inside quoted entity values from terminating internal-subset scan early (billion-laughs / XXE bypass)
-- **Security: `ENTITY_ANY_RE` Hardening** — Quote-aware alternation prevents early `>` termination inside `SYSTEM` identifiers
-- **1537+ Total Tests** — Client (683) + Server (881); key space service tests expanded from 7 to 100+
-
-### Version 0.7.2
-**Advanced Validation Controls, Custom Rules, Architecture Improvements**
-- **Per-Rule Severity Override** — New `ditacraft.validationSeverityOverrides` setting lets you change any diagnostic code's severity (error, warning, information, hint) or suppress it entirely with `"off"`
-- **Comment-Based Rule Suppression** — Inline `<!-- ditacraft-disable CODE -->` / `<!-- ditacraft-enable CODE -->` directives for range-based suppression; `<!-- ditacraft-disable-file CODE -->` for whole-file suppression
-- **Custom Regex Rules** — Define custom validation rules in a JSON file (`ditacraft.customRulesFile`); supports regex patterns, fileType filtering, severity mapping, and mtime-based caching
-- **Large File Optimization** — Files exceeding `ditacraft.largeFileThresholdKB` (default 500 KB) skip heavy validation phases (6–12) for performance; shows DITA-PERF-001 informational diagnostic
-- **3 New Quick Fixes** — Sanitize invalid ID format (DITA-ID-002), insert missing `<booktitle>` (DITA-STRUCT-006), insert missing `<mainbooktitle>` (DITA-STRUCT-007); total now 12 quick fixes
-- **43 DITA Rules** — Rule count corrected from 35 to 43 (29 SCH + 4 ATTR + 4 TABLE + 6 additional authoring rules)
-- **DITA 2.0 Test Coverage** — 25 new tests covering all 10 DITA 2.0 rules (SCH-050 through SCH-059) including self-closing audio/video elements
-- **Architecture Improvements** — Extracted `SuppressionEngine` from ValidationPipeline; centralized `diagnosticCodes.ts` registry (78 codes); service interfaces (`IKeySpaceService`, `ISubjectSchemeService`, `ICatalogValidationService`); shared `types.ts` eliminates circular dependency; deduplicated `offsetToPosition` into single canonical implementation; SubjectSchemeService cache bug fix; robust `deactivate()` error handling
-- **Bug Fixes** — CRLF handling in comment suppression, exclusive endLine for suppression ranges, threshold boundary comparison, self-closing audio/video regex for SCH-054/055, SubjectSchemeService stale cache on scheme change
-- **1375+ Total Tests** — Client (678) + Server (697)
-
-### Version 0.7.1
-**ValidationPipeline, Guide Validation & Bug Fixes**
-- **Validate Entire Guide** — New `DITA: Validate Entire Guide Using DITA-OT` command runs DITA-OT against root map; results displayed in WebView report with filtering (severity), search, grouping (by file/severity/module), and JSON export; enriched with 160+ DITA-OT error code descriptions
-- **ValidationPipeline Extraction** — Refactored validation handler into 10-phase orchestrator with per-phase error isolation
-- **Shared Utilities** — Extracted textUtils.ts and patterns.ts, eliminating 15 duplicate function definitions
-- **Bug Fixes** — Profiling validation positioning, code action single-quote IDs, completion startPos clamping, XML tokenizer CRLF, openFile error handling, parser regex for PDF/INDX/XEP codes
-- **1242+ Total Tests** — Client (683) + Server (559)
-
-### Version 0.7.0
-**Multi-Version DTD, Workspace Analysis, Glossref & Validation Fixes**
-- **Multi-Version DTD Support** — Bundled DITA 1.2, 1.3, and 2.0 DTDs with OASIS XML Catalog chaining; `ditacraft.xmlCatalogPath` setting for custom specializations
-- **Scope Validation** — Validates `scope="local|peer|external"` consistency with href format (DITA-SCOPE-001/002/003)
-- **Circular Reference Detection** — DFS traversal detects structural map reference cycles; only follows topicref/mapref/chapter/etc. (not keydef/xref/link), excludes `.xml` files
-- **Workspace Validation** — `DITA: Validate Workspace` command with progress, cross-file duplicate ID detection, and unused topic detection
-- **Glossref Element** — Full support across schema, autocompletion, explorer, map visualizer, content model, and hierarchy parser
-- **Glossentry/Troubleshooting Support** — Recognized as valid topic root elements; glossentry validates `<glossterm>` as first child (not `<title>`)
-- **Bookmap in .ditamap** — Bookmaps using `.ditamap` extension no longer produce false root element errors
-- **SCH-023 Fix** — Section title rule now uses depth-tracking to count only direct-child titles (ignores titles in nested `<fig>`, `<div>`, etc.)
-- **SCH-040 Fix** — Self-closing `<xref/>` no longer triggers false nested-xref error
-- **Bug Fixes** — Bookmap title boundary checks, conditional mainbooktitle warning, single-quote ID handling, error ranges, completion position clamping, XML tokenizer CRLF, openFile command
-- **652 Client Tests + 435 Server Tests** — 1087+ total
-
-### Version 0.6.1
-**Localization, DITA 2.0 Rules, Root Map & Validation Enhancements**
-- **Localization (i18n)** — All 67 diagnostic messages translatable; English + French bundles included; auto-detects LSP locale
-- **DITA 2.0 Rules** — 10 new version-specific rules (SCH-050 to SCH-059): removed elements (`<boolean>`, `<indextermref>`, `<object>`, learning specializations), removed attributes (`@print`, `@copy-to`, `@navtitle`, `@query`), `<audio>`/`<video>` fallback accessibility checks
-- **43 Total DITA Rules** — Expanded from 18 to 43 Schematron-equivalent rules across 5 categories (mandatory, recommendation, authoring, accessibility, DITA 2.0 removal); version-gated per DITA version
-- **Root Map Feature** — Set/clear explicit root map via command palette or clickable status bar item; workspace-level `rootMap` setting; auto-discover mode by default
-- **DITA Specialization** — `@class` attribute matching for specialization-aware element handling; pre-built matchers for 20+ element types
-- **Catalog Validation Service** — DTD validation with OASIS XML Catalog resolution and parser pool (3 concurrent instances)
-- **RNG Validation Service** — Optional RelaxNG schema validation via salve-annos + saxes; grammar compilation with caching (max 20 schemas)
-- **Subject Scheme Enhancements** — Hierarchy path display in completions, grouping by parent subject, default value preselection
-- **Conref Content Preview** — Hover on `conref`/`conkeyref` shows inline preview of referenced content
-- **Smart Debouncing** — Tiered validation delays (300ms topics, 1000ms maps) with per-document cancellation
-- **Key Scope Support** — `@keyscope` attribute handling with scope-qualified key resolution
-- **New Logo** — Updated extension icon
-- **Bug Fixes** — Code action single-quote ID handling, DITA Explorer error handling, completion position clamping, XML tokenizer CRLF, `openFile` declaration
-
-### Version 0.6.0
-**Project Management, Activity Bar Views & Advanced LSP**
-- **Activity Bar Views** — DITA Explorer, Key Space, and Diagnostics views in dedicated sidebar
-- **File Decorations** — Error/warning badges on tree items from validation diagnostics
-- **Cross-Reference Validation** — Validates href, conref, keyref, and conkeyref targets across files (6 diagnostic codes)
-- **DITA Rules Engine** — Schematron-equivalent rules in 4 categories (mandatory, recommendation, authoring, accessibility)
-- **Profiling Validation** — Subject scheme controlled value validation with automatic scheme discovery
-- **Subject Scheme Service** — Parses subject scheme maps for controlled vocabularies with caching
-- **Error-Tolerant XML Tokenizer** — State-machine tokenizer with error recovery for malformed XML
-- **DITA Version Detection** — Auto-detects DITA version from `@DITAArchVersion` or DOCTYPE
-- **4 New Code Actions** — Add missing `otherrole`, remove deprecated `<indextermref>`, convert `alt` attribute to element, add missing `<alt>` to `<image>`
-- **5 New Settings** — `maxNumberOfProblems`, `ditaRulesEnabled`, `ditaRulesCategories`, `crossRefValidationEnabled`, `subjectSchemeValidationEnabled`
-- **LSP Architecture Documentation** — Comprehensive `DITA_LSP_ARCHITECTURE.md` describing server internals
-- **1040+ Total Tests** — Client (620) + Server (419)
-
-### Version 0.5.0
-**DITA Language Server with IntelliSense**
-- ✅ **Full LSP Implementation** - 14 language features in a dedicated server process
-- ✅ **IntelliSense** - Context-aware completion for elements, attributes, and values (364 DITA elements)
-- ✅ **DITAVAL Support** - Full IntelliSense, validation, and hover docs for `.ditaval` files
-- ✅ **Hover Documentation** - Element docs from DITA schema with children fallback
-- ✅ **Document & Workspace Symbols** - Outline view and cross-file symbol search (Ctrl+T)
-- ✅ **Go to Definition** - Navigate href/conref/keyref targets with full key space resolution
-- ✅ **Find References & Rename** - Cross-file ID references and rename with updates
-- ✅ **Formatting** - XML formatter with inline/block/preformatted element handling
-- ✅ **Code Actions** - 5 quick fixes (DOCTYPE, ID, title, empty element, duplicate ID)
-- ✅ **Linked Editing** - Simultaneous open/close tag name editing
-- ✅ **Folding & Document Links** - Collapsible ranges and clickable references
-- ✅ **Key Space Resolution Fix** - Improved root map discovery across nested directories
-- ✅ **cSpell Auto-Prompt** - Suggests cSpell setup when extension detected without config
-- ✅ **Server Test Suite** - 190 standalone Mocha tests (no VS Code dependency)
-- ✅ **737+ Total Tests** - Client (547) + Server (190) with CI integration
-
-### Version 0.4.2
-**Architecture, Security & Documentation**
-- ✅ **Modular Validation Engine** - Refactored validation with pluggable engine architecture
-- ✅ **Rate Limiting** - DoS protection for validation operations (10 req/sec per file)
-- ✅ **Adaptive Cache Cleanup** - Intelligent cache management that skips cleanup when empty
-- ✅ **Architecture Documentation** - Comprehensive ARCHITECTURE.md with data flow diagrams
-- ✅ **DITA User Guide** - Complete user documentation in DITA format (55 files with bookmap, glossary, index)
-- ✅ **Preview Scroll Sync Fix** - Fixed scroll sync for content smaller than viewport
-- ✅ **Preview Print Mode Fix** - Fixed toolbar injection for non-standard HTML structures
-- ✅ **547+ Tests** - Expanded test suite with security and edge case coverage
-
-### Version 0.4.1
-**TypesXML DTD Validation**
-- ✅ **TypesXML DTD Validation** - Pure TypeScript validation with 100% W3C conformance (no native dependencies)
-- ✅ **OASIS XML Catalog Support** - Full DITA public identifier resolution via TypesXML
-- ✅ **Three Validation Engines** - TypesXML (default), built-in, xmllint
-
-### Version 0.4.0
-**Enhanced Preview, Build Output & Map Visualizer**
-- ✅ **DITA Map Visualizer** - Interactive tree view showing map hierarchies with navigation
-- ✅ **Bidirectional Scroll Sync** - Editor and preview scroll positions stay synchronized
-- ✅ **Print Preview Mode** - Print-optimized view with dedicated print button
-- ✅ **Syntax-Highlighted Build Output** - DITA-OT output with automatic colorization by log level
-- ✅ **Log Level Detection** - Errors, warnings, info, debug messages auto-classified
-- ✅ **Build Timestamps** - Build start and completion times displayed
-- ✅ **Circular Reference Detection** - Map visualizer detects and warns about circular map references
-- ✅ **490+ Tests** - Comprehensive test suite with new feature coverage
-
-### Version 0.3.0
-**Developer Experience & Quality Milestone**
-- ✅ **Code Coverage with c8** - Switched from nyc to c8 for VS Code extension-compatible coverage
-- ✅ **Coverage Threshold Enforcement** - CI enforces minimum coverage (62% lines, 65% functions, 73% branches)
-- ✅ **CI Security Audit** - Dedicated security audit job with weekly scheduled scans
-- ✅ **Cross-Platform CI** - Tests run on Windows, macOS, and Linux
-- ✅ **Dynamic Configuration** - Centralized ConfigurationManager with real-time change propagation
-- ✅ **Advanced Element Navigation** - Same-file and cross-file element navigation with fragment support
-- ✅ **Configurable Settings** - Validation debounce, key space TTL, DITA-OT timeout, max link matches
-- ✅ **Code Quality** - Removed unused dependencies, consolidated file reading, standardized async patterns
-
-### Version 0.2.4
-- ✅ **Fixed DITA-OT HTML5 Publishing** - Resolved Windows path case sensitivity issue
-- ✅ **Comprehensive Test Suite** - 307+ tests including error handling tests
-- ✅ **Improved Error Handling** - Added `fireAndForget` utility for safe async handling
-
-### Version 0.2.0
-- ✅ **Full Key Space Resolution** - Navigate `@keyref`, `@conkeyref`, and key-based references with automatic key space building
-- ✅ **Enhanced Security** - XXE neutralization, path traversal protection, and command injection prevention
-- ✅ **Performance Optimizations** - Async file operations, intelligent caching (1-min TTL), and file watcher debouncing
-- ✅ **Content Reference Navigation** - Ctrl+Click on `@conref` attributes to navigate to referenced content
-- ✅ **Better UI Responsiveness** - Async operations prevent UI blocking during file operations
-
-### Version 0.1.3 Fixes
-- ✅ **Fixed preview and publishing with paths containing spaces** - File paths with spaces now work correctly
-- ✅ **Fixed DITA validation** - Title element is now correctly validated as required per DTD spec
-- ✅ **Enhanced DTD validation** - Added proper DTD validation support with xmllint
-- ✅ **Improved error messages** - Better, more descriptive validation and publishing error messages
-- ✅ **Fixed file path validation** - Comprehensive checks to ensure files are being processed
-- ✅ **Added verbose logging** - Detailed console logging for easier debugging
+Earlier versions: see [docs/RELEASE_HISTORY.md](docs/RELEASE_HISTORY.md) and the [CHANGELOG](CHANGELOG.md).
 
 ## Roadmap
 
-We have an exciting roadmap planned for DitaCraft! See our detailed [ROADMAP.md](ROADMAP.md) for:
+DITA Craft has shipped a milestone at every release since v0.3.0 — LSP and IntelliSense (v0.5), activity bar views (v0.6), multi-version DTD validation (v0.7), AI integration (v0.7.4), the MCP server (v0.8), refactoring and publishing tools (v0.9), and the **visual preview and the visual editor** (v0.10).
 
-- **v0.3.0** - Developer Experience & Quality ✅ **COMPLETE**
-- **v0.4.0** - Enhanced Preview, Build Output & Map Visualizer ✅ **COMPLETE**
-- **v0.5.0** - IntelliSense & Content Assistance (LSP, DITAVAL, 737+ tests) ✅ **COMPLETE**
-- **v0.6.0** - Project Management, Views & Advanced LSP (1010+ tests) ✅ **COMPLETE**
-- **v0.7.0** - Advanced Validation (DITA 1.2/2.0 DTDs, workspace-level analysis) ✅ **COMPLETE**
-- **v0.7.1** - Guide Validation, ValidationPipeline & Bug Fixes (1242+ tests) ✅ **COMPLETE**
-- **v0.7.2** - Severity Overrides, Custom Rules, Architecture Improvements (1375+ tests) ✅ **COMPLETE**
-- **v0.7.3** - Key space algorithm completion (all 7 gaps), pipeline budget/ReDoS, TypeScript 6.0, TypesXML 2.0 (1564+ tests) ✅ **COMPLETE**
-- **v0.7.4** - AI Integration: Copilot, Anthropic, OpenAI, Ollama; @ditacraft chat participant, AI Quick Fix, AI Completion ✅ **COMPLETE**
-- **v0.8.0** - MCP Server (6 tools, 3 resources), Standalone LSP Server, standalone bundles ✅ **COMPLETE**
-- **v0.8.1** - Preview auto-refresh fix, build tooling fixes ✅ **COMPLETE**
-- **v0.8.2** - Security hardening, key space & validation race fixes, knowledge graph (1770+ tests) ✅ **COMPLETE**
-- **v0.9.0** - Refactoring tools, templates & scaffolding, productivity features, publishing enhancements, OKF knowledge base (2183+ tests) ✅ **CURRENT**
+Next candidates: RelaxNG grammars in the visual editor, rendered Git compare, MathML editing. See [ROADMAP.md](ROADMAP.md) for the full plan and the version history.
 
 ## Contributing
 
 We welcome contributions! Here's how you can help:
+
+To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Add tests for new features
+5. Ensure all tests pass (`npm test`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) to build and test from source.
 
 ### Good First Issues
 Look for issues labeled [`good first issue`](https://github.com/jyjeanne/ditacraft/labels/good%20first%20issue) - these are great starting points for new contributors.
@@ -1449,7 +1043,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Third-Party Licenses & Attributions
 
-DitaCraft includes third-party components with the following licenses:
+DITA Craft includes third-party components with the following licenses:
 
 ### OASIS DITA 1.3 Grammar Files
 

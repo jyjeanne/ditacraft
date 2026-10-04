@@ -1,0 +1,874 @@
+/*
+ * DitaCraft Visual Editor stylesheet (spec §13). The editor shows the page exactly like the
+ * preview (same DITA-OT class contract, same stylesheet), plus what editing needs:
+ * ProseMirror's required rules, text runs, headings by nesting (the editor's DOM has no
+ * <h1>…<h6>), labels, kept-as-written elements, menus.
+ */
+
+@import "../preview/preview.css";
+
+/* -- ProseMirror (required rules, after prosemirror-view/style/prosemirror.css, MIT) ------- */
+
+.ProseMirror {
+    position: relative;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    white-space: break-spaces;
+    -webkit-font-variant-ligatures: none;
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0;
+    outline: none;
+}
+
+.ProseMirror pre {
+    white-space: pre-wrap;
+}
+
+.ProseMirror li {
+    position: relative;
+}
+
+.ProseMirror-hideselection *::selection { background: transparent; }
+.ProseMirror-hideselection { caret-color: transparent; }
+
+.ProseMirror [draggable][contenteditable=false] { user-select: text; }
+
+.ProseMirror-selectednode {
+    outline: 2px solid var(--dc-selected);
+    outline-offset: 1px;
+}
+
+li.ProseMirror-selectednode { outline: none; }
+li.ProseMirror-selectednode::after {
+    content: "";
+    position: absolute;
+    left: -32px;
+    right: -2px;
+    top: -2px;
+    bottom: -2px;
+    border: 2px solid var(--dc-selected);
+    pointer-events: none;
+}
+
+.ProseMirror-gapcursor {
+    display: none;
+    pointer-events: none;
+    position: absolute;
+}
+
+.ProseMirror-gapcursor::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: -2px;
+    width: 20px;
+    border-top: 1px solid var(--dc-fg);
+    animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes ProseMirror-cursor-blink {
+    to { visibility: hidden; }
+}
+
+.ProseMirror-focused .ProseMirror-gapcursor { display: block; }
+
+/* -- page --------------------------------------------------------------------------------- */
+
+#dc-content {
+    min-height: 50vh;
+    caret-color: var(--dc-fg);
+}
+
+.dc-textrun {
+    margin: 0.3em 0;
+}
+
+li > .dc-textrun:first-child,
+.entry > .dc-textrun:first-child,
+.stentry > .dc-textrun:first-child {
+    margin-top: 0;
+}
+
+/* Headings: the topic title by topic depth, section titles one level down. */
+.dc-content article.topic > .title {
+    font-size: 1.95em;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0 0 0.5em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--dc-border);
+}
+
+.dc-content article.topic article.topic > .title {
+    font-size: 1.55em;
+    margin-top: 1.4em;
+    border-bottom: none;
+}
+
+.dc-content article.topic article.topic article.topic > .title {
+    font-size: 1.3em;
+}
+
+.dc-content :is(section, .example) > .title {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin: 1.4em 0 0.5em;
+}
+
+.dc-content article.topic article.topic { margin-top: 2em; }
+
+/* Captions: the title/desc of a figure or table, in the document's order. */
+.dc-content figure > .title,
+.dc-content figure > .desc {
+    font-style: italic;
+    color: var(--dc-muted);
+    margin-bottom: 0.4em;
+}
+
+.dc-content table > .title,
+.dc-content table > .desc {
+    display: table-caption;
+    caption-side: top;
+    text-align: left;
+    padding-bottom: 0.4em;
+}
+
+.dc-content .tgroup,
+.dc-content div.dc-table-body {
+    display: contents;
+}
+
+/* Column widths given: the table lays its columns out by them (as dragging their borders expects). */
+.dc-content table:has(.dc-colgroup) {
+    table-layout: fixed;
+}
+
+/* Dragging a column border (webview/editor/main.ts). */
+.ProseMirror.dc-col-resize,
+.ProseMirror.dc-col-resize * {
+    cursor: col-resize !important;
+}
+
+.dc-col-guide {
+    position: fixed;
+    z-index: 30;
+    width: 0;
+    border-left: 2px solid var(--vscode-focusBorder, #0078d4);
+    pointer-events: none;
+}
+
+/* Resizing a selected image (webview/editor/imageResize.ts). */
+.dc-img-handle {
+    position: fixed;
+    z-index: 30;
+    width: 10px;
+    height: 10px;
+    background: var(--vscode-focusBorder, #0078d4);
+    border: 1px solid var(--vscode-editor-background, #fff);
+    cursor: nwse-resize;
+}
+
+.dc-img-handle[hidden] {
+    display: none;
+}
+
+.dc-img-outline {
+    position: fixed;
+    z-index: 29;
+    border: 1px dashed var(--vscode-focusBorder, #0078d4);
+    background: rgba(0, 120, 212, 0.06);
+    pointer-events: none;
+}
+
+.dc-col-guide-label {
+    position: fixed;
+    z-index: 31;
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: var(--vscode-editorWidget-background, #f3f3f3);
+    border: 1px solid var(--vscode-editorWidget-border, #ccc);
+    font: 11px var(--vscode-font-family, system-ui);
+    color: var(--vscode-editorWidget-foreground, #222);
+    pointer-events: none;
+}
+
+/* Column and span specifications are table settings, not content. */
+.dc-content [data-dita="colspec"],
+.dc-content [data-dita="spanspec"] {
+    display: none;
+}
+
+.dc-content p.p,
+.dc-content div.p {
+    margin: 0.6em 0;
+}
+
+/* Labels the renderer writes as text are attributes here (the editor must not edit them). */
+.dc-content .note[data-label]::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    color: var(--dc-n);
+}
+
+.dc-content .hazardstatement[data-label]::before {
+    content: "⚠ " attr(data-label);
+    display: block;
+    padding: 0.3em 0.8em;
+    margin: 0 0 0.4em;
+    background: var(--dc-n);
+    color: #fff;
+    font-weight: 700;
+}
+
+.dc-content .hazardstatement > :not(:first-child) {
+    margin-left: 0.9em;
+    margin-right: 0.9em;
+}
+
+.dc-content section[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.2em;
+    font-weight: 600;
+    margin: 1.4em 0 0.5em;
+}
+
+.dc-content li[data-label]::before {
+    content: attr(data-label);
+    float: left;
+    margin-right: 0.3em;
+    font-weight: 600;
+    color: var(--dc-muted);
+}
+
+/* An image on its own line inside a paragraph (placement="break"). */
+.dc-content span.image-break {
+    display: block;
+}
+
+/* -- elements kept as written --------------------------------------------------------------- */
+
+.dc-content .dc-opaque {
+    cursor: default;
+    color: var(--dc-muted);
+}
+
+.dc-content div.dc-opaque {
+    margin: 0.6em 0;
+    padding: 0.3em 0.6em;
+    border: 1px dashed var(--dc-border);
+    border-radius: 4px;
+    background: var(--dc-soft);
+    font-size: 0.9em;
+}
+
+.dc-content span.dc-opaque {
+    padding: 0 0.25em;
+    border-radius: 3px;
+    background: var(--dc-soft);
+}
+
+.dc-content span.dc-opaque .dc-tag {
+    display: none;
+}
+
+.dc-content .dc-opaque.fn {
+    vertical-align: super;
+    font-size: 0.75em;
+    color: var(--dc-link);
+}
+
+.dc-content .dc-opaque.dc-conref {
+    color: var(--dc-fg);
+}
+
+/* Reused content (./reusedView.ts): the reference, then the content as the preview shows it. */
+.dc-content div.dc-reuse {
+    color: var(--dc-fg);
+    font-size: inherit;
+    padding: 0.2em 0.7em 0.3em;
+    border: 1px dashed var(--dc-border);
+    /* The preview's colours for reused content (.dc-conref); the content inside is plain. */
+    background: var(--dc-reuse-bg);
+    box-shadow: inset 3px 0 0 var(--dc-reuse);
+}
+
+.dc-content .dc-reuse-content .dc-conref {
+    background: none;
+    box-shadow: none;
+    border-bottom: none;
+}
+
+.dc-content div.dc-reuse > .dc-reuse-source {
+    display: block;
+    margin-bottom: 0.2em;
+    font-size: 0.75em;
+    color: var(--dc-muted);
+}
+
+.dc-content .dc-reuse-content > :first-child { margin-top: 0; }
+.dc-content .dc-reuse-content > :last-child { margin-bottom: 0; }
+
+.dc-content span.dc-reuse {
+    color: var(--dc-fg);
+    padding: 0 0.15em;
+    border-bottom: 1px dashed var(--dc-reuse);
+}
+
+.dc-content span.dc-reuse > .dc-reuse-source {
+    display: none; /* shown as the tooltip */
+}
+
+.dc-content div.dc-reuse-unresolved {
+    box-shadow: inset 3px 0 0 var(--dc-warning);
+}
+
+.dc-content .dc-reuse-unresolved > .dc-reuse-content {
+    color: var(--dc-warning);
+    font-size: 0.9em;
+}
+
+/* A phrase whose text comes from a key, resolved (./reusedView.ts): text, as the preview marks it. */
+.dc-content span.dc-opaque.dc-resolved:not([data-class~="topic/xref"]) {
+    background: none;
+    padding: 0;
+    color: var(--dc-fg);
+    text-decoration: underline dotted var(--dc-muted);
+    text-underline-offset: 3px;
+}
+
+/* An empty link (its text comes from its target): shown as a link, with the target's title. */
+.dc-content span.dc-opaque[data-class~="topic/xref"] {
+    background: none;
+    padding: 0;
+    color: var(--dc-link);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+}
+
+/* A key that is not defined, a link target not found: `[key]` or the href, marked as on the preview. */
+.dc-content span.dc-opaque.dc-unresolved {
+    background: var(--dc-warn-bg);
+    color: var(--dc-warn);
+}
+
+.dc-content .dc-opaque-text {
+    white-space: normal;
+}
+
+.dc-content .dc-entity {
+    text-decoration: underline dotted var(--dc-muted);
+    text-underline-offset: 3px;
+}
+
+.dc-content .dc-loose {
+    box-shadow: inset 2px 0 0 var(--dc-warning);
+}
+
+/* Metadata, index terms, comments: shown with Show markup. */
+.dc-content:not(.dc-show-markup) .dc-markup {
+    display: none;
+}
+
+.dc-content span.dc-markup {
+    margin: 0 0.1em;
+    padding: 0 0.2em;
+    border: none;
+    font-size: 0.8em;
+}
+
+/* -- maps (spec §13.8): the title, then one row per reference ------------------------------- */
+
+.dc-content div.map > .title {
+    font-size: 1.95em;
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0 0 0.6em;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--dc-border);
+}
+
+/* A book title: its main title, then its subtitle (the space between them is layout). */
+.dc-content div.map > .title > .dc-textrun {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+/* ProseMirror's break after a last inline element would be a line of its own here. */
+.dc-content div.map > .title > .dc-textrun > br.ProseMirror-trailingBreak {
+    display: none;
+}
+
+.dc-content div.map > .title .mainbooktitle {
+    display: block;
+}
+
+.dc-content div.map > .title .booktitlealt {
+    display: block;
+    font-size: 0.55em;
+    font-weight: 400;
+    color: var(--dc-muted);
+}
+
+.dc-content .dc-maprow {
+    margin: 0;
+}
+
+.dc-content .dc-maprow-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    min-height: 1.6em;
+    padding: 0.2em 0.5em 0.2em 0.2em;
+    border-radius: 4px;
+    cursor: default;
+    user-select: none;
+}
+
+.dc-content .dc-maprow-head:hover {
+    background: var(--dc-soft);
+}
+
+/* The rows a row holds, under it. */
+.dc-content .dc-maprow-body {
+    margin-left: 0.85em;
+    padding-left: 0.75em;
+    border-left: 1px solid var(--dc-border);
+}
+
+.dc-content .dc-maprow-body:empty,
+.dc-content .dc-folded > .dc-maprow-body {
+    display: none;
+}
+
+.dc-content .dc-maprow-twisty {
+    flex: none;
+    width: 1em;
+    text-align: center;
+    color: var(--dc-muted);
+    font-size: 0.8em;
+}
+
+.dc-content .dc-maprow-parent > .dc-maprow-head > .dc-maprow-twisty {
+    cursor: pointer;
+}
+
+.dc-content .dc-maprow-parent > .dc-maprow-head > .dc-maprow-twisty::before {
+    content: "▾";
+}
+
+.dc-content .dc-maprow-parent.dc-folded > .dc-maprow-head > .dc-maprow-twisty::before {
+    content: "▸";
+}
+
+.dc-content .dc-maprow-kind {
+    flex: none;
+    padding: 0 0.4em;
+    border: 1px solid var(--dc-border);
+    border-radius: 3px;
+    font: 0.72em var(--dc-mono);
+    color: var(--dc-muted);
+}
+
+.dc-content .dc-maprow-label {
+    flex: 0 1 auto;
+    min-width: 4em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* A label that is the target as written, or none: the row says what it lacks. */
+.dc-content [data-label-from="target"] > .dc-maprow-head > .dc-maprow-label {
+    font-family: var(--dc-mono);
+    font-size: 0.9em;
+}
+
+.dc-content .dc-maprow-nolabel {
+    font-style: italic;
+    color: var(--dc-muted);
+}
+
+.dc-content .dc-maprow-keys {
+    flex: none;
+    padding: 0 0.35em;
+    border-radius: 3px;
+    background: var(--dc-reuse-bg);
+    color: var(--dc-reuse);
+    font: 0.75em var(--dc-mono);
+}
+
+/* The target gives way first: the label is what the row is. */
+.dc-content .dc-maprow-target {
+    flex: 0 1000 auto;
+    margin-left: auto;
+    padding-left: 1em;
+    min-width: 3em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--dc-muted);
+    font: 0.8em var(--dc-mono);
+}
+
+/* Kinds: a book's parts and chapters stand out; groups and headings are not documents. */
+.dc-content .dc-row-part > .dc-maprow-head {
+    font-size: 1.15em;
+    font-weight: 600;
+    margin-top: 0.5em;
+}
+
+.dc-content .dc-row-chapter > .dc-maprow-head,
+.dc-content .dc-row-matter > .dc-maprow-head,
+.dc-content .dc-maprow-parent > .dc-maprow-head {
+    font-weight: 600;
+}
+
+.dc-content .dc-maprow-head > :is(.dc-maprow-kind, .dc-maprow-keys, .dc-maprow-target) {
+    font-weight: 400;
+}
+
+.dc-content .dc-row-group > .dc-maprow-head .dc-maprow-label,
+.dc-content .dc-row-key > .dc-maprow-head .dc-maprow-label {
+    color: var(--dc-muted);
+}
+
+.dc-content .dc-row-map > .dc-maprow-head .dc-maprow-kind {
+    color: var(--dc-link);
+    border-color: currentColor;
+}
+
+/* A target that cannot be read, marked as on the preview. */
+.dc-content .dc-maprow.dc-unresolved > .dc-maprow-head .dc-maprow-label {
+    color: var(--dc-warn);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+}
+
+/* The selected row: its line (the rows inside are not selected with it on screen). */
+.dc-content .dc-maprow.ProseMirror-selectednode {
+    outline: none;
+}
+
+.dc-content .dc-maprow.ProseMirror-selectednode > .dc-maprow-head {
+    background: var(--dc-selected);
+}
+
+/* A problem on a row: its line. */
+.dc-content .dc-maprow.dc-problem {
+    outline: none;
+}
+
+.dc-content .dc-maprow.dc-problem > .dc-maprow-head {
+    outline: 1px dashed var(--dc-p);
+    outline-offset: -1px;
+}
+
+.dc-content .dc-maprow.dc-problem > .dc-maprow-head .dc-maprow-label {
+    text-decoration: underline wavy var(--dc-p);
+    text-decoration-skip-ink: none;
+    text-underline-offset: 3px;
+}
+
+/* A label being edited on the row's line (F2). */
+.dc-content .dc-maprow-input {
+    flex: 1 1 auto;
+    min-width: 8em;
+    padding: 1px 4px;
+    border: 1px solid var(--vscode-focusBorder, #0078d4);
+    border-radius: 3px;
+    background: var(--dc-page-bg);
+    color: var(--dc-fg);
+    font: inherit;
+    outline: none;
+}
+
+/* Dragging a row: a label follows the pointer, a line shows where it goes (or the row it goes into). */
+body.dc-row-dragging,
+body.dc-row-dragging * {
+    cursor: grabbing !important;
+}
+
+body.dc-row-dragging.dc-drop-none,
+body.dc-row-dragging.dc-drop-none * {
+    cursor: no-drop !important;
+}
+
+.dc-drag-ghost {
+    position: fixed;
+    z-index: 60;
+    max-width: 24em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--vscode-editorWidget-background, #f3f3f3);
+    color: var(--vscode-editorWidget-foreground, #222);
+    border: 1px solid var(--vscode-editorWidget-border, #ccc);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    font: 12px var(--vscode-font-family, system-ui);
+    pointer-events: none;
+}
+
+.dc-drop-line {
+    position: fixed;
+    z-index: 59;
+    height: 2px;
+    background: var(--vscode-focusBorder, #0078d4);
+    pointer-events: none;
+}
+
+.dc-drop-line[hidden] {
+    display: none;
+}
+
+.dc-content .dc-maprow-head.dc-drop-into {
+    outline: 2px solid var(--vscode-focusBorder, #0078d4);
+    outline-offset: -2px;
+}
+
+/* Metadata (Show markup): a box under the row's line. */
+.dc-content.dc-show-markup .dc-maprow-body > .dc-markup,
+.dc-content.dc-show-markup div.map > .dc-markup {
+    margin: 0.2em 0 0.3em;
+    padding: 0.2em 0.6em;
+    border: 1px dashed var(--dc-border);
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: var(--dc-muted);
+}
+
+/* Relationship tables. */
+.dc-content table.reltable {
+    margin-top: 1.5em;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.dc-content table.reltable :is(td, th) {
+    vertical-align: top;
+    padding: 0.3em 0.5em;
+    border: 1px solid var(--dc-border);
+}
+
+.dc-content table.reltable th {
+    background: var(--dc-th-bg);
+    font-weight: 400;
+}
+
+.dc-content table.reltable .dc-maprow-head {
+    padding-left: 0;
+}
+
+.dc-content table.reltable :is(td.relcell, th.relcolspec) {
+    min-width: 9em;
+    cursor: default;
+}
+
+.dc-content table.reltable td.relcell {
+    height: 2.2em;
+}
+
+/* A column header holding nothing but its type: one line. */
+.dc-content table.reltable .dc-colspec-body:empty {
+    display: none;
+}
+
+/* In a cell, a reference says what it is; its address is in its tooltip. */
+.dc-content table.reltable .dc-maprow-target {
+    display: none;
+}
+
+/* An empty cell says so (the attribute is the page's words). */
+.dc-content table.reltable td.relcell:empty::before {
+    content: attr(data-placeholder);
+    color: var(--dc-muted);
+    font-style: italic;
+    font-size: 0.85em;
+}
+
+/* A column header: the type of topics it relates (@type), then what it holds. */
+.dc-content table.reltable .dc-colspec-type {
+    font: 600 0.8em var(--dc-mono);
+    color: var(--dc-fg);
+}
+
+.dc-content table.reltable .dc-colspec-any {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--dc-muted);
+}
+
+.dc-content table.reltable :is(td.relcell, th.relcolspec).ProseMirror-selectednode {
+    outline: 2px solid var(--vscode-focusBorder, #0078d4);
+    outline-offset: -2px;
+    background: var(--dc-selected);
+}
+
+.dc-content table.reltable :is(td.relcell, th.relcolspec).dc-drop-into {
+    outline: 2px solid var(--vscode-focusBorder, #0078d4);
+    outline-offset: -2px;
+}
+
+/* -- chrome -------------------------------------------------------------------------------- */
+
+.dc-select {
+    max-width: 14em;
+    padding: 2px 4px;
+    border: 1px solid var(--vscode-dropdown-border, #ccc);
+    background: var(--vscode-dropdown-background, #fff);
+    color: var(--vscode-dropdown-foreground, #222);
+    font: inherit;
+}
+
+/* The editor's toolbar has more buttons than the preview's: a little tighter. */
+#dc-toolbar {
+    gap: 3px;
+}
+
+#dc-toolbar .dc-btn {
+    padding: 3px 6px;
+}
+
+.dc-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.dc-menu {
+    position: fixed;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 8px);
+    min-width: 12em;
+    overflow: auto;
+    padding: 4px 0;
+    background: var(--vscode-menu-background, #fff);
+    color: var(--vscode-menu-foreground, #222);
+    border: 1px solid var(--vscode-menu-border, var(--vscode-panel-border, #ccc));
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    font: 12px var(--vscode-font-family, system-ui);
+}
+
+.dc-menu-item {
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    padding: 3px 14px;
+    cursor: pointer;
+}
+
+.dc-menu:focus {
+    outline: none;
+}
+
+.dc-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 2em;
+}
+
+.dc-menu-label {
+    flex: 1;
+    white-space: nowrap;
+}
+
+.dc-menu-detail {
+    opacity: 0.65;
+    font-size: 0.92em;
+}
+
+.dc-menu-item:not(:disabled):hover,
+.dc-menu-item:not(:disabled):focus {
+    background: var(--vscode-menu-selectionBackground, #0060c0);
+    color: var(--vscode-menu-selectionForeground, #fff);
+    outline: none;
+}
+
+.dc-menu-sub[aria-expanded="true"]:not(:focus) {
+    background: var(--vscode-list-inactiveSelectionBackground, rgba(128, 128, 128, 0.2));
+}
+
+.dc-menu-separator {
+    height: 1px;
+    margin: 4px 10px;
+    background: var(--vscode-menu-separatorBackground, rgba(128, 128, 128, 0.35));
+}
+
+.dc-submenu {
+    z-index: 51;
+}
+
+.dc-menu-item:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* Where the cursor is: when it does not fit, the outer elements give way, not the inner ones. */
+#dc-status .dc-crumbs {
+    min-width: 0;
+    justify-content: flex-end;
+}
+
+/* The problem at the cursor, in the status line (click: its quick fixes). */
+.dc-problem-here {
+    max-width: 48ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* What an action did (a quick fix made…), for a few seconds. */
+.dc-status-note {
+    max-width: 40ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-style: italic;
+}
+
+/* Actions on a selected reuse box (Open source, Replace with copy). */
+.dc-reuse-bar {
+    position: fixed;
+    z-index: 40;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    max-width: min(36em, calc(100vw - 8px));
+    padding: 4px 6px;
+    background: var(--vscode-editorWidget-background, var(--vscode-menu-background, #fff));
+    color: var(--vscode-editorWidget-foreground, var(--vscode-menu-foreground, #222));
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border, #ccc));
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+    font: 12px var(--vscode-font-family, system-ui);
+}
+
+.dc-reuse-bar[hidden] {
+    display: none;
+}
+
+.dc-reuse-label {
+    max-width: 18em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.8;
+}
+
+.dc-reuse-note {
+    flex-basis: 100%;
+    color: var(--vscode-editorWarning-foreground, #9a6700);
+}
+
+.dc-menu-heading {
+    padding: 6px 14px 2px;
+    opacity: 0.7;
+    font-size: 0.9em;
+}

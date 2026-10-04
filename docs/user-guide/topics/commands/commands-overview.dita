@@ -2,12 +2,12 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="commands-overview">
     <title>Commands Overview</title>
-    <shortdesc>DitaCraft provides commands for validation, publishing, file creation, and navigation.</shortdesc>
+    <shortdesc>DITA Craft provides commands for validation, publishing, file creation, and navigation.</shortdesc>
 
     <conbody>
         <section id="accessing-commands">
             <title>Accessing Commands</title>
-            <p>All DitaCraft commands are accessible via the Command Palette:</p>
+            <p>All DITA Craft commands are accessible via the Command Palette:</p>
             <ol>
                 <li>Press <uicontrol>Ctrl+Shift+P</uicontrol> (or <uicontrol>Cmd+Shift+P</uicontrol> on Mac)</li>
                 <li>Type <userinput>DITA:</userinput> to see all available commands</li>
@@ -17,7 +17,7 @@
 
         <section id="command-categories">
             <title>Command Categories</title>
-            <p>DitaCraft commands are organized into the following categories:</p>
+            <p>DITA Craft commands are organized into the following categories:</p>
             <dl>
                 <dlentry>
                     <dt>Validation Commands</dt>
@@ -34,6 +34,10 @@
                 <dlentry>
                     <dt>Editing and Refactoring Commands</dt>
                     <dd>Rename, move, extract, and inline content; insert images and tables; apply multi-file edits</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Visual Editing and Preview Commands</dt>
+                    <dd>Edit topics on the page, preview them live, and edit attributes in the Properties view</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Navigation Commands</dt>
@@ -66,9 +70,39 @@
                     <stentry>Quick publish to HTML5</stentry>
                 </strow>
                 <strow>
-                    <stentry>DITA: Preview HTML5</stentry>
+                    <stentry>DITA: Preview</stentry>
                     <stentry>Ctrl+Shift+H</stentry>
-                    <stentry>Show live HTML5 preview</stentry>
+                    <stentry>Show the live visual preview (maps: DITA-OT preview)</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Preview with DITA-OT</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Show the DITA-OT HTML5 preview</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Open in Visual Editor</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Edit the topic or map on the page (alternative editor)</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Choose Map Context</stentry>
+                    <stentry>-</stentry>
+                    <stentry>The map (and key scope) a topic is shown in by the visual editor and preview</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Open Source</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Back from the visual editor to the text editor</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Show Properties</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Show the attributes of the element at the cursor</stentry>
+                </strow>
+                <strow>
+                    <stentry>DITA: Set Preview DITAVAL Filter</stentry>
+                    <stentry>-</stentry>
+                    <stentry>Filter both previews through a DITAVAL file</stentry>
                 </strow>
                 <strow>
                     <stentry>DITA: Show Map Visualizer</stentry>
@@ -143,7 +177,7 @@
                 <strow>
                     <stentry>DITA: Find and Replace in Files</stentry>
                     <stentry>-</stentry>
-                    <stentry>Multi-file search and replace with Refactor Preview</stentry>
+                    <stentry>Multi-file search and replace in text (attribute values optional), confirmed or reviewed first</stentry>
                 </strow>
                 <strow>
                     <stentry>DITA: Batch Update Metadata</stentry>

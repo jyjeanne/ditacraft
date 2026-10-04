@@ -17,7 +17,9 @@ import {
     pickPreviewFilterCommand,
     getActiveDitavalPath,
     requestPreviewRefresh,
-    isPreviewRefreshInFlight
+    isPreviewRefreshInFlight,
+    followActiveDitavalMove,
+    onDidChangeActiveDitaval
 } from '../../commands/previewCommand';
 import { DitaPreviewPanel } from '../../providers/previewPanel';
 
@@ -364,7 +366,7 @@ suite('Preview Command Test Suite', () => {
             assert.strictEqual(isPreviewRefreshInFlight(), false, 'should start idle');
 
             // Extension-less path: validateFilePath rejects it synchronously,
-            // before previewHTML5Command ever reaches DITA-OT verification —
+            // before previewDitaOtCommand ever reaches DITA-OT verification —
             // settling fast and deterministically regardless of whether/how
             // slowly DITA-OT installation-checking behaves in this CI
             // environment (regression: an earlier version of this test used
@@ -447,8 +449,33 @@ suite('Preview Command Test Suite', () => {
             assert.strictEqual(getActiveDitavalPath(), ditavalFile.fsPath);
         });
 
+        test('The active filter follows its file when it — or its folder — is moved (regression: it kept the old path)', async () => {
+            const fixturesPath = path.join(__dirname, '..', '..', '..', 'src', 'test', 'fixtures');
+            const ditavalFile = vscode.Uri.file(path.join(fixturesPath, 'test.ditaval'));
+            sandbox.stub(vscode.window, 'showQuickPick').resolves(
+                { label: '$(folder-opened) Browse for .ditaval file...', value: 'browse' } as unknown as vscode.QuickPickItem
+            );
+            sandbox.stub(vscode.window, 'showOpenDialog').resolves([ditavalFile]);
+            await pickPreviewFilterCommand();
+
+            const fired: (string | undefined)[] = [];
+            const listener = onDidChangeActiveDitaval(value => fired.push(value));
+            try {
+                assert.strictEqual(followActiveDitavalMove([{ oldPath: path.join(fixturesPath, 'other.ditaval'), newPath: path.join(fixturesPath, 'x.ditaval') }]), false);
+                const renamed = path.join(fixturesPath, 'web.ditaval');
+                assert.strictEqual(followActiveDitavalMove([{ oldPath: ditavalFile.fsPath, newPath: renamed }]), true);
+                assert.strictEqual(getActiveDitavalPath(), renamed);
+                const moved = path.join(fixturesPath, 'filters', 'web.ditaval');
+                assert.strictEqual(followActiveDitavalMove([{ oldPath: fixturesPath, newPath: path.join(fixturesPath, 'filters') }]), true, 'its folder moved');
+                assert.strictEqual(getActiveDitavalPath(), moved);
+                assert.deepStrictEqual(fired, [renamed, moved], 'the preview and condition highlighting are told');
+            } finally {
+                listener.dispose();
+            }
+        });
+
         test('Should not attempt to re-run the preview when no preview panel is currently open', async () => {
-            // previewHTML5Command swallows every internal error itself
+            // previewDitaOtCommand swallows every internal error itself
             // (handlePreviewError), so it never rejects regardless of
             // whether it actually ran — doesNotReject alone can't tell "ran
             // and failed silently" apart from "correctly skipped". Instead,
@@ -466,12 +493,12 @@ suite('Preview Command Test Suite', () => {
 
         test('Should attempt to re-run the preview when a panel is already open (regression)', async () => {
             // A fake panel whose source file has no extension: validateFilePath
-            // rejects it synchronously, before previewHTML5Command ever reaches
+            // rejects it synchronously, before previewDitaOtCommand ever reaches
             // DITA-OT verification, so this settles fast and deterministically
             // (regression: an earlier `.dita`-suffixed version of this fake path
             // reached the real DITA-OT verification step and timed out on CI).
             // Any attempted refresh still necessarily fails somewhere inside
-            // previewHTML5Command's pipeline, and that failure always surfaces
+            // previewDitaOtCommand's pipeline, and that failure always surfaces
             // through handlePreviewError -> showErrorMessage. Its absence is
             // what the previous test guards; its presence here guards the
             // opposite regression — silently dropping the refresh entirely.

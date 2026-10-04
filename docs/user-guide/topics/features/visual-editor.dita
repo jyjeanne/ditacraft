@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor">
+    <title>Visual Editor</title>
+    <shortdesc>Edit a DITA topic on a page that looks like your output, while DITA Craft writes clean
+        XML: every change reaches the file as a small, precise text edit, and everything you do not
+        touch stays exactly as it was.</shortdesc>
+
+    <conbody>
+        <section id="overview">
+            <title>Overview</title>
+            <p>The visual editor shows a topic as a page — headings, paragraphs, notes, steps, lists,
+                tables, figures — and lets you edit it right there. It is built from
+                the same grammars as the <xref keyref="preview-feature">visual preview</xref>, so the
+                page follows your document type: the styles, menus and the <uicontrol>Enter</uicontrol>
+                key only offer what the DTD allows at the cursor, and specialized elements behave
+                like the element they specialize.</p>
+            <p>The visual editor is an <i>alternative</i> editor for <filepath>.dita</filepath>,
+                    <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files: the text
+                editor stays the default, and both edit the same document. Open a topic or a map with
+                    <uicontrol>DITA: Open in Visual Editor</uicontrol>.</p>
+        </section>
+
+        <section id="what-you-can-do">
+            <title>What You Can Do</title>
+            <ul>
+                <li>Write on the page: paragraphs, lists, steps, styles and any element your DTD
+                    allows, from the keyboard, the toolbar or the right-click menu.</li>
+                <li>Edit CALS and simple tables, and drag column borders to set widths.</li>
+                <li>Insert, paste, drop and resize images; link to elements, keys, topics and web
+                    addresses from a picker.</li>
+                <li>See reused content, keys' texts and link titles resolved; open the source of reused
+                    content or make a local copy.</li>
+                <li>See the language server's problems on the page and apply their quick fixes.</li>
+                <li>Work on maps and bookmaps: one row per reference with the title of its topic,
+                    folded and opened from the page.</li>
+                <li>Edit attributes in the Properties view, and work side by side with the XML.</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

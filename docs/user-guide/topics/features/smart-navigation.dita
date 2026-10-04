@@ -32,11 +32,11 @@
 
         <section id="keyref-navigation">
             <title>keyref Navigation</title>
-            <p>Key references use indirect addressing through keys defined in a map. DitaCraft resolves keys using its full DITA 1.3 spec-compliant key space, including scope-qualified keys and multi-hop keyref chains.</p>
+            <p>Key references use indirect addressing through keys defined in a map. DITA Craft resolves keys using its full DITA 1.3 spec-compliant key space, including scope-qualified keys and multi-hop keyref chains.</p>
             <p><b>Map Definition:</b></p>
             <codeblock>&lt;keydef keys="product-name"&gt;
     &lt;topicmeta&gt;
-        &lt;keywords&gt;&lt;keyword&gt;DitaCraft&lt;/keyword&gt;&lt;/keywords&gt;
+        &lt;keywords&gt;&lt;keyword&gt;DITA Craft&lt;/keyword&gt;&lt;/keywords&gt;
     &lt;/topicmeta&gt;
 &lt;/keydef&gt;
 
@@ -45,7 +45,7 @@
 &lt;!-- Scope-qualified keys (keyscope="enterprise" on the submap) --&gt;
 &lt;keydef keys="install-guide" href="topics/enterprise-install.dita"/&gt;</codeblock>
             <p><b>Usage:</b></p>
-            <codeblock>&lt;ph keyref="product-name"/&gt;           &lt;!-- Resolves to "DitaCraft" --&gt;
+            <codeblock>&lt;ph keyref="product-name"/&gt;           &lt;!-- Resolves to "DITA Craft" --&gt;
 &lt;xref keyref="install-guide"/&gt;        &lt;!-- Links to installation.dita --&gt;
 &lt;xref keyref="enterprise.install-guide"/&gt;  &lt;!-- Scope-qualified lookup --&gt;</codeblock>
             <p>Ctrl+Click on a keyref:</p>
@@ -71,7 +71,7 @@
 
         <section id="cross-file-features">
             <title>Cross-File Features</title>
-            <p>DitaCraft provides cross-file navigation and editing via the LSP server:</p>
+            <p>DITA Craft provides cross-file navigation and editing via the LSP server:</p>
             <dl>
                 <dlentry>
                     <dt>Go to Definition</dt>
@@ -83,7 +83,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>Rename Symbol</dt>
-                    <dd>Press <uicontrol>F2</uicontrol> on an <codeph>id</codeph> attribute to rename it and update all references across files.</dd>
+                    <dd>Press <uicontrol>F2</uicontrol> on an <codeph>id</codeph> or a key — or on a reference to one — to rename it and update all references across files.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Document Links</dt>

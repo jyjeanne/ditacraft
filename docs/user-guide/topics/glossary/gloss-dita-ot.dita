@@ -3,7 +3,7 @@
 <glossentry id="gloss-dita-ot">
     <glossterm>DITA-OT</glossterm>
     <glossdef>
-        <p>DITA Open Toolkit. An open-source publishing engine that transforms DITA content into various output formats including HTML5, PDF, EPUB, and more. Required for DitaCraft publishing features.</p>
+        <p>DITA Open Toolkit. An open-source publishing engine that transforms DITA content into various output formats including HTML5, PDF, EPUB, and more. Required for DITA Craft publishing features.</p>
     </glossdef>
     <related-links>
         <link href="../commands/publishing-commands.dita"/>

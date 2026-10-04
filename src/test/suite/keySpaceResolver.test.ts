@@ -483,6 +483,13 @@ suite('Key Space Resolver Test Suite', () => {
         // best-effort (its assertions are gated behind `if (keyDef)`) for
         // exactly this reason.
 
+        // `topicToScope` is keyed as the resolver compares paths: normalized, and lower-cased on
+        // Windows (case-insensitive file system). (Looking it up with path.normalize() alone failed on Windows.)
+        const scopeKey = (filePath: string) => {
+            const normalized = path.normalize(filePath);
+            return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+        };
+
         test('Should resolve the same key name to different targets depending on the context file\'s scope', async () => {
             // Two submaps under two different @keyscope names, each defining
             // "overview" -- the exact bug this port fixes (previously the
@@ -494,8 +501,8 @@ suite('Key Space Resolver Test Suite', () => {
             const topicA = path.join(fixturesPath, 'keyscope-context', 'topic-a.dita');
             const topicB = path.join(fixturesPath, 'keyscope-context', 'topic-b.dita');
 
-            const scopeA = keySpace.topicToScope.get(path.normalize(topicA));
-            const scopeB = keySpace.topicToScope.get(path.normalize(topicB));
+            const scopeA = keySpace.topicToScope.get(scopeKey(topicA));
+            const scopeB = keySpace.topicToScope.get(scopeKey(topicB));
             assert.strictEqual(scopeA, 'prodA', 'topic A should be recorded under the "prodA" scope');
             assert.strictEqual(scopeB, 'prodB', 'topic B should be recorded under the "prodB" scope');
 
@@ -533,7 +540,7 @@ suite('Key Space Resolver Test Suite', () => {
             const keySpace = await resolver.buildKeySpace(mapPath);
 
             const libTopic = path.join(fixturesPath, 'keyscope-nested', 'lib-topic.dita');
-            const scope = keySpace.topicToScope.get(path.normalize(libTopic));
+            const scope = keySpace.topicToScope.get(scopeKey(libTopic));
             assert.strictEqual(scope, 'product.lib', 'a topic inside the nested "lib" scope should be recorded under "product.lib"');
 
             // The PushDown-inherited entry (already verified above) is what

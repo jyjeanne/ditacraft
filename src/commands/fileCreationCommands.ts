@@ -79,9 +79,16 @@ function getTemplateContext(): TemplateContext {
     };
 }
 
-/** Today's date as `YYYY-MM-DD`, matching the `{{date}}` template placeholder and the bookmap generator's `<created>` date. */
-function todayIso(): string {
-    return new Date().toISOString().split('T')[0];
+/**
+ * Today's date as `YYYY-MM-DD` in the author's time zone, for the `{{date}}`
+ * template placeholder and the bookmap generator's `<created>` date — the day
+ * on the author's calendar. (`toISOString()` gave the UTC date: yesterday's,
+ * past midnight in Europe; tomorrow's, in the evening in the Americas.)
+ * Exported for testing.
+ */
+export function todayIso(now: Date = new Date()): string {
+    const pad = (n: number): string => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
 /** Turn a validated file name (`my-topic`) into a readable default title (`My Topic`), for prefilling an optional title prompt. */
@@ -530,7 +537,7 @@ async function runProjectInit(workspaceFolder: vscode.WorkspaceFolder, options: 
             ...fileConflicts.map(relative),
             ...dirConflicts.map(p => `${relative(p)} (exists and is not a directory)`)
         ];
-        vscode.window.showErrorMessage(`DitaCraft: Cannot initialize project — conflicting path(s): ${conflicts.join(', ')}`);
+        vscode.window.showErrorMessage(`DITA Craft: Cannot initialize project — conflicting path(s): ${conflicts.join(', ')}`);
         return;
     }
 
@@ -585,7 +592,7 @@ async function runProjectInit(workspaceFolder: vscode.WorkspaceFolder, options: 
         if ((writeError as NodeJS.ErrnoException).code === 'EEXIST') {
             logger.error('Project init hit a write-time conflict after the pre-flight check passed', writeError);
             vscode.window.showErrorMessage(
-                'DitaCraft: Initialization was interrupted by a conflicting file created during the process. The project may be partially scaffolded — check the workspace before retrying.'
+                'DITA Craft: Initialization was interrupted by a conflicting file created during the process. The project may be partially scaffolded — check the workspace before retrying.'
             );
             return;
         }
@@ -600,7 +607,7 @@ async function runProjectInit(workspaceFolder: vscode.WorkspaceFolder, options: 
     const document = await vscode.workspace.openTextDocument(rootMapPath);
     await vscode.window.showTextDocument(document);
 
-    vscode.window.showInformationMessage(`DitaCraft: Project initialized — ${fileCount} file(s) created.`);
+    vscode.window.showInformationMessage(`DITA Craft: Project initialized — ${fileCount} file(s) created.`);
 }
 
 /** Which of `paths` already exist on disk, checked concurrently. */

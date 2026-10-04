@@ -73,14 +73,14 @@ export function isWatchModeActive(): boolean {
  */
 export async function startWatchModeCommand(uri?: vscode.Uri): Promise<void> {
     if (state) {
-        vscode.window.showInformationMessage(`DitaCraft: Already watching ${path.basename(state.target.filePath)}.`);
+        vscode.window.showInformationMessage(`DITA Craft: Already watching ${path.basename(state.target.filePath)}.`);
         return;
     }
 
     const target = await resolveWatchTarget(uri);
     if (!target) {
         vscode.window.showWarningMessage(
-            'DitaCraft: No file to watch -- open a DITA file, set a root map (DITA: Set Root Map), or right-click a .ditamap/.bookmap file.'
+            'DITA Craft: No file to watch -- open a DITA file, set a root map (DITA: Set Root Map), or right-click a .ditamap/.bookmap file.'
         );
         return;
     }
@@ -88,12 +88,12 @@ export async function startWatchModeCommand(uri?: vscode.Uri): Promise<void> {
     const ditaOt = new DitaOtWrapper();
     const validation = ditaOt.validateInputFile(target.filePath);
     if (!validation.valid) {
-        vscode.window.showErrorMessage(`DitaCraft: Cannot watch: ${validation.error}`);
+        vscode.window.showErrorMessage(`DITA Craft: Cannot watch: ${validation.error}`);
         return;
     }
     const verification = await ditaOt.verifyInstallation();
     if (!verification.installed) {
-        vscode.window.showErrorMessage('DitaCraft: DITA-OT is not installed or not configured. Configure it before starting watch mode.');
+        vscode.window.showErrorMessage('DITA Craft: DITA-OT is not installed or not configured. Configure it before starting watch mode.');
         return;
     }
 
@@ -123,7 +123,7 @@ export async function startWatchModeCommand(uri?: vscode.Uri): Promise<void> {
  */
 export function stopWatchModeCommand(): void {
     if (!state) {
-        vscode.window.showInformationMessage('DitaCraft: Watch mode is not running.');
+        vscode.window.showInformationMessage('DITA Craft: Watch mode is not running.');
         return;
     }
     const { watcher, statusBarItem, debounceTimer, flashTimer, target } = state;
@@ -133,7 +133,7 @@ export function stopWatchModeCommand(): void {
     statusBarItem.dispose();
     state = undefined;
     logger.info('Watch mode stopped', { target: target.filePath });
-    vscode.window.showInformationMessage(`DitaCraft: Stopped watching ${path.basename(target.filePath)}.`);
+    vscode.window.showInformationMessage(`DITA Craft: Stopped watching ${path.basename(target.filePath)}.`);
 }
 
 /** Dispose watch mode's resources without the "stopped" notification -- for extension deactivation. Exported for testing. */
@@ -216,7 +216,7 @@ export function resolveWatchPublishOptions(): { transtype: string; overrides?: W
 function setWatchingStatus(): void {
     if (!state) return;
     state.statusBarItem.text = `$(eye) Watching: ${path.basename(state.target.filePath)}`;
-    state.statusBarItem.tooltip = `DitaCraft Watch Mode\nPublishing "${state.target.filePath}" to ${state.target.transtype} on every change.\nClick to stop.`;
+    state.statusBarItem.tooltip = `DITA Craft Watch Mode\nPublishing "${state.target.filePath}" to ${state.target.transtype} on every change.\nClick to stop.`;
     state.statusBarItem.backgroundColor = undefined;
 }
 
@@ -306,7 +306,7 @@ async function runWatchPublish(): Promise<void> {
             session.flashTimer = undefined;
         }
         session.statusBarItem.text = '$(error) Publish failed';
-        session.statusBarItem.tooltip = `DitaCraft Watch Mode\nPublish failed: ${result.error}\nSee Problems / DITA-OT Build output.\nClick to stop.`;
+        session.statusBarItem.tooltip = `DITA Craft Watch Mode\nPublish failed: ${result.error}\nSee Problems / DITA-OT Build output.\nClick to stop.`;
     }
 
     if (session.pendingRepublish) {

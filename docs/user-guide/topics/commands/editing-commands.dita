@@ -9,9 +9,11 @@
         <section id="rename-symbol">
             <title>Rename Symbol (F2)</title>
             <p><b>Shortcut:</b> <uicontrol>F2</uicontrol></p>
-            <p>Place the cursor on an <codeph>id</codeph> attribute value, or a single key name
-                inside a <codeph>keys="..."</codeph> attribute, and press <uicontrol>F2</uicontrol>
-                to rename it and update every <codeph>href</codeph>, <codeph>conref</codeph>,
+            <p>Place the cursor on an <codeph>id</codeph> attribute value, a single key name
+                inside a <codeph>keys="..."</codeph> attribute, or a reference to either (the key
+                of a <codeph>keyref</codeph>/<codeph>conkeyref</codeph>, the topic or element part
+                of a fragment), and press <uicontrol>F2</uicontrol> to rename it at its definition
+                and update every <codeph>href</codeph>, <codeph>conref</codeph>,
                     <codeph>keyref</codeph>, and <codeph>conkeyref</codeph> reference across the
                 workspace. See <xref keyref="refactoring-tools"/> for details on how
                     <codeph>conkeyref</codeph> matches are verified before rewriting.</p>
@@ -20,9 +22,10 @@
         <section id="move-topic-command">
             <title>Move or Rename a File</title>
             <p>Drag a <filepath>.dita</filepath>, <filepath>.ditamap</filepath>, or
-                    <filepath>.bookmap</filepath> file to a new location in the Explorer, or press
-                    <uicontrol>F2</uicontrol> on the file itself, and confirm the prompt to update
-                every inbound reference. See <xref keyref="refactoring-tools"/>.</p>
+                    <filepath>.bookmap</filepath> file — or a folder, an image, any file your topics
+                refer to — to a new location in the Explorer, or press <uicontrol>F2</uicontrol>
+                on it: the references to it, and a topic's or map's own references, are updated
+                and saved. See <xref keyref="refactoring-tools"/>.</p>
         </section>
 
         <section id="extract-topic-command">
@@ -35,8 +38,9 @@
         <section id="inline-conref-command">
             <title>DITA: Inline Conref</title>
             <p>Place the cursor on an element carrying <codeph>conref</codeph> or
-                    <codeph>conkeyref</codeph> to resolve and splice the referenced content in
-                place, removing the reference attribute. See <xref keyref="refactoring-tools"/>.</p>
+                    <codeph>conkeyref</codeph> to replace it with the element DITA resolves it to —
+                the referenced content and attributes — removing the reference attribute. See
+                    <xref keyref="refactoring-tools"/>.</p>
         </section>
 
         <section id="insert-image-command">
@@ -56,8 +60,9 @@
 
         <section id="find-replace-command">
             <title>DITA: Find and Replace in Files</title>
-            <p>Searches across the DITA files in your workspace and applies replacements through
-                VS Code's native multi-file Refactor Preview. See
+            <p>Searches the text of the DITA files in your workspace (attribute values too, as an
+                option; never markup) and replaces the matches after asking — all at once, or
+                reviewed in VS Code's multi-file Refactor Preview. See
                     <xref keyref="authoring-productivity"/>.</p>
         </section>
 

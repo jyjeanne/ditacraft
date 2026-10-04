@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="introduction">
-    <title>Introduction to DitaCraft</title>
-    <shortdesc>DitaCraft is a comprehensive Visual Studio Code extension for editing and publishing DITA content.</shortdesc>
+    <title>Introduction to DITA Craft</title>
+    <shortdesc>DITA Craft is a comprehensive Visual Studio Code extension for editing and publishing DITA content.</shortdesc>
 
     <conbody>
         <section id="what-is-ditacraft">
-            <title>What is DitaCraft?</title>
-            <p>DitaCraft is the easiest way to edit and publish your DITA (Darwin Information Typing Architecture) files directly from Visual Studio Code. It provides a complete authoring environment with:</p>
+            <title>What is DITA Craft?</title>
+            <p>DITA Craft is the easiest way to edit and publish your DITA (Darwin Information Typing Architecture) files directly from Visual Studio Code. It provides a complete authoring environment with:</p>
             <ul>
+                <li>A visual editor: write topics on a page that looks like the output, with clean XML written for you</li>
+                <li>A live visual preview, updated as you type</li>
+                <li>A Properties view for the attributes of the element at the cursor</li>
                 <li>LSP-powered IntelliSense with auto-completion, hover docs, and document symbols</li>
                 <li>Full DTD validation with three engine options</li>
                 <li>Smart navigation with Ctrl+Click on href, conref, keyref, and conkeyref</li>
@@ -18,7 +21,7 @@
                 <li>Localized diagnostics (English, French)</li>
                 <li>Explicit root map selection with status bar indicator</li>
                 <li>DITAVAL conditional processing support</li>
-                <li>Live HTML5 preview with bidirectional scroll sync</li>
+                <li>DITA-OT HTML5 preview with bidirectional scroll sync</li>
                 <li>One-click publishing via DITA-OT</li>
                 <li>Interactive map visualizer</li>
                 <li>XML formatting with code actions and quick fixes</li>
@@ -27,8 +30,12 @@
 
         <section id="key-features">
             <title>Key Features</title>
-            <p>DitaCraft offers the following key features:</p>
+            <p>DITA Craft offers the following key features:</p>
             <dl>
+                <dlentry>
+                    <dt>Visual Editor</dt>
+                    <dd>Write on a page that looks like your output — styles, lists, steps, tables, images, links — guided by your DTD, while DITA Craft writes the XML as minimal text edits. See <xref keyref="visual-editor"/>.</dd>
+                </dlentry>
                 <dlentry>
                     <dt>LSP-Powered IntelliSense</dt>
                     <dd>Context-aware auto-completion for DITA elements, attributes, and values. Hover documentation for 364+ elements. Document outline and workspace symbol search.</dd>
@@ -43,7 +50,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>Live Preview</dt>
-                    <dd>Side-by-side HTML5 preview with bidirectional scroll sync, theme support, and print mode.</dd>
+                    <dd>A live page of the topic beside its source, updated as you type, with keys and reuse resolved; the DITA-OT HTML5 preview is one command away.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>DITA-OT Integration</dt>
@@ -62,7 +69,7 @@
 
         <section id="supported-files">
             <title>Supported File Types</title>
-            <p>DitaCraft supports the following DITA file types:</p>
+            <p>DITA Craft supports the following DITA file types:</p>
             <simpletable>
                 <sthead>
                     <stentry>Extension</stentry>
@@ -89,8 +96,12 @@
 
         <section id="version-info">
             <title>Version Information</title>
-            <p>This guide covers DitaCraft version 0.6.2, which includes:</p>
+            <p>This guide covers DITA Craft 0.10. Since version 0.6.2, DITA Craft includes:</p>
             <ul>
+                <li>Visual editor, visual preview and Properties view (0.10)</li>
+                <li>Refactoring tools, templates and project scaffolding, publishing profiles (0.9)</li>
+                <li>MCP server and standalone LSP server (0.8)</li>
+                <li>AI features: chat participant, AI quick fix, AI completion (0.7.4)</li>
                 <li>LSP server with IntelliSense, diagnostics, and navigation</li>
                 <li>Cross-reference validation for href, conref, keyref, and conkeyref</li>
                 <li>DITA Rules Engine with 43 Schematron-equivalent rules (including 10 DITA 2.0-specific rules)</li>

@@ -3,7 +3,7 @@
 <concept id="project-scaffolding">
     <title>Templates and Project Scaffolding</title>
     <shortdesc>Start a new DITA project — or a new topic — from your own house style instead of
-        DitaCraft's generic generated structure.</shortdesc>
+        DITA Craft's generic generated structure.</shortdesc>
 
     <conbody>
 
@@ -49,13 +49,16 @@
             <p>Template files support <codeph>{{placeholder}}</codeph> substitution — for example
                     <codeph>{{title}}</codeph>, <codeph>{{id}}</codeph>, <codeph>{{author}}</codeph>,
                 and <codeph>{{date}}</codeph> — filled in from the same prompts the built-in
-                generators already ask (file name, title, and so on).</p>
+                generators already ask (file name, title, and so on).
+                    <codeph>{{author}}</codeph> comes from <codeph>ditacraft.templateAuthor</codeph>
+                and <codeph>{{date}}</codeph> is today's date on your computer's calendar
+                    (<codeph>YYYY-MM-DD</codeph>).</p>
             <note type="tip"><codeph>ditacraft.templatesPath</codeph> accepts the
                     <codeph>${workspaceFolder}</codeph> variable, so a templates directory checked
                 into the project itself (for example <filepath>.dita-templates/</filepath>) works
                 the same for every contributor.</note>
             <p>If no template file matches the requested type — or
-                    <codeph>ditacraft.templatesPath</codeph> is not set at all — DitaCraft falls
+                    <codeph>ditacraft.templatesPath</codeph> is not set at all — DITA Craft falls
                 back to its built-in generator, so file creation always works even with zero
                 configuration.</p>
         </section>

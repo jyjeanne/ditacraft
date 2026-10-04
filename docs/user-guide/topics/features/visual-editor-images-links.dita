@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor-images-links">
+    <title>Images and Links in the Visual Editor</title>
+    <shortdesc>Insert, paste, drop and resize images, and link to elements, keys, topics or web
+        addresses from a picker — without typing paths or IDs.</shortdesc>
+
+    <conbody>
+        <section id="images">
+            <title>Inserting Images</title>
+            <p>The <uicontrol>Image</uicontrol> button in the toolbar, or <uicontrol>Image</uicontrol> in the
+                right-click menu, inserts an image where the document type allows it:</p>
+            <dl>
+                <dlentry>
+                    <dt>In the text…</dt>
+                    <dd>In the sentence: <codeph>&lt;image href="…"/&gt;</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>On its own line…</dt>
+                    <dd><codeph>placement="break"</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>In a figure…</dt>
+                    <dd>A <codeph>&lt;fig&gt;</codeph> with the image and an empty title for the
+                        caption.</dd>
+                </dlentry>
+            </dl>
+            <p>You pick the file, then type its <b>alternative text</b>, written as an
+                    <codeph>&lt;alt&gt;</codeph> element. The <codeph>href</codeph> is relative to the
+                topic.</p>
+            <ul>
+                <li><b>Paste</b> an image (a screenshot): it is saved next to the topic — in
+                        <filepath>images/</filepath>, named <filepath>&lt;topic&gt;-1.png</filepath>…
+                    (setting <codeph>ditacraft.imagePasteFolder</codeph>) — and inserted on its own
+                    line.</li>
+                <li><b>Drop</b> image files from VS Code's Explorer (hold <uicontrol>Shift</uicontrol>
+                    while dropping): they are linked where you drop them.</li>
+                <li>On an image: <uicontrol>Replace image…</uicontrol>, <uicontrol>Alternative
+                        text…</uicontrol>, and its size, placement and alignment in the
+                        <xref keyref="properties-view"/>.</li>
+            </ul>
+        </section>
+
+        <section id="resize">
+            <title>Resizing Images</title>
+            <p>Click an image to select it, then drag the handle on its bottom-right corner: an
+                outline shows the new size, with the image's proportions kept. Release to set it
+                    (<uicontrol>Escape</uicontrol> cancels, <uicontrol>Ctrl+Z</uicontrol> undoes).
+                    <codeph>@width</codeph> and <codeph>@height</codeph> change together in their own
+                units (<codeph>2in</codeph> stays in inches); an image without either gets
+                    <codeph>@width</codeph> in pixels.</p>
+            <fig id="fig-image">
+                <title>A selected image, its resize handle and its attributes</title>
+                <image href="../../images/visual-editor-properties.png" placement="break" align="center" width="6.5in">
+                    <alt>A diagram given by a key, selected on the page with a resize handle on its
+                        corner; the Properties view in the side bar shows keyref sync-diagram.</alt>
+                </image>
+            </fig>
+            <p>Images show at their size, alignment and placement. An image given by a key
+                    (<codeph>keyref</codeph>) shows the file the key points to.</p>
+        </section>
+
+        <section id="links">
+            <title>Inserting Links</title>
+            <p>The <uicontrol>Link</uicontrol> button in the toolbar, <uicontrol>Ctrl+K</uicontrol>, or
+                    <uicontrol>Link…</uicontrol> in the right-click menu opens the link picker. Type to
+                search:</p>
+            <fig id="fig-link-picker">
+                <title>The link target picker</title>
+                <image href="../../images/visual-editor-link-picker.png" placement="break" align="center" width="6.5in">
+                    <alt>The link picker listing elements of this topic, keys of the root map, topics
+                        and maps of the workspace, and Web address.</alt>
+                </image>
+            </fig>
+            <dl>
+                <dlentry>
+                    <dt>In this topic</dt>
+                    <dd>The topic and its elements with an <codeph>@id</codeph>:
+                            <codeph>href="#topic/element"</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Keys</dt>
+                    <dd>The keys of the root map, with their title and file:
+                            <codeph>keyref="key"</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Topics and maps</dt>
+                    <dd>Those of the workspace; choosing a topic then offers the topic itself or one of
+                        its elements: <codeph>href="install.dita#install/prereq"</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Web address…</dt>
+                    <dd>Or type the address straight in the search box:
+                            <codeph>href="https://…" scope="external" format="html"</codeph>.</dd>
+                </dlentry>
+            </dl>
+            <p>With text selected, the text becomes the link's text. Otherwise an empty link is
+                inserted — when published, its text is the target's title; on the page it already
+                shows that title, and follows it when the title changes.</p>
+            <p>On a link, the same command is <uicontrol>Change link target…</uicontrol> (only the
+                target changes). The right-click menu also offers <uicontrol>Open link
+                    target</uicontrol> and <uicontrol>Remove link</uicontrol> (its text stays).</p>
+        </section>
+    </conbody>
+</concept>

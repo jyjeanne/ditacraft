@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-preview">
+    <title>Visual Preview</title>
+    <shortdesc>A live page of the topic beside its source, rendered by DITA Craft itself as you type,
+        with keys, reuse and link titles resolved.</shortdesc>
+
+    <conbody>
+        <section id="opening">
+            <title>Opening the Visual Preview</title>
+            <fig id="fig-visual-preview">
+                <title>A topic and its visual preview</title>
+                <image href="../../images/visual-preview.png" placement="break" align="center" width="6.5in">
+                    <alt>A DITA task in the text editor on the left and its visual preview on the
+                        right: title, short description, a link title, an important note, numbered steps and a
+                        numbered figure.</alt>
+                </image>
+            </fig>
+            <p>Open a topic and run <uicontrol>DITA: Preview</uicontrol>, press
+                    <uicontrol>Ctrl+Shift+H</uicontrol>, or click the preview icon in the editor title
+                bar. The preview opens beside the editor and follows the active DITA editor; click
+                    <uicontrol>Lock</uicontrol> in its toolbar (or run <uicontrol>DITA: Preview —
+                    Lock/Unlock to This Topic</uicontrol>) to keep it on one topic.</p>
+        </section>
+
+        <section id="content-rendering">
+            <title>What the Page Shows</title>
+            <ul>
+                <li><b>Structure:</b> headings at the right level, short description, sections,
+                    examples and nested topics</li>
+                <li><b>Notes:</b> labelled, coloured boxes for every note type and hazard
+                    statements</li>
+                <li><b>Tasks:</b> numbered steps and substeps, labelled sections ("Before you
+                    begin"…)</li>
+                <li><b>Tables:</b> CALS and simple tables with spans, column widths, frames and
+                    numbered captions</li>
+                <li><b>Figures and images:</b> numbered captions; images sized and aligned by their
+                    attributes</li>
+                <li><b>Code:</b> code blocks and other preformatted blocks, whitespace kept</li>
+                <li><b>Footnotes</b> numbered in reading order, <b>related links</b>, MathML and
+                    SVG</li>
+            </ul>
+            <p>Labels follow VS Code's display language (English and French).</p>
+        </section>
+
+        <section id="references">
+            <title>Resolved References</title>
+            <p>The preview resolves references the way an output would, using DITA Craft's key
+                space:</p>
+            <ul>
+                <li><codeph>keyref</codeph> on phrases, keywords and terms: the key's text, with a
+                    dotted underline (hover for the key);</li>
+                <li><codeph>conref</codeph> and <codeph>conkeyref</codeph>: the reused element, with
+                        <codeph>conrefend</codeph> ranges, nested and chained reuse;</li>
+                <li>empty <codeph>xref</codeph> and <codeph>link</codeph>: the target's title;</li>
+                <li>glossary terms, <codeph>coderef</codeph>, <codeph>mathmlref</codeph>,
+                        <codeph>svgref</codeph>, and images by <codeph>href</codeph> or
+                        <codeph>keyref</codeph>.</li>
+            </ul>
+            <p>What cannot be resolved shows a <codeph>[key]</codeph> placeholder with the reason on
+                hover. References are resolved again when a reused file or a map changes, and on
+                save.</p>
+        </section>
+
+        <section id="working">
+            <title>Working with the Page</title>
+            <dl>
+                <dlentry>
+                    <dt>Scroll sync</dt>
+                    <dd>Scrolling the editor scrolls the page to the same element, and the other way
+                        round; clicking the page moves the editor cursor there. Toggle it with
+                            <uicontrol>Sync</uicontrol> in the toolbar or
+                            <codeph>ditacraft.previewScrollSync</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Ctrl+click</dt>
+                    <dd>Opens a link's target, reused content's source, or jumps to any other element
+                        in the editor.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Problems</dt>
+                    <dd>Elements with diagnostics are underlined; the status line shows the count —
+                        click it to step through them.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Show markup</dt>
+                    <dd>Reveals what a published page does not show: prolog metadata, comments,
+                        processing instructions, index terms, <codeph>data</codeph> and draft
+                        comments.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Broken XML</dt>
+                    <dd>While the XML is not well-formed, the page keeps the last good rendering and a
+                        banner shows the error — click it to go to the line.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="conditions">
+            <title>Conditions (DITAVAL)</title>
+            <p><uicontrol>DITA: Set Preview DITAVAL Filter</uicontrol> filters the page through a
+                    <filepath>.ditaval</filepath> file: excluded content is removed (or dimmed, with
+                    <codeph>ditacraft.previewShowExcluded</codeph>) and flagged content gets the
+                flag's colour, style and start and end flags. The status line names the filter. The
+                text editor marks the same elements (see <xref keyref="condition-highlighting"/>).</p>
+            <fig id="fig-preview-conditions">
+                <title>A task filtered for Windows, in the text editor and the visual preview</title>
+                <image href="../../images/condition-highlighting.png" placement="break" align="center" width="6.5in">
+                    <alt>On the left, a task in the text editor with a DITAVAL filter: the macOS and
+                        Linux steps are dimmed and struck through; the administrators' step is
+                        flagged [Admin] in blue italics, a step for another product is flagged
+                        [Check] in orange by the filter's rule for unnamed conditions, and a step of
+                        revision 2.0 is flagged [New in 2.0] in green bold. On the right, the visual
+                        preview of the same task shows the Windows step and the same flags, without
+                        the excluded steps; its status line names the filter.</alt>
+                </image>
+            </fig>
+        </section>
+
+        <section id="styling">
+            <title>Styling the Page</title>
+            <p>The page uses the DITA-OT HTML5 class names (<codeph>.note</codeph>,
+                    <codeph>.codeblock</codeph>, <codeph>.topictitle1</codeph>…), so a stylesheet
+                written for DITA-OT output styles it too. Point
+                    <codeph>ditacraft.previewCustomCss</codeph> at it. Every element also carries
+                    <codeph>data-dita</codeph> (its name) and <codeph>data-class</codeph> (its DITA
+                class), so a rule can target a specialization family:
+                    <codeph>[data-class~="topic/note"]</codeph>.</p>
+        </section>
+
+        <section id="limitations">
+            <title>Limitations</title>
+            <ul>
+                <li>Custom DITA-OT plugins and PDF-specific formatting are not applied; use the
+                    DITA-OT preview or publish for the final review.</li>
+                <li>In Restricted Mode, custom CSS and the project catalog are not used, and only the
+                    topic's own workspace folder is read.</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

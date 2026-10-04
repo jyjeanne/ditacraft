@@ -235,9 +235,10 @@ export function findKeyAtOffset(text: string, offset: number): KeyAtOffset | nul
 
 /**
  * Find all reference attributes in the document that mention a given ID
- * in their fragment portion.
+ * in their fragment portion (see `referenceMatchesId`; `isTopicId`: the id
+ * is a topic's, so the topic part of `#topicid/elementid` counts too).
  */
-export function findReferencesToId(text: string, targetId: string): ReferenceOccurrence[] {
+export function findReferencesToId(text: string, targetId: string, isTopicId = false): ReferenceOccurrence[] {
     const results: ReferenceOccurrence[] = [];
     // Match href="...", conref="...", conkeyref="...", keyref="..." attribute values
     const pattern = /\b(href|conref|conkeyref|keyref)\s*=\s*["']([^"']+)["']/g;
@@ -247,7 +248,7 @@ export function findReferencesToId(text: string, targetId: string): ReferenceOcc
         const attrName = match[1] as RefAttrName;
         const value = match[2];
 
-        if (referenceMatchesId(attrName, value, targetId)) {
+        if (referenceMatchesId(attrName, value, targetId, isTopicId)) {
             // Calculate value start by finding the opening quote position
             const fullMatch = match[0];
             const quoteChar = fullMatch.includes('"') ? '"' : "'";
@@ -260,6 +261,47 @@ export function findReferencesToId(text: string, targetId: string): ReferenceOcc
     }
 
     return results;
+}
+
+/** The part of a reference value a cursor is on, when it names something renamable. */
+export type ReferencePart =
+    /** The key of a `keyref`/`conkeyref` (`key` or `key/elementid`). */
+    | { kind: 'key'; name: string; start: number; end: number }
+    /** An id: the topic part of a fragment (`#topicid`, `#topicid/elementid`) or an element part (`#topicid/elementid`, `key/elementid`). */
+    | { kind: 'id'; role: 'topic' | 'element'; name: string; start: number; end: number };
+
+/**
+ * The renamable part of `ref` that `offset` is on (offsets in the document):
+ * the key of a `keyref`/`conkeyref`, the topic or element id of an
+ * `href`/`conref` fragment, the element id after a key. Undefined for a file
+ * path, a `.` (this topic) or an empty part.
+ */
+export function referencePartAtOffset(ref: ReferenceAtOffset, offset: number): ReferencePart | undefined {
+    const rel = offset - ref.valueStart;
+    const part = (start: number, end: number): { name: string; start: number; end: number } | undefined =>
+        rel >= start && rel <= end && end > start ? { name: ref.value.slice(start, end), start: ref.valueStart + start, end: ref.valueStart + end } : undefined;
+    if (ref.type === 'keyref' || ref.type === 'conkeyref') {
+        const slash = ref.value.indexOf('/');
+        const keyEnd = slash < 0 ? ref.value.length : slash;
+        const key = part(0, keyEnd);
+        if (key) {
+            return { kind: 'key', ...key };
+        }
+        const element = slash < 0 ? undefined : part(slash + 1, ref.value.length);
+        return element ? { kind: 'id', role: 'element', ...element } : undefined;
+    }
+    const hash = ref.value.indexOf('#');
+    if (hash < 0) {
+        return undefined;
+    }
+    const slash = ref.value.indexOf('/', hash);
+    const topicEnd = slash < 0 ? ref.value.length : slash;
+    const topic = ref.value.slice(hash + 1, topicEnd) === '.' ? undefined : part(hash + 1, topicEnd);
+    if (topic) {
+        return { kind: 'id', role: 'topic', ...topic };
+    }
+    const element = slash < 0 ? undefined : part(slash + 1, ref.value.length);
+    return element ? { kind: 'id', role: 'element', ...element } : undefined;
 }
 
 /**
@@ -384,16 +426,14 @@ function isRefAttr(name: string): name is RefAttrName {
 }
 
 /**
- * Check if a reference attribute value references a given target ID.
+ * Check if a reference attribute value references a given target ID: the
+ * element part of `keyname/elementid` (`conkeyref`, and `keyref` on a link,
+ * which DITA allows), the last part of an `href`/`conref` fragment, and —
+ * when `isTopicId` — the topic part of `#topicid/elementid` too.
  */
-function referenceMatchesId(attrType: RefAttrName, value: string, targetId: string): boolean {
-    if (attrType === 'keyref') {
-        // keyref values are key names, not file#id patterns
-        return false;
-    }
-
-    if (attrType === 'conkeyref') {
-        // conkeyref format: "keyname/elementid"
+function referenceMatchesId(attrType: RefAttrName, value: string, targetId: string, isTopicId = false): boolean {
+    if (attrType === 'keyref' || attrType === 'conkeyref') {
+        // "keyname/elementid"; a bare keyref is a key name only
         const slashIdx = value.indexOf('/');
         if (slashIdx >= 0) {
             return value.slice(slashIdx + 1) === targetId;
@@ -406,7 +446,9 @@ function referenceMatchesId(attrType: RefAttrName, value: string, targetId: stri
     if (!fragment) return false;
 
     const id = getTargetId(fragment);
-    return id === targetId;
+    if (id === targetId) return true;
+    const slashIdx = fragment.indexOf('/');
+    return isTopicId && slashIdx >= 0 && fragment.slice(0, slashIdx) === targetId;
 }
 
 /**

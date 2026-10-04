@@ -46,7 +46,20 @@ export interface DitavalRule {
  */
 export const PROFILING_ATTRIBUTES = ['audience', 'platform', 'product', 'otherprops', 'props', 'rev', 'deliveryTarget'] as const;
 
-const PROP_TAG_PATTERN = /<prop\b((?:[^>"']|"[^"]*"|'[^']*')*)\/?>/gi;
+/**
+ * The attributes DITA filters content on — the conditional processing
+ * attributes (lower case): a `.ditaval` file's filter-wide default rule applies
+ * to them. `@rev` is not one (DITA uses it for flagging). Specializations of
+ * `@props` other than `deliveryTarget` are named by the document type (its
+ * `@domains`); callers that know them pass them to `isExcludedByRules`.
+ */
+export const FILTERING_ATTRIBUTES = ['audience', 'platform', 'product', 'otherprops', 'props', 'deliverytarget'] as const;
+
+export function isFilteringAttribute(lowerCaseName: string): boolean {
+    return (FILTERING_ATTRIBUTES as readonly string[]).includes(lowerCaseName);
+}
+
+const PROP_TAG_PATTERN =/<prop\b((?:[^>"']|"[^"]*"|'[^']*')*)\/?>/gi;
 const ATTR_PATTERN = /([\w-]+)\s*=\s*"([^"]*)"|([\w-]+)\s*=\s*'([^']*)'/g;
 
 /** Parse every attribute name/value pair out of a tag's raw attribute text. */
@@ -121,52 +134,56 @@ function escapeDitavalAttr(value: string): string {
 }
 
 /**
- * True if an element's own attribute map is excluded by any
- * `action="exclude"` rule. Only `exclude` actions are decoration-worthy —
- * `include`/`flag`/`passthrough` don't remove content from a filtered
- * publish, so highlighting them as "excluded" would be actively wrong, not
- * just unhelpful. A rule with `att` but no `val` matches the attribute
- * regardless of value; DITA profiling attributes are space-separated value
- * lists (e.g. `audience="internal external"`), so each token is checked
- * individually against a rule's `val`. A rule with no `att` at all is a
- * scheme-wide default action, not an attribute-specific one — out of scope
- * for per-element highlighting, so it's ignored here rather than matched
- * against every element.
+ * True if a filtered publish would exclude an element with these attributes,
+ * by DITA's filtering logic (DITA 1.3, "Filtering logic"): each attribute is
+ * evaluated on its own — it excludes the element only when **every** one of
+ * its values is excluded (profiling attributes are space-separated value
+ * lists: `audience="internal external"` stays when only `internal` is
+ * excluded) — and the element is excluded when any one attribute excludes
+ * it. An attribute without values excludes nothing.
  *
- * `/code-review` correctness fix: a `val`-specific rule for a given
- * attribute+value now takes precedence over a `val`-less default rule for
- * the same attribute, regardless of which appears first in the `.ditaval`
- * file — matching the standard "exclude by default, selectively include"
- * DITAVAL authoring pattern (`<prop action="exclude" att="platform"/>`
- * followed by `<prop action="include" att="platform" val="windows"/>`).
- * Without this, a val-less exclude default matched before its more
- * specific include exception was ever consulted, dimming content DITA-OT
- * would actually publish.
+ * A value's action is that of the rule for its attribute and value, else of
+ * the attribute's `val`-less default rule (`<prop action="exclude"
+ * att="platform"/>`), else of the filter-wide default rule (`<prop
+ * action="exclude"/>`, no `att` and no `val`), else include — whatever their
+ * order in the file (the standard "exclude by default, selectively include"
+ * pattern works at both levels). Only `exclude` removes content:
+ * `include`/`flag`/`passthrough` keep it.
+ *
+ * The filter-wide default applies to the filtering attributes only
+ * (`isFiltering`: by default `FILTERING_ATTRIBUTES` — not `@rev`, which DITA
+ * uses for flagging, nor `@id`, `@outputclass`… when a caller passes an
+ * element's every attribute); a rule naming another attribute still applies to
+ * it. Attribute names compare case-insensitively (`parseDitavalRules` lowers a
+ * rule's `att`; elements carry `deliveryTarget`).
  */
-export function isExcludedByRules(attrs: Record<string, string | undefined>, rules: readonly DitavalRule[]): boolean {
+export function isExcludedByRules(attrs: Record<string, string | undefined>, rules: readonly DitavalRule[],
+    isFiltering: (lowerCaseName: string) => boolean = isFilteringAttribute): boolean {
     for (const [attName, rawValue] of Object.entries(attrs)) {
         if (rawValue === undefined) {
             continue;
         }
-        const attRules = rules.filter(r => r.att === attName);
-        if (attRules.length === 0) {
-            continue;
-        }
-
+        const name = attName.toLowerCase();
         const tokens = rawValue.split(/\s+/).filter(t => t.length > 0);
-        for (const token of tokens) {
-            const specificRule = attRules.find(r => r.val === token);
-            if (specificRule) {
-                if (specificRule.action === 'exclude') {
-                    return true;
-                }
-                continue; // A specific include/flag/passthrough rule matched — this token is not excluded.
-            }
-            const defaultRule = attRules.find(r => r.val === undefined);
-            if (defaultRule?.action === 'exclude') {
-                return true;
-            }
+        if (tokens.length > 0 && tokens.every(token => governingRule(name, token, rules, isFiltering)?.action === 'exclude')) {
+            return true;
         }
     }
     return false;
+}
+
+/**
+ * The rule that decides what happens to one value of an attribute (lower-case
+ * name): the rule for that attribute and value, else the attribute's
+ * `val`-less default rule, else — for a filtering attribute — the filter-wide
+ * default rule (the first `<prop>` without `att` and `val`); undefined when
+ * none does (the value is included, unflagged). Shared by exclusion and the
+ * preview's flags, so both read a `.ditaval` file the same way.
+ */
+export function governingRule(lowerCaseName: string, token: string, rules: readonly DitavalRule[],
+    isFiltering: (lowerCaseName: string) => boolean = isFilteringAttribute): DitavalRule | undefined {
+    const attRules = rules.filter(r => r.att === lowerCaseName);
+    return attRules.find(r => r.val === token)
+        ?? attRules.find(r => r.val === undefined)
+        ?? (isFiltering(lowerCaseName) ? rules.find(r => r.att === undefined && r.val === undefined) : undefined);
 }

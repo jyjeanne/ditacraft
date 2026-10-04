@@ -2,7 +2,7 @@
 <!DOCTYPE bookmap PUBLIC "-//OASIS//DTD DITA BookMap//EN" "bookmap.dtd">
 <bookmap id="ditacraft-user-guide">
     <booktitle>
-        <mainbooktitle>DitaCraft User Guide</mainbooktitle>
+        <mainbooktitle>DITA Craft User Guide</mainbooktitle>
         <booktitlealt>The Complete Guide to DITA Editing in VS Code</booktitlealt>
     </booktitle>
 
@@ -19,12 +19,12 @@
         </authorinformation>
         <critdates>
             <created date="2025-01-25"/>
-            <revised modified="2026-08-16"/>
+            <revised modified="2026-10-04"/>
         </critdates>
         <prodinfo>
-            <prodname>DitaCraft</prodname>
+            <prodname>DITA Craft</prodname>
             <vrmlist>
-                <vrm version="0" release="9" modification="0"/>
+                <vrm version="0" release="10" modification="0"/>
             </vrmlist>
         </prodinfo>
         <bookid>
@@ -35,14 +35,15 @@
         <bookrights>
             <copyrfirst><year>2025</year></copyrfirst>
             <bookowner>
-                <organization>DitaCraft Project</organization>
+                <organization>DITA Craft Project</organization>
             </bookowner>
         </bookrights>
     </bookmeta>
 
     <!-- Frontmatter -->
     <frontmatter>
-        <topicref href="topics/frontmatter/cover.dita" toc="no">
+        <!-- print="no": the PDF's first page is the cover (cfg/fo/xsl/custom.xsl); this topic is the HTML5 cover. -->
+        <topicref href="topics/frontmatter/cover.dita" toc="no" print="no">
             <topicmeta>
                 <navtitle>Cover</navtitle>
             </topicmeta>
@@ -66,7 +67,7 @@
     <part navtitle="Getting Started">
         <chapter href="topics/introduction.dita">
             <topicmeta>
-                <navtitle>Introduction to DitaCraft</navtitle>
+                <navtitle>Introduction to DITA Craft</navtitle>
             </topicmeta>
         </chapter>
         <chapter href="topics/getting-started.dita">
@@ -76,8 +77,8 @@
         </chapter>
     </part>
 
-    <!-- Part II: Using DitaCraft -->
-    <part navtitle="Using DitaCraft">
+    <!-- Part II: Using DITA Craft -->
+    <part navtitle="Using DITA Craft">
         <chapter format="ditamap" href="topics/commands/commands.ditamap">
             <topicmeta>
                 <navtitle>Commands</navtitle>

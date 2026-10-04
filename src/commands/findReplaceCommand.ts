@@ -2,11 +2,15 @@
  * Multi-File DITA-Aware Find & Replace
  * Prompts for a search query (literal or regex) and a replacement, asks
  * the LSP server (`server/src/features/findReplace.ts`) to compute every
- * match across the DITA files in scope, then applies the result as a
- * `vscode.WorkspaceEdit` with `needsConfirmation: true` on every entry —
- * which makes VS Code show its native multi-file "Refactor Preview" UI
- * (the same one used for a cross-file rename) before anything is actually
- * written, rather than building a custom diff viewer.
+ * match across the DITA files in scope (text content only, or attribute
+ * values too — never markup), then asks before writing, as VS Code's own
+ * Replace All does (`confirmWorkspaceEdit`): **Replace** applies every
+ * change (undoable), **Review Changes…** applies it as a `vscode.WorkspaceEdit`
+ * with `needsConfirmation: true` on every entry — VS Code's native
+ * multi-file "Refactor Preview", where such changes start unticked: the
+ * user ticks the ones to apply. Applying a needs-confirmation edit straight
+ * away opened that preview with nothing ticked, so Apply silently did
+ * nothing.
  */
 
 import * as vscode from 'vscode';
@@ -33,10 +37,17 @@ interface FindReplaceResponse {
     fileCount: number;
 }
 
-const FIND_OPTIONS = [
-    { label: 'Match case', value: 'caseSensitive' as const },
-    { label: 'Use regular expression', value: 'useRegex' as const },
-    { label: 'Match whole word', value: 'wholeWord' as const }
+type FindOption = 'caseSensitive' | 'useRegex' | 'wholeWord' | 'includeAttributeValues';
+
+const FIND_OPTIONS: { label: string; description?: string; value: FindOption }[] = [
+    { label: 'Match case', value: 'caseSensitive' },
+    { label: 'Use regular expression', value: 'useRegex' },
+    { label: 'Match whole word', value: 'wholeWord' },
+    {
+        label: 'Also in attribute values',
+        description: 'ids, links, keys, navtitle… — text content only otherwise; tag and attribute names never change',
+        value: 'includeAttributeValues'
+    }
 ];
 
 /**
@@ -45,7 +56,7 @@ const FIND_OPTIONS = [
 export async function findReplaceInFilesCommand(): Promise<void> {
     const client = getLanguageClient();
     if (!client) {
-        vscode.window.showWarningMessage('DitaCraft: Language server is not ready yet.');
+        vscode.window.showWarningMessage('DITA Craft: Language server is not ready yet.');
         return;
     }
 
@@ -67,7 +78,7 @@ export async function findReplaceInFilesCommand(): Promise<void> {
     if (options.useRegex) {
         const regexError = validateRegexQuery(query);
         if (regexError) {
-            vscode.window.showErrorMessage(`DitaCraft: ${regexError}`);
+            vscode.window.showErrorMessage(`DITA Craft: ${regexError}`);
             return;
         }
     }
@@ -93,7 +104,7 @@ export async function findReplaceInFilesCommand(): Promise<void> {
     if (scopeChoice.value === 'file') {
         const activeUri = vscode.window.activeTextEditor?.document.uri;
         if (!activeUri) {
-            vscode.window.showWarningMessage('DitaCraft: No active file to scope the search to.');
+            vscode.window.showWarningMessage('DITA Craft: No active file to scope the search to.');
             return;
         }
         if (!isDitaContentUri(activeUri)) {
@@ -101,7 +112,7 @@ export async function findReplaceInFilesCommand(): Promise<void> {
             // scopeUri too (defense in depth), but checking here avoids an
             // unnecessary round-trip and gives an immediate, specific
             // reason instead of a generic "no matches found".
-            vscode.window.showWarningMessage('DitaCraft: The active file is not a DITA topic, map, or bookmap.');
+            vscode.window.showWarningMessage('DITA Craft: The active file is not a DITA topic, map, or bookmap.');
             return;
         }
         scopeUri = client.code2ProtocolConverter.asUri(activeUri);
@@ -115,43 +126,92 @@ export async function findReplaceInFilesCommand(): Promise<void> {
             useRegex: options.useRegex,
             caseSensitive: options.caseSensitive,
             wholeWord: options.wholeWord,
+            includeAttributeValues: options.includeAttributeValues,
             scopeUri
         });
     } catch (error) {
         logger.error('Find & Replace request failed', error);
         vscode.window.showErrorMessage(
-            `DitaCraft: Find & Replace failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `DITA Craft: Find & Replace failed: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
         return;
     }
 
     if (!response.edit || response.matchCount === 0) {
-        vscode.window.showInformationMessage('DitaCraft: No matches found.');
+        vscode.window.showInformationMessage('DITA Craft: No matches found.');
+        return;
+    }
+
+    const matchWord = response.matchCount === 1 ? 'match' : 'matches';
+    const fileWord = response.fileCount === 1 ? 'file' : 'files';
+    const choice = await confirmWorkspaceEdit(
+        `Replace ${response.matchCount} ${matchWord} of "${query}" with "${replacement}" in ${response.fileCount} ${fileWord}?`,
+        describeFileChanges(response.edit, 'match', 'matches'),
+        'Replace'
+    );
+    if (!choice) {
         return;
     }
 
     const label = describeSearchLabel(query, replacement, response.matchCount, response.fileCount);
-    const edit = buildConfirmableWorkspaceEdit(response.edit, label);
-    const applied = await vscode.workspace.applyEdit(edit);
+    const edit = buildWorkspaceEdit(response.edit, label, choice === 'review');
+    const applied = await vscode.workspace.applyEdit(edit, { isRefactoring: true });
 
     if (applied) {
-        logger.info('Find & Replace applied', { matchCount: response.matchCount, fileCount: response.fileCount });
+        logger.info('Find & Replace applied', { matchCount: response.matchCount, fileCount: response.fileCount, reviewed: choice === 'review' });
+        if (choice === 'apply') {
+            vscode.window.showInformationMessage(`DITA Craft: Replaced ${response.matchCount} ${matchWord} in ${response.fileCount} ${fileWord}.`);
+        }
     } else {
-        // The user can decline/cancel VS Code's own refactor-preview UI —
+        // The user can discard VS Code's own refactor-preview UI —
         // that's a normal outcome, not a failure worth an error message.
-        logger.debug('Find & Replace edit was not applied (declined or cancelled in the preview)');
+        logger.debug('Find & Replace edit was not applied (discarded in the preview)');
     }
 }
 
-/** Reduce the multi-select QuickPick result to the three option flags. Exported for testing. */
+/**
+ * Ask before writing a multi-file edit, as VS Code's own Replace All does:
+ * `'apply'` every change, `'review'` it in the Refactor Preview (where
+ * changes that need confirmation start unticked — the dialog says so), or
+ * undefined (cancelled). Shared with batch metadata.
+ */
+export async function confirmWorkspaceEdit(message: string, files: string, applyLabel: string): Promise<'apply' | 'review' | undefined> {
+    const review = 'Review Changes…';
+    const choice = await vscode.window.showInformationMessage(
+        message,
+        {
+            modal: true,
+            detail: `${files}\n\n${applyLabel} makes every change (Undo takes it back). ${review} lists them in the Refactor Preview: tick the ones to make, then Apply.`
+        },
+        applyLabel,
+        review
+    );
+    return choice === applyLabel ? 'apply' : choice === review ? 'review' : undefined;
+}
+
+/**
+ * The files of an edit with their change counts, one per line (workspace-
+ * relative paths, at most `max`, then "…and N more files"). Exported for testing.
+ */
+export function describeFileChanges(lspEdit: LspWorkspaceEdit, singular: string, plural: string, max = 10): string {
+    const files = Object.entries(lspEdit.changes ?? {}).map(([uriString, edits]) => {
+        const count = `${edits.length} ${edits.length === 1 ? singular : plural}`;
+        return `${vscode.workspace.asRelativePath(vscode.Uri.parse(uriString))} (${count})`;
+    }).sort();
+    const more = files.length - max;
+    return [...files.slice(0, max), ...(more > 0 ? [`…and ${more} more ${more === 1 ? 'file' : 'files'}`] : [])].join('\n');
+}
+
+/** Reduce the multi-select QuickPick result to the option flags. Exported for testing. */
 export function parseFindOptions(
-    selected: readonly { value: 'caseSensitive' | 'useRegex' | 'wholeWord' }[]
-): { caseSensitive: boolean; useRegex: boolean; wholeWord: boolean } {
+    selected: readonly { value: FindOption }[]
+): { caseSensitive: boolean; useRegex: boolean; wholeWord: boolean; includeAttributeValues: boolean } {
     const values = new Set(selected.map(item => item.value));
     return {
         caseSensitive: values.has('caseSensitive'),
         useRegex: values.has('useRegex'),
-        wholeWord: values.has('wholeWord')
+        wholeWord: values.has('wholeWord'),
+        includeAttributeValues: values.has('includeAttributeValues')
     };
 }
 
@@ -174,13 +234,14 @@ export function describeSearchLabel(query: string, replacement: string, matchCou
 
 /**
  * Convert the server's raw LSP `WorkspaceEdit` shape into a
- * `vscode.WorkspaceEdit` with `needsConfirmation: true` on every entry, so
- * `vscode.workspace.applyEdit()` shows VS Code's native refactor-preview
- * UI instead of writing the changes immediately. Exported for testing.
+ * `vscode.WorkspaceEdit` labelled `label`. With `needsConfirmation`, every
+ * entry is marked so, and `vscode.workspace.applyEdit()` shows VS Code's
+ * native refactor-preview UI (entries unticked) instead of writing the
+ * changes immediately. Exported for testing.
  */
-export function buildConfirmableWorkspaceEdit(lspEdit: LspWorkspaceEdit, label: string): vscode.WorkspaceEdit {
+export function buildWorkspaceEdit(lspEdit: LspWorkspaceEdit, label: string, needsConfirmation: boolean): vscode.WorkspaceEdit {
     const edit = new vscode.WorkspaceEdit();
-    const metadata: vscode.WorkspaceEditEntryMetadata = { needsConfirmation: true, label };
+    const metadata: vscode.WorkspaceEditEntryMetadata = { needsConfirmation, label };
     for (const [uriString, edits] of Object.entries(lspEdit.changes ?? {})) {
         const uri = vscode.Uri.parse(uriString);
         const vsEdits: [vscode.TextEdit, vscode.WorkspaceEditEntryMetadata][] = edits.map(e => [

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor-tables">
+    <title>Tables in the Visual Editor</title>
+    <shortdesc>Insert and edit CALS and simple tables on the page: rows, columns, merged cells and
+        column widths, with the table markup kept consistent for you.</shortdesc>
+
+    <conbody>
+        <section id="commands">
+            <title>Table Commands</title>
+            <p><uicontrol>Table</uicontrol> in the toolbar inserts a CALS table with a header row and
+                column specifications. With the cursor in a cell, the same menu — and
+                    <uicontrol>Table</uicontrol> in the right-click menu — edits the table:</p>
+            <simpletable relcolwidth="35* 65*">
+                <sthead>
+                    <stentry>Command</stentry>
+                    <stentry>What it writes</stentry>
+                </sthead>
+                <strow>
+                    <stentry>Insert row above / below</stentry>
+                    <stentry>A row with one cell per free column; a cell spanning rows across the new
+                        row grows (<codeph>morerows</codeph>)</stentry>
+                </strow>
+                <strow>
+                    <stentry>Delete row</stentry>
+                    <stentry>The row; spans into it shrink, a span starting in it moves to the next
+                        row</stentry>
+                </strow>
+                <strow>
+                    <stentry>Insert column left / right</stentry>
+                    <stentry>A cell in every row, a new <codeph>&lt;colspec&gt;</codeph>, and
+                            <codeph>@cols</codeph> + 1; a span across the new column widens</stentry>
+                </strow>
+                <strow>
+                    <stentry>Delete column</stentry>
+                    <stentry>The cells of the column, its colspec, and <codeph>@cols</codeph> −
+                        1</stentry>
+                </strow>
+                <strow>
+                    <stentry>Merge right / down</stentry>
+                    <stentry>One cell spanning both (<codeph>namest</codeph>/<codeph>nameend</codeph>
+                        or <codeph>morerows</codeph>), contents joined</stentry>
+                </strow>
+                <strow>
+                    <stentry>Split cell</stentry>
+                    <stentry>A merged cell becomes one cell per slot again</stentry>
+                </strow>
+                <strow>
+                    <stentry>Header row on/off</stentry>
+                    <stentry>The first body row becomes the header row (<codeph>thead</codeph>), or
+                        back</stentry>
+                </strow>
+            </simpletable>
+            <p><uicontrol>Tab</uicontrol> and <uicontrol>Shift+Tab</uicontrol> move to the next and
+                previous cell; <uicontrol>Tab</uicontrol> in the last cell adds a row. Simple tables
+                    (<codeph>simpletable</codeph>) work the same way, with
+                    <codeph>@relcolwidth</codeph> following column changes. A command that would break
+                the table is not offered. Rows and cells a command does not change are written back
+                as they were.</p>
+        </section>
+
+        <section id="column-widths">
+            <title>Column Widths</title>
+            <p>Tables show their column widths (<codeph>colspec/@colwidth</codeph>, or a simple
+                table's <codeph>@relcolwidth</codeph>). Drag the border between two columns to move
+                width from one to the other: a guide shows the two new widths; release to set them
+                    (<uicontrol>Escape</uicontrol> cancels, <uicontrol>Ctrl+Z</uicontrol> undoes).</p>
+            <fig id="fig-column-widths">
+                <title>Dragging a column border</title>
+                <image href="../../images/visual-editor-table.png" placement="break" align="center" width="6.5in">
+                    <alt>A three-column table of settings; the border between the first two columns is being
+                        dragged and a guide shows the new widths 41* and 14*.</alt>
+                </image>
+            </fig>
+            <ul>
+                <li>Proportional widths are written as whole numbers out of 100
+                        (<codeph>30*</codeph>, <codeph>70*</codeph>); a table whose proportions do not
+                    add up to 100 has them rewritten that way the first time.</li>
+                <li>Fixed widths (<codeph>50pt</codeph>, <codeph>2cm</codeph>…) keep their unit.</li>
+                <li>A CALS table without colspecs gets them.</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

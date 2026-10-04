@@ -125,9 +125,9 @@ suite('cSpell Setup Command Tests', () => {
                              'Existing config should not be modified');
         });
 
-        test('should handle Replace with DitaCraft Config choice', async () => {
+        test('should handle Replace with DITA Craft Config choice', async () => {
             // Mock user choice to select 'Replace with DitaCraft Config'
-            showInformationMessageStub.onFirstCall().resolves('Replace with DitaCraft Config');
+            showInformationMessageStub.onFirstCall().resolves('Replace with DITA Craft Config');
 
             await setupCSpellCommand(extensionRoot);
 

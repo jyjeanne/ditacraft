@@ -85,6 +85,11 @@ jobs:
     - name: Check server coverage threshold
       run: cd server && npm run coverage:check
 
+    - name: Run MCP server tests
+      # The tests start the standalone bundle dist/mcp-server.js, built by "Build with esbuild" above;
+      # the release ships that bundle as mcp-server-<version>.zip.
+      run: npm run test:mcp
+
     - name: Compile client tests
       run: npm run compile-tests
 

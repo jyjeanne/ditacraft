@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor-writing">
+    <title>Writing on the Page</title>
+    <shortdesc>Type, make lists and steps, apply styles, and insert any element your document type
+        allows — from the keyboard, the toolbar or the right-click menu.</shortdesc>
+
+    <conbody>
+        <section id="keyboard">
+            <title>Typing and Keys</title>
+            <simpletable relcolwidth="35* 65*">
+                <sthead>
+                    <stentry>You press</stentry>
+                    <stentry>DITA Craft writes</stentry>
+                </sthead>
+                <strow>
+                    <stentry><uicontrol>Enter</uicontrol> in a paragraph or list item</stentry>
+                    <stentry>A new paragraph or item (without the original's <codeph>@id</codeph>)</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Enter</uicontrol> in a step's command</stentry>
+                    <stentry>A new <codeph>&lt;step&gt;&lt;cmd&gt;</codeph></stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Enter</uicontrol> in an empty last list item</stentry>
+                    <stentry>Leaves the list: a paragraph after it</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Enter</uicontrol> at the end of a title</stentry>
+                    <stentry>Starts the short description (or the next paragraph)</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Backspace</uicontrol> at the start of a block</stentry>
+                    <stentry>Joins it to the previous one</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Ctrl+B</uicontrol>, <uicontrol>Ctrl+I</uicontrol>,
+                            <uicontrol>Ctrl+U</uicontrol>, <uicontrol>Ctrl+E</uicontrol></stentry>
+                    <stentry><codeph>&lt;b&gt;</codeph>, <codeph>&lt;i&gt;</codeph>,
+                            <codeph>&lt;u&gt;</codeph>, <codeph>&lt;codeph&gt;</codeph> (on and
+                        off)</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Tab</uicontrol> / <uicontrol>Shift+Tab</uicontrol> in a list
+                        item</stentry>
+                    <stentry>Nests the item in the previous one / moves it out (in a table: next /
+                        previous cell)</stentry>
+                </strow>
+                <strow>
+                    <stentry><uicontrol>Ctrl+Z</uicontrol> / <uicontrol>Ctrl+Y</uicontrol></stentry>
+                    <stentry>Undo / redo on the page (and in the document)</stentry>
+                </strow>
+            </simpletable>
+        </section>
+
+        <section id="toolbar">
+            <title>Styles and the Insert Menu</title>
+            <p>The <uicontrol>Style</uicontrol> list turns the current paragraph into what the DTD
+                allows there — a note, a code block, a <codeph>lines</codeph> block…
+                    <uicontrol>Insert</uicontrol> adds any block element the DTD allows after the
+                current block: the common ones first, then all of them grouped by domain.</p>
+        </section>
+
+        <section id="context-menu">
+            <title>The Right-Click Menu</title>
+            <p>Right-click on the page, or press the <uicontrol>Menu</uicontrol> key or
+                    <uicontrol>Shift+F10</uicontrol>. The cursor moves where you clicked, unless you
+                clicked inside the selection, which the menu then acts on.</p>
+            <fig id="fig-context-menu">
+                <title>Wrapping selected words in a phrase element</title>
+                <image href="../../images/visual-editor-context-menu.png" placement="break" align="center" width="6.5in">
+                    <alt>The right-click menu on two selected words, with the Wrap in submenu open:
+                        common phrase elements first (xref, ph, keyword, term, uicontrol…), then
+                        submenus by domain.</alt>
+                </image>
+            </fig>
+            <dl>
+                <dlentry>
+                    <dt>Quick Fix…</dt>
+                    <dd>On a problem: its fixes (see <xref keyref="visual-editor-problems"/>).</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Cut, Copy, Paste</dt>
+                    <dd>Elements copied in the editor keep their structure and attributes; HTML pasted
+                        from other applications becomes paragraphs, lists, code blocks and
+                        bold/italic/code.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Insert after</dt>
+                    <dd>Every block element the DTD allows after the current block.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Insert inline / Wrap in</dt>
+                    <dd>Every phrase element the DTD allows at the cursor (<codeph>xref</codeph>,
+                            <codeph>ph</codeph>, <codeph>uicontrol</codeph>,
+                            <codeph>filepath</codeph>, <codeph>term</codeph>…): around the selected
+                        text or, with nothing selected, with its name as placeholder text to type
+                        over.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Image, Link…, Change to, Table</dt>
+                    <dd>As in the toolbar (see <xref keyref="visual-editor-images-links"/> and
+                            <xref keyref="visual-editor-tables"/>).</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Select, Move up, Move down, Remove tags (keep content), Delete</dt>
+                    <dd>On the element at the cursor, whose name is shown above them.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Attributes…, Show in source</dt>
+                    <dd>The <xref keyref="properties-view"/> for that element; the text editor at that
+                        place.</dd>
+                </dlentry>
+            </dl>
+            <p>The menus follow the document type exactly — a <codeph>&lt;title&gt;</codeph> offers
+                phrases but no <codeph>&lt;xref&gt;</codeph>, a <codeph>&lt;note&gt;</codeph> takes
+                paragraphs and lists but no <codeph>&lt;section&gt;</codeph> — and an item that would
+                break the structure is greyed out. In every menu, the arrow keys move, → opens a
+                submenu, ← or <uicontrol>Escape</uicontrol> closes it, <uicontrol>Enter</uicontrol>
+                runs the item, and typing the start of a name jumps to it.</p>
+        </section>
+    </conbody>
+</concept>

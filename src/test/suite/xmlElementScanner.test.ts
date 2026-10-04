@@ -94,4 +94,12 @@ suite('XML Element Scanner Test Suite', () => {
         const content = '<p myaudience="internal">Text</p>';
         assert.deepStrictEqual(findProfiledElements(content, ATTRS), []);
     });
+
+    test('Should find an element by a camelCase profiling attribute (regression: deliveryTarget)', () => {
+        // Attribute names are lower-cased when parsed; the lookup must be too.
+        const content = '<p deliveryTarget="pdf">Text</p>';
+        const elements = findProfiledElements(content, [...ATTRS, 'deliveryTarget']);
+        assert.strictEqual(elements.length, 1);
+        assert.strictEqual(elements[0].attrs.deliverytarget, 'pdf');
+    });
 });

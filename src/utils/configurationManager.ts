@@ -31,6 +31,11 @@ export type TranstypeType = 'html5' | 'pdf' | 'xhtml' | 'epub' | 'htmlhelp' | 'm
 export type PreviewThemeType = 'auto' | 'light' | 'dark';
 
 /**
+ * Preview engine: the visual (DITA-OT-free) page, or a DITA-OT HTML5 build
+ */
+export type PreviewEngineType = 'visual' | 'dita-ot';
+
+/**
  * Configuration change event
  */
 export interface ConfigurationChangeEvent {
@@ -64,8 +69,18 @@ export interface DitaCraftConfiguration {
     previewAutoRefresh: boolean;
     previewTheme: PreviewThemeType;
     previewCustomCss: string;
+    imagePasteFolder: string;
     previewScrollSync: boolean;
     conditionHighlightingEnabled: boolean;
+
+    // Visual preview settings
+    previewEngine: PreviewEngineType;
+    previewPageWidth: number;
+    previewShowExcluded: boolean;
+    previewShowMarkup: boolean;
+    previewResolveReferences: boolean;
+    previewUpdateDelayMs: number;
+    previewResolveOnSave: boolean;
 
     // UI settings
     showProgressNotifications: boolean;
@@ -111,8 +126,16 @@ const DEFAULT_CONFIG: DitaCraftConfiguration = {
     previewAutoRefresh: true,
     previewTheme: 'auto',
     previewCustomCss: '',
+    imagePasteFolder: 'images',
     previewScrollSync: true,
     conditionHighlightingEnabled: true,
+    previewEngine: 'visual',
+    previewPageWidth: 760,
+    previewShowExcluded: false,
+    previewShowMarkup: false,
+    previewResolveReferences: true,
+    previewUpdateDelayMs: 150,
+    previewResolveOnSave: true,
     showProgressNotifications: true,
     enableSnippets: true,
     logLevel: 'info',
@@ -200,6 +223,17 @@ export class ConfigurationManager implements vscode.Disposable {
             DEFAULT_CONFIG.maxLinkMatches,
             1 // Minimum 1 match
         );
+        const previewPageWidth = validateNumericConfig(
+            config.get<number>('previewPageWidth', DEFAULT_CONFIG.previewPageWidth),
+            DEFAULT_CONFIG.previewPageWidth,
+            0 // 0 = fluid page
+        );
+        const previewUpdateDelayMs = validateNumericConfig(
+            config.get<number>('previewUpdateDelayMs', DEFAULT_CONFIG.previewUpdateDelayMs),
+            DEFAULT_CONFIG.previewUpdateDelayMs,
+            0
+        );
+        const previewEngine = config.get<PreviewEngineType>('previewEngine', DEFAULT_CONFIG.previewEngine);
 
         return {
             ditaOtPath: config.get<string>('ditaOtPath', DEFAULT_CONFIG.ditaOtPath),
@@ -213,8 +247,16 @@ export class ConfigurationManager implements vscode.Disposable {
             previewAutoRefresh: config.get<boolean>('previewAutoRefresh', DEFAULT_CONFIG.previewAutoRefresh),
             previewTheme: config.get<PreviewThemeType>('previewTheme', DEFAULT_CONFIG.previewTheme),
             previewCustomCss: config.get<string>('previewCustomCss', DEFAULT_CONFIG.previewCustomCss),
+            imagePasteFolder: config.get<string>('imagePasteFolder', DEFAULT_CONFIG.imagePasteFolder),
             previewScrollSync: config.get<boolean>('previewScrollSync', DEFAULT_CONFIG.previewScrollSync),
             conditionHighlightingEnabled: config.get<boolean>('conditionHighlightingEnabled', DEFAULT_CONFIG.conditionHighlightingEnabled),
+            previewEngine: previewEngine === 'dita-ot' ? 'dita-ot' : 'visual',
+            previewPageWidth,
+            previewShowExcluded: config.get<boolean>('previewShowExcluded', DEFAULT_CONFIG.previewShowExcluded),
+            previewShowMarkup: config.get<boolean>('previewShowMarkup', DEFAULT_CONFIG.previewShowMarkup),
+            previewResolveReferences: config.get<boolean>('previewResolveReferences', DEFAULT_CONFIG.previewResolveReferences),
+            previewUpdateDelayMs,
+            previewResolveOnSave: config.get<boolean>('previewResolveOnSave', DEFAULT_CONFIG.previewResolveOnSave),
             showProgressNotifications: config.get<boolean>('showProgressNotifications', DEFAULT_CONFIG.showProgressNotifications),
             enableSnippets: config.get<boolean>('enableSnippets', DEFAULT_CONFIG.enableSnippets),
             logLevel: config.get<LogLevelType>('logLevel', DEFAULT_CONFIG.logLevel),

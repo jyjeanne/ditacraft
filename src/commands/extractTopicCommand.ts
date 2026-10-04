@@ -32,11 +32,11 @@ export type NewTopicType = 'concept' | 'reference' | 'topic';
 export async function extractTopicFromSectionCommand(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-        vscode.window.showWarningMessage('DitaCraft: No file is currently open.');
+        vscode.window.showWarningMessage('DITA Craft: No file is currently open.');
         return;
     }
     if (!editor.document.uri.fsPath.toLowerCase().endsWith('.dita')) {
-        vscode.window.showWarningMessage('DitaCraft: Extract Topic requires a .dita topic file.');
+        vscode.window.showWarningMessage('DITA Craft: Extract Topic requires a .dita topic file.');
         return;
     }
 
@@ -47,14 +47,14 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
 
     const section = findEnclosingSection(text, offset);
     if (!section) {
-        vscode.window.showWarningMessage('DitaCraft: Place the cursor inside a <section> element to extract it.');
+        vscode.window.showWarningMessage('DITA Craft: Place the cursor inside a <section> element to extract it.');
         return;
     }
 
     const topicType = detectNewTopicType(text);
     if (topicType === undefined) {
         vscode.window.showWarningMessage(
-            'DitaCraft: This topic is a <task>, whose <taskbody> can\'t contain a <section> in valid DITA -- extraction is not supported here.'
+            'DITA Craft: This topic is a <task>, whose <taskbody> can\'t contain a <section> in valid DITA -- extraction is not supported here.'
         );
         return;
     }
@@ -69,7 +69,7 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
     // feature's other scope notes already use).
     if (section.id) {
         const proceed = await vscode.window.showWarningMessage(
-            `DitaCraft: This section has id="${section.id}" -- any existing reference to it (e.g. an xref targeting #.../${section.id}) will need to be updated by hand after extraction.`,
+            `DITA Craft: This section has id="${section.id}" -- any existing reference to it (e.g. an xref targeting #.../${section.id}) will need to be updated by hand after extraction.`,
             { modal: false },
             'Continue',
             'Cancel'
@@ -97,7 +97,7 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
     const newFilePath = path.join(sourceDir, `${fileName}.dita`);
 
     if (await pathExists(newFilePath)) {
-        vscode.window.showErrorMessage(`DitaCraft: File already exists: ${fileName}.dita`);
+        vscode.window.showErrorMessage(`DITA Craft: File already exists: ${fileName}.dita`);
         return;
     }
 
@@ -108,7 +108,7 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
     } catch (error) {
         logger.error('Failed to write extracted topic file', error);
         vscode.window.showErrorMessage(
-            `DitaCraft: Could not create ${fileName}.dita: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `DITA Craft: Could not create ${fileName}.dita: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
         return;
     }
@@ -131,7 +131,7 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
 
     if (!applied) {
         vscode.window.showWarningMessage(
-            `DitaCraft: ${fileName}.dita was created, but the source file could not be updated -- replace the section with an xref manually.`
+            `DITA Craft: ${fileName}.dita was created, but the source file could not be updated -- replace the section with an xref manually.`
         );
     }
 
@@ -140,7 +140,7 @@ export async function extractTopicFromSectionCommand(): Promise<void> {
     const newDocument = await vscode.workspace.openTextDocument(newFilePath);
     await vscode.window.showTextDocument(newDocument, vscode.ViewColumn.Beside);
 
-    vscode.window.showInformationMessage(`DitaCraft: Extracted "${title}" to ${fileName}.dita`);
+    vscode.window.showInformationMessage(`DITA Craft: Extracted "${title}" to ${fileName}.dita`);
 }
 
 /**

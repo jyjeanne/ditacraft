@@ -9,6 +9,7 @@
 
 import * as vscode from 'vscode';
 import { AIServiceOrchestrator } from '../llm/aiServiceOrchestrator';
+import { isAiEnabled } from '../llm/aiEnabled';
 
 const AI_COMPLETION_TIMEOUT_MS = 500;
 const DITA_SELECTOR: vscode.DocumentSelector = [
@@ -27,7 +28,7 @@ export class AICompletionProvider implements vscode.CompletionItemProvider {
         _context: vscode.CompletionContext
     ): Promise<vscode.CompletionList | null> {
         const cfg = vscode.workspace.getConfiguration('ditacraft.ai');
-        if (!cfg.get<boolean>('completion.enabled', true)) { return null; }
+        if (!isAiEnabled() || !cfg.get<boolean>('completion.enabled', true)) { return null; }
 
         const linePrefix = document.lineAt(position).text.slice(0, position.character);
 
@@ -117,9 +118,9 @@ export class AICompletionProvider implements vscode.CompletionItemProvider {
                     vscode.CompletionItemKind.Snippet
                 );
                 item.insertText = suggestion;
-                item.detail = 'DitaCraft AI';
+                item.detail = 'DITA Craft AI';
                 item.documentation = new vscode.MarkdownString(
-                    `AI-suggested DITA completion via DitaCraft.`
+                    `AI-suggested DITA completion via DITA Craft.`
                 );
                 // Sort below native LSP items (zzz prefix pushes to bottom)
                 item.sortText = `zzz${String(idx).padStart(2, '0')}`;

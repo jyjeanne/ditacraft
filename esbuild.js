@@ -1,4 +1,5 @@
 const esbuild = require('esbuild');
+const { compileGrammars } = require('./scripts/compile-grammars');
 
 const watch = process.argv.includes('--watch');
 const minify = process.argv.includes('--minify');
@@ -36,6 +37,10 @@ const sharedOptions = {
 };
 
 async function main() {
+    // Grammar JSON for the visual preview (out/grammars/). Skipped when dtds/ and the
+    // compiler are unchanged; must exist before packaging.
+    await compileGrammars();
+
     // Build client (VS Code extension)
     const clientCtx = await esbuild.context({
         ...sharedOptions,
@@ -67,11 +72,30 @@ async function main() {
         outfile: 'dist/lsp-server.js',
     });
 
+    // Visual preview and visual editor pages: scripts and stylesheets (webview, browser target).
+    // The editor bundles ProseMirror and the shared CST/serializer.
+    const webviewCtx = await esbuild.context({
+        ...sharedOptions,
+        entryPoints: [
+            { in: 'webview/preview/main.ts', out: 'preview' },
+            { in: 'webview/preview/preview.css', out: 'preview' },
+            { in: 'webview/editor/main.ts', out: 'editor' },
+            { in: 'webview/editor/editor.css', out: 'editor' },
+            { in: 'webview/properties/main.ts', out: 'properties' },
+            { in: 'webview/properties/properties.css', out: 'properties' },
+        ],
+        outdir: 'out/webview',
+        platform: 'browser',
+        format: 'iife',
+        target: 'es2020',
+    });
+
+    const contexts = [clientCtx, serverCtx, mcpCtx, lspStandaloneCtx, webviewCtx];
     if (watch) {
-        await Promise.all([clientCtx.watch(), serverCtx.watch(), mcpCtx.watch(), lspStandaloneCtx.watch()]);
+        await Promise.all(contexts.map((ctx) => ctx.watch()));
     } else {
-        await Promise.all([clientCtx.rebuild(), serverCtx.rebuild(), mcpCtx.rebuild(), lspStandaloneCtx.rebuild()]);
-        await Promise.all([clientCtx.dispose(), serverCtx.dispose(), mcpCtx.dispose(), lspStandaloneCtx.dispose()]);
+        await Promise.all(contexts.map((ctx) => ctx.rebuild()));
+        await Promise.all(contexts.map((ctx) => ctx.dispose()));
     }
 }
 

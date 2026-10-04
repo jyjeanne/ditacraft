@@ -3,7 +3,7 @@
 <glossentry id="gloss-rate-limiting">
     <glossterm>Rate Limiting</glossterm>
     <glossdef>
-        <p>A DitaCraft protection mechanism that limits validation requests to prevent performance issues during rapid editing. Maximum 10 requests per second per file. Excess requests during auto-validation are silently skipped.</p>
+        <p>A DITA Craft protection mechanism that limits validation requests to prevent performance issues during rapid editing. Maximum 10 requests per second per file. Excess requests during auto-validation are silently skipped.</p>
     </glossdef>
     <related-links>
         <link href="../features/validation.dita"/>

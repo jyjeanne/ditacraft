@@ -1,0 +1,190 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="A map or a bookmap opens in the visual editor as its title and one row per reference, each row showing the title of what it points to. Add references from a picker, change their targets and labels, and rearrange them by dragging or with Tab."><meta name="prodname" content="DITA Craft"><meta name="version" content="0"><meta name="release" content="10"><meta name="modification" content="0"><title>Maps and Bookmaps in the Visual Editor</title><link rel="stylesheet" type="text/css" href="../../commonltr.css">
+<link rel="stylesheet" type="text/css" href="..\../common-extended.css"><link rel="stylesheet" type="text/css" href="../../custom.css">
+</head><body id="visual-editor-maps"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DITA Craft</span>
+      <span class="ditacraft-header__version">v0.9.1</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DITA Craft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/editing-commands.html">Editing and Refactoring Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/visual-editor.html">Visual Editor</a><ul><li><a href="../../topics/features/visual-editor-basics.html">Working in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-writing.html">Writing on the Page</a></li><li><a href="../../topics/features/visual-editor-tables.html">Tables in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-images-links.html">Images and Links in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-reuse.html">Reused Content, Keys and Link Titles</a></li><li><a href="../../topics/features/visual-editor-problems.html">Problems and Quick Fixes in the Visual Editor</a></li><li class="active"><a href="../../topics/features/visual-editor-maps.html">Maps and Bookmaps in the Visual Editor</a></li><li><a href="../../topics/features/properties-view.html">Properties View</a></li></ul></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li><li><a href="../../topics/features/ai-features.html">AI Features</a></li><li><a href="../../topics/features/mcp-integration.html">MCP Server Integration</a></li><li><a href="../../topics/features/refactoring-tools.html">Refactoring Tools</a></li><li><a href="../../topics/features/project-scaffolding.html">Templates and Project Scaffolding</a></li><li><a href="../../topics/features/publishing-workflow.html">Publishing Workflow Enhancements</a></li><li><a href="../../topics/features/authoring-productivity.html">Authoring Productivity Tools</a></li><li><a href="../../topics/features/ditaval-condition-editor.html">Visual DITAVAL Condition Editor</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-properties-view.html">Properties View</a></li><li><a href="../../topics/glossary/gloss-publishing-profile.html">Publishing Profile</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-visual-editor.html">Visual Editor</a></li><li><a href="../../topics/glossary/gloss-watch-mode.html">Watch Mode</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Maps and Bookmaps in the Visual Editor</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">A map or a bookmap opens in the visual editor as its title and one row per reference,
+        each row showing the title of what it points to. Add references from a picker, change their
+        targets and labels, and rearrange them by dragging or with Tab.</p>
+        <section class="section" id="visual-editor-maps__rows"><h2 class="title sectiontitle">One Row per Reference</h2>
+            
+            <p class="p">Open a <span class="ph filepath">.ditamap</span> or <span class="ph filepath">.bookmap</span> file with
+                    <span class="ph uicontrol">DITA: Open in Visual Editor</span>, as you open a topic. The page
+                shows the map's title, then one row for each reference — <code class="keyword markupname xmlelement">&lt;topicref&gt;</code>
+                and every element specialized from it, such as <code class="keyword markupname xmlelement">&lt;chapter&gt;</code>,
+                    <code class="keyword markupname xmlelement">&lt;part&gt;</code>, <code class="keyword markupname xmlelement">&lt;appendix&gt;</code>,
+                    <code class="keyword markupname xmlelement">&lt;keydef&gt;</code>, <code class="keyword markupname xmlelement">&lt;topichead&gt;</code>,
+                    <code class="keyword markupname xmlelement">&lt;topicgroup&gt;</code> and <code class="keyword markupname xmlelement">&lt;mapref&gt;</code> — with
+                the rows a reference holds indented under it.</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Label</dt>
+                    <dd class="dd">The <code class="keyword markupname xmlelement">&lt;navtitle&gt;</code> of the reference's
+                            <code class="keyword markupname xmlelement">&lt;topicmeta&gt;</code>, else its <code class="keyword markupname xmlatt">@navtitle</code>,
+                        else the title of the topic or map it points to — read from that file, or
+                        through the key for <code class="keyword markupname xmlatt">@keyref</code>, and kept up to date when the
+                        file changes, saved or not — else the text of a key, else the target as
+                        written.</dd>
+                
+                
+                    <dt class="dt dlterm">Kind</dt>
+                    <dd class="dd">The element's name in a small label (none for a plain
+                            <code class="keyword markupname xmlelement">&lt;topicref&gt;</code>).</dd>
+                
+                
+                    <dt class="dt dlterm">Keys</dt>
+                    <dd class="dd">The keys the reference defines (<code class="keyword markupname xmlatt">@keys</code>).</dd>
+                
+                
+                    <dt class="dt dlterm">Target</dt>
+                    <dd class="dd">The <code class="keyword markupname xmlatt">@href</code> or <code class="keyword markupname xmlatt">@keyref</code> as written, on the
+                        right.</dd>
+                
+            </dl>
+            <figure class="fig fignone" id="visual-editor-maps__fig-map"><figcaption><span class="fig--title-label">Figure 1. </span>A map in the visual editor, its XML beside</figcaption>
+                
+                <br><div class="imagecenter"><img class="image imagecenter" src="../../images/visual-editor-map.png" width="624" alt="On the left, the Sync Client User Guide map in the visual editor: four key definitions with their keys, two topic heads holding the topics' titles, and a shared topic; the row Creating a sync profile is selected. On the right, the map's XML, the cursor on the same reference."></div><br>
+            </figure>
+            <p class="p">A target that cannot be read — a missing file, a key that is not defined — is marked,
+                with the reason in its tooltip. A web address or another format, such as a PDF, is
+                shown as written. A reference's <code class="keyword markupname xmlelement">&lt;topicmeta&gt;</code> and a book's
+                    <code class="keyword markupname xmlelement">&lt;bookmeta&gt;</code> are hidden; <span class="ph uicontrol">Show markup</span>
+                shows them under their rows, where you can edit them. Relationship tables are shown as
+                tables.</p>
+        </section>
+
+        <section class="section" id="visual-editor-maps__working"><h2 class="title sectiontitle">Working with Rows</h2>
+            
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Select</strong> — click a row. The <a class="xref" href="properties-view.html" title="The Properties view lists the attributes of the element at the cursor — in the visual editor or the text editor — straight from your document type, and edits them one at a time.">Properties View</a> shows its
+                    attributes: set <code class="keyword markupname xmlatt">@href</code>, <code class="keyword markupname xmlatt">@navtitle</code>,
+                        <code class="keyword markupname xmlatt">@keys</code>, <code class="keyword markupname xmlatt">@toc</code> or
+                        <code class="keyword markupname xmlatt">@processing-role</code> there.</li>
+                <li class="li"><strong class="ph b">Open the target</strong> — double-click the row, <span class="ph uicontrol">Ctrl+click</span>
+                    it, press <span class="ph uicontrol">Enter</span>, or choose <span class="ph uicontrol">Open
+                        target</span> in the right-click menu. The topic opens beside the map, at
+                    its element; a file of another format opens in VS Code's editor for it.</li>
+                <li class="li"><strong class="ph b">Fold</strong> — click the arrow before a row to hide or show the rows under it;
+                        <span class="ph uicontrol">Expand all</span> and <span class="ph uicontrol">Collapse all</span> are on
+                    the toolbar. Folding changes the page only, never the map.</li>
+                <li class="li"><strong class="ph b">Keyboard</strong> — with a row selected, <span class="ph uicontrol">Up</span> and
+                        <span class="ph uicontrol">Down</span> go to the previous and next row shown,
+                        <span class="ph uicontrol">Left</span> folds the row (or goes to the row above it),
+                        <span class="ph uicontrol">Right</span> unfolds it (or goes to its first row). Typing does
+                    nothing on a row.</li>
+                <li class="li"><strong class="ph b">Problems</strong> — a problem on a reference marks its row; its quick fixes work as in
+                    a topic (see <a class="xref" href="visual-editor-problems.html" title="The language server's errors and warnings are marked on the page where they are, and their quick fixes are one keystroke away.">Problems and Quick Fixes in the Visual Editor</a>).</li>
+            </ul>
+        </section>
+
+        <section class="section" id="visual-editor-maps__editing"><h2 class="title sectiontitle">Editing the Map</h2>
+            
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Add a reference</dt>
+                    <dd class="dd"><span class="ph uicontrol">Add reference…</span> (<span class="ph uicontrol">+ Reference</span> on the
+                        toolbar, or the right-click menu) opens a picker with the keys of the root map,
+                        the topics and maps of the workspace, and web addresses. The reference to the
+                        one you choose goes after the selected row: a
+                            <code class="keyword markupname xmlelement">&lt;topicref&gt;</code>, or a reference of the same kind as the
+                        selected row where the DTD requires it (a <code class="keyword markupname xmlelement">&lt;chapter&gt;</code> after a
+                        chapter in a bookmap). The new row is selected and shows its target's
+                        title.</dd>
+                
+                
+                    <dt class="dt dlterm">Change a row's target</dt>
+                    <dd class="dd"><span class="ph uicontrol">Change target…</span> (<span class="ph uicontrol">Ctrl+K</span>, or the
+                        right-click menu) points the selected row at another topic, map or key with the
+                        same picker; its other attributes stay.</dd>
+                
+                
+                    <dt class="dt dlterm">Edit a label</dt>
+                    <dd class="dd"><span class="ph uicontrol">Edit label</span> (<span class="ph uicontrol">F2</span>, or the right-click
+                        menu) edits the label on the row; <span class="ph uicontrol">Enter</span> writes it,
+                            <span class="ph uicontrol">Escape</span> cancels. It becomes the row's navigation title
+                        (its <code class="keyword markupname xmlelement">&lt;navtitle&gt;</code>, or its <code class="keyword markupname xmlatt">@navtitle</code> if it has
+                        one), and a reference to a topic gets <code class="keyword markupname xmlatt">@locktitle</code> set to
+                            <code class="ph codeph">yes</code> so that the published navigation shows it. An empty
+                        label removes the navigation title: the row shows the topic's title
+                        again.</dd>
+                
+                
+                    <dt class="dt dlterm">Nest and move rows</dt>
+                    <dd class="dd"><span class="ph uicontrol">Tab</span> puts the selected row into the row before it;
+                            <span class="ph uicontrol">Shift+Tab</span> takes it out, after the row that held it.
+                        Or drag a row by its line: a line shows where it goes — before or after
+                        another row, or into it — wherever the DTD allows it; <span class="ph uicontrol">Escape</span>
+                        cancels. A row moves with everything it holds.</dd>
+                
+                
+                    <dt class="dt dlterm">Insert, move, delete</dt>
+                    <dd class="dd"><span class="ph uicontrol">Insert</span> (toolbar or right-click menu) adds, after the
+                        selected row, any element the DTD allows there; <span class="ph uicontrol">Move up</span>,
+                            <span class="ph uicontrol">Move down</span> and <span class="ph uicontrol">Delete</span> in the
+                        right-click menu work on the row.</dd>
+                
+            </dl>
+            <p class="p">As for topics, every change reaches the file as a small text edit: a moved row is written
+                in its new place with its indentation adjusted, and the rest of the map stays exactly as
+                it was. <span class="ph uicontrol">Ctrl+Z</span> undoes each change.</p>
+        </section>
+
+        <section class="section" id="visual-editor-maps__context"><h2 class="title sectiontitle">A Topic in Its Map</h2>
+            
+            <p class="p">The visual editor and the visual preview show a topic in a place of a map: the first map
+                found that references it, or the place you choose. The status line shows it — the map's
+                title and the navigation above the topic — and a click on it, or <span class="ph uicontrol">DITA: Choose
+                    Map Context</span>, lets you choose another place, or no map.</p>
+            <ul class="ul">
+                <li class="li">The topic's keys are those of that map, in the key scope of the reference: a topic
+                    used for two products shows each product's values.</li>
+                <li class="li">Generated text, such as note labels, follows the topic's language, else the language
+                    the map gives it; and when the active DITAVAL filter excludes the topic in that map,
+                    the preview says so.</li>
+                <li class="li">Opening a topic from a row of a map (<span class="ph uicontrol">Open target</span>) shows it in
+                    that row's place.</li>
+            </ul>
+        </section>
+
+        <section class="section" id="visual-editor-maps__reltables"><h2 class="title sectiontitle">Relationship Tables</h2>
+            
+            <p class="p">A relationship table (<code class="keyword markupname xmlelement">&lt;reltable&gt;</code>) is shown as a table: each column
+                header shows the type of topics the column relates (its <code class="keyword markupname xmlatt">@type</code>, set in the
+                Properties view with the header selected), and each cell holds references, shown as
+                rows. An empty cell says so.</p>
+            <ul class="ul">
+                <li class="li"><strong class="ph b">Add a table</strong> — <span class="ph uicontrol">Insert relationship table</span> (the
+                        <span class="ph uicontrol">Relationships</span> menu of the toolbar) adds a table of three
+                    columns and one row, after the selected row where the DTD allows it, else at the end
+                    of the map.</li>
+                <li class="li"><strong class="ph b">Select a cell</strong> — click its empty space. With a cell selected, the arrow keys go
+                    to the cell above, below, left or right, <span class="ph uicontrol">Tab</span> to the next cell
+                    (past the last one, it adds a row), and <span class="ph uicontrol">Enter</span> adds a reference
+                    into the cell from the picker. You can also drag a reference into a cell.</li>
+                <li class="li"><strong class="ph b">Rows and columns</strong> — <span class="ph uicontrol">Relationship table</span> in the right-click
+                    menu inserts rows above or below, moves and deletes them, and inserts or deletes
+                    columns. The table stays a grid: a new row has a cell for every column, and a column
+                    is added or deleted with its header and its cell in every row.</li>
+            </ul>
+            <figure class="fig fignone" id="visual-editor-maps__fig-reltable"><figcaption><span class="fig--title-label">Figure 2. </span>A relationship table, its commands in the right-click menu</figcaption>
+                
+                <br><div class="imagecenter"><img class="image imagecenter" src="../../images/visual-editor-reltable.png" width="624" alt="A relationship table with a task column and a reference column. The cell holding Sync options is selected; its right-click menu shows Add reference and the Relationship table submenu with the row and column commands."></div><br>
+            </figure>
+        </section>
+    </div>
+<nav role="navigation" class="related-links"><div class="familylinks"><div class="parentlink"><strong>Parent topic:</strong> <a class="link" href="visual-editor.html" title="Edit a DITA topic on a page that looks like your output, while DITA Craft writes clean XML: every change reaches the file as a small, precise text edit, and everything you do not touch stays exactly as it was.">Visual Editor</a></div></div></nav></article></main></body></html>

@@ -19,6 +19,7 @@
 
 import * as vscode from 'vscode';
 import { AIServiceOrchestrator } from '../llm/aiServiceOrchestrator';
+import { isAiEnabled, showAiDisabledMessage } from '../llm/aiEnabled';
 import { getErrorMessage } from '../utils/errorUtils';
 
 const AI_FIXABLE_CODES = new Set([
@@ -36,6 +37,16 @@ const AI_FIXABLE_CODES = new Set([
     'DITA-XML-001',
 ]);
 
+/**
+ * The diagnostic sources of DITA Craft's language server: `dita-lsp` (validation, cross-references,
+ * content model, profiling, workspace checks), `dita-dtd` (catalogValidationService), `dita-rng`
+ * (rngValidationService), `dita-rules` (ditaRulesValidator), `custom-rules` (customRulesValidator),
+ * `ditacraft` (validationPipeline). The AI fix is offered on these only — not on another extension's
+ * diagnostic that happens to use the same code. (It used to require a source containing "DitaCraft",
+ * which none has, so the fix was never offered.)
+ */
+const DITA_CRAFT_SOURCES = new Set(['dita-lsp', 'dita-dtd', 'dita-rng', 'dita-rules', 'custom-rules', 'ditacraft']);
+
 const AI_QUICKFIX_COMMAND = 'ditacraft.aiQuickFix';
 
 export class AIQuickFixProvider implements vscode.CodeActionProvider {
@@ -51,7 +62,7 @@ export class AIQuickFixProvider implements vscode.CodeActionProvider {
         _token: vscode.CancellationToken
     ): vscode.CodeAction[] | undefined {
         const cfg = vscode.workspace.getConfiguration('ditacraft.ai');
-        if (!cfg.get<boolean>('quickfix.enabled', true)) { return; }
+        if (!isAiEnabled() || !cfg.get<boolean>('quickfix.enabled', true)) { return; }
         if (!this.orchestrator) { return; }
 
         const fixable = context.diagnostics.filter(d => isAiFixable(d));
@@ -72,6 +83,11 @@ export async function executeAiQuickFix(
     documentUri: vscode.Uri,
     diagnostic: vscode.Diagnostic
 ): Promise<void> {
+    // A light bulb list can outlive the setting being turned off.
+    if (!isAiEnabled()) {
+        await showAiDisabledMessage();
+        return;
+    }
     const document = await vscode.workspace.openTextDocument(documentUri);
 
     // Extract the fragment: ±5 lines around the error
@@ -88,7 +104,7 @@ export async function executeAiQuickFix(
     const result = await vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
-            title: 'DitaCraft AI: Fixing diagnostic...',
+            title: 'DITA Craft AI: Fixing diagnostic...',
             cancellable: true,
         },
         async (_progress, token) =>
@@ -97,7 +113,7 @@ export async function executeAiQuickFix(
 
     if (!result.success || !result.fixedXml) {
         vscode.window.showErrorMessage(
-            `DitaCraft AI Quick Fix: ${result.error ?? 'Unable to generate a fix.'}`
+            `DITA Craft AI Quick Fix: ${result.error ?? 'Unable to generate a fix.'}`
         );
         return;
     }
@@ -106,7 +122,7 @@ export async function executeAiQuickFix(
     // so a version compare alone would pass against a file modified after closing.
     if (document.isClosed || document.version !== versionBefore) {
         vscode.window.showWarningMessage(
-            'DitaCraft AI: The document changed while the fix was being generated — fix not applied. Run the quick fix again.'
+            'DITA Craft AI: The document changed while the fix was being generated — fix not applied. Run the quick fix again.'
         );
         return;
     }
@@ -122,17 +138,18 @@ export async function executeAiQuickFix(
     const applied = await vscode.workspace.applyEdit(edit);
     if (applied) {
         vscode.window.showInformationMessage(
-            `DitaCraft AI: Fix applied${result.model ? ` (via ${result.model})` : ''}.`
+            `DITA Craft AI: Fix applied${result.model ? ` (via ${result.model})` : ''}.`
         );
     } else {
-        vscode.window.showErrorMessage('DitaCraft AI: Failed to apply the edit.');
+        vscode.window.showErrorMessage('DITA Craft AI: Failed to apply the edit.');
     }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
-function isAiFixable(diagnostic: vscode.Diagnostic): boolean {
-    if (!diagnostic.source?.includes('DitaCraft')) { return false; }
+/** Whether the AI fix is offered on a diagnostic: DITA Craft's, an error or warning, an AI-fixable code. Exported for testing. */
+export function isAiFixable(diagnostic: vscode.Diagnostic): boolean {
+    if (!diagnostic.source || !DITA_CRAFT_SOURCES.has(diagnostic.source)) { return false; }
     if (diagnostic.severity === vscode.DiagnosticSeverity.Information ||
         diagnostic.severity === vscode.DiagnosticSeverity.Hint) { return false; }
     const code = typeof diagnostic.code === 'object'
@@ -146,14 +163,14 @@ function buildAction(
     diagnostic: vscode.Diagnostic
 ): vscode.CodeAction {
     const action = new vscode.CodeAction(
-        '$(wand) Fix with DitaCraft AI',
+        '$(wand) Fix with DITA Craft AI',
         vscode.CodeActionKind.QuickFix
     );
     action.diagnostics = [diagnostic];
     action.isPreferred = false;
     action.command = {
         command: AI_QUICKFIX_COMMAND,
-        title: 'Fix with DitaCraft AI',
+        title: 'Fix with DITA Craft AI',
         arguments: [document.uri, diagnostic],
     };
     return action;
@@ -168,6 +185,6 @@ export function safeExecuteAiQuickFix(
     diagnostic: vscode.Diagnostic
 ): void {
     executeAiQuickFix(orchestrator, documentUri, diagnostic).catch((error: unknown) => {
-        vscode.window.showErrorMessage(`DitaCraft AI Quick Fix error: ${getErrorMessage(error)}`);
+        vscode.window.showErrorMessage(`DITA Craft AI Quick Fix error: ${getErrorMessage(error)}`);
     });
 }

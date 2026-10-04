@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
+<glossentry id="gloss-properties-view">
+    <glossterm>Properties View</glossterm>
+    <glossdef>
+        <p>A view in the DITA Craft side bar that lists the attributes of the element at the cursor,
+            in the visual editor or the text editor, as the document type defines them — with lists
+            of allowed values, defaults and subject-scheme values — and edits one attribute at a
+            time.</p>
+    </glossdef>
+    <related-links>
+        <link href="../features/properties-view.dita"/>
+    </related-links>
+</glossentry>

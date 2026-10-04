@@ -3,7 +3,7 @@
 <glossentry id="gloss-keyboard-shortcuts">
     <glossterm>Keyboard Shortcuts</glossterm>
     <glossdef>
-        <p>Key combinations that provide quick access to DitaCraft commands and VS Code features. Primary shortcuts include <uicontrol>Ctrl+Shift+V</uicontrol> (validate), <uicontrol>Ctrl+Shift+H</uicontrol> (preview), and <uicontrol>Ctrl+Click</uicontrol> (navigate).</p>
+        <p>Key combinations that provide quick access to DITA Craft commands and VS Code features. Primary shortcuts include <uicontrol>Ctrl+Shift+V</uicontrol> (validate), <uicontrol>Ctrl+Shift+H</uicontrol> (preview), and <uicontrol>Ctrl+Click</uicontrol> (navigate).</p>
     </glossdef>
     <related-links>
         <link href="../reference/keyboard-shortcuts.dita"/>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map id="sync-client">
+  <title>Sync Client User Guide</title>
+  <keydef keys="product-name">
+    <topicmeta>
+      <keywords>
+        <keyword>Sync Client</keyword>
+      </keywords>
+    </topicmeta>
+  </keydef>
+  <keydef keys="install-client" href="topics/install-client.dita"/>
+  <keydef keys="sync-options" href="topics/sync-options.dita"/>
+  <keydef keys="sync-diagram" href="images/sync-diagram.svg" format="svg"/>
+  <topichead navtitle="Getting started">
+    <topicref href="topics/install-client.dita"/>
+    <topicref href="topics/create-profile.dita"/>
+  </topichead>
+  <topichead navtitle="Reference">
+    <topicref href="topics/sync-options.dita"/>
+  </topichead>
+  <topicref href="shared/notices.dita" toc="no"/>
+  <reltable>
+    <relheader>
+      <relcolspec type="task"/>
+      <relcolspec type="reference"/>
+    </relheader>
+    <relrow>
+      <relcell>
+        <topicref href="topics/install-client.dita"/>
+        <topicref href="topics/create-profile.dita"/>
+      </relcell>
+      <relcell>
+        <topicref href="topics/sync-options.dita"/>
+      </relcell>
+    </relrow>
+  </reltable>
+</map>

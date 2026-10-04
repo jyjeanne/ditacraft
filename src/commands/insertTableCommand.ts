@@ -36,7 +36,7 @@ type TableType = 'table' | 'simpletable';
 export async function insertTableCommand(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor || !isEligibleDocument(editor.document.uri)) {
-        vscode.window.showWarningMessage('DitaCraft: Open a DITA topic to insert a table.');
+        vscode.window.showWarningMessage('DITA Craft: Open a DITA topic to insert a table.');
         return;
     }
 
@@ -98,7 +98,7 @@ export async function insertTableCommand(): Promise<void> {
 
     const inserted = await insertAtCursor(editor, snippet);
     if (!inserted) {
-        vscode.window.showErrorMessage('DitaCraft: Failed to insert table markup.');
+        vscode.window.showErrorMessage('DITA Craft: Failed to insert table markup.');
         return;
     }
     logger.info('Table inserted', { type: tableTypePick.value, columns, rows, includeHeader });

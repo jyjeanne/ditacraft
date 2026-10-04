@@ -1,0 +1,134 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="Open a topic in the visual editor, find your way around the page, work side by side with the XML, and know what reaches the file."><meta name="prodname" content="DITA Craft"><meta name="version" content="0"><meta name="release" content="10"><meta name="modification" content="0"><title>Working in the Visual Editor</title><link rel="stylesheet" type="text/css" href="../../commonltr.css">
+<link rel="stylesheet" type="text/css" href="..\../common-extended.css"><link rel="stylesheet" type="text/css" href="../../custom.css">
+</head><body id="visual-editor-basics"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DITA Craft</span>
+      <span class="ditacraft-header__version">v0.9.1</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DITA Craft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/editing-commands.html">Editing and Refactoring Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/visual-editor.html">Visual Editor</a><ul><li class="active"><a href="../../topics/features/visual-editor-basics.html">Working in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-writing.html">Writing on the Page</a></li><li><a href="../../topics/features/visual-editor-tables.html">Tables in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-images-links.html">Images and Links in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-reuse.html">Reused Content, Keys and Link Titles</a></li><li><a href="../../topics/features/visual-editor-problems.html">Problems and Quick Fixes in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-maps.html">Maps and Bookmaps in the Visual Editor</a></li><li><a href="../../topics/features/properties-view.html">Properties View</a></li></ul></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li><li><a href="../../topics/features/ai-features.html">AI Features</a></li><li><a href="../../topics/features/mcp-integration.html">MCP Server Integration</a></li><li><a href="../../topics/features/refactoring-tools.html">Refactoring Tools</a></li><li><a href="../../topics/features/project-scaffolding.html">Templates and Project Scaffolding</a></li><li><a href="../../topics/features/publishing-workflow.html">Publishing Workflow Enhancements</a></li><li><a href="../../topics/features/authoring-productivity.html">Authoring Productivity Tools</a></li><li><a href="../../topics/features/ditaval-condition-editor.html">Visual DITAVAL Condition Editor</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-properties-view.html">Properties View</a></li><li><a href="../../topics/glossary/gloss-publishing-profile.html">Publishing Profile</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-visual-editor.html">Visual Editor</a></li><li><a href="../../topics/glossary/gloss-watch-mode.html">Watch Mode</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Working in the Visual Editor</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">Open a topic in the visual editor, find your way around the page, work side by side
+        with the XML, and know what reaches the file.</p>
+        <section class="section" id="visual-editor-basics__opening"><h2 class="title sectiontitle">Opening the Visual Editor</h2>
+            
+            <ul class="ul">
+                <li class="li">In the text editor of a topic or a map, click <span class="ph uicontrol">Open in Visual
+                        Editor</span> in the editor title bar, or run <span class="ph uicontrol">DITA: Open in
+                        Visual Editor</span>. Maps and bookmaps open as rows (see <a class="xref" href="visual-editor-maps.html" title="A map or a bookmap opens in the visual editor as its title and one row per reference, each row showing the title of what it points to. Add references from a picker, change their targets and labels, and rearrange them by dragging or with Tab.">Maps and Bookmaps in the Visual Editor</a>).</li>
+                <li class="li">Right-click the editor tab and choose <span class="ph uicontrol">Reopen Editor With…</span> →
+                        <span class="ph uicontrol">DITA Visual Editor</span>, or use <span class="ph uicontrol">Open
+                        With…</span> in the Explorer. To open topics in the visual editor by
+                    default, choose <span class="ph uicontrol">Configure default editor for '*.dita'…</span> in
+                    that list.</li>
+                <li class="li"><span class="ph uicontrol">DITA: Open Source</span> (or <span class="ph uicontrol">Open Source</span> in
+                    the title bar) goes back to the text editor. The page's own
+                        <span class="ph uicontrol">Open source</span> button opens the text beside the page.</li>
+            </ul>
+            <p class="p">Switching keeps your place: the visual editor opens at the text cursor, and the text
+                editor at the page's cursor.</p>
+        </section>
+
+        <section class="section" id="visual-editor-basics__page"><h2 class="title sectiontitle">The Page</h2>
+            
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Toolbar</dt>
+                    <dd class="dd">Undo and redo, the <span class="ph uicontrol">Style</span> list, bold, italic, underline,
+                        code, superscript and subscript, bulleted and numbered lists, indent and
+                        outdent, <span class="ph uicontrol">Insert</span>, <span class="ph uicontrol">Table</span>, images and links; then <span class="ph uicontrol">Show markup</span>,
+                            <span class="ph uicontrol">Properties</span>, <span class="ph uicontrol">Open source</span> and
+                            <span class="ph uicontrol">Preview</span>.</dd>
+                
+                
+                    <dt class="dt dlterm">Status line</dt>
+                    <dd class="dd">The elements around the cursor (click one to select it), the problem at the
+                        cursor and the problem count, whether all changes are in the document, the
+                        grammar in use and the file name.</dd>
+                
+            </dl>
+        </section>
+
+        <section class="section" id="visual-editor-basics__side-by-side"><h2 class="title sectiontitle">Side by Side with the Text Editor</h2>
+            
+            <p class="p">With the text of the same topic open beside the page (the toolbar's
+                    <span class="ph uicontrol">Open source</span>, or <span class="ph uicontrol">View: Split Editor</span>),
+                each follows the other: move the cursor in one and the other's cursor moves to the
+                same character; scroll one and the other scrolls to the same element. The setting
+                    <code class="ph codeph">ditacraft.previewScrollSync</code> turns it off.</p>
+            <figure class="fig fignone" id="visual-editor-basics__fig-side-by-side"><figcaption><span class="fig--title-label">Figure 1. </span>A task on the page and in its XML, cursors in step</figcaption>
+                
+                <br><div class="imagecenter"><img class="image imagecenter" src="../../images/visual-editor.png" width="624" alt="The visual editor on the left and the text editor on the right, showing the same task: the cursor is in the second step on the page and on the same line in the XML."></div><br>
+            </figure>
+        </section>
+
+        <section class="section" id="visual-editor-basics__lossless"><h2 class="title sectiontitle">How Changes Reach the File</h2>
+            
+            <p class="p">Each change on the page becomes one small text edit of the document — the same as
+                typing in the text editor. The dirty marker, <span class="ph uicontrol">Save</span>, auto-save,
+                undo in the text editor, Git diffs and validation all work as usual, and a Git diff
+                shows only what you changed.</p>
+            <ul class="ul">
+                <li class="li">Typing in a paragraph wrapped over several lines changes only the characters you
+                    typed: its line breaks stay, and entity references such as
+                        <code class="ph codeph">&amp;amp;</code> are kept as written.</li>
+                <li class="li">Elements you do not change are written back byte for byte: comments, attribute
+                    order and quotes, indentation.</li>
+                <li class="li">A structure that does not yet follow its DTD (a topic still without its title) is
+                    edited all the same; the problem is marked on the page.</li>
+                <li class="li">While the XML is not well-formed (a tag half-typed in the text editor), the page
+                    shows the last good version with a banner, and editing waits.</li>
+                <li class="li">A change made in the text editor while the page is open replaces the page's undo
+                    history; the text editor's undo still covers everything.</li>
+            </ul>
+        </section>
+
+        <section class="section" id="visual-editor-basics__kept-as-written"><h2 class="title sectiontitle">What Is Kept as Written</h2>
+            
+            <p class="p">Some content is shown on the page but edited in the source; it is kept byte for
+                byte:</p>
+            <ul class="ul">
+                <li class="li">prolog metadata, index terms, <code class="ph codeph">data</code>, draft comments, comments and
+                    processing instructions (shown with <span class="ph uicontrol">Show markup</span>);</li>
+                <li class="li">footnotes, related links, objects, MathML and SVG;</li>
+                <li class="li">reused content, phrases whose text comes from a key and empty links, shown
+                    resolved (see <a class="xref" href="visual-editor-reuse.html" title="The visual editor shows reused content, keys' texts, link targets' titles and keyed images resolved on the page, as your output will show them — and lets you open the source of reused content or make a local copy of it.">Reused Content, Keys and Link Titles</a>);</li>
+                <li class="li">named entity references such as <code class="ph codeph">&amp;product;</code>, shown with their
+                    value;</li>
+                <li class="li">elements the document type does not declare.</li>
+            </ul>
+        </section>
+
+        <section class="section" id="visual-editor-basics__themes"><h2 class="title sectiontitle">Themes and Styles</h2>
+            
+            <p class="p">The page follows the preview settings: <code class="ph codeph">ditacraft.previewTheme</code> (light,
+                dark, or following VS Code), <code class="ph codeph">ditacraft.previewPageWidth</code>,
+                    <code class="ph codeph">ditacraft.previewShowMarkup</code> and
+                    <code class="ph codeph">ditacraft.previewCustomCss</code> — the page uses the DITA-OT HTML5 class
+                names, so a stylesheet written for your output styles it too.</p>
+            <figure class="fig fignone" id="visual-editor-basics__fig-dark"><figcaption><span class="fig--title-label">Figure 2. </span>The page in a dark theme</figcaption>
+                
+                <br><div class="imagecenter"><img class="image imagecenter" src="../../images/visual-editor-dark.png" width="624" alt="The visual editor with a dark page in a dark VS Code theme."></div><br>
+            </figure>
+        </section>
+
+        <section class="section" id="visual-editor-basics__limitations"><h2 class="title sectiontitle">Limitations</h2>
+            
+            <ul class="ul">
+                <li class="li">Reused content, keys' texts and link titles are read only on the page: edit them
+                    where they come from, or make a local copy with <span class="ph uicontrol">Replace with
+                        copy</span>.</li>
+            </ul>
+        </section>
+    </div>
+<nav role="navigation" class="related-links"><div class="familylinks"><div class="parentlink"><strong>Parent topic:</strong> <a class="link" href="visual-editor.html" title="Edit a DITA topic on a page that looks like your output, while DITA Craft writes clean XML: every change reaches the file as a small, precise text edit, and everything you do not touch stays exactly as it was.">Visual Editor</a></div></div></nav></article></main></body></html>

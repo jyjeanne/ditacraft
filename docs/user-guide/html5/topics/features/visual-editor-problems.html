@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta charset="UTF-8"><meta name="copyright" content="(C) Copyright 2026"><meta name="generator" content="DITA-OT"><meta name="description" content="The language server's errors and warnings are marked on the page where they are, and their quick fixes are one keystroke away."><meta name="prodname" content="DITA Craft"><meta name="version" content="0"><meta name="release" content="10"><meta name="modification" content="0"><title>Problems and Quick Fixes in the Visual Editor</title><link rel="stylesheet" type="text/css" href="../../commonltr.css">
+<link rel="stylesheet" type="text/css" href="..\../common-extended.css"><link rel="stylesheet" type="text/css" href="../../custom.css">
+</head><body id="visual-editor-problems"><header role="banner"><div class="ditacraft-header">
+  <div class="ditacraft-header__inner">
+    <a href="index.html" class="ditacraft-header__logo">
+      <span class="ditacraft-header__wordmark">DITA Craft</span>
+      <span class="ditacraft-header__version">v0.9.1</span>
+    </a>
+    <nav class="ditacraft-header__nav" aria-label="Main navigation">
+      <a href="topics/features/features-overview.html">Features</a>
+      <a href="topics/commands/commands-overview.html">Commands</a>
+      <a href="topics/settings/settings-overview.html">Settings</a>
+    </nav>
+  </div>
+</div></header><nav class="toc" role="navigation"><ul><li><span>Getting Started</span></li><li>Using DITA Craft<ul><li><a href="../../topics/commands/commands-overview.html">Commands Overview</a></li><li><a href="../../topics/commands/validation-commands.html">Validation Commands</a></li><li><a href="../../topics/commands/publishing-commands.html">Publishing Commands</a></li><li><a href="../../topics/commands/file-creation-commands.html">File Creation Commands</a></li><li><a href="../../topics/commands/editing-commands.html">Editing and Refactoring Commands</a></li><li><a href="../../topics/commands/navigation-commands.html">Navigation Commands</a></li><li><a href="../../topics/features/features-overview.html">Features Overview</a></li><li><a href="../../topics/features/visual-editor.html">Visual Editor</a><ul><li><a href="../../topics/features/visual-editor-basics.html">Working in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-writing.html">Writing on the Page</a></li><li><a href="../../topics/features/visual-editor-tables.html">Tables in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-images-links.html">Images and Links in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-reuse.html">Reused Content, Keys and Link Titles</a></li><li class="active"><a href="../../topics/features/visual-editor-problems.html">Problems and Quick Fixes in the Visual Editor</a></li><li><a href="../../topics/features/visual-editor-maps.html">Maps and Bookmaps in the Visual Editor</a></li><li><a href="../../topics/features/properties-view.html">Properties View</a></li></ul></li><li><a href="../../topics/features/preview.html">Live Preview</a></li><li><a href="../../topics/features/intellisense.html">IntelliSense</a></li><li><a href="../../topics/features/smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/features/validation.html">Validation</a></li><li><a href="../../topics/features/map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/features/key-resolution.html">Key Resolution</a></li><li><a href="../../topics/features/ditaval-support.html">DITAVAL Support</a></li><li><a href="../../topics/features/cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/features/dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/features/profiling-validation.html">Profiling and Subject Scheme Validation</a></li><li><a href="../../topics/features/activity-bar.html">Activity Bar Views</a></li><li><a href="../../topics/features/dita-explorer.html">DITA Explorer</a></li><li><a href="../../topics/features/key-space-view.html">Key Space View</a></li><li><a href="../../topics/features/diagnostics-view.html">Diagnostics View</a></li><li><a href="../../topics/features/root-map.html">Root Map Management</a></li><li><a href="../../topics/features/localization.html">Localization (i18n)</a></li><li><a href="../../topics/features/guide-validation.html">Guide Validation (DITA-OT)</a></li><li><a href="../../topics/features/ai-features.html">AI Features</a></li><li><a href="../../topics/features/mcp-integration.html">MCP Server Integration</a></li><li><a href="../../topics/features/refactoring-tools.html">Refactoring Tools</a></li><li><a href="../../topics/features/project-scaffolding.html">Templates and Project Scaffolding</a></li><li><a href="../../topics/features/publishing-workflow.html">Publishing Workflow Enhancements</a></li><li><a href="../../topics/features/authoring-productivity.html">Authoring Productivity Tools</a></li><li><a href="../../topics/features/ditaval-condition-editor.html">Visual DITAVAL Condition Editor</a></li></ul></li><li><span>Configuration</span></li><li><a href="../../topics/reference/keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-auto-validate.html">Auto-validation</a></li><li><a href="../../topics/glossary/gloss-bookmap.html">Bookmap</a></li><li><a href="../../topics/glossary/gloss-built-in-engine.html">Built-in Engine</a></li><li><a href="../../topics/glossary/gloss-catalog.html">OASIS XML Catalog</a></li><li><a href="../../topics/glossary/gloss-code-action.html">Code Action</a></li><li><a href="../../topics/glossary/gloss-conkeyref.html">conkeyref</a></li><li><a href="../../topics/glossary/gloss-conref.html">conref</a></li><li><a href="../../topics/glossary/gloss-concept.html">Concept</a></li><li><a href="../../topics/glossary/gloss-cross-ref-validation.html">Cross-Reference Validation</a></li><li><a href="../../topics/glossary/gloss-dita.html">DITA</a></li><li><a href="../../topics/glossary/gloss-dita-2.html">DITA 2.0</a></li><li><a href="../../topics/glossary/gloss-dita-ot.html">DITA-OT</a></li><li><a href="../../topics/glossary/gloss-dita-rules.html">DITA Rules Engine</a></li><li><a href="../../topics/glossary/gloss-ditamap.html">DITA Map</a></li><li><a href="../../topics/glossary/gloss-dtd.html">DTD</a></li><li><a href="../../topics/glossary/gloss-guide-validation.html">Guide Validation</a></li><li><a href="../../topics/glossary/gloss-href.html">href</a></li><li><a href="../../topics/glossary/gloss-i18n.html">Internationalization (i18n)</a></li><li><a href="../../topics/glossary/gloss-keyboard-shortcuts.html">Keyboard Shortcuts</a></li><li><a href="../../topics/glossary/gloss-keydef.html">keydef</a></li><li><a href="../../topics/glossary/gloss-keyref.html">keyref</a></li><li><a href="../../topics/glossary/gloss-keyscope.html">Key Scope</a></li><li><a href="../../topics/glossary/gloss-keyspace.html">Key Space</a></li><li><a href="../../topics/glossary/gloss-live-preview.html">Live Preview</a></li><li><a href="../../topics/glossary/gloss-profiling.html">Profiling</a></li><li><a href="../../topics/glossary/gloss-properties-view.html">Properties View</a></li><li><a href="../../topics/glossary/gloss-publishing-profile.html">Publishing Profile</a></li><li><a href="../../topics/glossary/gloss-map-visualizer.html">Map Visualizer</a></li><li><a href="../../topics/glossary/gloss-rate-limiting.html">Rate Limiting</a></li><li><a href="../../topics/glossary/gloss-reference.html">Reference</a></li><li><a href="../../topics/glossary/gloss-rng.html">RNG (RelaxNG)</a></li><li><a href="../../topics/glossary/gloss-root-map.html">Root Map</a></li><li><a href="../../topics/glossary/gloss-scroll-sync.html">Scroll Sync</a></li><li><a href="../../topics/glossary/gloss-subject-scheme.html">Subject Scheme</a></li><li><a href="../../topics/glossary/gloss-smart-navigation.html">Smart Navigation</a></li><li><a href="../../topics/glossary/gloss-task.html">Task</a></li><li><a href="../../topics/glossary/gloss-topic.html">Topic</a></li><li><a href="../../topics/glossary/gloss-topicref.html">topicref</a></li><li><a href="../../topics/glossary/gloss-typesxml.html">TypesXML</a></li><li><a href="../../topics/glossary/gloss-validation.html">Validation</a></li><li><a href="../../topics/glossary/gloss-validation-engine.html">Validation Engine</a></li><li><a href="../../topics/glossary/gloss-visual-editor.html">Visual Editor</a></li><li><a href="../../topics/glossary/gloss-watch-mode.html">Watch Mode</a></li><li><a href="../../topics/glossary/gloss-xmllint.html">xmllint</a></li></ul></nav><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+    <h1 class="title topictitle1" id="ariaid-title1">Problems and Quick Fixes in the Visual Editor</h1>
+    
+
+    <div class="body conbody"><p class="shortdesc">The language server's errors and warnings are marked on the page where they are, and
+        their quick fixes are one keystroke away.</p>
+        <section class="section" id="visual-editor-problems__marks"><h2 class="title sectiontitle">Problems on the Page</h2>
+            
+            <p class="p">The problems listed in the <span class="ph uicontrol">Problems</span> panel — DTD validation, DITA
+                rules, references, your custom rules — are marked on the page as you edit:</p>
+            <ul class="ul">
+                <li class="li">a problem in the text of a paragraph underlines that text (wavy: red for errors,
+                    orange for warnings, blue for information);</li>
+                <li class="li">a problem on an element — an attribute such as a duplicate <code class="ph codeph">@id</code>,
+                    or an element shown as a box such as an image or reused content — marks the
+                    element.</li>
+            </ul>
+            <p class="p">Hover a mark for its messages. With the cursor in a mark, the status line shows the
+                message; the problem count next to it goes to the next problem. Marks move with the
+                text while you type, and are refreshed a moment after you stop.</p>
+        </section>
+
+        <section class="section" id="visual-editor-problems__quick-fixes"><h2 class="title sectiontitle">Quick Fixes</h2>
+            
+            <p class="p">With the cursor in a mark, press <span class="ph uicontrol">Ctrl+.</span>, choose
+                    <span class="ph uicontrol">Quick Fix…</span> at the top of the right-click menu, or click the
+                message in the status line. The menu lists the fixes VS Code offers for that problem
+                — the same as the light bulb in the text editor; the recommended fix is marked
+                with a star.</p>
+            <figure class="fig fignone" id="visual-editor-problems__fig-quick-fix"><figcaption><span class="fig--title-label">Figure 1. </span>The quick fix of an image without alternative text</figcaption>
+                
+                <br><div class="imagecenter"><img class="image imagecenter" src="../../images/visual-editor-quick-fix.png" width="624" alt="An image marked with a dashed outline; below it, the quick fix menu with the message of the problem and the fix Add alt element. The status line shows the same message and 1 problem."></div><br>
+            </figure>
+            <p class="p">The language server's fixes include adding a missing <code class="ph codeph">&lt;alt&gt;</code>,
+                    <code class="ph codeph">&lt;title&gt;</code> or <code class="ph codeph">@id</code>, making a duplicate
+                    <code class="ph codeph">@id</code> unique, removing an empty element, adding
+                    <code class="ph codeph">@otherrole</code> and turning <code class="ph codeph">@alt</code> into
+                    <code class="ph codeph">&lt;alt&gt;</code>. With AI set up, <span class="ph uicontrol">Fix with DITA Craft
+                    AI</span> is offered too (see <a class="xref" href="ai-features.html" title="DITA Craft integrates GitHub Copilot and other LLM providers to assist with DITA map restructuring, error explanation, element analysis, and content reuse discovery.">AI Features</a>).</p>
+            <dl class="dl">
+                
+                    <dt class="dt dlterm">Fixes made on the page</dt>
+                    <dd class="dd">A fix that only changes this topic is made on the page like your own edits:
+                            <span class="ph uicontrol">Ctrl+Z</span> on the page takes it back, and only what it
+                        changes is rewritten.</dd>
+                
+                
+                    <dt class="dt dlterm">Fixes applied to the document</dt>
+                    <dd class="dd">A fix the page cannot make — one before the root element such as
+                            <span class="ph uicontrol">Add DOCTYPE</span>, a command such as <span class="ph uicontrol">Fix with
+                            DITA Craft AI</span>, or one that changes other files — is applied to
+                        the document directly. The page then follows the document as after a change in
+                        the text editor; the text editor's undo still has the fix.</dd>
+                
+            </dl>
+        </section>
+    </div>
+<nav role="navigation" class="related-links"><div class="familylinks"><div class="parentlink"><strong>Parent topic:</strong> <a class="link" href="visual-editor.html" title="Edit a DITA topic on a page that looks like your output, while DITA Craft writes clean XML: every change reaches the file as a small, precise text edit, and everything you do not touch stays exactly as it was.">Visual Editor</a></div></div></nav></article></main></body></html>

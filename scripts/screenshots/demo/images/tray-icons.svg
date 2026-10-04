@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="120" viewBox="0 0 390 120" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="2" y="2" width="386" height="116" rx="14" fill="#f8f9fb" stroke="#d3d9e0" stroke-width="2"/>
+  <!-- Up to date -->
+  <g transform="translate(70 48)">
+    <circle r="24" fill="#0f8b8d"/>
+    <path d="M-11 0 l7 8 l15 -16" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text y="50" text-anchor="middle" font-size="14" fill="#1c2b33">Up to date</text>
+  </g>
+  <!-- Syncing -->
+  <g transform="translate(195 48)">
+    <circle r="24" fill="#6d4aff"/>
+    <path d="M-10 -4 a11 11 0 0 1 19 -5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+    <path d="M10 4 a11 11 0 0 1 -19 5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+    <path d="M9 -13 v6 h-6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-9 13 v-6 h6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <text y="50" text-anchor="middle" font-size="14" fill="#1c2b33">Syncing</text>
+  </g>
+  <!-- Paused -->
+  <g transform="translate(320 48)">
+    <circle r="24" fill="#8a96a3"/>
+    <rect x="-9" y="-11" width="6" height="22" rx="2" fill="#fff"/>
+    <rect x="3" y="-11" width="6" height="22" rx="2" fill="#fff"/>
+    <text y="50" text-anchor="middle" font-size="14" fill="#1c2b33">Paused</text>
+  </g>
+</svg>

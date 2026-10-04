@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="notices">
+  <title>Shared notices</title>
+  <body>
+    <note id="pair-once" type="important">Two profiles that pair the same folder can overwrite each
+      other's changes. Pair each folder <b>only once</b>.</note>
+    <note id="offline" type="tip">Changes made offline are synced the next time the client
+      connects.</note>
+  </body>
+</topic>

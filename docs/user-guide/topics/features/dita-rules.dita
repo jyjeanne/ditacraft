@@ -2,13 +2,13 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="dita-rules">
     <title>DITA Rules Engine</title>
-    <shortdesc>DitaCraft includes 43 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules.</shortdesc>
+    <shortdesc>DITA Craft includes 43 Schematron-equivalent validation rules organized in five categories to enforce DITA best practices and specification requirements, including 10 DITA 2.0-specific rules, plus support for user-defined custom regex rules.</shortdesc>
 
     <conbody>
         <section id="overview">
             <title>Overview</title>
             <p>The DITA Rules Engine validates your content against a set of rules derived from the DITA specification and authoring best practices. These rules go beyond DTD validation to catch semantic issues such as missing accessibility attributes, deprecated elements, and incorrect attribute usage.</p>
-            <p>Rules are version-aware: DitaCraft automatically detects your DITA version (from <codeph>@DITAArchVersion</codeph> or DOCTYPE) and only applies rules relevant to that version.</p>
+            <p>Rules are version-aware: DITA Craft automatically detects your DITA version (from <codeph>@DITAArchVersion</codeph> or DOCTYPE) and only applies rules relevant to that version.</p>
         </section>
 
         <section id="categories">
@@ -92,7 +92,7 @@
 
         <section id="quick-fixes">
             <title>Quick Fixes</title>
-            <p>DitaCraft provides 12 automatic quick fixes via the lightbulb menu (<uicontrol>Ctrl+.</uicontrol>):</p>
+            <p>DITA Craft provides 12 automatic quick fixes via the lightbulb menu (<uicontrol>Ctrl+.</uicontrol>):</p>
             <ul>
                 <li><b>Add missing DOCTYPE:</b> Inserts the appropriate DOCTYPE declaration based on root element</li>
                 <li><b>Add missing ID:</b> Adds an ID attribute derived from the filename</li>
@@ -111,7 +111,7 @@
 
         <section id="dita-2-rules">
             <title>DITA 2.0 Rules</title>
-            <p>DitaCraft includes 10 rules specific to DITA 2.0 that detect removed elements and attributes. These rules only apply when the DITA version is detected as 2.0 (via <codeph>@DITAArchVersion</codeph> or DOCTYPE).</p>
+            <p>DITA Craft includes 10 rules specific to DITA 2.0 that detect removed elements and attributes. These rules only apply when the DITA version is detected as 2.0 (via <codeph>@DITAArchVersion</codeph> or DOCTYPE).</p>
             <simpletable>
                 <sthead>
                     <stentry>Code</stentry>
@@ -173,7 +173,7 @@
 
         <section id="version-detection">
             <title>Version Detection</title>
-            <p>DitaCraft automatically detects the DITA version of each document using these sources (in priority order):</p>
+            <p>DITA Craft automatically detects the DITA version of each document using these sources (in priority order):</p>
             <ol>
                 <li>The <codeph>ditacraft.ditaVersion</codeph> setting (if not set to <codeph>"auto"</codeph>)</li>
                 <li>The <codeph>@DITAArchVersion</codeph> attribute on the root element</li>

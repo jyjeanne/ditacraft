@@ -89,10 +89,11 @@ export async function collectDitaFilesAsync(workspaceFolders: readonly string[])
  * - href/conref with a file part: matches only if that path resolves to the target.
  * - href/conref fragment-only (e.g. "#topicid"): matches only if contextFilePath
  *   IS the target file itself.
- * - conkeyref: the key must be resolved via keySpaceService to know which file it
- *   targets; without one this cannot be verified, so it's excluded (and logged via
- *   `log`, if given) rather than matched by element-ID text alone, which can
- *   false-positive on an unrelated file whose element merely shares the same id.
+ * - conkeyref, and a keyref with an element-id sub-part (`key/elementid`): the key
+ *   must be resolved via keySpaceService to know which file it targets; without one
+ *   this cannot be verified, so it's excluded (and logged via `log`, if given)
+ *   rather than matched by element-ID text alone, which can false-positive on an
+ *   unrelated file whose element merely shares the same id.
  * - keyref (no element-id sub-part): always matches — there is no file part to
  *   verify against.
  *
@@ -115,10 +116,10 @@ export async function referenceMatchesTarget(
         }
         return normalizeFsPath(contextFilePath) === normalizedTargetPath;
     }
-    if (ref.type === 'conkeyref') {
+    if (ref.type === 'conkeyref' || (ref.type === 'keyref' && ref.value.includes('/'))) {
         if (!keySpaceService) {
             log?.(
-                `Skipping unverifiable conkeyref "${ref.value}" in ${contextFilePath} ` +
+                `Skipping unverifiable ${ref.type} "${ref.value}" in ${contextFilePath} ` +
                 '(no KeySpaceService available to resolve the key target)'
             );
             return false;

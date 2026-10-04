@@ -13,8 +13,11 @@ import {
     parseFindOptions,
     validateRegexQuery,
     describeSearchLabel,
-    buildConfirmableWorkspaceEdit,
+    buildWorkspaceEdit,
+    confirmWorkspaceEdit,
+    describeFileChanges,
 } from '../../commands/findReplaceCommand';
+import * as sinon from 'sinon';
 
 suite('Find & Replace Command Test Suite', () => {
     suiteSetup(async () => {
@@ -42,21 +45,22 @@ suite('Find & Replace Command Test Suite', () => {
             assert.deepStrictEqual(parseFindOptions([]), {
                 caseSensitive: false,
                 useRegex: false,
-                wholeWord: false
+                wholeWord: false,
+                includeAttributeValues: false
             });
         });
 
         test('Should set only the flags that were selected', () => {
             assert.deepStrictEqual(
                 parseFindOptions([{ value: 'useRegex' }, { value: 'wholeWord' }]),
-                { caseSensitive: false, useRegex: true, wholeWord: true }
+                { caseSensitive: false, useRegex: true, wholeWord: true, includeAttributeValues: false }
             );
         });
 
-        test('Should set all three flags when all are selected', () => {
+        test('Should set every flag when all are selected', () => {
             assert.deepStrictEqual(
-                parseFindOptions([{ value: 'caseSensitive' }, { value: 'useRegex' }, { value: 'wholeWord' }]),
-                { caseSensitive: true, useRegex: true, wholeWord: true }
+                parseFindOptions([{ value: 'caseSensitive' }, { value: 'useRegex' }, { value: 'wholeWord' }, { value: 'includeAttributeValues' }]),
+                { caseSensitive: true, useRegex: true, wholeWord: true, includeAttributeValues: true }
             );
         });
     });
@@ -90,7 +94,7 @@ suite('Find & Replace Command Test Suite', () => {
         });
     });
 
-    suite('buildConfirmableWorkspaceEdit', () => {
+    suite('buildWorkspaceEdit', () => {
         test('Should convert LSP-shaped changes into a vscode.WorkspaceEdit', () => {
             const uri = 'file:///workspace/topic.dita';
             const lspEdit = {
@@ -104,7 +108,7 @@ suite('Find & Replace Command Test Suite', () => {
                 }
             };
 
-            const edit = buildConfirmableWorkspaceEdit(lspEdit, 'Test label');
+            const edit = buildWorkspaceEdit(lspEdit, 'Test label', true);
             const entries = edit.get(vscode.Uri.parse(uri));
 
             assert.strictEqual(entries.length, 1);
@@ -129,14 +133,53 @@ suite('Find & Replace Command Test Suite', () => {
                 }
             };
 
-            const edit = buildConfirmableWorkspaceEdit(lspEdit, 'Test label');
+            const edit = buildWorkspaceEdit(lspEdit, 'Test label', true);
             assert.strictEqual(edit.get(vscode.Uri.parse(uriA)).length, 2);
             assert.strictEqual(edit.get(vscode.Uri.parse(uriB)).length, 1);
         });
 
         test('Should return an empty WorkspaceEdit when there are no changes', () => {
-            const edit = buildConfirmableWorkspaceEdit({}, 'Test label');
+            const edit = buildWorkspaceEdit({}, 'Test label', false);
             assert.strictEqual(edit.size, 0);
+        });
+    });
+
+    suite('confirmWorkspaceEdit (regression: the Refactor Preview opened with every change unticked, so Apply did nothing)', () => {
+        let sandbox: sinon.SinonSandbox;
+        setup(() => { sandbox = sinon.createSandbox(); });
+        teardown(() => sandbox.restore());
+
+        test('Should ask in a modal dialog, listing the files, and map the buttons to apply / review / cancel', async () => {
+            const stub = sandbox.stub(vscode.window, 'showInformationMessage');
+            stub.resolves('Replace' as unknown as vscode.MessageItem);
+            assert.strictEqual(await confirmWorkspaceEdit('Replace 3 matches?', 'a.dita (3 matches)', 'Replace'), 'apply');
+            const [message, options, ...buttons] = stub.firstCall.args as unknown as [string, vscode.MessageOptions, ...string[]];
+            assert.strictEqual(message, 'Replace 3 matches?');
+            assert.strictEqual(options.modal, true);
+            assert.ok(options.detail?.startsWith('a.dita (3 matches)'), options.detail ?? '');
+            assert.ok(/tick the ones to make/.test(options.detail ?? ''), 'the dialog says the preview starts unticked');
+            assert.deepStrictEqual(buttons, ['Replace', 'Review Changes…']);
+
+            stub.resolves('Review Changes…' as unknown as vscode.MessageItem);
+            assert.strictEqual(await confirmWorkspaceEdit('?', '', 'Replace'), 'review');
+            stub.resolves(undefined);
+            assert.strictEqual(await confirmWorkspaceEdit('?', '', 'Replace'), undefined);
+        });
+    });
+
+    suite('describeFileChanges', () => {
+        test('Should list each file with its change count, sorted, and cut the list after max files', () => {
+            const change = { range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } }, newText: 'x' };
+            const lspEdit = { changes: {
+                'file:///w/b.dita': [change],
+                'file:///w/a.dita': [change, change],
+                'file:///w/c.dita': [change],
+            } };
+            const lines = describeFileChanges(lspEdit, 'match', 'matches').split('\n');
+            assert.strictEqual(lines.length, 3);
+            assert.ok(lines[0].endsWith('a.dita (2 matches)'), lines[0]);
+            assert.ok(lines[1].endsWith('b.dita (1 match)'), lines[1]);
+            assert.deepStrictEqual(describeFileChanges(lspEdit, 'match', 'matches', 2).split('\n').slice(2), ['…and 1 more file']);
         });
     });
 });

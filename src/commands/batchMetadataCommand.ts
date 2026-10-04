@@ -7,11 +7,10 @@
  * (`server/src/features/batchMetadata.ts`) so a batch edit can't
  * introduce a `DITA-PROF-001` violation across many files at once.
  *
- * Reuses the same review-before-write mechanism as Find & Replace
- * (`findReplaceCommand.ts`'s `buildConfirmableWorkspaceEdit`): every edit
- * is tagged `needsConfirmation: true`, so `vscode.workspace.applyEdit()`
- * shows VS Code's native multi-file "Refactor Preview" UI before
- * anything is written.
+ * Reuses Find & Replace's confirmation (`findReplaceCommand.ts`'s
+ * `confirmWorkspaceEdit`): **Apply** makes every change, **Review Changes…**
+ * shows them in VS Code's native multi-file "Refactor Preview" (edits tagged
+ * `needsConfirmation: true`, which start unticked there).
  */
 
 import * as vscode from 'vscode';
@@ -19,7 +18,7 @@ import * as path from 'path';
 import { getLanguageClient } from '../languageClient';
 import { logger } from '../utils/logger';
 import { DitaExplorerItem } from '../providers/ditaExplorerProvider';
-import { buildConfirmableWorkspaceEdit } from './findReplaceCommand';
+import { buildWorkspaceEdit, confirmWorkspaceEdit, describeFileChanges } from './findReplaceCommand';
 
 /** The standard DITA profiling attributes — matches server/src/features/profilingValidation.ts's own list, the canonical set this project already validates. */
 const KNOWN_PROFILING_ATTRIBUTES = ['audience', 'platform', 'product', 'otherprops', 'props', 'deliveryTarget'];
@@ -46,13 +45,13 @@ export async function batchUpdateMetadataCommand(
 ): Promise<void> {
     const client = getLanguageClient();
     if (!client) {
-        vscode.window.showWarningMessage('DitaCraft: Language server is not ready yet.');
+        vscode.window.showWarningMessage('DITA Craft: Language server is not ready yet.');
         return;
     }
 
     const fileItems = resolveSelectedFileItems(item, allSelected);
     if (fileItems.length === 0) {
-        vscode.window.showWarningMessage('DitaCraft: Select one or more DITA files in the explorer first.');
+        vscode.window.showWarningMessage('DITA Craft: Select one or more DITA files in the explorer first.');
         return;
     }
 
@@ -80,31 +79,45 @@ export async function batchUpdateMetadataCommand(
     } catch (error) {
         logger.error('Batch metadata update request failed', error);
         vscode.window.showErrorMessage(
-            `DitaCraft: Batch metadata update failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `DITA Craft: Batch metadata update failed: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
         return;
     }
 
     if (!response.edit || response.updatedCount === 0) {
         if (response.skipped.length > 0) {
-            vscode.window.showWarningMessage(`DitaCraft: No files updated. ${summarizeSkipped(response.skipped)}`);
+            vscode.window.showWarningMessage(`DITA Craft: No files updated. ${summarizeSkipped(response.skipped)}`);
         } else {
-            vscode.window.showInformationMessage('DitaCraft: No changes to make.');
+            vscode.window.showInformationMessage('DITA Craft: No changes to make.');
         }
         return;
     }
 
+    const fileWord = response.updatedCount === 1 ? 'file' : 'files';
+    const question = value.length === 0
+        ? `Remove @${attribute} from ${response.updatedCount} ${fileWord}?`
+        : `Set @${attribute}="${value}" on ${response.updatedCount} ${fileWord}?`;
+    const skippedNote = response.skipped.length > 0
+        ? `\n\n${response.skipped.length} file(s) will be skipped. ${summarizeSkipped(response.skipped)}`
+        : '';
+    const choice = await confirmWorkspaceEdit(question, describeFileChanges(response.edit, 'change', 'changes') + skippedNote, 'Apply');
+    if (!choice) {
+        return;
+    }
+
     const label = describeBatchLabel(attribute, value, response.updatedCount);
-    const edit = buildConfirmableWorkspaceEdit(response.edit, label);
-    const applied = await vscode.workspace.applyEdit(edit);
+    const edit = buildWorkspaceEdit(response.edit, label, choice === 'review');
+    const applied = await vscode.workspace.applyEdit(edit, { isRefactoring: true });
 
     if (applied) {
-        logger.info('Batch metadata update applied', { attribute, updatedCount: response.updatedCount, skippedCount: response.skipped.length });
+        logger.info('Batch metadata update applied', { attribute, updatedCount: response.updatedCount, skippedCount: response.skipped.length, reviewed: choice === 'review' });
         if (response.skipped.length > 0) {
-            vscode.window.showWarningMessage(`DitaCraft: ${response.skipped.length} file(s) skipped. ${summarizeSkipped(response.skipped)}`);
+            vscode.window.showWarningMessage(`DITA Craft: ${response.skipped.length} file(s) skipped. ${summarizeSkipped(response.skipped)}`);
+        } else if (choice === 'apply') {
+            vscode.window.showInformationMessage(`DITA Craft: Updated ${response.updatedCount} ${fileWord}.`);
         }
     } else {
-        logger.debug('Batch metadata edit was not applied (declined or cancelled in the preview)');
+        logger.debug('Batch metadata edit was not applied (discarded in the preview)');
     }
 }
 

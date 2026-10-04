@@ -29,7 +29,7 @@
 
     <topicref href="preview-settings.dita" keys="preview-settings">
         <topicmeta>
-            <navtitle>Preview Settings</navtitle>
+            <navtitle>Preview and Visual Editor Settings</navtitle>
         </topicmeta>
     </topicref>
 </map>

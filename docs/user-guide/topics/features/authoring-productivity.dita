@@ -18,7 +18,7 @@
                 next to the current topic, rather than leaving you with a reference to a file the
                 topic can't portably point at. Optional width, height, or scale attributes can be
                 set on the inserted element as well.</p>
-            <note type="tip">DitaCraft does not check whether <codeph>&lt;fig&gt;</codeph> or
+            <note type="tip">DITA Craft does not check whether <codeph>&lt;fig&gt;</codeph> or
                     <codeph>&lt;image&gt;</codeph> is valid at the cursor's exact position — if the
                 inserted markup lands somewhere the content model disallows it, the existing DTD
                 validation flags it immediately, the same as hand-typing invalid markup
@@ -50,10 +50,17 @@
             <p>Run <uicontrol>DITA: Find and Replace in Files</uicontrol> to search across the DITA
                 files in your workspace with literal text, case sensitivity, whole-word, or regular
                 expression matching, then replace every match in one operation.</p>
-            <p>Matches are computed by the LSP server and applied as a workspace edit through VS
-                Code's native multi-file <b>Refactor Preview</b> — the same review UI used for a
-                cross-file rename — so you see every file and every match before anything is
-                written, and can uncheck individual changes you don't want applied.</p>
+            <p>Only the text of your topics and maps is searched: tag names, attribute names,
+                comments, CDATA sections and the DOCTYPE never change, a match never spans markup
+                (<codeph>foo bar</codeph> does not match <codeph>foo &lt;b&gt;bar&lt;/b&gt;</codeph>),
+                and a match never cuts an entity reference such as <codeph>&amp;amp;</codeph> in
+                two. Tick <uicontrol>Also in attribute values</uicontrol> in the find options to
+                search attribute values too (ids, links, keys, <codeph>navtitle</codeph>…).</p>
+            <p>Before anything is written, a dialog says how many matches will be replaced in which
+                files: <uicontrol>Replace</uicontrol> makes every change (Undo takes it back);
+                    <uicontrol>Review Changes…</uicontrol> lists them in VS Code's multi-file
+                    <b>Refactor Preview</b>, where they start unticked — tick the ones to make, then
+                click <uicontrol>Apply</uicontrol>.</p>
         </section>
 
         <section id="batch-metadata">
@@ -68,8 +75,8 @@
             <p>Each candidate value is validated server-side against your subject scheme's
                 controlled values before anything is written, so a batch edit can't introduce a
                     <codeph>DITA-PROF-001</codeph> violation across many files simultaneously. Like
-                Find and Replace, every change goes through VS Code's native multi-file Refactor
-                Preview before it's applied.</p>
+                Find and Replace, it asks before writing: <uicontrol>Apply</uicontrol> updates every
+                file, <uicontrol>Review Changes…</uicontrol> opens the Refactor Preview.</p>
         </section>
 
     </conbody>

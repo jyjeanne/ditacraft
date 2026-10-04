@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { URI } from 'vscode-uri';
-import { handleComputeInlineConrefEdit, findConrefElementAtOffset } from '../src/features/inlineConref';
+import { handleComputeInlineConrefEdit, findConrefElementAtOffset, rebaseContentReferences, rebaseReference, resolvedOpenTag } from '../src/features/inlineConref';
 import { KeySpaceService } from '../src/services/keySpaceService';
 import { createDoc, createDocs } from './helper';
 
@@ -297,5 +297,115 @@ suite('handleComputeInlineConrefEdit', () => {
         const result = await handleComputeInlineConrefEdit({ uri, offset }, createDocs(liveTargetDoc), undefined);
         assert.ok(result.edit, result.reason ?? 'expected an edit');
         assert.strictEqual(result.edit!.changes![uri][0].newText, '<p>Fresh unsaved text.</p>');
+    });
+
+    /** Inline the conref of `sourceRel`'s first reuse element; both files written first. */
+    async function inline(files: Record<string, string>, sourceRel: string): Promise<{ newText?: string; reason?: string }> {
+        for (const [rel, content] of Object.entries(files)) {
+            fs.mkdirSync(path.dirname(path.join(tmpDir, rel)), { recursive: true });
+            fs.writeFileSync(path.join(tmpDir, rel), content);
+        }
+        const sourcePath = path.join(tmpDir, sourceRel);
+        const uri = URI.file(sourcePath).toString();
+        const offset = files[sourceRel].search(/conref=|conkeyref=/);
+        const result = await handleComputeInlineConrefEdit({ uri, offset }, createDocs(), undefined);
+        return { newText: result.edit?.changes?.[uri]?.[0].newText, reason: result.reason };
+    }
+
+    test('the inlined element gets the target element\'s attributes it does not set, except id (regression: a reused important note became a plain note)', async () => {
+        const result = await inline({
+            'shared.dita': '<topic id="t"><body><note id="backup" type="important" audience="admin" outputclass="boxed">Back up <b id="b1">first</b>.</note></body></topic>',
+            'topic.dita': '<topic id="u"><body><note audience="user" conref="shared.dita#t/backup"/></body></topic>',
+        }, 'topic.dita');
+        assert.strictEqual(result.newText, '<note audience="user" type="important" outputclass="boxed">Back up <b>first</b>.</note>');
+    });
+
+    test('-dita-use-conref-target takes the target\'s value; every conref attribute is consumed', async () => {
+        const result = await inline({
+            'shared.dita': '<topic id="t"><body><note id="n" type="warning" product=\'kit\'>Careful.</note></body></topic>',
+            'topic.dita': '<topic id="u"><body><note id="mine" type="-dita-use-conref-target" conref="shared.dita#t/n" conkeyref="k/n"></note></body></topic>',
+        }, 'topic.dita');
+        assert.strictEqual(result.newText, '<note id="mine" type="warning" product=\'kit\'>Careful.</note>');
+    });
+
+    test('relative references among the target\'s attributes are rewritten for the new place', async () => {
+        const files = {
+            'shared/lib.dita': '<topic id="lib"><body>'
+                + '<image id="logo" href="../images/logo.png" placement="break"/>'
+                + '<xref id="x1" href="#lib/other"/><xref id="x2" href="#./other"/><xref id="x3" href="https://example.com/a b"/>'
+                + '<p id="other">Other.</p></body></topic>',
+            'topic.dita': '<topic id="u"><body><image conref="shared/lib.dita#lib/logo"/><xref conref="shared/lib.dita#lib/x1"/>'
+                + '<xref conref="shared/lib.dita#lib/x2"/><xref conref="shared/lib.dita#lib/x3"/></body></topic>',
+        };
+        assert.strictEqual((await inline(files, 'topic.dita')).newText, '<image href="images/logo.png" placement="break"></image>');
+        const at = async (needle: string) => {
+            const uri = URI.file(path.join(tmpDir, 'topic.dita')).toString();
+            const result = await handleComputeInlineConrefEdit({ uri, offset: files['topic.dita'].indexOf(needle) }, createDocs(), undefined);
+            return result.edit?.changes?.[uri]?.[0].newText;
+        };
+        assert.strictEqual(await at('lib/x1'), '<xref href="shared/lib.dita#lib/other"></xref>', 'a same-file reference names the file');
+        assert.strictEqual(await at('lib/x2'), '<xref href="shared/lib.dita#lib/other"></xref>', 'a same-topic reference names the file and the topic');
+        assert.strictEqual(await at('lib/x3'), '<xref href="https://example.com/a b"></xref>', 'a URL stays');
+    });
+
+    test('relative references inside the inlined content are rewritten for the new place (regression: they were copied as written)', async () => {
+        const result = await inline({
+            'shared/lib.dita': '<topic id="lib"><body><note id="n">See <xref href="other.dita"/>, <image href="../images/a.png"/>, '
+                + '<ph conref="#lib/word"/>, <xref href="#./sec"/>, <xref href="https://example.com/x" scope="external"/>, <xref keyref="k"/>'
+                + '<!-- <xref href="old.dita"/> --></note><p id="word">w</p><section id="sec"/></body></topic>',
+            'topic.dita': '<topic id="u"><body><note conref="shared/lib.dita#lib/n"/></body></topic>',
+        }, 'topic.dita');
+        assert.strictEqual(result.newText, '<note>See <xref href="shared/other.dita"/>, <image href="images/a.png"/>, '
+            + '<ph conref="shared/lib.dita#lib/word"/>, <xref href="shared/lib.dita#lib/sec"/>, <xref href="https://example.com/x" scope="external"/>, <xref keyref="k"/>'
+            + '<!-- <xref href="old.dita"/> --></note>');
+    });
+
+    test('references inside the content stay as written when the target is in the same folder', async () => {
+        const result = await inline({
+            'shared.dita': '<topic id="t"><body><note id="n">See <xref href="other.dita#o/p"/> and <image href="img/a.png"/>.</note></body></topic>',
+            'topic.dita': '<topic id="u"><body><note conref="shared.dita#t/n"/></body></topic>',
+        }, 'topic.dita');
+        assert.strictEqual(result.newText, '<note>See <xref href="other.dita#o/p"/> and <image href="img/a.png"/>.</note>');
+    });
+
+    test('refuses a conrefend range or a conaction push (not one element)', async () => {
+        const target = '<topic id="t"><body><p id="a">A</p><p id="b">B</p></body></topic>';
+        const range = await inline({ 'shared.dita': target, 'topic.dita': '<topic id="u"><body><p conref="shared.dita#t/a" conrefend="shared.dita#t/b"/></body></topic>' }, 'topic.dita');
+        assert.strictEqual(range.newText, undefined);
+        assert.ok(/conrefend/.test(range.reason ?? ''), range.reason ?? '');
+        const push = await inline({ 'shared.dita': target, 'topic.dita': '<topic id="u"><body><p conaction="pushreplace" conref="shared.dita#t/a">New A</p></body></topic>' }, 'topic.dita');
+        assert.strictEqual(push.newText, undefined);
+    });
+});
+
+suite('resolvedOpenTag', () => {
+    const same = (v: string) => v;
+    test('keeps the referencing tag as written, adds the target\'s other attributes before ">"', () => {
+        assert.strictEqual(resolvedOpenTag('<p\n   outputclass="x"\n   conref="a.dita#t/p"/>', '<p id="p" class="- topic/p " audience="a">', same), '<p\n   outputclass="x" audience="a">');
+        assert.strictEqual(resolvedOpenTag('<p conref="#t/p">', '<p id="p"/>', same), '<p>');
+    });
+});
+
+suite('rebaseContentReferences', () => {
+    test('rewrites reference attributes in start tags only, keeping quotes and layout', () => {
+        const up = (v: string) => `up/${v}`;
+        assert.strictEqual(
+            rebaseContentReferences('a <xref\n  href=\'x.dita\' outputclass="href"/><?pi href="p"?><![CDATA[<image href="c"/>]]><data href="d" name="n"/>', up),
+            'a <xref\n  href=\'up/x.dita\' outputclass="href"/><?pi href="p"?><![CDATA[<image href="c"/>]]><data href="up/d" name="n"/>');
+        assert.strictEqual(rebaseContentReferences('plain text', up), 'plain text');
+    });
+});
+
+suite('rebaseReference', () => {
+    test('rewrites a relative reference written in one file for another', () => {
+        const from = path.join(path.sep, 'w', 'shared', 'lib.dita');
+        const to = path.join(path.sep, 'w', 'topics', 'a.dita');
+        assert.strictEqual(rebaseReference('../images/x.png', from, to, 'lib'), '../images/x.png', 'sibling folders: the same path');
+        assert.strictEqual(rebaseReference('img/x.png#f', from, to, 'lib'), '../shared/img/x.png#f');
+        assert.strictEqual(rebaseReference('#lib/el', from, to, 'lib'), '../shared/lib.dita#lib/el');
+        assert.strictEqual(rebaseReference('#./el', from, to, 'lib'), '../shared/lib.dita#lib/el');
+        assert.strictEqual(rebaseReference('#./el', from, from, 'lib'), '#./el', 'same file: unchanged');
+        assert.strictEqual(rebaseReference('mailto:a@b.c', from, to, 'lib'), 'mailto:a@b.c');
+        assert.strictEqual(rebaseReference('/abs/x.png', from, to, 'lib'), '/abs/x.png');
     });
 });

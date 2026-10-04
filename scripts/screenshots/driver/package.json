@@ -1,0 +1,11 @@
+{
+  "name": "ditacraft-screenshot-driver",
+  "displayName": "DitaCraft screenshot driver",
+  "description": "Runs the steps of scripts/screenshots/shoot.js in the extension host. Not published.",
+  "version": "0.0.1",
+  "publisher": "ditacraft-dev",
+  "private": true,
+  "engines": { "vscode": "^1.80.0" },
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js"
+}
