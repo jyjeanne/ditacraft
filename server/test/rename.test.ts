@@ -24,20 +24,20 @@ function mockKeySpaceService(
 }
 
 suite('handlePrepareRename', () => {
-    test('cursor on id attribute value returns its range', () => {
+    test('cursor on id attribute value returns its range', async () => {
         const doc = createDoc('<topic id="t1"><title>T</title></topic>');
         const docs = createDocs(doc);
-        const range = handlePrepareRename(
+        const range = await handlePrepareRename(
             { textDocument: { uri: doc.uri }, position: { line: 0, character: 12 } },
             docs
         );
         assert.ok(range, 'should return a range on the id value');
     });
 
-    test('cursor elsewhere returns null', () => {
+    test('cursor elsewhere returns null', async () => {
         const doc = createDoc('<topic id="t1"><title>T</title></topic>');
         const docs = createDocs(doc);
-        const range = handlePrepareRename(
+        const range = await handlePrepareRename(
             { textDocument: { uri: doc.uri }, position: { line: 0, character: 0 } },
             docs
         );
@@ -285,23 +285,23 @@ suite('handleRename', () => {
 });
 
 suite('handlePrepareRename — key rename', () => {
-    test('cursor on a single-key "keys" attribute value returns its range', () => {
+    test('cursor on a single-key "keys" attribute value returns its range', async () => {
         const doc = createDoc('<keydef keys="mykey" href="target.dita"/>');
         const docs = createDocs(doc);
-        const range = handlePrepareRename(
+        const range = await handlePrepareRename(
             { textDocument: { uri: doc.uri }, position: { line: 0, character: 16 } },
             docs
         );
         assert.ok(range, 'should return a range on the keys value');
     });
 
-    test('cursor on one token within a multi-key "keys" attribute returns just that token', () => {
+    test('cursor on one token within a multi-key "keys" attribute returns just that token', async () => {
         const content = '<keydef keys="alpha beta gamma" href="target.dita"/>';
         const doc = createDoc(content);
         const docs = createDocs(doc);
         const offset = doc.positionAt(content.indexOf('beta') + 1);
 
-        const range = handlePrepareRename(
+        const range = await handlePrepareRename(
             { textDocument: { uri: doc.uri }, position: offset },
             docs
         );
@@ -312,13 +312,13 @@ suite('handlePrepareRename — key rename', () => {
         assert.strictEqual(content.slice(start, end), 'beta', 'range should bound only the beta token');
     });
 
-    test('cursor on href attribute (not keys) returns null', () => {
+    test('cursor on the file path of an href (not keys) returns null', async () => {
         const content = '<keydef keys="mykey" href="target.dita"/>';
         const doc = createDoc(content);
         const docs = createDocs(doc);
         const offset = doc.positionAt(content.indexOf('target.dita'));
 
-        const range = handlePrepareRename(
+        const range = await handlePrepareRename(
             { textDocument: { uri: doc.uri }, position: offset },
             docs
         );
@@ -542,6 +542,42 @@ suite('handleRename — key rename', () => {
         }
     });
 
+    test('keyref="key/element" usage keeps its element-id suffix (regression: it was rewritten to the bare key)', async () => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+        try {
+            const rootMapPath = path.join(tmpDir, 'root.ditamap');
+            const referencerPath = path.join(tmpDir, 'referencer.dita');
+
+            fs.writeFileSync(rootMapPath, '<map><keydef keys="mykey" href="target.dita"/></map>');
+            fs.writeFileSync(referencerPath, '<topic id="r1"><title>R</title><body><p><xref keyref="mykey/sect1"/> <xref keyref="mykey"/></p></body></topic>');
+
+            const doc = createDoc(fs.readFileSync(rootMapPath, 'utf-8'), URI.file(rootMapPath).toString());
+            const docs = createDocs(doc);
+
+            const keySpaceService = mockKeySpaceService((keyName) =>
+                keyName === 'mykey'
+                    ? { keyName: 'mykey', sourceMap: rootMapPath, sourceLine: 1 }
+                    : null
+            );
+
+            const content = fs.readFileSync(rootMapPath, 'utf-8');
+            const offset = doc.positionAt(content.indexOf('mykey') + 1);
+
+            const edit = await handleRename(
+                { textDocument: { uri: doc.uri }, position: offset, newName: 'mykeynew' },
+                docs,
+                [tmpDir],
+                keySpaceService
+            );
+
+            const referencerUri = URI.file(referencerPath).toString();
+            const newTexts = (edit?.changes?.[referencerUri] ?? []).map(e => e.newText).sort();
+            assert.deepStrictEqual(newTexts, ['mykeynew', 'mykeynew/sect1']);
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
     test('an indirect keyref on another keydef ("keys=a keyref=b") is rewritten when renaming b', async () => {
         // <keydef keys="alias" keyref="mykey"/> chains to "mykey" — the keyref
         // attribute here is on a *keydef* element, not a content reference, but
@@ -694,5 +730,98 @@ suite('handleRename — key rename', () => {
         // usage — both should be rewritten to "alias2".
         assert.strictEqual(edits.length, 2, 'both the alias definition and its direct usage should be rewritten');
         assert.ok(edits.every(e => e.newText === 'alias2'));
+    });
+});
+
+suite('Rename from a usage (key or id reference)', () => {
+    let tmpDir: string;
+    setup(() => { tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-')); });
+    teardown(() => fs.rmSync(tmpDir, { recursive: true, force: true }));
+
+    /** Writes the files, opens `openRel` as the document the cursor is in. */
+    function project(files: Record<string, string>, openRel: string) {
+        for (const [rel, content] of Object.entries(files)) {
+            fs.mkdirSync(path.dirname(path.join(tmpDir, rel)), { recursive: true });
+            fs.writeFileSync(path.join(tmpDir, rel), content);
+        }
+        const doc = createDoc(files[openRel], URI.file(path.join(tmpDir, openRel)).toString());
+        return { doc, docs: createDocs(doc), uriOf: (rel: string) => URI.file(path.join(tmpDir, rel)).toString(), file: (rel: string) => path.join(tmpDir, rel) };
+    }
+    /** The rewritten texts per file of a rename at `needle` + `delta` in the open document. */
+    async function renameAt(p: ReturnType<typeof project>, needle: string, delta: number, newName: string, ks?: KeySpaceService) {
+        const text = p.doc.getText();
+        const position = p.doc.positionAt(text.indexOf(needle) + delta);
+        const prepared = await handlePrepareRename({ textDocument: { uri: p.doc.uri }, position }, p.docs, ks, [tmpDir]);
+        const edit = await handleRename({ textDocument: { uri: p.doc.uri }, position, newName }, p.docs, [tmpDir], ks);
+        const byFile: Record<string, string[]> = {};
+        for (const [uri, edits] of Object.entries(edit?.changes ?? {})) {
+            byFile[path.basename(URI.parse(uri).fsPath)] = edits.map(e => e.newText).sort();
+        }
+        return { prepared: prepared && text.slice(p.doc.offsetAt(prepared.start), p.doc.offsetAt(prepared.end)), byFile };
+    }
+    const keySpace = (p: ReturnType<typeof project>, defs: Record<string, Partial<KeyDefinition>>) => mockKeySpaceService((key) =>
+        defs[key] ? { keyName: key, sourceMap: p.file('root.ditamap'), sourceLine: 1, ...defs[key] } as KeyDefinition : null);
+
+    test('F2 on a keyref renames the key at its definition and every usage, element parts kept', async () => {
+        const p = project({
+            'root.ditamap': '<map><keydef keys="mykey" href="target.dita"/><topicref keyref="mykey"/></map>',
+            'target.dita': '<topic id="t1"><title>T</title><body><section id="s1"/></body></topic>',
+            'topic.dita': '<topic id="r1"><title><ph keyref="mykey"/></title><body><xref keyref="mykey/s1"/><p conkeyref="mykey/s1"/></body></topic>',
+        }, 'topic.dita');
+        const ks = keySpace(p, { mykey: { targetFile: p.file('target.dita') } });
+        const result = await renameAt(p, 'keyref="mykey"', 9, 'newkey', ks);
+        assert.strictEqual(result.prepared, 'mykey', 'the rename box shows the key');
+        assert.deepStrictEqual(result.byFile['root.ditamap'], ['newkey', 'newkey'], 'the definition and the map\'s own usage');
+        assert.deepStrictEqual(result.byFile['topic.dita'], ['newkey', 'newkey/s1', 'newkey/s1']);
+    });
+
+    test('F2 on the element part of an href renames that element\'s id and its references', async () => {
+        const p = project({
+            'target.dita': '<topic id="t1"><title>T</title><body><section id="s1"/><p id="s2"/></body></topic>',
+            'topic.dita': '<topic id="r1"><title>R</title><body><xref href="target.dita#t1/s1"/><xref href="target.dita#t1/s2"/></body></topic>',
+        }, 'topic.dita');
+        const result = await renameAt(p, '#t1/s1', 4, 's1new');
+        assert.strictEqual(result.prepared, 's1');
+        assert.deepStrictEqual(result.byFile['target.dita'], ['s1new']);
+        assert.deepStrictEqual(result.byFile['topic.dita'], ['target.dita#t1/s1new']);
+    });
+
+    test('F2 on the topic part of an href renames the topic id, and #topic/element references with it', async () => {
+        const p = project({
+            'target.dita': '<topic id="t1"><title>T</title><body><section id="s1"/><xref href="#t1/s1"/></body></topic>',
+            'topic.dita': '<topic id="r1"><title>R</title><body><xref href="target.dita#t1/s1"/><xref href="target.dita#t1"/><xref href="other.dita#t1"/></body></topic>',
+        }, 'topic.dita');
+        const result = await renameAt(p, '#t1/s1', 1, 't1new');
+        assert.strictEqual(result.prepared, 't1');
+        assert.deepStrictEqual(result.byFile['target.dita'], ['#t1new/s1', 't1new']);
+        assert.deepStrictEqual(result.byFile['topic.dita'], ['target.dita#t1new', 'target.dita#t1new/s1'], 'not other.dita#t1');
+    });
+
+    test('F2 on the element part of keyref="key/element" renames the element id through the key (regression: keyref was never matched)', async () => {
+        const p = project({
+            'root.ditamap': '<map><keydef keys="mykey" href="target.dita"/></map>',
+            'target.dita': '<topic id="t1"><title>T</title><body><section id="s1"/></body></topic>',
+            'topic.dita': '<topic id="r1"><title>R</title><body><xref keyref="mykey/s1"/><xref keyref="otherkey/s1"/></body></topic>',
+        }, 'topic.dita');
+        const ks = keySpace(p, { mykey: { targetFile: p.file('target.dita') }, otherkey: { targetFile: p.file('elsewhere.dita') } });
+        const result = await renameAt(p, 'mykey/s1', 6, 's1new', ks);
+        assert.strictEqual(result.prepared, 's1');
+        assert.deepStrictEqual(result.byFile['target.dita'], ['s1new']);
+        assert.deepStrictEqual(result.byFile['topic.dita'], ['mykey/s1new'], 'otherkey/s1 points elsewhere');
+    });
+
+    test('a usage whose definition cannot be found says why; a file path or #./ is not renamable', async () => {
+        const p = project({
+            'target.dita': '<topic id="t1"><title>T</title><body/></topic>',
+            'topic.dita': '<topic id="r1"><title>R</title><body><ph keyref="nokey"/><xref href="target.dita#t1/missing"/><xref href="#./x"/></body></topic>',
+        }, 'topic.dita');
+        const ks = keySpace(p, {});
+        const prepare = (needle: string, delta: number) => handlePrepareRename(
+            { textDocument: { uri: p.doc.uri }, position: p.doc.positionAt(p.doc.getText().indexOf(needle) + delta) }, p.docs, ks, [tmpDir]);
+        await assert.rejects(prepare('nokey', 1), /Key "nokey" is not defined/);
+        await assert.rejects(prepare('missing', 1), /No element with id "missing" in target\.dita/);
+        assert.strictEqual(await prepare('target.dita#t1/missing', 2), null, 'the file path');
+        assert.strictEqual(await prepare('#./x', 1), null, 'this topic');
+        assert.strictEqual(await handleRename({ textDocument: { uri: p.doc.uri }, position: p.doc.positionAt(p.doc.getText().indexOf('nokey') + 1), newName: 'k' }, p.docs, [tmpDir], ks), null);
     });
 });

@@ -94,12 +94,12 @@ fun runDitaOt(ditaHome: File, projectDir: File, vararg args: String) {
 }
 
 // ---------------------------------------------------------------------------
-// Step 3 — Generate PDF from the DitaCraft User Guide
+// Step 3 — Generate PDF from the DITA Craft User Guide
 // ---------------------------------------------------------------------------
 val pdf by tasks.registering {
     dependsOn(integrateDitaOt)
     group = "Documentation"
-    description = "Generate PDF from DitaCraft User Guide"
+    description = "Generate PDF from DITA Craft User Guide"
 
     doLast {
         runDitaOt(
@@ -125,7 +125,7 @@ val pdf by tasks.registering {
 val html by tasks.registering {
     dependsOn(integrateDitaOt)
     group = "Documentation"
-    description = "Generate HTML5 from DitaCraft User Guide"
+    description = "Generate HTML5 from DITA Craft User Guide"
 
     doLast {
         runDitaOt(

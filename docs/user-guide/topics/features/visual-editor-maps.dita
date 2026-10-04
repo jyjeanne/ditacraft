@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor-maps">
+    <title>Maps and Bookmaps in the Visual Editor</title>
+    <shortdesc>A map or a bookmap opens in the visual editor as its title and one row per reference,
+        each row showing the title of what it points to. Add references from a picker, change their
+        targets and labels, and rearrange them by dragging or with Tab.</shortdesc>
+
+    <conbody>
+        <section id="rows">
+            <title>One Row per Reference</title>
+            <p>Open a <filepath>.ditamap</filepath> or <filepath>.bookmap</filepath> file with
+                    <uicontrol>DITA: Open in Visual Editor</uicontrol>, as you open a topic. The page
+                shows the map's title, then one row for each reference — <xmlelement>topicref</xmlelement>
+                and every element specialized from it, such as <xmlelement>chapter</xmlelement>,
+                    <xmlelement>part</xmlelement>, <xmlelement>appendix</xmlelement>,
+                    <xmlelement>keydef</xmlelement>, <xmlelement>topichead</xmlelement>,
+                    <xmlelement>topicgroup</xmlelement> and <xmlelement>mapref</xmlelement> — with
+                the rows a reference holds indented under it.</p>
+            <dl>
+                <dlentry>
+                    <dt>Label</dt>
+                    <dd>The <xmlelement>navtitle</xmlelement> of the reference's
+                            <xmlelement>topicmeta</xmlelement>, else its <xmlatt>navtitle</xmlatt>,
+                        else the title of the topic or map it points to — read from that file, or
+                        through the key for <xmlatt>keyref</xmlatt>, and kept up to date when the
+                        file changes, saved or not — else the text of a key, else the target as
+                        written.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Kind</dt>
+                    <dd>The element's name in a small label (none for a plain
+                            <xmlelement>topicref</xmlelement>).</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Keys</dt>
+                    <dd>The keys the reference defines (<xmlatt>keys</xmlatt>).</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Target</dt>
+                    <dd>The <xmlatt>href</xmlatt> or <xmlatt>keyref</xmlatt> as written, on the
+                        right.</dd>
+                </dlentry>
+            </dl>
+            <fig id="fig-map">
+                <title>A map in the visual editor, its XML beside</title>
+                <image href="../../images/visual-editor-map.png" placement="break" align="center" width="6.5in">
+                    <alt>On the left, the Sync Client User Guide map in the visual editor: four key
+                        definitions with their keys, two topic heads holding the topics' titles, and a
+                        shared topic; the row Creating a sync profile is selected. On the right, the
+                        map's XML, the cursor on the same reference.</alt>
+                </image>
+            </fig>
+            <p>A target that cannot be read — a missing file, a key that is not defined — is marked,
+                with the reason in its tooltip. A web address or another format, such as a PDF, is
+                shown as written. A reference's <xmlelement>topicmeta</xmlelement> and a book's
+                    <xmlelement>bookmeta</xmlelement> are hidden; <uicontrol>Show markup</uicontrol>
+                shows them under their rows, where you can edit them. Relationship tables are shown as
+                tables.</p>
+        </section>
+
+        <section id="working">
+            <title>Working with Rows</title>
+            <ul>
+                <li><b>Select</b> — click a row. The <xref keyref="properties-view"/> shows its
+                    attributes: set <xmlatt>href</xmlatt>, <xmlatt>navtitle</xmlatt>,
+                        <xmlatt>keys</xmlatt>, <xmlatt>toc</xmlatt> or
+                        <xmlatt>processing-role</xmlatt> there.</li>
+                <li><b>Open the target</b> — double-click the row, <uicontrol>Ctrl+click</uicontrol>
+                    it, press <uicontrol>Enter</uicontrol>, or choose <uicontrol>Open
+                        target</uicontrol> in the right-click menu. The topic opens beside the map, at
+                    its element; a file of another format opens in VS Code's editor for it.</li>
+                <li><b>Fold</b> — click the arrow before a row to hide or show the rows under it;
+                        <uicontrol>Expand all</uicontrol> and <uicontrol>Collapse all</uicontrol> are on
+                    the toolbar. Folding changes the page only, never the map.</li>
+                <li><b>Keyboard</b> — with a row selected, <uicontrol>Up</uicontrol> and
+                        <uicontrol>Down</uicontrol> go to the previous and next row shown,
+                        <uicontrol>Left</uicontrol> folds the row (or goes to the row above it),
+                        <uicontrol>Right</uicontrol> unfolds it (or goes to its first row). Typing does
+                    nothing on a row.</li>
+                <li><b>Problems</b> — a problem on a reference marks its row; its quick fixes work as in
+                    a topic (see <xref keyref="visual-editor-problems"/>).</li>
+            </ul>
+        </section>
+
+        <section id="editing">
+            <title>Editing the Map</title>
+            <dl>
+                <dlentry>
+                    <dt>Add a reference</dt>
+                    <dd><uicontrol>Add reference…</uicontrol> (<uicontrol>+ Reference</uicontrol> on the
+                        toolbar, or the right-click menu) opens a picker with the keys of the root map,
+                        the topics and maps of the workspace, and web addresses. The reference to the
+                        one you choose goes after the selected row: a
+                            <xmlelement>topicref</xmlelement>, or a reference of the same kind as the
+                        selected row where the DTD requires it (a <xmlelement>chapter</xmlelement> after a
+                        chapter in a bookmap). The new row is selected and shows its target's
+                        title.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Change a row's target</dt>
+                    <dd><uicontrol>Change target…</uicontrol> (<uicontrol>Ctrl+K</uicontrol>, or the
+                        right-click menu) points the selected row at another topic, map or key with the
+                        same picker; its other attributes stay.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Edit a label</dt>
+                    <dd><uicontrol>Edit label</uicontrol> (<uicontrol>F2</uicontrol>, or the right-click
+                        menu) edits the label on the row; <uicontrol>Enter</uicontrol> writes it,
+                            <uicontrol>Escape</uicontrol> cancels. It becomes the row's navigation title
+                        (its <xmlelement>navtitle</xmlelement>, or its <xmlatt>navtitle</xmlatt> if it has
+                        one), and a reference to a topic gets <xmlatt>locktitle</xmlatt> set to
+                            <codeph>yes</codeph> so that the published navigation shows it. An empty
+                        label removes the navigation title: the row shows the topic's title
+                        again.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Nest and move rows</dt>
+                    <dd><uicontrol>Tab</uicontrol> puts the selected row into the row before it;
+                            <uicontrol>Shift+Tab</uicontrol> takes it out, after the row that held it.
+                        Or drag a row by its line: a line shows where it goes — before or after
+                        another row, or into it — wherever the DTD allows it; <uicontrol>Escape</uicontrol>
+                        cancels. A row moves with everything it holds.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Insert, move, delete</dt>
+                    <dd><uicontrol>Insert</uicontrol> (toolbar or right-click menu) adds, after the
+                        selected row, any element the DTD allows there; <uicontrol>Move up</uicontrol>,
+                            <uicontrol>Move down</uicontrol> and <uicontrol>Delete</uicontrol> in the
+                        right-click menu work on the row.</dd>
+                </dlentry>
+            </dl>
+            <p>As for topics, every change reaches the file as a small text edit: a moved row is written
+                in its new place with its indentation adjusted, and the rest of the map stays exactly as
+                it was. <uicontrol>Ctrl+Z</uicontrol> undoes each change.</p>
+        </section>
+
+        <section id="context">
+            <title>A Topic in Its Map</title>
+            <p>The visual editor and the visual preview show a topic in a place of a map: the first map
+                found that references it, or the place you choose. The status line shows it — the map's
+                title and the navigation above the topic — and a click on it, or <uicontrol>DITA: Choose
+                    Map Context</uicontrol>, lets you choose another place, or no map.</p>
+            <ul>
+                <li>The topic's keys are those of that map, in the key scope of the reference: a topic
+                    used for two products shows each product's values.</li>
+                <li>Generated text, such as note labels, follows the topic's language, else the language
+                    the map gives it; and when the active DITAVAL filter excludes the topic in that map,
+                    the preview says so.</li>
+                <li>Opening a topic from a row of a map (<uicontrol>Open target</uicontrol>) shows it in
+                    that row's place.</li>
+            </ul>
+        </section>
+
+        <section id="reltables">
+            <title>Relationship Tables</title>
+            <p>A relationship table (<xmlelement>reltable</xmlelement>) is shown as a table: each column
+                header shows the type of topics the column relates (its <xmlatt>type</xmlatt>, set in the
+                Properties view with the header selected), and each cell holds references, shown as
+                rows. An empty cell says so.</p>
+            <ul>
+                <li><b>Add a table</b> — <uicontrol>Insert relationship table</uicontrol> (the
+                        <uicontrol>Relationships</uicontrol> menu of the toolbar) adds a table of three
+                    columns and one row, after the selected row where the DTD allows it, else at the end
+                    of the map.</li>
+                <li><b>Select a cell</b> — click its empty space. With a cell selected, the arrow keys go
+                    to the cell above, below, left or right, <uicontrol>Tab</uicontrol> to the next cell
+                    (past the last one, it adds a row), and <uicontrol>Enter</uicontrol> adds a reference
+                    into the cell from the picker. You can also drag a reference into a cell.</li>
+                <li><b>Rows and columns</b> — <uicontrol>Relationship table</uicontrol> in the right-click
+                    menu inserts rows above or below, moves and deletes them, and inserts or deletes
+                    columns. The table stays a grid: a new row has a cell for every column, and a column
+                    is added or deleted with its header and its cell in every row.</li>
+            </ul>
+            <fig id="fig-reltable">
+                <title>A relationship table, its commands in the right-click menu</title>
+                <image href="../../images/visual-editor-reltable.png" placement="break" align="center" width="6.5in">
+                    <alt>A relationship table with a task column and a reference column. The cell holding
+                        Sync options is selected; its right-click menu shows Add reference and the
+                        Relationship table submenu with the row and column commands.</alt>
+                </image>
+            </fig>
+        </section>
+    </conbody>
+</concept>

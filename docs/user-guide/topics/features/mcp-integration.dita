@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="mcp-integration">
     <title>MCP Server Integration</title>
-    <shortdesc>DitaCraft exposes its DITA intelligence — validation, key space resolution, context
+    <shortdesc>DITA Craft exposes its DITA intelligence — validation, key space resolution, context
         snapshots, and map analysis — to external AI agents via the Model Context Protocol
         (MCP).</shortdesc>
 
@@ -57,7 +57,7 @@
 
         <section id="building">
             <title>Building the MCP Server</title>
-            <p>Run the standalone build command from the DitaCraft project root:</p>
+            <p>Run the standalone build command from the DITA Craft project root:</p>
             <codeblock>npm run build-standalone
 # → dist/mcp-server.js  (3.2 MB)
 # → dist/lsp-server.js  (2.0 MB)</codeblock>
@@ -67,7 +67,7 @@
 
         <section id="opencode">
             <title>Using with opencode</title>
-            <p>Add the DitaCraft MCP server to your opencode configuration:</p>
+            <p>Add the DITA Craft MCP server to your opencode configuration:</p>
             <codeblock>// ~/.config/opencode/opencode.json
 {
   "mcpServers": {
@@ -105,7 +105,7 @@
 
         <section id="standalone-lsp">
             <title>Standalone LSP Server</title>
-            <p>DitaCraft also ships a standalone LSP server bundle for embedding in other Node.js
+            <p>DITA Craft also ships a standalone LSP server bundle for embedding in other Node.js
                 projects:</p>
             <codeblock>node dist/lsp-server.js --stdio</codeblock>
             <p>Set the <codeph>DITACRAFT_EXTENSION_ROOT</codeph> environment variable to point to

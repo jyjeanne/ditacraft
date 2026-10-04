@@ -3,7 +3,7 @@
 <glossentry id="gloss-xmllint">
     <glossterm>xmllint</glossterm>
     <glossdef>
-        <p>A command-line XML validation tool from the libxml2 library. DitaCraft can use xmllint as an external validation engine. Provides excellent performance and accuracy but requires separate installation on your system.</p>
+        <p>A command-line XML validation tool from the libxml2 library. DITA Craft can use xmllint as an external validation engine. Provides excellent performance and accuracy but requires separate installation on your system.</p>
     </glossdef>
     <related-links>
         <link href="../settings/validation-settings.dita"/>

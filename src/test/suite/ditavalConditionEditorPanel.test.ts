@@ -128,6 +128,28 @@ suite('DITAVAL Condition Editor Panel Test Suite', () => {
             const second = DitavalConditionEditorPanel.createOrShow(ditavalPath);
             assert.strictEqual(first, second, 'createOrShow should reuse the singleton panel, not create a second one');
         });
+
+        test('Chips are keyboard-reachable buttons that say their state and next action (regression: plain spans, mouse only)', async function() {
+            this.timeout(10000);
+            const ditavalPath = path.join(fixturesPath, 'sample.ditaval');
+            const panel = DitavalConditionEditorPanel.createOrShow(ditavalPath);
+            const html = (): string => (panel as unknown as { _panel: vscode.WebviewPanel })._panel.webview.html;
+            for (let i = 0; i < 50 && !html().includes('class="chip"'); i++) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            const page = html();
+            assert.ok(!/<span class="chip"/.test(page), 'no span chips');
+            assert.ok(
+                page.includes('<button type="button" class="chip" data-attr="audience" data-val="internal" data-next-action="include" data-action="exclude"'),
+                'the audience=internal chip is a button'
+            );
+            assert.ok(page.includes('aria-label="audience = internal: exclude. Press to set include."'), 'it says its state and what pressing it does');
+            assert.ok(page.includes('aria-label="platform = windows: include. Press to set flag."'));
+            assert.ok(/role="group" aria-labelledby="group-0"/.test(page), 'each attribute is a labelled group');
+            assert.ok(page.includes('role="status" aria-live="polite"'), 'changes are announced');
+            assert.ok(page.includes('aria-label="Value"') && page.includes('aria-label="Attribute"'), 'the add form\'s fields are labelled');
+            assert.ok(/addEventListener\('keydown'[\s\S]*?event\.key === 'Enter'/.test(page), 'Enter in the add form adds the condition');
+        });
     });
 
     suite('Panel Disposal', () => {

@@ -2,5 +2,5 @@
 <!DOCTYPE glossentry PUBLIC "-//OASIS//DTD DITA Glossary Entry//EN" "glossentry.dtd">
 <glossentry id="gloss-root-map">
     <glossterm>Root Map</glossterm>
-    <glossdef>The top-level DITA map that defines the scope for key resolution, cross-reference validation, and subject scheme discovery. DitaCraft can auto-discover root maps or you can set one explicitly via the <codeph>DITA: Set Root Map</codeph> command. The root map determines which keys are available and which profiling constraints apply.</glossdef>
+    <glossdef>The top-level DITA map that defines the scope for key resolution, cross-reference validation, and subject scheme discovery. DITA Craft can auto-discover root maps or you can set one explicitly via the <codeph>DITA: Set Root Map</codeph> command. The root map determines which keys are available and which profiling constraints apply.</glossdef>
 </glossentry>

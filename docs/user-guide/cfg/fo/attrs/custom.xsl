@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  DitaCraft User Guide — PDF readability customization.
+  DITA Craft User Guide — PDF readability customization.
   Overrides DITA-OT default attribute sets for improved typography,
   spacing, and visual hierarchy.
 -->
@@ -35,7 +35,7 @@
 
   <!-- Root font: use sans-serif for modern, clean look -->
   <xsl:attribute-set name="__fo__root">
-    <xsl:attribute name="font-family">Helvetica, Arial, sans-serif</xsl:attribute>
+    <xsl:attribute name="font-family">Sans</xsl:attribute>
     <xsl:attribute name="font-size"><xsl:value-of select="$default-font-size"/></xsl:attribute>
     <xsl:attribute name="xml:lang" select="translate($locale, '_', '-')"/>
     <xsl:attribute name="writing-mode" select="$writing-mode"/>
@@ -47,7 +47,7 @@
 
   <!-- Common title: sans-serif, primary blue -->
   <xsl:attribute-set name="common.title">
-    <xsl:attribute name="font-family">Helvetica, Arial, sans-serif</xsl:attribute>
+    <xsl:attribute name="font-family">Sans</xsl:attribute>
     <xsl:attribute name="color">#1e3a5f</xsl:attribute>
   </xsl:attribute-set>
 
@@ -123,7 +123,7 @@
 
   <!-- Inline code -->
   <xsl:attribute-set name="codeph">
-    <xsl:attribute name="font-family">Courier, monospace</xsl:attribute>
+    <xsl:attribute name="font-family">Monospaced</xsl:attribute>
     <xsl:attribute name="font-size">0.9em</xsl:attribute>
     <xsl:attribute name="background-color">#f1f5f9</xsl:attribute>
     <xsl:attribute name="padding-start">2pt</xsl:attribute>
@@ -133,7 +133,7 @@
 
   <!-- Code blocks: dark background, generous padding -->
   <xsl:attribute-set name="codeblock" use-attribute-sets="common.block">
-    <xsl:attribute name="font-family">Courier, monospace</xsl:attribute>
+    <xsl:attribute name="font-family">Monospaced</xsl:attribute>
     <xsl:attribute name="font-size">9pt</xsl:attribute>
     <xsl:attribute name="line-height">13pt</xsl:attribute>
     <xsl:attribute name="background-color">#1e293b</xsl:attribute>
@@ -158,7 +158,7 @@
 
   <!-- Pre: same treatment as codeblock but lighter background -->
   <xsl:attribute-set name="pre" use-attribute-sets="common.block">
-    <xsl:attribute name="font-family">Courier, monospace</xsl:attribute>
+    <xsl:attribute name="font-family">Monospaced</xsl:attribute>
     <xsl:attribute name="font-size">9pt</xsl:attribute>
     <xsl:attribute name="line-height">13pt</xsl:attribute>
     <xsl:attribute name="background-color">#f1f5f9</xsl:attribute>
@@ -317,34 +317,12 @@
   </xsl:attribute-set>
 
   <!-- ============================================================= -->
-  <!--  PAGE NUMBERS                                                 -->
-  <!-- ============================================================= -->
-
-  <!-- Body footer (odd pages): centered page number -->
-  <xsl:attribute-set name="__body__odd__footer">
-    <xsl:attribute name="text-align">center</xsl:attribute>
-    <xsl:attribute name="font-size">9pt</xsl:attribute>
-    <xsl:attribute name="font-family">Helvetica, Arial, sans-serif</xsl:attribute>
-    <xsl:attribute name="color">#64748b</xsl:attribute>
-    <xsl:attribute name="space-before">8pt</xsl:attribute>
-  </xsl:attribute-set>
-
-  <!-- Body footer (even pages): centered page number -->
-  <xsl:attribute-set name="__body__even__footer">
-    <xsl:attribute name="text-align">center</xsl:attribute>
-    <xsl:attribute name="font-size">9pt</xsl:attribute>
-    <xsl:attribute name="font-family">Helvetica, Arial, sans-serif</xsl:attribute>
-    <xsl:attribute name="color">#64748b</xsl:attribute>
-    <xsl:attribute name="space-before">8pt</xsl:attribute>
-  </xsl:attribute-set>
-
-  <!-- ============================================================= -->
   <!--  FILEPATH, UI, KEYWORD highlights                             -->
   <!-- ============================================================= -->
 
   <!-- File paths -->
   <xsl:attribute-set name="filepath">
-    <xsl:attribute name="font-family">Courier, monospace</xsl:attribute>
+    <xsl:attribute name="font-family">Monospaced</xsl:attribute>
     <xsl:attribute name="font-size">0.9em</xsl:attribute>
     <xsl:attribute name="background-color">#f1f5f9</xsl:attribute>
     <xsl:attribute name="color">#7c3aed</xsl:attribute>

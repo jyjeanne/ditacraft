@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* The user guide's cover image: 595 × 842 CSS px — A4's proportions, the guide's page size —
+     captured at 2x by render.js. The PDF's first page shows it edge to edge and prints the version
+     and date (from the bookmap) in the empty band above the footer (cfg/fo/xsl/custom.xsl,
+     createFrontCoverContents: keep the two in step). Background = the PNG logo's own #070B16. The
+     logo is the traced SVG (transparent); with the PNG, mix-blend-mode: lighten lets the glow show
+     through its dark square. */
+  html, body { margin: 0; width: 595px; height: 842px; overflow: hidden; }
+  body {
+    position: relative;
+    font-family: 'Segoe UI', 'Segoe UI Variable Text', Arial, sans-serif;
+    color: #E9EDF5;
+    background:
+      radial-gradient(circle at 50% 44%, rgba(240, 96, 32, 0.30) 0, rgba(224, 64, 0, 0.12) 140px, rgba(7, 11, 22, 0) 280px),
+      radial-gradient(circle at 50% 0%, rgba(255, 150, 60, 0.10) 0, rgba(7, 11, 22, 0) 340px),
+      linear-gradient(180deg, #070B16 0%, #0A1020 55%, #070B16 100%);
+  }
+  /* faint dot grid */
+  body::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.8));
+  }
+  /* thin accent bars (the page's top and bottom edges in the PDF) */
+  .bar { position: absolute; left: 0; right: 0; height: 4px;
+         background: linear-gradient(90deg, #D7192B, #F0541E 40%, #FFB23F); }
+  .bar.top { top: 0; } .bar.bottom { bottom: 0; }
+
+  .label { position: absolute; top: 62px; width: 100%; text-align: center;
+           font-size: 13px; font-weight: 600; letter-spacing: 6px; color: #F0904A; }
+  .wordmark { position: absolute; top: 84px; width: 100%; text-align: center;
+              font-size: 70px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+  .wordmark .dita { color: #F4F6FB; }
+  .wordmark .craft { background: linear-gradient(100deg, #FFB23F 0%, #F0541E 55%, #D7192B 100%);
+                     -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tagline { position: absolute; top: 182px; left: 70px; right: 70px; text-align: center;
+             font-size: 19px; line-height: 1.45; color: #C5CEDF; }
+
+  .logo { position: absolute; top: 250px; left: 50%; width: 240px; height: 240px; margin-left: -120px;
+          mix-blend-mode: lighten; }
+
+  .card { position: absolute; top: 528px; left: 64px; right: 64px; border-radius: 12px;
+          background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.09);
+          box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); overflow: hidden; }
+  .card .head { display: flex; align-items: center; gap: 8px; padding: 9px 14px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+                font-size: 12px; color: #8E9AB2; letter-spacing: 0.3px; }
+  .card .head .dot { width: 8px; height: 8px; border-radius: 50%; background: #F0541E; opacity: 0.85; }
+  .card pre { margin: 0; padding: 12px 16px 14px; font-family: 'Cascadia Code', Consolas, monospace;
+              font-size: 13.5px; line-height: 1.6; color: #E7ECF5;
+              font-variant-ligatures: none; font-feature-settings: 'calt' 0, 'liga' 0; }
+  .t { color: #FF8A3D; } .a { color: #FFC680; } .s { color: #9CC8FF; } .x { color: #E7ECF5; }
+
+  /* 712–780 px: left empty — the PDF prints the version and date there */
+
+  .footer { position: absolute; bottom: 34px; width: 100%; text-align: center;
+            font-size: 14px; letter-spacing: 0.4px; color: #8E9AB2; }
+  .footer b { color: #C5CEDF; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="bar top"></div>
+  <div class="label">USER GUIDE</div>
+  <div class="wordmark"><span class="dita">DITA</span> <span class="craft">Craft</span></div>
+  <div class="tagline">The easiest way to edit and publish your DITA files</div>
+
+  <img class="logo" src="LOGO_URL" alt="">
+
+  <div class="card">
+    <div class="head"><span class="dot"></span>user-guide.ditamap</div>
+<pre><span class="t">&lt;map&gt;</span>
+  <span class="t">&lt;title&gt;</span><span class="x">Getting Started</span><span class="t">&lt;/title&gt;</span>
+  <span class="t">&lt;topicref</span> <span class="a">href</span>=<span class="s">"install.dita"</span> <span class="a">keys</span>=<span class="s">"install"</span><span class="t">/&gt;</span>
+  <span class="t">&lt;topicref</span> <span class="a">href</span>=<span class="s">"publish.dita"</span><span class="t">/&gt;</span>
+<span class="t">&lt;/map&gt;</span></pre>
+  </div>
+
+  <div class="footer"><b>Edit · Validate · Preview · Publish</b> — DITA in Visual Studio Code</div>
+  <div class="bar bottom"></div>
+</body>
+</html>

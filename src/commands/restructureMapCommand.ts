@@ -15,6 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { AIServiceOrchestrator } from '../llm/aiServiceOrchestrator';
+import { isAiEnabled, showAiDisabledMessage } from '../llm/aiEnabled';
 import { getErrorMessage } from '../utils/errorUtils';
 
 const PRESET_INTENTIONS = [
@@ -33,19 +34,24 @@ export async function restructureMapCommand(
     orchestrator: AIServiceOrchestrator,
     mapUri?: vscode.Uri
 ): Promise<void> {
+    if (!isAiEnabled()) {
+        await showAiDisabledMessage();
+        return;
+    }
+
     // Resolve the target map URI
     const resolvedUri = mapUri ?? vscode.window.activeTextEditor?.document.uri;
 
     if (!resolvedUri || !isDitaMap(resolvedUri)) {
         vscode.window.showWarningMessage(
-            'DitaCraft: Open or select a .ditamap file to restructure with AI.'
+            'DITA Craft: Open or select a .ditamap file to restructure with AI.'
         );
         return;
     }
 
     // ── Gather restructuring intention ────────────────────────────────────
     const intention = await vscode.window.showInputBox({
-        title: 'DitaCraft AI: Restructure DITA Map',
+        title: 'DITA Craft AI: Restructure DITA Map',
         prompt: 'Describe how you want to reorganize this map (AI will generate a restructured proposal):',
         placeHolder: PRESET_INTENTIONS[0],
         validateInput: v => (v.trim() ? null : 'Please enter a restructuring intention.'),
@@ -59,7 +65,7 @@ export async function restructureMapCommand(
     await vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
-            title: 'DitaCraft AI: Restructuring DITA Map',
+            title: 'DITA Craft AI: Restructuring DITA Map',
             cancellable: true,
         },
         async (progress, token) => {
@@ -82,7 +88,7 @@ export async function restructureMapCommand(
 
                 if (!result.success || !result.xmlContent) {
                     vscode.window.showErrorMessage(
-                        `DitaCraft AI: Restructuring failed — ${result.error ?? 'unknown error'}`
+                        `DITA Craft AI: Restructuring failed — ${result.error ?? 'unknown error'}`
                     );
                     return;
                 }
@@ -91,7 +97,7 @@ export async function restructureMapCommand(
                 await showDiffAndApply(resolvedUri, result.xmlContent, result.model, token);
             } catch (error: unknown) {
                 vscode.window.showErrorMessage(
-                    `DitaCraft AI: ${getErrorMessage(error)}`
+                    `DITA Craft AI: ${getErrorMessage(error)}`
                 );
             }
         }
@@ -129,7 +135,7 @@ async function showDiffAndApply(
         // Use modal dialog so the user must respond before temp file is touched.
         // This also prevents them from interacting with the diff while the notification floats.
         const choice = await vscode.window.showInformationMessage(
-            `DitaCraft AI generated a restructured map. Apply the changes?`,
+            `DITA Craft AI generated a restructured map. Apply the changes?`,
             { modal: true },
             'Apply',
             'Discard'
@@ -145,7 +151,7 @@ async function showDiffAndApply(
             edit.replace(originalUri, fullRange, proposedXml);
             await vscode.workspace.applyEdit(edit);
             await vscode.workspace.save(originalUri);
-            vscode.window.showInformationMessage('DitaCraft AI: Map restructuring applied.');
+            vscode.window.showInformationMessage('DITA Craft AI: Map restructuring applied.');
         }
     } finally {
         // Cleanup temp file

@@ -8,11 +8,13 @@
  * see `findReplaceCommand.ts`) before applying it; this handler only
  * *computes* the edit.
  *
- * "DITA-aware" here means comment/CDATA-aware: matches inside `<!-- -->`
- * or `<![CDATA[ ]]>` are ignored, using the same `stripCommentsAndCDATA`
- * blanking approach `textUtils.ts` already provides for ID/content
- * validation — blanking preserves line/character structure, so offsets
- * found in the stripped text apply unchanged to the original.
+ * "DITA-aware" here means markup-aware (`searchableSpans`): only text
+ * content is searched — and, with `includeAttributeValues`, the inside of
+ * attribute values. Tag names, attribute names, comments, CDATA sections,
+ * processing instructions and the DOCTYPE are never matched, a match never
+ * spans markup (each text run is searched on its own), and a match never
+ * cuts an entity or character reference in two. Offsets stay those of the
+ * original text.
  */
 
 import * as fs from 'fs/promises';
@@ -20,7 +22,7 @@ import { TextDocuments, TextEdit, WorkspaceEdit } from 'vscode-languageserver/no
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { collectDitaFilesAsync } from '../utils/workspaceScanner';
-import { stripCommentsAndCDATA, offsetToRange, escapeRegex, uriToPath } from '../utils/textUtils';
+import { offsetToRange, escapeRegex, uriToPath } from '../utils/textUtils';
 import { mapWithConcurrency, MAX_CONCURRENT_READS } from './workspaceValidation';
 import { isDitaFilePath } from './moveTopic';
 
@@ -30,6 +32,8 @@ export interface FindReplaceParams {
     useRegex: boolean;
     caseSensitive: boolean;
     wholeWord: boolean;
+    /** Also search inside attribute values (ids, hrefs, keyrefs, navtitle…); text content only otherwise. */
+    includeAttributeValues?: boolean;
     /** When set, restrict the search to this one file instead of the whole workspace. */
     scopeUri?: string;
 }
@@ -97,6 +101,97 @@ export function expandReplacement(replacement: string, match: RegExpExecArray): 
     });
 }
 
+/**
+ * The `[start, end)` spans of `content` that find & replace may change: the
+ * text between tags and, with `includeAttributeValues`, the inside of each
+ * attribute value (between its quotes). Comments, CDATA sections,
+ * processing instructions, `<!DOCTYPE …>` (internal subset included), tag
+ * and attribute names are left out. Exported for testing.
+ */
+export function searchableSpans(content: string, includeAttributeValues: boolean): Array<[number, number]> {
+    const spans: Array<[number, number]> = [];
+    const length = content.length;
+    const skipTo = (from: number, terminator: string): number => {
+        const end = content.indexOf(terminator, from);
+        return end < 0 ? length : end + terminator.length;
+    };
+    let textStart = 0;
+    let i = 0;
+    while (i < length) {
+        if (content[i] !== '<') {
+            i++;
+            continue;
+        }
+        if (i > textStart) {
+            spans.push([textStart, i]);
+        }
+        if (content.startsWith('<!--', i)) {
+            i = skipTo(i + 4, '-->');
+        } else if (content.startsWith('<![CDATA[', i)) {
+            i = skipTo(i + 9, ']]>');
+        } else if (content.startsWith('<?', i)) {
+            i = skipTo(i + 2, '?>');
+        } else if (content.startsWith('<!', i)) {
+            // <!DOCTYPE …> and its internal subset: up to the first '>' outside [ ] and quotes.
+            let j = i + 2;
+            let depth = 0;
+            let quote = '';
+            for (; j < length; j++) {
+                const c = content[j];
+                if (quote) {
+                    if (c === quote) quote = '';
+                } else if (c === '"' || c === '\'') {
+                    quote = c;
+                } else if (c === '[') {
+                    depth++;
+                } else if (c === ']') {
+                    depth--;
+                } else if (c === '>' && depth <= 0) {
+                    break;
+                }
+            }
+            i = Math.min(j + 1, length);
+        } else {
+            // A start or end tag: quotes only ever open attribute values.
+            let j = i + 1;
+            for (; j < length && content[j] !== '>'; j++) {
+                const c = content[j];
+                if (c === '"' || c === '\'') {
+                    const close = content.indexOf(c, j + 1);
+                    const end = close < 0 ? length : close;
+                    if (includeAttributeValues && end > j + 1) {
+                        spans.push([j + 1, end]);
+                    }
+                    j = end;
+                }
+            }
+            i = Math.min(j + 1, length);
+        }
+        textStart = i;
+    }
+    if (length > textStart) {
+        spans.push([textStart, length]);
+    }
+    return spans;
+}
+
+const REFERENCE = /&(?:#\d+|#x[0-9a-fA-F]+|[A-Za-z_][\w.-]*);/g;
+
+/** Whether `[start, end)` cuts one of the entity or character references in `[spanStart, spanEnd)` in two. */
+function cutsReference(content: string, spanStart: number, spanEnd: number, start: number, end: number): boolean {
+    const text = content.slice(spanStart, spanEnd);
+    REFERENCE.lastIndex = 0;
+    let ref: RegExpExecArray | null;
+    while ((ref = REFERENCE.exec(text)) !== null) {
+        const refStart = spanStart + ref.index;
+        const refEnd = refStart + ref[0].length;
+        if ((start > refStart && start < refEnd) || (end > refStart && end < refEnd)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export async function handleComputeFindReplaceEdits(
     params: FindReplaceParams,
     documents: TextDocuments<TextDocument>,
@@ -153,21 +248,27 @@ export async function handleComputeFindReplaceEdits(
             }
         }
 
-        const searchableText = stripCommentsAndCDATA(content);
         const edits: TextEdit[] = [];
-        pattern.lastIndex = 0;
-
-        let match: RegExpExecArray | null;
-        while ((match = pattern.exec(searchableText)) !== null) {
-            edits.push({
-                range: offsetToRange(content, match.index, match.index + match[0].length),
-                newText: params.useRegex ? expandReplacement(params.replacement, match) : params.replacement
-            });
-            // A zero-length match (e.g. the regex `a*` against text with no
-            // "a") would otherwise leave lastIndex unchanged and loop
-            // forever on the same position.
-            if (match[0].length === 0) {
-                pattern.lastIndex++;
+        // Each text run (or attribute value) on its own: a match never spans markup.
+        for (const [spanStart, spanEnd] of searchableSpans(content, params.includeAttributeValues ?? false)) {
+            const text = content.slice(spanStart, spanEnd);
+            pattern.lastIndex = 0;
+            let match: RegExpExecArray | null;
+            while ((match = pattern.exec(text)) !== null) {
+                const start = spanStart + match.index;
+                const end = start + match[0].length;
+                if (!cutsReference(content, spanStart, spanEnd, start, end)) {
+                    edits.push({
+                        range: offsetToRange(content, start, end),
+                        newText: params.useRegex ? expandReplacement(params.replacement, match) : params.replacement
+                    });
+                }
+                // A zero-length match (e.g. the regex `a*` against text with no
+                // "a") would otherwise leave lastIndex unchanged and loop
+                // forever on the same position.
+                if (match[0].length === 0) {
+                    pattern.lastIndex++;
+                }
             }
         }
 

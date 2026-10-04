@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="visual-editor-basics">
+    <title>Working in the Visual Editor</title>
+    <shortdesc>Open a topic in the visual editor, find your way around the page, work side by side
+        with the XML, and know what reaches the file.</shortdesc>
+
+    <conbody>
+        <section id="opening">
+            <title>Opening the Visual Editor</title>
+            <ul>
+                <li>In the text editor of a topic or a map, click <uicontrol>Open in Visual
+                        Editor</uicontrol> in the editor title bar, or run <uicontrol>DITA: Open in
+                        Visual Editor</uicontrol>. Maps and bookmaps open as rows (see <xref
+                        keyref="visual-editor-maps"/>).</li>
+                <li>Right-click the editor tab and choose <uicontrol>Reopen Editor With…</uicontrol> →
+                        <uicontrol>DITA Visual Editor</uicontrol>, or use <uicontrol>Open
+                        With…</uicontrol> in the Explorer. To open topics in the visual editor by
+                    default, choose <uicontrol>Configure default editor for '*.dita'…</uicontrol> in
+                    that list.</li>
+                <li><uicontrol>DITA: Open Source</uicontrol> (or <uicontrol>Open Source</uicontrol> in
+                    the title bar) goes back to the text editor. The page's own
+                        <uicontrol>Open source</uicontrol> button opens the text beside the page.</li>
+            </ul>
+            <p>Switching keeps your place: the visual editor opens at the text cursor, and the text
+                editor at the page's cursor.</p>
+        </section>
+
+        <section id="page">
+            <title>The Page</title>
+            <dl>
+                <dlentry>
+                    <dt>Toolbar</dt>
+                    <dd>Undo and redo, the <uicontrol>Style</uicontrol> list, bold, italic, underline,
+                        code, superscript and subscript, bulleted and numbered lists, indent and
+                        outdent, <uicontrol>Insert</uicontrol>, <uicontrol>Table</uicontrol>, images and links; then <uicontrol>Show markup</uicontrol>,
+                            <uicontrol>Properties</uicontrol>, <uicontrol>Open source</uicontrol> and
+                            <uicontrol>Preview</uicontrol>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Status line</dt>
+                    <dd>The elements around the cursor (click one to select it), the problem at the
+                        cursor and the problem count, whether all changes are in the document, the
+                        grammar in use and the file name.</dd>
+                </dlentry>
+            </dl>
+        </section>
+
+        <section id="side-by-side">
+            <title>Side by Side with the Text Editor</title>
+            <p>With the text of the same topic open beside the page (the toolbar's
+                    <uicontrol>Open source</uicontrol>, or <uicontrol>View: Split Editor</uicontrol>),
+                each follows the other: move the cursor in one and the other's cursor moves to the
+                same character; scroll one and the other scrolls to the same element. The setting
+                    <codeph>ditacraft.previewScrollSync</codeph> turns it off.</p>
+            <fig id="fig-side-by-side">
+                <title>A task on the page and in its XML, cursors in step</title>
+                <image href="../../images/visual-editor.png" placement="break" align="center" width="6.5in">
+                    <alt>The visual editor on the left and the text editor on the right, showing the
+                        same task: the cursor is in the second step on the page and on the same
+                        line in the XML.</alt>
+                </image>
+            </fig>
+        </section>
+
+        <section id="lossless">
+            <title>How Changes Reach the File</title>
+            <p>Each change on the page becomes one small text edit of the document — the same as
+                typing in the text editor. The dirty marker, <uicontrol>Save</uicontrol>, auto-save,
+                undo in the text editor, Git diffs and validation all work as usual, and a Git diff
+                shows only what you changed.</p>
+            <ul>
+                <li>Typing in a paragraph wrapped over several lines changes only the characters you
+                    typed: its line breaks stay, and entity references such as
+                        <codeph>&amp;amp;</codeph> are kept as written.</li>
+                <li>Elements you do not change are written back byte for byte: comments, attribute
+                    order and quotes, indentation.</li>
+                <li>A structure that does not yet follow its DTD (a topic still without its title) is
+                    edited all the same; the problem is marked on the page.</li>
+                <li>While the XML is not well-formed (a tag half-typed in the text editor), the page
+                    shows the last good version with a banner, and editing waits.</li>
+                <li>A change made in the text editor while the page is open replaces the page's undo
+                    history; the text editor's undo still covers everything.</li>
+            </ul>
+        </section>
+
+        <section id="kept-as-written">
+            <title>What Is Kept as Written</title>
+            <p>Some content is shown on the page but edited in the source; it is kept byte for
+                byte:</p>
+            <ul>
+                <li>prolog metadata, index terms, <codeph>data</codeph>, draft comments, comments and
+                    processing instructions (shown with <uicontrol>Show markup</uicontrol>);</li>
+                <li>footnotes, related links, objects, MathML and SVG;</li>
+                <li>reused content, phrases whose text comes from a key and empty links, shown
+                    resolved (see <xref keyref="visual-editor-reuse"/>);</li>
+                <li>named entity references such as <codeph>&amp;product;</codeph>, shown with their
+                    value;</li>
+                <li>elements the document type does not declare.</li>
+            </ul>
+        </section>
+
+        <section id="themes">
+            <title>Themes and Styles</title>
+            <p>The page follows the preview settings: <codeph>ditacraft.previewTheme</codeph> (light,
+                dark, or following VS Code), <codeph>ditacraft.previewPageWidth</codeph>,
+                    <codeph>ditacraft.previewShowMarkup</codeph> and
+                    <codeph>ditacraft.previewCustomCss</codeph> — the page uses the DITA-OT HTML5 class
+                names, so a stylesheet written for your output styles it too.</p>
+            <fig id="fig-dark">
+                <title>The page in a dark theme</title>
+                <image href="../../images/visual-editor-dark.png" placement="break" align="center" width="6.5in">
+                    <alt>The visual editor with a dark page in a dark VS Code theme.</alt>
+                </image>
+            </fig>
+        </section>
+
+        <section id="limitations">
+            <title>Limitations</title>
+            <ul>
+                <li>Reused content, keys' texts and link titles are read only on the page: edit them
+                    where they come from, or make a local copy with <uicontrol>Replace with
+                        copy</uicontrol>.</li>
+            </ul>
+        </section>
+    </conbody>
+</concept>

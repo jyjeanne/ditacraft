@@ -17,7 +17,7 @@
                 <li><codeph>"C:/Documentation/Output"</codeph> - Uses absolute path</li>
             </ul>
             <p><b>Output Structure:</b></p>
-            <p>Within the output directory, DitaCraft creates subdirectories for each format:</p>
+            <p>Within the output directory, DITA Craft creates subdirectories for each format:</p>
             <codeblock>out/
 ├── html5/
 │   ├── index.html
@@ -30,7 +30,7 @@
 
         <section id="default-format">
             <title>Default Publishing Format</title>
-            <p>DitaCraft supports publishing to multiple formats via DITA-OT:</p>
+            <p>DITA Craft supports publishing to multiple formats via DITA-OT:</p>
             <simpletable>
                 <sthead>
                     <stentry>Format</stentry>
@@ -72,7 +72,7 @@
 
         <section id="build-parameters">
             <title>DITA-OT Build Parameters</title>
-            <p>DitaCraft passes the following parameters to DITA-OT during publishing:</p>
+            <p>DITA Craft passes the following parameters to DITA-OT during publishing:</p>
             <simpletable>
                 <sthead>
                     <stentry>Parameter</stentry>

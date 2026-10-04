@@ -42,17 +42,17 @@ interface InlineConrefResponse {
 export async function inlineConrefCommand(): Promise<void> {
     const client = getLanguageClient();
     if (!client) {
-        vscode.window.showWarningMessage('DitaCraft: Language server is not ready yet.');
+        vscode.window.showWarningMessage('DITA Craft: Language server is not ready yet.');
         return;
     }
 
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-        vscode.window.showWarningMessage('DitaCraft: No file is currently open.');
+        vscode.window.showWarningMessage('DITA Craft: No file is currently open.');
         return;
     }
     if (!isDitaContentUri(editor.document.uri)) {
-        vscode.window.showWarningMessage('DitaCraft: Inline Conref requires a DITA topic, map, or bookmap file.');
+        vscode.window.showWarningMessage('DITA Craft: Inline Conref requires a DITA topic, map, or bookmap file.');
         return;
     }
 
@@ -66,13 +66,13 @@ export async function inlineConrefCommand(): Promise<void> {
     } catch (error) {
         logger.error('Inline Conref request failed', error);
         vscode.window.showErrorMessage(
-            `DitaCraft: Inline Conref failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `DITA Craft: Inline Conref failed: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
         return;
     }
 
     if (!response.edit) {
-        vscode.window.showWarningMessage(`DitaCraft: ${response.reason ?? 'Could not inline this reference.'}`);
+        vscode.window.showWarningMessage(`DITA Craft: ${response.reason ?? 'Could not inline this reference.'}`);
         return;
     }
 
@@ -83,6 +83,6 @@ export async function inlineConrefCommand(): Promise<void> {
         logger.info('Inline Conref applied', { uri });
     } else {
         logger.warn('Inline Conref: edit was not applied', { uri });
-        vscode.window.showWarningMessage('DitaCraft: Could not apply the inline edit.');
+        vscode.window.showWarningMessage('DITA Craft: Could not apply the inline edit.');
     }
 }

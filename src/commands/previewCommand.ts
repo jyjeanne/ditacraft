@@ -12,7 +12,10 @@ import { DitaOtWrapper, toVsCodeProgressReporter } from '../utils/ditaOtWrapper'
 import { logger } from '../utils/logger';
 import { fireAndForget } from '../utils/errorUtils';
 import { DitaPreviewPanel } from '../providers/previewPanel';
+import { VisualPreviewPanel } from '../preview/visualPreviewPanel';
+import { configManager } from '../utils/configurationManager';
 import { promptForDitaval, resolveDitavalPath } from './publishProfilesCommand';
+import { movedPath, type PathMove } from '../utils/movedPaths';
 
 // Store extension context for creating preview panels
 let extensionContext: vscode.ExtensionContext | undefined;
@@ -47,6 +50,22 @@ const activeDitavalChangedEmitter = new vscode.EventEmitter<string | undefined>(
  */
 export const onDidChangeActiveDitaval = activeDitavalChangedEmitter.event;
 
+/**
+ * After files or folders moved: when the active preview filter's file moved
+ * (or was in a moved folder), the filter follows it — and the preview and
+ * condition highlighting with it. Returns whether it changed.
+ */
+export function followActiveDitavalMove(moves: readonly PathMove[]): boolean {
+    const moved = activeDitavalPath ? movedPath(activeDitavalPath, moves) : undefined;
+    if (!moved) {
+        return false;
+    }
+    activeDitavalPath = moved;
+    logger.info('Preview filter followed its file', { ditavalPath: activeDitavalPath });
+    activeDitavalChangedEmitter.fire(activeDitavalPath);
+    return true;
+}
+
 // Serializes every trigger that can call previewHTML5Command *outside* a
 // direct, one-off user invocation of the preview command itself — currently
 // the save-triggered auto-refresh (registerPreviewAutoRefresh in
@@ -73,7 +92,7 @@ export function requestPreviewRefresh(uri: vscode.Uri, preserveFocus: boolean): 
     }
 
     refreshInFlight = true;
-    return previewHTML5Command(uri, preserveFocus).finally(() => {
+    return previewDitaOtCommand(uri, preserveFocus).finally(() => {
         refreshInFlight = false;
         if (pendingRefresh) {
             const next = pendingRefresh;
@@ -134,15 +153,48 @@ export async function pickPreviewFilterCommand(): Promise<void> {
 }
 
 /**
- * Command: ditacraft.previewHTML5
- * Shows HTML5 preview in WebView panel
+ * Command: ditacraft.previewHTML5 ("DITA: Preview")
+ *
+ * Opens the visual preview (live page, no DITA-OT) for a topic, or the DITA-OT HTML5
+ * preview when `ditacraft.previewEngine` is "dita-ot" or the file is a map: maps are
+ * published with DITA-OT until the visual preview renders them (spec §14, Phase 3).
+ *
+ * @param uri Optional file URI; falls back to the active editor.
+ * @param preserveFocus When true, the preview is revealed without stealing focus.
+ */
+export async function previewHTML5Command(uri?: vscode.Uri, preserveFocus = false): Promise<void> {
+    const target = uri ?? vscode.window.activeTextEditor?.document.uri;
+    if (configManager.get('previewEngine') === 'dita-ot' || (target && /\.(ditamap|bookmap)$/i.test(target.fsPath))) {
+        return previewDitaOtCommand(uri, preserveFocus);
+    }
+    if (!target) {
+        if (VisualPreviewPanel.instance) {
+            return; // invoked from the preview itself (no text editor is active)
+        }
+        vscode.window.showErrorMessage('Preview failed: No DITA file is currently open. Please open a DITA file first.');
+        return;
+    }
+    if (/\.ditaval$/i.test(target.fsPath)) {
+        vscode.window.showInformationMessage('DITA Craft: a .ditaval file is a filter, not a document. Use "DITA: Set Preview DITAVAL Filter" to apply it to the preview.');
+        return;
+    }
+    try {
+        await VisualPreviewPanel.show(target, preserveFocus);
+    } catch (error) {
+        handlePreviewError(error);
+    }
+}
+
+/**
+ * Command: ditacraft.previewDitaOt ("DITA: Preview with DITA-OT")
+ * Shows the DITA-OT HTML5 preview in a WebView panel.
  *
  * @param uri Optional file URI; falls back to the active editor.
  * @param preserveFocus When true, the preview panel is revealed without
  *        stealing focus from the editor. Used by the save-triggered
  *        auto-refresh so the cursor stays in the document.
  */
-export async function previewHTML5Command(uri?: vscode.Uri, preserveFocus = false): Promise<void> {
+export async function previewDitaOtCommand(uri?: vscode.Uri, preserveFocus = false): Promise<void> {
     try {
         // Get and validate file URI
         const fileUri = await getAndValidateFileUri(uri);

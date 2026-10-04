@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="condition-highlighting">
+    <title>Condition Highlighting in the Editor</title>
+    <shortdesc>See in the text editor what the preview's DITAVAL filter does to the topic you are
+        editing: what it excludes and what it flags.</shortdesc>
+
+    <conbody>
+        <p>With a <filepath>.ditaval</filepath> file chosen as the preview filter
+                (<uicontrol>DITA: Set Preview DITAVAL Filter</uicontrol>), the text editor marks the
+            passages it affects, without leaving your topic files:</p>
+        <ul>
+            <li>Elements the filter excludes are dimmed and struck through.</li>
+            <li>Elements it flags get their flag's look: a background tinted with the flag's colour,
+                its style (bold, italics, underline…), its start and end flags as their alternative
+                text, and a mark in the overview ruler. Hover one to see the filter and the values
+                that flag it.</li>
+        </ul>
+        <fig id="fig-condition-highlighting">
+            <title>A task filtered for Windows, in the text editor and the visual preview</title>
+            <image href="../../images/condition-highlighting.png" placement="break" align="center" width="6.5in">
+                <alt>On the left, a task in the text editor with a DITAVAL filter: the macOS and
+                    Linux steps are dimmed and struck through; the administrators' step is flagged
+                    [Admin] in blue italics, a step for another product is flagged [Check] in orange
+                    by the filter's rule for unnamed conditions, and a step of revision 2.0 is
+                    flagged [New in 2.0] in green bold. On the right, the visual preview of the same
+                    task shows the Windows step and the same flags, without the excluded steps.</alt>
+            </image>
+        </fig>
+        <p>The decisions are the visual preview's own, so the text editor and the preview always
+            agree — a filter-wide rule (<codeph>&lt;prop action="flag" color="red"/&gt;</codeph>,
+            without <codeph>att</codeph>) included. Turn highlighting off with
+                <codeph>ditacraft.conditionHighlightingEnabled</codeph>; files larger than
+                <codeph>ditacraft.largeFileThresholdKB</codeph> are not highlighted.</p>
+    </conbody>
+</concept>

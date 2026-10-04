@@ -18,6 +18,11 @@ import {
     publishCommand,
     publishHTML5Command,
     previewHTML5Command,
+    previewDitaOtCommand,
+    getActiveDitavalPath,
+    onDidChangeActiveDitaval,
+    followActiveDitavalMove,
+    followDitavalMoves,
     initializePreview,
     shouldAutoRefreshPreview,
     pickPreviewFilterCommand,
@@ -43,9 +48,15 @@ import {
     inlineConrefCommand
 } from './commands';
 import { registerPreviewPanelSerializer, DitaPreviewPanel } from './providers/previewPanel';
+import { VisualPreviewPanel } from './preview/visualPreviewPanel';
+import type { EditorToHost, HostToEditor } from './editor/messages';
+import { VisualEditorProvider } from './editor/visualEditorProvider';
+import { PropertiesViewProvider, revealPropertiesView } from './properties/propertiesView';
+import { MapContexts } from './preview/mapContexts';
 import { registerConditionHighlighting } from './providers/ditavalDecorationProvider';
 import { disposeDitaOtDiagnostics } from './utils/ditaOtErrorParser';
-import { UI_TIMEOUTS, isDitaContentUri } from './utils/constants';
+import { UI_TIMEOUTS } from './utils/constants';
+import { followPathSettings } from './utils/pathSettings';
 import { getDitaOtOutputChannel, disposeDitaOtOutputChannel } from './utils/ditaOtOutputChannel';
 import { MapVisualizerPanel } from './providers/mapVisualizerPanel';
 import { ValidationReportPanel } from './providers/validationReportPanel';
@@ -55,7 +66,7 @@ import { DitaFileDecorationProvider } from './providers/ditaFileDecorationProvid
 import { KeySpaceViewProvider } from './providers/keySpaceViewProvider';
 import { DiagnosticsViewProvider } from './providers/diagnosticsViewProvider';
 import { startLanguageClient, stopLanguageClient, getLanguageClient, waitForLanguageClientReady } from './languageClient';
-import { LLMRouterService, SecretManager, DitaCraftLLMConfig, AIServiceOrchestrator, MetricsCollector } from './llm';
+import { LLMRouterService, SecretManager, AIServiceOrchestrator, MetricsCollector, isAiEnabled, AI_ENABLED_SETTING, buildLLMConfig } from './llm';
 import { configureAICommand, restructureMapCommand } from './commands';
 import { createDitacraftParticipant } from './chat/ditacraftParticipant';
 import { AIQuickFixProvider, AI_QUICKFIX_COMMAND, safeExecuteAiQuickFix } from './providers/aiQuickFixProvider';
@@ -75,12 +86,12 @@ let aiOrchestrator: AIServiceOrchestrator;
  */
 export function activate(context: vscode.ExtensionContext) {
     try {
-        logger.info('DitaCraft extension activation started');
+        logger.info('DITA Craft extension activation started');
 
         // Create output channel for DITA-OT logs
-        outputChannel = vscode.window.createOutputChannel('DitaCraft');
+        outputChannel = vscode.window.createOutputChannel('DITA Craft');
         context.subscriptions.push(outputChannel);
-        outputChannel.appendLine('=== DitaCraft Activation Starting ===');
+        outputChannel.appendLine('=== DITA Craft Activation Starting ===');
 
         // Initialize DITA-OT wrapper
         outputChannel.appendLine('Initializing DITA-OT wrapper...');
@@ -96,6 +107,9 @@ export function activate(context: vscode.ExtensionContext) {
         outputChannel.appendLine('Initializing preview panel...');
         initializePreview(context);
         registerPreviewPanelSerializer(context);
+        MapContexts.initialize(context); // before the preview and the editor, which follow it
+        VisualPreviewPanel.initialize(context, { activePath: getActiveDitavalPath, onDidChange: onDidChangeActiveDitaval });
+        context.subscriptions.push(VisualEditorProvider.register(context), PropertiesViewProvider.register(context));
         registerPreviewAutoRefresh(context);
         registerConditionHighlighting(context);
         outputChannel.appendLine('Preview panel initialized');
@@ -191,6 +205,8 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Register Move Topic — updates references when a DITA file is moved/renamed
         registerMoveTopicFeature(context);
+        // ...and the paths kept outside the documents (path settings, publishing profiles, preview filter)
+        registerPathFollowing(context);
 
         // Register Watch Mode — start/stop commands, no auto-start
         registerWatchModeFeature(context);
@@ -219,17 +235,28 @@ export function activate(context: vscode.ExtensionContext) {
         const metricsCollector = new MetricsCollector(outputChannel);
         llmRouterService.setMetrics(metricsCollector);
 
-        fireAndForget(
-            (async () => {
-                const aiConfig = await buildLLMConfig(secretManager);
-                await llmRouterService.initialize(aiConfig);
-            })(),
-            'LLMRouterService.initialize'
+        // With DITA Craft AI turned off, no provider is probed (and no "no provider" warning shown)
+        // until it is turned on.
+        const initializeRouter = (options?: { quiet?: boolean }) =>
+            buildLLMConfig(secretManager).then(aiConfig => llmRouterService.initialize(aiConfig, options));
+        if (isAiEnabled()) {
+            fireAndForget(initializeRouter(), 'LLMRouterService.initialize');
+        }
+        context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration(e => {
+                if (!isAiEnabled()) { return; }
+                if (e.affectsConfiguration(AI_ENABLED_SETTING)) {
+                    fireAndForget(initializeRouter(), 'LLMRouterService.initialize');
+                } else if (e.affectsConfiguration('ditacraft.ai.mode') || e.affectsConfiguration('ditacraft.ai.provider')) {
+                    // A new mode, model or Ollama server is used at once, not after a restart.
+                    fireAndForget(initializeRouter({ quiet: true }), 'LLMRouterService.initialize');
+                }
+            })
         );
-        // Register configureAI command (needs router + secretManager)
+        // Register configureAI command (needs router + secretManager). It stays available with AI turned off.
         context.subscriptions.push(
             vscode.commands.registerCommand('ditacraft.configureAI', () =>
-                configureAICommand(context, llmRouterService, secretManager)
+                configureAICommand(llmRouterService, secretManager)
             )
         );
 
@@ -286,16 +313,16 @@ export function activate(context: vscode.ExtensionContext) {
         // Suggest cSpell DITA dictionary setup if needed
         suggestCSpellSetup(context);
 
-        logger.info('DitaCraft extension activated successfully');
-        outputChannel.appendLine('=== DitaCraft Activation Complete ===');
+        logger.info('DITA Craft extension activated successfully');
+        outputChannel.appendLine('=== DITA Craft Activation Complete ===');
 
         // Expose API for tests — functions must come from THIS bundle so they
         // share the same module-level state (e.g. the language client reference).
         return { context, waitForLanguageClientReady };
     } catch (error) {
-        const errorMsg = `Failed to activate DitaCraft: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        const errorMsg = `Failed to activate DITA Craft: ${error instanceof Error ? error.message : 'Unknown error'}`;
         vscode.window.showErrorMessage(errorMsg);
-        logger.error('Failed to activate DitaCraft extension', error);
+        logger.error('Failed to activate DITA Craft extension', error);
         if (outputChannel) {
             outputChannel.appendLine('=== ACTIVATION ERROR ===');
             outputChannel.appendLine(errorMsg);
@@ -469,33 +496,12 @@ function sendInitialRootMapSetting(): void {
 }
 
 /**
- * Build the LLM config from VS Code settings + SecretManager keys.
- */
-async function buildLLMConfig(sm: SecretManager): Promise<DitaCraftLLMConfig> {
-    const cfg = vscode.workspace.getConfiguration('ditacraft.ai');
-    const [anthropicKey, openaiKey] = await Promise.all([
-        sm.getApiKey('anthropic'),
-        sm.getApiKey('openai'),
-    ]);
-    return {
-        mode: cfg.get<DitaCraftLLMConfig['mode']>('mode', 'auto'),
-        anthropicApiKey: anthropicKey,
-        anthropicModel: cfg.get<string>('provider.anthropic.model', 'claude-3-5-sonnet-20241022'),
-        openaiApiKey: openaiKey,
-        openaiModel: cfg.get<string>('provider.openai.model', 'gpt-4o'),
-        ollamaEnabled: cfg.get<boolean>('provider.ollama.enabled', true),
-        ollamaBaseUrl: cfg.get<string>('provider.ollama.baseUrl', 'http://localhost:11434'),
-        ollamaModel: cfg.get<string>('provider.ollama.model', 'llama3'),
-    };
-}
-
-/**
  * Extension deactivation function
  * Called when the extension is deactivated
  */
 export async function deactivate(): Promise<void> {
     try {
-        logger.info('DitaCraft extension deactivation started');
+        logger.info('DITA Craft extension deactivation started');
     } catch {
         // Logger may not be initialized if activation failed early
     }
@@ -531,7 +537,7 @@ export async function deactivate(): Promise<void> {
 
     if (outputChannel) {
         try {
-            outputChannel.appendLine('DitaCraft extension deactivated');
+            outputChannel.appendLine('DITA Craft extension deactivated');
             outputChannel.dispose();
         } catch { /* already disposed */ }
     }
@@ -567,12 +573,52 @@ interface LspWorkspaceEdit {
  * behavior for JS/TS, the closest established UX precedent for this exact
  * feature shape.
  *
- * **Scope: inbound references only.** See
- * `server/src/features/moveTopic.ts`'s doc comment for what this
- * deliberately does not cover (a moved file's own outbound hrefs when it
- * changes directory; folder-level moves, which VS Code reports as a
- * single folder rename rather than one event per contained file).
+ * Both directions: references to a moved file from the files that stayed,
+ * and the moved file's own relative references (re-resolved from the folder
+ * it was in). A moved folder — one event, not one per contained file — is
+ * sent as is: the server moves everything it holds; any other renamed file
+ * (an image, a `.ditaval`…) is sent too, for the references to it (see
+ * `server/src/features/moveTopic.ts`'s doc comment).
  */
+/**
+ * Keep the paths stored outside the documents pointing at their file or
+ * folder when it — or a folder holding it — is moved or renamed in VS Code:
+ * the path settings (`ditacraft.rootMap`, `templatesPath`, `xmlCatalogPath`,
+ * `previewCustomCss`, `customRulesFile`), the publishing profiles' DITAVAL
+ * filter and the active preview filter. A followed root map is sent to the
+ * language server as **DITA: Set Root Map** does. Independent of the
+ * language server otherwise.
+ */
+function registerPathFollowing(context: vscode.ExtensionContext): void {
+    context.subscriptions.push(
+        vscode.workspace.onDidRenameFiles(async (event) => {
+            const moves = event.files.map(f => ({ oldPath: f.oldUri.fsPath, newPath: f.newUri.fsPath }));
+            try {
+                followActiveDitavalMove(moves);
+                const settings = await followPathSettings(moves);
+                if (settings.includes('rootMap')) {
+                    sendInitialRootMapSetting();
+                }
+                const profiles = await followDitavalMoves(moves);
+                const updated = [
+                    ...settings.map(key => `ditacraft.${key}`),
+                    ...(profiles > 0 ? [`the DITAVAL filter of ${profiles} publishing profile(s)`] : []),
+                ];
+                if (updated.length > 0) {
+                    logger.info('Settings followed their moved file', { settings, profiles });
+                    const list = updated.length === 1 ? updated[0] : `${updated.slice(0, -1).join(', ')} and ${updated[updated.length - 1]}`;
+                    vscode.window.showInformationMessage(`DITA Craft: Updated ${list} after the move.`);
+                }
+            } catch (error) {
+                logger.error('Could not update settings after a move', error);
+                vscode.window.showErrorMessage(
+                    `DITA Craft: Could not update the settings after the move: ${error instanceof Error ? error.message : 'Unknown error'}`
+                );
+            }
+        })
+    );
+}
+
 function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.workspace.onDidRenameFiles(async (event) => {
@@ -581,7 +627,9 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
                 return;
             }
 
-            const ditaMoves = event.files.filter(f => isDitaContentUri(f.oldUri));
+            // Every move: a DITA file, a folder (one event: what it holds moved with it), or any
+            // other file a topic or map may refer to (an image, a .ditaval…) — the server sorts them.
+            const ditaMoves = event.files;
             if (ditaMoves.length === 0) {
                 return;
             }
@@ -607,19 +655,28 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
                 if (!applied) {
                     logger.warn('Move Topic: failed to apply reference updates', { movedCount: ditaMoves.length });
                     vscode.window.showWarningMessage(
-                        'DitaCraft: Could not update references after the move -- check for broken links.'
+                        'DITA Craft: Could not update references after the move -- check for broken links.'
                     );
                     return;
                 }
 
-                await Promise.all(editedUris.map(uri => vscode.workspace.save(uri)));
+                // Through their documents: `workspace.save(uri)` saves an *editor*, and the
+                // files a move edits are usually not open in one, so they stayed unsaved.
+                const saved = await Promise.all(editedUris.map(async uri => {
+                    const document = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString())
+                        ?? await vscode.workspace.openTextDocument(uri);
+                    return document.save();
+                }));
+                if (saved.includes(false)) {
+                    logger.warn('Move Topic: some updated files could not be saved', { movedCount: ditaMoves.length });
+                }
 
                 logger.info('Move Topic: updated references after file move', {
                     movedCount: ditaMoves.length,
                     updatedFileCount: editedUris.length
                 });
                 vscode.window.showInformationMessage(
-                    `DitaCraft: Updated references in ${editedUris.length} file(s) after the move.`
+                    `DITA Craft: Updated references in ${editedUris.length} file(s) after the move.`
                 );
             } catch (error) {
                 // `/code-review` fix: this used to log only -- a failed
@@ -632,7 +689,7 @@ function registerMoveTopicFeature(context: vscode.ExtensionContext): void {
                 // from the move that caused them.
                 logger.error('Move Topic: failed to compute/apply reference updates', error);
                 vscode.window.showErrorMessage(
-                    `DitaCraft: Could not update references after the move: ${error instanceof Error ? error.message : 'Unknown error'}`
+                    `DITA Craft: Could not update references after the move: ${error instanceof Error ? error.message : 'Unknown error'}`
                 );
             }
         })
@@ -774,7 +831,68 @@ function registerCommands(context: vscode.ExtensionContext): void {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ditacraft.previewHTML5', previewHTML5Command)
+        vscode.commands.registerCommand('ditacraft.previewHTML5', previewHTML5Command),
+        vscode.commands.registerCommand('ditacraft.previewDitaOt', previewDitaOtCommand),
+        vscode.commands.registerCommand('ditacraft.previewToggleMarkup', () => VisualPreviewPanel.instance?.toggleMarkup()),
+        vscode.commands.registerCommand('ditacraft.previewOpenSource', () => VisualPreviewPanel.instance?.openSource()),
+        vscode.commands.registerCommand('ditacraft.previewLock', () => VisualPreviewPanel.instance?.toggleLock()),
+        // Internal (not contributed): state of the bundled panel, for integration tests.
+        vscode.commands.registerCommand('ditacraft.visualPreview.debugState', () => VisualPreviewPanel.instance?.debugState()),
+        vscode.commands.registerCommand('ditacraft.openVisualEditor', (uri?: vscode.Uri) => {
+            const target = uri ?? vscode.window.activeTextEditor?.document.uri;
+            if (!target) {
+                return undefined;
+            }
+            // The page opens where the text cursor is.
+            const active = vscode.window.activeTextEditor;
+            const source = active?.document.uri.toString() === target.toString()
+                ? active : vscode.window.visibleTextEditors.find((e) => e.document.uri.toString() === target.toString());
+            if (source) {
+                VisualEditorProvider.handoff(target, source.document.offsetAt(source.selection.active));
+            }
+            return vscode.commands.executeCommand('vscode.openWith', target, VisualEditorProvider.viewType);
+        }),
+        vscode.commands.registerCommand('ditacraft.openSourceEditor', async (uri?: vscode.Uri) => {
+            const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input;
+            const target = uri ?? (input instanceof vscode.TabInputCustom ? input.uri : undefined);
+            if (!target) {
+                return undefined;
+            }
+            // The text opens where the page's cursor is.
+            const offset = await VisualEditorProvider.cursorOffset(target);
+            await vscode.commands.executeCommand('vscode.openWith', target, 'default');
+            if (offset !== undefined) {
+                const document = await vscode.workspace.openTextDocument(target);
+                const position = document.positionAt(offset);
+                await vscode.window.showTextDocument(document, {
+                    viewColumn: vscode.ViewColumn.Active, selection: new vscode.Range(position, position), preview: false,
+                });
+            }
+            return undefined;
+        }),
+        // Internal (not contributed): visual editor state and simulated page messages, for integration tests.
+        vscode.commands.registerCommand('ditacraft.visualEditor.debugState', () => VisualEditorProvider.debugState()),
+        vscode.commands.registerCommand('ditacraft.visualEditor.debugMessage', (uri: string, message: EditorToHost) => VisualEditorProvider.debugMessage(uri, message)),
+        vscode.commands.registerCommand('ditacraft.visualEditor.debugPost', (uri: string, message: HostToEditor) => VisualEditorProvider.debugPost(uri, message)),
+        vscode.commands.registerCommand('ditacraft.visualEditor.debugQueueDialog', (answer: { file?: string; text?: string; pick?: string }) => VisualEditorProvider.queueDialogAnswer(answer)),
+        vscode.commands.registerCommand('ditacraft.showProperties', () => revealPropertiesView()),
+        // The map a topic is shown in by the visual preview and editor (spec §13.8 M4).
+        vscode.commands.registerCommand('ditacraft.chooseMapContext', async (uri?: vscode.Uri) => {
+            const topic = uri ?? activeTopicUri();
+            if (!topic) {
+                void vscode.window.showInformationMessage('DITA Craft: open a DITA topic to choose its map context.');
+                return;
+            }
+            await MapContexts.get()?.pick(topic.fsPath);
+        }),
+        // Internal (not contributed): the next map context pick's answer (an item index), for integration tests.
+        vscode.commands.registerCommand('ditacraft.mapContext.debugAnswer', (index: number) => {
+            const answers = [index];
+            MapContexts.nextAnswer = () => answers.shift();
+        }),
+        // Internal (not contributed): Properties pane state and actions, for integration tests.
+        vscode.commands.registerCommand('ditacraft.properties.debugState', () => PropertiesViewProvider.debugState()),
+        vscode.commands.registerCommand('ditacraft.properties.debugAction', (action: Parameters<typeof PropertiesViewProvider.debugAction>[0]) => PropertiesViewProvider.debugAction(action))
     );
 
     context.subscriptions.push(
@@ -1100,7 +1218,7 @@ function handleConfigurationChange(event: ConfigurationChangeEvent): void {
         });
 
         vscode.window.setStatusBarMessage(
-            `DitaCraft: Settings updated (${changeDescriptions.join(', ')})`,
+            `DITA Craft: Settings updated (${changeDescriptions.join(', ')})`,
             UI_TIMEOUTS.STATUS_BAR_MESSAGE_MS
         );
     }
@@ -1157,7 +1275,7 @@ async function showWelcomeMessage(context: vscode.ExtensionContext): Promise<voi
     if (!hasShownWelcome) {
         try {
             const action = await vscode.window.showInformationMessage(
-                'Welcome to DitaCraft! The best way to edit and publish your DITA files.',
+                'Welcome to DITA Craft! The best way to edit and publish your DITA files.',
                 'Get Started',
                 'View Documentation'
             );
@@ -1251,4 +1369,11 @@ export function getOutputChannel(): vscode.OutputChannel {
  */
 export function getDitaOtWrapper(): DitaOtWrapper {
     return ditaOtWrapper;
+}
+
+/** The DITA topic the author is working on: in the visual editor, a text editor, or the visual preview. */
+function activeTopicUri(): vscode.Uri | undefined {
+    const isTopic = (u: vscode.Uri | undefined) => u !== undefined && u.scheme === 'file' && /\.(dita|xml)$/i.test(u.fsPath);
+    const candidates = [VisualEditorProvider.active?.document.uri, vscode.window.activeTextEditor?.document.uri, VisualPreviewPanel.instance?.currentDocument?.uri];
+    return candidates.find(isTopic);
 }

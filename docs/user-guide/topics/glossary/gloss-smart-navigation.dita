@@ -3,7 +3,7 @@
 <glossentry id="gloss-smart-navigation">
     <glossterm>Smart Navigation</glossterm>
     <glossdef>
-        <p>A DitaCraft feature that enables Ctrl+Click navigation on DITA reference attributes including href, conref, keyref, and conkeyref. Clicking a reference opens the target file and positions the cursor at the referenced element.</p>
+        <p>A DITA Craft feature that enables Ctrl+Click navigation on DITA reference attributes including href, conref, keyref, and conkeyref. Clicking a reference opens the target file and positions the cursor at the referenced element.</p>
     </glossdef>
     <related-links>
         <link href="../features/smart-navigation.dita"/>

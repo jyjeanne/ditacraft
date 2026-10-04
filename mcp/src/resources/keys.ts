@@ -1,6 +1,10 @@
 import type { McpContext } from '../types';
 import { log } from '../logger';
 import { discoverRootMap } from '../utils/mapDiscovery';
+import { invalidParameter } from './query';
+
+export const KEYS_URI = 'dita://workspace/keys';
+export const KEYS_PARAMETERS = ['includeScopes', 'search'] as const;
 
 interface KeyEntry {
     keyName: string;
@@ -18,7 +22,11 @@ export async function readKeysResource(
     params: Record<string, string>,
     ctx: McpContext,
 ): Promise<KeysResourceResult> {
-    const includeScopes = params['includeScopes'] !== 'false';
+    const scopes = (params['includeScopes'] ?? '').trim().toLowerCase();
+    if (scopes !== '' && scopes !== 'true' && scopes !== 'false') {
+        throw invalidParameter(`"includeScopes" must be true or false, not "${params['includeScopes']}".`);
+    }
+    const includeScopes = scopes !== 'false';
     const search = params['search'] || undefined;
 
     log('debug', `Keys resource query: includeScopes=${includeScopes}, search=${search}`);

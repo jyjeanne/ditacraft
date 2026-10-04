@@ -5,7 +5,7 @@
  */
 
 import * as assert from 'assert';
-import { parseDitavalRules, isExcludedByRules, buildDitavalDocument, PROFILING_ATTRIBUTES } from '../../utils/ditavalParser';
+import { parseDitavalRules, isExcludedByRules, buildDitavalDocument, governingRule, PROFILING_ATTRIBUTES } from '../../utils/ditavalParser';
 
 suite('DITAVAL Rule Parsing Test Suite', () => {
     suite('parseDitavalRules', () => {
@@ -73,9 +73,49 @@ suite('DITAVAL Rule Parsing Test Suite', () => {
             assert.strictEqual(isExcludedByRules({ platform: 'windows' }, rules), false);
         });
 
-        test('Should exclude on a space-separated value list containing the excluded token', () => {
+        test('Should keep an element when one of its values is still included (DITA filtering logic)', () => {
+            // audience="external internal" with only "internal" excluded: the
+            // element is published for the external audience.
             const rules = [{ action: 'exclude', att: 'audience', val: 'internal' }];
-            assert.strictEqual(isExcludedByRules({ audience: 'external internal' }, rules), true);
+            assert.strictEqual(isExcludedByRules({ audience: 'external internal' }, rules), false);
+        });
+
+        test('Should exclude when every value of the attribute is excluded', () => {
+            const rules = [
+                { action: 'exclude', att: 'audience', val: 'internal' },
+                { action: 'exclude', att: 'audience', val: 'expert' }
+            ];
+            assert.strictEqual(isExcludedByRules({ audience: 'internal  expert' }, rules), true);
+        });
+
+        test('Should exclude when any one attribute excludes, even if another keeps the element', () => {
+            const rules = [
+                { action: 'exclude', att: 'audience', val: 'internal' },
+                { action: 'include', att: 'platform', val: 'windows' }
+            ];
+            assert.strictEqual(isExcludedByRules({ audience: 'internal', platform: 'windows' }, rules), true);
+        });
+
+        test('Should combine specific rules and the attribute default value by value', () => {
+            const rules = [
+                { action: 'exclude', att: 'platform', val: undefined },
+                { action: 'include', att: 'platform', val: 'windows' }
+            ];
+            // "windows" is included by its own rule: the element stays.
+            assert.strictEqual(isExcludedByRules({ platform: 'linux windows' }, rules), false);
+            // Both values fall back to the exclude default.
+            assert.strictEqual(isExcludedByRules({ platform: 'linux mac' }, rules), true);
+        });
+
+        test('Should not exclude an attribute without values', () => {
+            const rules = [{ action: 'exclude', att: 'audience', val: undefined }];
+            assert.strictEqual(isExcludedByRules({ audience: '  ' }, rules), false);
+        });
+
+        test('Should match attribute names case-insensitively (deliveryTarget)', () => {
+            // parseDitavalRules lower-cases a rule's att; elements carry the camel-case name.
+            const rules = parseDitavalRules('<prop action="exclude" att="deliveryTarget" val="pdf"/>');
+            assert.strictEqual(isExcludedByRules({ deliveryTarget: 'pdf' }, rules), true);
         });
 
         test('Should exclude regardless of value when the rule has att but no val', () => {
@@ -91,9 +131,35 @@ suite('DITAVAL Rule Parsing Test Suite', () => {
             assert.strictEqual(isExcludedByRules({ audience: 'internal' }, rules), false);
         });
 
-        test('Should ignore a rule with no att (scheme-wide default, not attribute-specific)', () => {
+        test('Should apply a filter-wide default rule (no att) to values with no rule of their own', () => {
+            // <prop action="exclude"/>: every filtering value not otherwise set is excluded.
+            const rules = parseDitavalRules('<val><prop action="exclude"/><prop action="include" att="audience" val="user"/></val>');
+            assert.strictEqual(isExcludedByRules({ audience: 'admin' }, rules), true);
+            assert.strictEqual(isExcludedByRules({ audience: 'user' }, rules), false, 'its own rule wins');
+            assert.strictEqual(isExcludedByRules({ audience: 'admin user' }, rules), false, 'one value included');
+            assert.strictEqual(isExcludedByRules({ platform: 'linux', deliveryTarget: 'pdf' }, rules), true);
+        });
+
+        test('Should let an attribute default rule win over the filter-wide default', () => {
+            const rules = parseDitavalRules('<val><prop action="exclude"/><prop action="include" att="platform"/></val>');
+            assert.strictEqual(isExcludedByRules({ platform: 'linux' }, rules), false);
+            assert.strictEqual(isExcludedByRules({ platform: 'linux', product: 'kit' }, rules), true, 'another attribute still excludes');
+        });
+
+        test('Should not apply the filter-wide default to non-filtering attributes (rev, id, outputclass…)', () => {
             const rules = [{ action: 'exclude', att: undefined, val: undefined }];
-            assert.strictEqual(isExcludedByRules({ audience: 'internal' }, rules), false);
+            assert.strictEqual(isExcludedByRules({ rev: '2.0', id: 'p1', outputclass: 'wide' }, rules), false);
+            // …unless the caller says the attribute filters (a @props specialization the document declares).
+            assert.strictEqual(isExcludedByRules({ jobrole: 'manager' }, rules, (n) => n === 'jobrole'), true);
+            // A rule naming an attribute still applies to it.
+            assert.strictEqual(isExcludedByRules({ outputclass: 'wide' }, [{ action: 'exclude', att: 'outputclass', val: 'wide' }]), true);
+        });
+
+        test('Should keep content under a filter-wide include or flag default', () => {
+            assert.strictEqual(isExcludedByRules({ audience: 'admin' }, [{ action: 'include', att: undefined, val: undefined }]), false);
+            assert.strictEqual(isExcludedByRules({ audience: 'admin' }, [{ action: 'flag', att: undefined, val: undefined }]), false);
+            // A value without an attribute is not a rule DITA defines: ignored.
+            assert.strictEqual(isExcludedByRules({ audience: 'admin' }, [{ action: 'exclude', att: undefined, val: 'admin' }]), false);
         });
 
         test('Should return false for an empty rule set', () => {
@@ -138,6 +204,18 @@ suite('DITAVAL Rule Parsing Test Suite', () => {
                 { action: 'exclude', att: 'platform', val: undefined }
             ];
             assert.strictEqual(isExcludedByRules({ platform: 'windows' }, rules), false);
+        });
+    });
+
+    suite('governingRule', () => {
+        test('Should pick the value\'s rule, then the attribute default, then the filter-wide default (filtering attributes only)', () => {
+            const rules = parseDitavalRules('<val><prop action="flag" color="red"/><prop action="exclude" att="platform"/>'
+                + '<prop action="include" att="platform" val="windows"/></val>');
+            assert.deepStrictEqual(governingRule('platform', 'windows', rules), { action: 'include', att: 'platform', val: 'windows' });
+            assert.strictEqual(governingRule('platform', 'linux', rules)?.action, 'exclude');
+            assert.strictEqual(governingRule('audience', 'admin', rules)?.action, 'flag');
+            assert.strictEqual(governingRule('rev', '2', rules), undefined);
+            assert.strictEqual(governingRule('outputclass', 'x', rules), undefined);
         });
     });
 

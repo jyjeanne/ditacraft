@@ -3,7 +3,7 @@
 <glossentry id="gloss-typesxml">
     <glossterm>TypesXML</glossterm>
     <glossdef>
-        <p>A pure TypeScript XML parser used by DitaCraft for DTD validation. TypesXML provides 100% W3C conformance and full DTD support without requiring external dependencies. The default and recommended validation engine.</p>
+        <p>A pure TypeScript XML parser used by DITA Craft for DTD validation. TypesXML provides 100% W3C conformance and full DTD support without requiring external dependencies. The default and recommended validation engine.</p>
     </glossdef>
     <related-links>
         <link href="../features/validation.dita"/>

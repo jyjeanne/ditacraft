@@ -1,0 +1,25 @@
+{
+  "include": [
+    "out/**/*.js"
+  ],
+  "exclude": [
+    "out/test/**",
+    "**/*.test.js",
+    "**/*.d.ts",
+    "server/**"
+  ],
+  "reporter": [
+    "text",
+    "html",
+    "lcov"
+  ],
+  "report-dir": "coverage",
+  "temp-directory": ".c8_output",
+  "clean": true,
+  "all": false,
+  "check-coverage": true,
+  "lines": 61,
+  "statements": 61,
+  "functions": 63,
+  "branches": 73
+}

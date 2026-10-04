@@ -6,7 +6,8 @@
  * Complete (non-streaming) uses the same endpoint with stream:false.
  */
 
-import { ILLMProvider, LLMRequest, LLMResponse } from '../types';
+import { CHECK_TIMEOUT_MS, ConnectionCheck, ILLMProvider, LLMRequest, LLMResponse, ProviderOptions } from '../types';
+import { connectionReason, sentence } from './connectionCheck';
 
 export class OllamaLLMProvider implements ILLMProvider {
     readonly id = 'ollama';
@@ -15,11 +16,13 @@ export class OllamaLLMProvider implements ILLMProvider {
 
     private readonly _baseUrl: string;
     private readonly _model: string;
+    private readonly _checkTimeoutMs: number;
 
-    constructor(baseUrl = 'http://localhost:11434', model = 'llama3') {
+    constructor(baseUrl = 'http://localhost:11434', model = 'llama3', options: Pick<ProviderOptions, 'checkTimeoutMs'> = {}) {
         // Strip trailing slash
         this._baseUrl = baseUrl.replace(/\/$/, '');
         this._model = model;
+        this._checkTimeoutMs = options.checkTimeoutMs ?? CHECK_TIMEOUT_MS;
     }
 
     get displayName(): string {
@@ -41,6 +44,38 @@ export class OllamaLLMProvider implements ILLMProvider {
         } catch {
             return false;
         }
+    }
+
+    /** Asks the server for its installed models (GET /api/tags) and looks for the configured one. */
+    async checkConnection(signal: AbortSignal): Promise<ConnectionCheck> {
+        const server = `Ollama at ${this._baseUrl}`;
+        const timeout = AbortSignal.timeout(this._checkTimeoutMs);
+        let names: string[];
+        try {
+            const res = await fetch(`${this._baseUrl}/api/tags`, { signal: AbortSignal.any([signal, timeout]) });
+            if (!res.ok) {
+                return { ok: false, detail: `${server} answered with an error (${res.status}).` };
+            }
+            const data = (await res.json()) as { models?: Array<{ name?: string; model?: string }> };
+            if (!Array.isArray(data.models)) {
+                return { ok: false, detail: `${this._baseUrl} answered, but not as an Ollama server.` };
+            }
+            names = data.models.map(m => m.name ?? m.model ?? '');
+        } catch (error: unknown) {
+            if (signal.aborted) { return { ok: false, detail: 'The check was cancelled.' }; }
+            if (timeout.aborted) {
+                return { ok: false, detail: `No answer from ${server} within ${this._checkTimeoutMs / 1000} s.` };
+            }
+            if (error instanceof SyntaxError) {
+                return { ok: false, detail: `${this._baseUrl} answered, but not as an Ollama server.` };
+            }
+            return { ok: false, detail: `Could not reach ${server}: ${sentence(connectionReason(error))}` };
+        }
+        // A model named without a tag is its ":latest".
+        const installed = names.some(n => n === this._model || (!this._model.includes(':') && n === `${this._model}:latest`));
+        return installed
+            ? { ok: true, detail: `Connected to ${server}: model ${this._model} is installed.` }
+            : { ok: false, detail: `${server} is running, but model "${this._model}" is not installed: run "ollama pull ${this._model}".` };
     }
 
     async complete(request: LLMRequest): Promise<LLMResponse> {

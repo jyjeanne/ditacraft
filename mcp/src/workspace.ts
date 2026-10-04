@@ -28,6 +28,10 @@ export function resolvePath(input: string, workspaceRoot: string): string | null
         return null;
     }
 
+    // Backslashes are separators on every platform, as on Windows (path.normalize only
+    // converts them there): a client on Windows may send `topics\nested\a.dita`.
+    input = input.replace(/\\/g, '/');
+
     let resolved: string;
 
     if (input.startsWith('file://')) {

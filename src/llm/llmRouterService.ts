@@ -12,13 +12,14 @@
  */
 
 import * as vscode from 'vscode';
-import { ILLMProvider, LLMRequest, LLMResponse, DitaCraftLLMConfig, ProviderId } from './types';
+import { ConnectionCheck, ILLMProvider, LLMRequest, LLMResponse, DitaCraftLLMConfig, ProviderId } from './types';
 import { CopilotLLMProvider } from './providers/copilotProvider';
 import { AnthropicLLMProvider } from './providers/anthropicProvider';
 import { OpenAILLMProvider } from './providers/openaiProvider';
 import { OllamaLLMProvider } from './providers/ollamaProvider';
 import { CircuitBreaker } from './circuitBreaker';
 import { MetricsCollector } from './metricsCollector';
+import { isAiEnabled } from './aiEnabled';
 
 /** Wraps an ILLMProvider with a CircuitBreaker. */
 class BreakerWrappedProvider implements ILLMProvider {
@@ -40,6 +41,13 @@ class BreakerWrappedProvider implements ILLMProvider {
     async isAvailable(): Promise<boolean> {
         if (this._breaker.isOpen()) { return false; }
         return this._inner.isAvailable();
+    }
+
+    /** Runs whatever the breaker's state (the user asked); a success closes it. */
+    async checkConnection(signal: AbortSignal): Promise<ConnectionCheck> {
+        const check = await this._inner.checkConnection(signal);
+        if (check.ok) { this._breaker.recordSuccess(); }
+        return check;
     }
 
     async complete(request: LLMRequest): Promise<LLMResponse> {
@@ -88,14 +96,36 @@ function isAbortError(err: unknown): boolean {
     return false;
 }
 
+/**
+ * The providers each `ditacraft.ai.mode` may use, in priority order. `copilot-only` is Copilot
+ * alone, `byok-only` the user's Anthropic and OpenAI keys alone, `local-only` Ollama alone.
+ */
+export const MODE_PROVIDERS: Readonly<Record<DitaCraftLLMConfig['mode'], readonly ProviderId[]>> = {
+    'auto': ['copilot', 'anthropic', 'openai', 'ollama'],
+    'copilot-only': ['copilot'],
+    'byok-only': ['anthropic', 'openai'],
+    'local-only': ['ollama'],
+};
+
 export class LLMRouterService {
     private providers: ILLMProvider[] = [];
     private _activeProvider: ILLMProvider | null = null;
     private _metrics: MetricsCollector | undefined;
+    private _initialized = false;
+    private _generation = 0;
+    private readonly _onDidInitialize = new vscode.EventEmitter<void>();
 
-    /** The currently active provider, or null if none is available. */
+    /** Fires when `initialize` has detected the providers (the AI settings panel shows them). */
+    readonly onDidInitialize = this._onDidInitialize.event;
+
+    /** Whether `initialize` has run (it doesn't at startup while DITA Craft AI is turned off). */
+    get initialized(): boolean {
+        return this._initialized;
+    }
+
+    /** The currently active provider, or null if none is available or DITA Craft AI is turned off. */
     get activeProvider(): ILLMProvider | null {
-        return this._activeProvider;
+        return isAiEnabled() ? this._activeProvider : null;
     }
 
     /** Attach an optional MetricsCollector to record call stats. */
@@ -106,22 +136,32 @@ export class LLMRouterService {
     /**
      * Build the provider list from config and probe each one in priority order.
      * Must be called after extension activation (awaited inside fireAndForget).
+     * `quiet` leaves out the "no provider" and configuration-conflict notifications
+     * (the AI settings panel, opened while AI is turned off, shows the statuses itself).
      */
-    async initialize(config: DitaCraftLLMConfig): Promise<void> {
-        this.providers = this.buildProviders(config);
-        this._activeProvider = null;
+    async initialize(config: DitaCraftLLMConfig, { quiet = false }: { quiet?: boolean } = {}): Promise<void> {
+        // Initializations can overlap (a setting changed while one probes): the latest one wins.
+        const generation = ++this._generation;
+        this._initialized = true;
+        const providers = this.buildProviders(config, quiet);
 
-        for (const provider of this.providers) {
+        let active: ILLMProvider | null = null;
+        for (const provider of providers) {
             if (await provider.isAvailable()) {
-                this._activeProvider = provider;
+                active = provider;
                 break;
             }
         }
+        if (generation !== this._generation) { return; }
+        this.providers = providers;
+        this._activeProvider = active;
+        this._onDidInitialize.fire();
 
         if (!this._activeProvider) {
+            if (quiet) { return; }
             void vscode.window.showWarningMessage(
-                'DitaCraft AI: No LLM provider available. ' +
-                'Configure GitHub Copilot or an API key in Settings → DitaCraft AI.'
+                'DITA Craft AI: No LLM provider available. ' +
+                'Configure GitHub Copilot or an API key in Settings → DITA Craft AI.'
             );
         } else {
             this._metrics?.record({
@@ -137,16 +177,28 @@ export class LLMRouterService {
     }
 
     /**
-     * Attempt to force a specific provider (e.g. from the Configure AI panel).
-     * Returns true if the provider is available and is now active.
+     * The Configure AI panel's Test: a real connection check of a provider (its service reached with
+     * its key and model). A provider that passes becomes the active one; an active provider that
+     * fails gives way to the next available one.
      */
-    async forceProvider(providerId: ProviderId): Promise<boolean> {
+    async testProvider(providerId: ProviderId, signal: AbortSignal = new AbortController().signal): Promise<ConnectionCheck> {
         const provider = this.providers.find(p => p.id === providerId);
-        if (provider && (await provider.isAvailable())) {
-            this._activeProvider = provider;
-            return true;
+        if (!provider) {
+            return { ok: false, detail: 'Not checked: it has no key, or the AI mode or settings leave it out.' };
         }
-        return false;
+        const check = await provider.checkConnection(signal);
+        if (check.ok) {
+            this._activeProvider = provider;
+        } else if (this._activeProvider === provider) {
+            this._activeProvider = null;
+            for (const other of this.providers) {
+                if (other !== provider && await other.isAvailable()) {
+                    this._activeProvider = other;
+                    break;
+                }
+            }
+        }
+        return check;
     }
 
     /** Probe all providers and return their availability status. */
@@ -159,35 +211,33 @@ export class LLMRouterService {
         );
     }
 
-    private buildProviders(config: DitaCraftLLMConfig): ILLMProvider[] {
+    private buildProviders(config: DitaCraftLLMConfig, quiet: boolean): ILLMProvider[] {
         // Detect unsolvable config conflict before building the list
-        if (config.mode === 'local-only' && config.ollamaEnabled === false) {
+        if (!quiet && config.mode === 'local-only' && config.ollamaEnabled === false) {
             void vscode.window.showErrorMessage(
-                'DitaCraft AI: Configuration conflict — "local-only" mode requires Ollama, ' +
-                'but Ollama is disabled. Enable Ollama or change the AI mode in Settings → DitaCraft AI.'
+                'DITA Craft AI: Configuration conflict — "local-only" mode requires Ollama, ' +
+                'but Ollama is disabled. Enable Ollama or change the AI mode in Settings → DITA Craft AI.'
             );
         }
 
         const list: ILLMProvider[] = [];
+        // An unknown mode (a typo in settings.json) counts as `auto`.
+        const allowed = MODE_PROVIDERS[config.mode] ?? MODE_PROVIDERS.auto;
 
-        if (config.mode !== 'byok-only' && config.mode !== 'local-only') {
+        if (allowed.includes('copilot')) {
             list.push(new BreakerWrappedProvider(new CopilotLLMProvider()));
         }
-
-        if (config.mode !== 'local-only') {
-            if (config.anthropicApiKey) {
-                list.push(new BreakerWrappedProvider(
-                    new AnthropicLLMProvider(config.anthropicApiKey, config.anthropicModel)
-                ));
-            }
-            if (config.openaiApiKey) {
-                list.push(new BreakerWrappedProvider(
-                    new OpenAILLMProvider(config.openaiApiKey, config.openaiModel)
-                ));
-            }
+        if (allowed.includes('anthropic') && config.anthropicApiKey) {
+            list.push(new BreakerWrappedProvider(
+                new AnthropicLLMProvider(config.anthropicApiKey, config.anthropicModel)
+            ));
         }
-
-        if (config.ollamaEnabled !== false) {
+        if (allowed.includes('openai') && config.openaiApiKey) {
+            list.push(new BreakerWrappedProvider(
+                new OpenAILLMProvider(config.openaiApiKey, config.openaiModel)
+            ));
+        }
+        if (allowed.includes('ollama') && config.ollamaEnabled !== false) {
             list.push(new BreakerWrappedProvider(
                 new OllamaLLMProvider(config.ollamaBaseUrl, config.ollamaModel)
             ));

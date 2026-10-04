@@ -31,7 +31,7 @@
 
         <section id="auto-validation">
             <title>Automatic Validation</title>
-            <p>DitaCraft automatically validates DITA files when:</p>
+            <p>DITA Craft automatically validates DITA files when:</p>
             <ul>
                 <li><b>On Open:</b> When you open a DITA file</li>
                 <li><b>On Save:</b> When you save a DITA file (if <codeph>autoValidate</codeph> is enabled)</li>
@@ -42,7 +42,7 @@
 
         <section id="validation-engines">
             <title>Validation Engines</title>
-            <p>DitaCraft supports three validation engines:</p>
+            <p>DITA Craft supports three validation engines:</p>
             <simpletable>
                 <sthead>
                     <stentry>Engine</stentry>
@@ -70,7 +70,7 @@
 
         <section id="rate-limiting">
             <title>Rate Limiting</title>
-            <p>To prevent performance issues from rapid validation requests, DitaCraft includes rate limiting:</p>
+            <p>To prevent performance issues from rapid validation requests, DITA Craft includes rate limiting:</p>
             <ul>
                 <li>Maximum 10 validation requests per second per file</li>
                 <li>Excess requests are silently skipped (auto-validation) or show a warning (manual validation)</li>

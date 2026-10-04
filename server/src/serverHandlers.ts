@@ -92,7 +92,7 @@ export function buildInitializeResult(hasWorkspaceFolderCapability: boolean): In
             linkedEditingRangeProvider: true,
         },
         serverInfo: {
-            name: 'DitaCraft DITA Language Server',
+            name: 'DITA Craft Language Server',
             version: SERVER_VERSION,
         },
     };

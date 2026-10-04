@@ -17,7 +17,7 @@ export default tseslint.config(
         ],
     },
     {
-        files: ['src/**/*.ts'],
+        files: ['src/**/*.ts', 'webview/**/*.ts'],
         extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
         rules: {
             '@typescript-eslint/naming-convention': [

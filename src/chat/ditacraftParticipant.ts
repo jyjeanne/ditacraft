@@ -10,12 +10,13 @@
 
 import * as vscode from 'vscode';
 import { AIServiceOrchestrator } from '../llm/aiServiceOrchestrator';
+import { AI_DISABLED_MESSAGE, AI_ENABLED_SETTING, isAiEnabled } from '../llm/aiEnabled';
 import { getErrorMessage } from '../utils/errorUtils';
 
 const PARTICIPANT_ID = 'ditacraft';
 
 const HELP_MESSAGE = [
-    '**DitaCraft AI Assistant** 🗂️',
+    '**DITA Craft AI Assistant** 🗂️',
     '',
     'Available commands:',
     '- `@ditacraft /restructure <intention>` — Propose a restructured DITA map based on your intention.',
@@ -40,19 +41,25 @@ export function createDitacraftParticipant(
             handleRequest(request, response, token, orchestrator, context)
     );
 
-    participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'resources', 'icon.png');
+    participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'resources', 'ditacraft-logo.png');
     return participant;
 }
 
 // ── Request handler ────────────────────────────────────────────────────────
 
-async function handleRequest(
+/** Exported for testing. */
+export async function handleRequest(
     request: vscode.ChatRequest,
     response: vscode.ChatResponseStream,
     token: vscode.CancellationToken,
     orchestrator: AIServiceOrchestrator,
     _context: vscode.ExtensionContext
 ): Promise<void> {
+    if (!isAiEnabled()) {
+        response.markdown(AI_DISABLED_MESSAGE.replace(AI_ENABLED_SETTING, `\`${AI_ENABLED_SETTING}\``));
+        response.button({ command: 'workbench.action.openSettings', arguments: [AI_ENABLED_SETTING], title: 'Open Setting' });
+        return;
+    }
     if (!request.command) {
         response.markdown(HELP_MESSAGE);
         return;
@@ -120,7 +127,7 @@ async function handleRestructure(
         }
 
         if (result.model) {
-            response.markdown(`\n\n---\n*Powered by ${result.model} · Validated by DitaCraft LSP*`);
+            response.markdown(`\n\n---\n*Powered by ${result.model} · Validated by DITA Craft LSP*`);
         }
     } catch (error: unknown) {
         response.markdown(`\n\n❌ **Error:** ${getErrorMessage(error)}`);

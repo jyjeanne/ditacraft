@@ -7,14 +7,14 @@
     <conbody>
         <section id="overview">
             <title>Overview</title>
-            <p>The DITA Explorer is the primary view in the DitaCraft Activity Bar. It discovers all <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files in your workspace and displays each one as an expandable tree showing its full topic hierarchy.</p>
+            <p>The DITA Explorer is the primary view in the DITA Craft Activity Bar. It discovers all <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files in your workspace and displays each one as an expandable tree showing its full topic hierarchy.</p>
             <p><b>Command:</b> <uicontrol>DITA: Refresh DITA Explorer</uicontrol></p>
         </section>
 
         <section id="opening">
             <title>Opening the DITA Explorer</title>
             <ol>
-                <li>Click the DitaCraft icon in the Activity Bar (left sidebar)</li>
+                <li>Click the DITA Craft icon in the Activity Bar (left sidebar)</li>
                 <li>The DITA Explorer view appears at the top of the sidebar</li>
                 <li>All workspace maps are listed as root nodes</li>
             </ol>

@@ -3,7 +3,7 @@
 <glossentry id="gloss-built-in-engine">
     <glossterm>Built-in Engine</glossterm>
     <glossdef>
-        <p>A lightweight validation engine bundled with DitaCraft that provides fast XML syntax checking and basic content model validation. Faster than TypesXML but with limited DTD support.</p>
+        <p>A lightweight validation engine bundled with DITA Craft that provides fast XML syntax checking and basic content model validation. Faster than TypesXML but with limited DTD support.</p>
     </glossdef>
     <related-links>
         <link href="../settings/validation-settings.dita"/>

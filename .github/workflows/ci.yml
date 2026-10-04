@@ -119,6 +119,10 @@ jobs:
       if: runner.os == 'Linux'
       run: cd server && npm run coverage:check
 
+    - name: Run MCP server tests
+      # The tests start the standalone bundle dist/mcp-server.js, built by "Build with esbuild" above.
+      run: npm run test:mcp
+
     - name: Compile client tests
       run: npm run compile-tests
 

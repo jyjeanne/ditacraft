@@ -2,12 +2,12 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="validation">
     <title>Validation</title>
-    <shortdesc>DitaCraft validates DITA files against XML syntax, DTD specifications, cross-references, DITA rules, and profiling constraints in real-time.</shortdesc>
+    <shortdesc>DITA Craft validates DITA files against XML syntax, DTD specifications, cross-references, DITA rules, and profiling constraints in real-time.</shortdesc>
 
     <conbody>
         <section id="validation-overview">
             <title>Validation Overview</title>
-            <p>DitaCraft provides comprehensive validation to ensure your DITA content is well-formed, conforms to DITA specifications, uses valid cross-references, follows DITA best practices, and respects profiling constraints. Validation runs automatically as you edit and can also be triggered manually.</p>
+            <p>DITA Craft provides comprehensive validation to ensure your DITA content is well-formed, conforms to DITA specifications, uses valid cross-references, follows DITA best practices, and respects profiling constraints. Validation runs automatically as you edit and can also be triggered manually.</p>
         </section>
 
         <section id="what-is-validated">
@@ -46,7 +46,7 @@
 
         <section id="validation-engines">
             <title>Validation Engines</title>
-            <p>DitaCraft supports three validation engines, each with different capabilities:</p>
+            <p>DITA Craft supports three validation engines, each with different capabilities:</p>
             <simpletable>
                 <sthead>
                     <stentry>Engine</stentry>
@@ -79,7 +79,7 @@
 
         <section id="lsp-diagnostics">
             <title>LSP-Powered Diagnostics</title>
-            <p>DitaCraft uses a built-in Language Server Protocol (LSP) implementation to provide real-time diagnostics. The LSP server validates your documents in the background and reports issues instantly as you type, without waiting for a manual save or validation trigger.</p>
+            <p>DITA Craft uses a built-in Language Server Protocol (LSP) implementation to provide real-time diagnostics. The LSP server validates your documents in the background and reports issues instantly as you type, without waiting for a manual save or validation trigger.</p>
             <p>The LSP diagnostics cover:</p>
             <ul>
                 <li>XML well-formedness (mismatched tags, invalid syntax)</li>
@@ -116,7 +116,7 @@
 
         <section id="automatic-validation">
             <title>Automatic Validation</title>
-            <p>By default, DitaCraft validates automatically:</p>
+            <p>By default, DITA Craft validates automatically:</p>
             <ul>
                 <li><b>On Open:</b> When you open a DITA file</li>
                 <li><b>On Save:</b> When you save a file (configurable)</li>
@@ -133,7 +133,7 @@
 
         <section id="rate-limiting">
             <title>Rate Limiting</title>
-            <p>To prevent performance issues, DitaCraft limits validation requests:</p>
+            <p>To prevent performance issues, DITA Craft limits validation requests:</p>
             <ul>
                 <li>Maximum 10 requests per second per file</li>
                 <li>Excess requests are silently skipped during auto-validation</li>

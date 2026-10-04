@@ -21,6 +21,7 @@ import {
     describeProfile,
     promptForDitaval,
     pickTranstype,
+    followDitavalMoves,
 } from '../../commands/publishProfilesCommand';
 
 suite('Publishing Profiles Test Suite', () => {
@@ -49,6 +50,38 @@ suite('Publishing Profiles Test Suite', () => {
             const profiles = getPublishingProfiles();
             assert.ok(Array.isArray(profiles), 'should return an array');
             assert.strictEqual(profiles.length, 0, 'should be empty by default');
+        });
+    });
+
+    suite('followDitavalMoves', () => {
+        const config = () => vscode.workspace.getConfiguration('ditacraft');
+        teardown(async () => {
+            await config().update('publishingProfiles', undefined, vscode.ConfigurationTarget.Global);
+        });
+
+        test('Profiles follow their DITAVAL file when it — or its folder — moves, in the settings they live in (regression: they kept the old path)', async () => {
+            // No workspace folder in this test run: the paths are absolute, as storeDitavalPath stores them then.
+            const root = path.join(path.sep, 'docs');
+            const web = path.join(root, 'filters', 'web.ditaval');
+            const print = path.join(root, 'filters', 'print', 'pdf.ditaval');
+            await config().update('publishingProfiles', [
+                { name: 'Web', transtype: 'html5', ditavalPath: web },
+                { name: 'Print', transtype: 'pdf', ditavalPath: print },
+                { name: 'Plain', transtype: 'html5' },
+            ], vscode.ConfigurationTarget.Global);
+
+            assert.strictEqual(await followDitavalMoves([{ oldPath: path.join(root, 'elsewhere.ditaval'), newPath: path.join(root, 'x.ditaval') }]), 0);
+            const changed = await followDitavalMoves([
+                { oldPath: web, newPath: path.join(root, 'filters', 'online.ditaval') },
+                { oldPath: path.join(root, 'filters', 'print'), newPath: path.join(root, 'print-filters') },
+            ]);
+            assert.strictEqual(changed, 2);
+            const profiles = config().inspect<{ name: string; ditavalPath?: string }[]>('publishingProfiles')?.globalValue ?? [];
+            assert.deepStrictEqual(profiles.map(p => [p.name, p.ditavalPath]), [
+                ['Web', path.join(root, 'filters', 'online.ditaval')],
+                ['Print', path.join(root, 'print-filters', 'pdf.ditaval')],
+                ['Plain', undefined],
+            ]);
         });
     });
 
@@ -85,6 +118,18 @@ suite('Publishing Profiles Test Suite', () => {
                 assert.strictEqual(resolved, path.join(folder.uri.fsPath, 'filters', 'exclude.ditaval'));
             } else {
                 assert.strictEqual(resolved, undefined);
+            }
+        });
+
+        test('Should resolve a relative path written with \\ (as earlier versions stored it on Windows) on every platform', () => {
+            const folder = { uri: vscode.Uri.file(path.join(path.sep, 'workspace', 'root')), name: 'root', index: 0 };
+            const stub = sinon.stub(vscode.workspace, 'workspaceFolders').value([folder]);
+            try {
+                const expected = path.join(folder.uri.fsPath, 'filters', 'web', 'exclude.ditaval');
+                assert.strictEqual(resolveDitavalPath('filters\\web\\exclude.ditaval'), expected);
+                assert.strictEqual(resolveDitavalPath('filters/web/exclude.ditaval'), expected);
+            } finally {
+                stub.restore();
             }
         });
     });
@@ -124,15 +169,12 @@ suite('Publishing Profiles Test Suite', () => {
             assert.strictEqual(storeDitavalPath(picked, undefined), picked.fsPath);
         });
 
-        test('Should store a path relative to the first workspace folder when the file is under it', () => {
+        test('Should store a path relative to the first workspace folder when the file is under it, with / on every platform (regression: \\ on Windows)', () => {
             const root = path.join(path.sep, 'workspace', 'root');
             const folders = [fakeFolder(root, 0)];
-            const picked = vscode.Uri.file(path.join(root, 'filters', 'exclude.ditaval'));
+            const picked = vscode.Uri.file(path.join(root, 'filters', 'web', 'exclude.ditaval'));
 
-            assert.strictEqual(
-                storeDitavalPath(picked, folders),
-                path.join('filters', 'exclude.ditaval')
-            );
+            assert.strictEqual(storeDitavalPath(picked, folders), 'filters/web/exclude.ditaval');
         });
 
         test('Should fall back to an absolute path when the file is under a DIFFERENT root than folder[0] (multi-root regression)', () => {

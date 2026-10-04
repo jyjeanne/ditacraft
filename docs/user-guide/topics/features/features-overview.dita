@@ -2,13 +2,21 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="features-overview">
     <title>Features Overview</title>
-    <shortdesc>DitaCraft provides a comprehensive set of features for DITA authoring in Visual Studio Code.</shortdesc>
+    <shortdesc>DITA Craft provides a comprehensive set of features for DITA authoring in Visual Studio Code.</shortdesc>
 
     <conbody>
         <section id="core-features">
             <title>Core Features</title>
-            <p>DitaCraft transforms VS Code into a full-featured DITA authoring environment with the following capabilities:</p>
+            <p>DITA Craft transforms VS Code into a full-featured DITA authoring environment with the following capabilities:</p>
             <dl>
+                <dlentry>
+                    <dt>Visual Editor</dt>
+                    <dd>Edit topics on a page that looks like your output: DTD-aware styles and menus, tables on the CALS grid, images, links, reused content, keys and link titles resolved, problems and quick fixes on the page. Every change reaches the XML as a minimal text edit. See <xref keyref="visual-editor"/>.</dd>
+                </dlentry>
+                <dlentry>
+                    <dt>Properties View</dt>
+                    <dd>The attributes of the element at the cursor, from the document type, in the visual editor and the text editor. See <xref keyref="properties-view"/>.</dd>
+                </dlentry>
                 <dlentry>
                     <dt>LSP-Powered IntelliSense</dt>
                     <dd>Context-aware auto-completion for 364+ DITA elements, attributes, and attribute values. Hover documentation, document outline, and workspace-wide symbol search (<uicontrol>Ctrl+T</uicontrol>). Powered by a built-in Language Server Protocol implementation.</dd>
@@ -27,7 +35,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>Live Preview</dt>
-                    <dd>Side-by-side HTML5 preview with bidirectional scroll sync. See your formatted output without running a full build.</dd>
+                    <dd>A live page of the topic beside its source, updated as you type — no DITA-OT, no save — with keys, reuse, link titles, DITAVAL and problems; the DITA-OT HTML5 preview is one command away. See <xref keyref="preview-feature"/>.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>DITA-OT Integration</dt>
@@ -55,7 +63,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>Activity Bar Views</dt>
-                    <dd>Dedicated DitaCraft sidebar with three tree views: DITA Explorer (map hierarchy browser), Key Space (defined/undefined/unused keys), and Diagnostics (validation issues grouped by file or severity). Includes file decoration badges for validation status and root map selector in the status bar.</dd>
+                    <dd>Dedicated DITA Craft sidebar with three tree views: DITA Explorer (map hierarchy browser), Key Space (defined/undefined/unused keys), and Diagnostics (validation issues grouped by file or severity). Includes file decoration badges for validation status and root map selector in the status bar.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>AI Features</dt>
@@ -83,7 +91,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>Authoring Productivity Tools</dt>
-                    <dd>Insert correctly structured images and tables, and preview multi-file find-and-replace or batch metadata edits with VS Code's native Refactor Preview before anything is written. See <xref keyref="authoring-productivity"/> for details.</dd>
+                    <dd>Insert correctly structured images and tables, and make multi-file find-and-replace or batch metadata edits — confirmed first, or reviewed change by change in VS Code's native Refactor Preview. See <xref keyref="authoring-productivity"/> for details.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>Visual DITAVAL Condition Editor</dt>
@@ -94,7 +102,7 @@
 
         <section id="editor-enhancements">
             <title>Editor Enhancements</title>
-            <p>DitaCraft enhances the VS Code editing experience for DITA files:</p>
+            <p>DITA Craft enhances the VS Code editing experience for DITA files:</p>
             <ul>
                 <li><b>Syntax Highlighting:</b> DITA-aware XML syntax highlighting</li>
                 <li><b>Auto-completion:</b> Context-aware element, attribute, and value suggestions via LSP</li>
@@ -104,14 +112,14 @@
                 <li><b>Folding:</b> Collapse sections, steps, and other block elements</li>
                 <li><b>Outline View:</b> Navigate document structure in the Outline panel</li>
                 <li><b>Workspace Symbols:</b> Search for elements across all open files with <uicontrol>Ctrl+T</uicontrol></li>
-                <li><b>Code Actions:</b> Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs, DITA rules violations (add <codeph>@otherrole</codeph>, remove deprecated <codeph>&lt;indextermref&gt;</codeph>, convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element, add missing <codeph>&lt;alt&gt;</codeph>) plus AI-powered fixes (<codeph>✨ Fix with DitaCraft AI</codeph>)</li>
+                <li><b>Code Actions:</b> Quick fixes for missing DOCTYPE, missing ID, missing title, empty elements, duplicate IDs, DITA rules violations (add <codeph>@otherrole</codeph>, remove deprecated <codeph>&lt;indextermref&gt;</codeph>, convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element, add missing <codeph>&lt;alt&gt;</codeph>) plus AI-powered fixes (<codeph>✨ Fix with DITA Craft AI</codeph>)</li>
                 <li><b>XML Formatting:</b> Format DITA documents with proper indentation and inline/block handling</li>
             </ul>
         </section>
 
         <section id="validation-features">
             <title>Validation Features</title>
-            <p>DitaCraft offers multiple validation options:</p>
+            <p>DITA Craft offers multiple validation options:</p>
             <ul>
                 <li><b>Real-time Validation:</b> LSP-powered diagnostics appear as you type with smart debouncing (300ms for topics, 1000ms for maps)</li>
                 <li><b>Multiple Engines:</b> Choose from built-in (default), TypesXML, or xmllint, with optional RNG (RelaxNG) validation</li>

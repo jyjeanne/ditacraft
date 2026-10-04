@@ -2,12 +2,12 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="ditaval-support">
     <title>DITAVAL Support</title>
-    <shortdesc>DitaCraft provides full editing support for DITAVAL conditional processing files.</shortdesc>
+    <shortdesc>DITA Craft provides full editing support for DITAVAL conditional processing files.</shortdesc>
 
     <conbody>
         <section id="overview">
             <title>Overview</title>
-            <p>DITAVAL files define conditional processing profiles that control which content is included, excluded, or flagged during DITA publishing. DitaCraft recognizes <filepath>.ditaval</filepath> files and provides IntelliSense to help you author them efficiently.</p>
+            <p>DITAVAL files define conditional processing profiles that control which content is included, excluded, or flagged during DITA publishing. DITA Craft recognizes <filepath>.ditaval</filepath> files and provides IntelliSense to help you author them efficiently.</p>
         </section>
 
         <section id="what-is-ditaval">
@@ -27,7 +27,7 @@
 
         <section id="intellisense">
             <title>IntelliSense for DITAVAL</title>
-            <p>DitaCraft provides the following IntelliSense features for DITAVAL files:</p>
+            <p>DITA Craft provides the following IntelliSense features for DITAVAL files:</p>
             <dl>
                 <dlentry>
                     <dt>Element Completion</dt>
@@ -80,7 +80,7 @@
 
         <section id="using-ditaval">
             <title>Using DITAVAL with DITA-OT</title>
-            <p>To apply a DITAVAL profile when publishing, pass it as a filter argument to DITA-OT. In DitaCraft, you can add it to the <codeph>ditacraft.ditaOtArgs</codeph> setting:</p>
+            <p>To apply a DITAVAL profile when publishing, pass it as a filter argument to DITA-OT. In DITA Craft, you can add it to the <codeph>ditacraft.ditaOtArgs</codeph> setting:</p>
             <codeblock>"ditacraft.ditaOtArgs": ["--filter=myprofile.ditaval"]</codeblock>
             <p>This applies the conditional processing rules from your DITAVAL file during publishing, filtering and flagging content as specified.</p>
         </section>

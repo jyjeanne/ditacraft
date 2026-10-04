@@ -239,6 +239,13 @@ suite('Configuration Manager Test Suite', () => {
                 'previewTheme',
                 'previewCustomCss',
                 'previewScrollSync',
+                'previewEngine',
+                'previewPageWidth',
+                'previewShowExcluded',
+                'previewShowMarkup',
+                'previewResolveReferences',
+                'previewUpdateDelayMs',
+                'previewResolveOnSave',
                 'showProgressNotifications',
                 'enableSnippets',
                 'logLevel',
@@ -251,6 +258,15 @@ suite('Configuration Manager Test Suite', () => {
             for (const prop of expectedProperties) {
                 assert.ok(prop in defaults, `Default config should have property: ${prop}`);
             }
+        });
+
+        test('Should default the preview to the visual engine', () => {
+            const defaults = ConfigurationManager.getInstance().getDefaults();
+            assert.strictEqual(defaults.previewEngine, 'visual');
+            assert.strictEqual(defaults.previewPageWidth, 760);
+            assert.strictEqual(defaults.previewUpdateDelayMs, 150);
+            assert.strictEqual(defaults.previewResolveReferences, true);
+            assert.strictEqual(defaults.previewShowMarkup, false);
         });
 
         test('Should not allow mutation of default values', () => {

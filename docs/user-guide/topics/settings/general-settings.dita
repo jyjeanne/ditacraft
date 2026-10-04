@@ -2,7 +2,7 @@
 <!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
 <reference id="general-settings">
     <title>General Settings</title>
-    <shortdesc>Configure DITA-OT path and basic DitaCraft settings.</shortdesc>
+    <shortdesc>Configure DITA-OT path and basic DITA Craft settings.</shortdesc>
 
     <refbody>
         <section id="dita-ot-path">
@@ -23,7 +23,7 @@
                 <li>Set the value manually in settings.json</li>
             </ol>
             <p><b>Verification:</b></p>
-            <p>DitaCraft verifies the path by checking for:</p>
+            <p>DITA Craft verifies the path by checking for:</p>
             <ul>
                 <li><filepath>bin/dita</filepath> (Unix) or <filepath>bin/dita.bat</filepath> (Windows)</li>
                 <li><filepath>lib/</filepath> directory with required JAR files</li>
@@ -32,7 +32,7 @@
 
         <section id="java-home">
             <title>Java Configuration</title>
-            <p>DITA-OT requires Java 11 or higher. DitaCraft uses the following to locate Java:</p>
+            <p>DITA-OT requires Java 11 or higher. DITA Craft uses the following to locate Java:</p>
             <ol>
                 <li><codeph>JAVA_HOME</codeph> environment variable</li>
                 <li>Java in system PATH</li>
@@ -48,7 +48,7 @@ export JAVA_HOME=/usr/lib/jvm/java-17-openjdk</codeblock>
 
         <section id="workspace-detection">
             <title>Workspace Detection</title>
-            <p>DitaCraft automatically detects workspace context:</p>
+            <p>DITA Craft automatically detects workspace context:</p>
             <ul>
                 <li><b>Single Folder:</b> Uses the folder as the workspace root</li>
                 <li><b>Multi-root Workspace:</b> Uses the folder containing the current file</li>

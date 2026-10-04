@@ -50,7 +50,7 @@ export interface ImageSizeAttrs {
 export async function insertImageCommand(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor || !isEligibleDocument(editor.document.uri)) {
-        vscode.window.showWarningMessage('DitaCraft: Open a DITA topic, map, or bookmap to insert an image.');
+        vscode.window.showWarningMessage('DITA Craft: Open a DITA topic, map, or bookmap to insert an image.');
         return;
     }
 
@@ -88,7 +88,7 @@ export async function insertImageCommand(): Promise<void> {
     const snippet = buildImageSnippet(href, caption, alt, size);
     const inserted = await insertAtCursor(editor, snippet);
     if (!inserted) {
-        vscode.window.showErrorMessage('DitaCraft: Failed to insert image markup.');
+        vscode.window.showErrorMessage('DITA Craft: Failed to insert image markup.');
         return;
     }
     logger.info('Image inserted', { href, wrapped: caption.length > 0, size });
@@ -154,7 +154,7 @@ async function resolveImageHref(picked: vscode.Uri, documentDir: string): Promis
     } catch (error) {
         logger.error('Failed to copy image into workspace', error);
         vscode.window.showErrorMessage(
-            `DitaCraft: Failed to copy the image into the workspace: ${error instanceof Error ? error.message : 'Unknown error'}`
+            `DITA Craft: Failed to copy the image into the workspace: ${error instanceof Error ? error.message : 'Unknown error'}`
         );
         return undefined;
     }
@@ -164,7 +164,7 @@ async function resolveImageHref(picked: vscode.Uri, documentDir: string): Promis
 function reportUnresolvableHref(href: string | undefined): string | undefined {
     if (href === undefined) {
         vscode.window.showErrorMessage(
-            'DitaCraft: Cannot compute a relative path to the selected image (it is not on the same drive as this document). Move or copy the image under the workspace first.'
+            'DITA Craft: Cannot compute a relative path to the selected image (it is not on the same drive as this document). Move or copy the image under the workspace first.'
         );
     }
     return href;

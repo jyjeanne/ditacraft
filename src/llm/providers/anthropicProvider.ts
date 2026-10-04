@@ -7,7 +7,8 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import type { RawMessageStreamEvent } from '@anthropic-ai/sdk/resources/messages/messages';
-import { ILLMProvider, LLMRequest, LLMResponse } from '../types';
+import { CHECK_TIMEOUT_MS, ConnectionCheck, DEFAULT_ANTHROPIC_MODEL, ILLMProvider, LLMRequest, LLMResponse, ProviderOptions } from '../types';
+import { ApiFailure, connectionReason, describeApiFailure } from './connectionCheck';
 
 export class AnthropicLLMProvider implements ILLMProvider {
     readonly id = 'anthropic';
@@ -21,16 +22,31 @@ export class AnthropicLLMProvider implements ILLMProvider {
     private readonly _model: string;
     private readonly _apiKey: string;
     private readonly _client: Anthropic;
+    private readonly _checkTimeoutMs: number;
 
-    constructor(apiKey: string, model = 'claude-3-5-sonnet-20241022') {
+    constructor(apiKey: string, model = DEFAULT_ANTHROPIC_MODEL, options: ProviderOptions = {}) {
         this._model = model;
         this._apiKey = apiKey;
-        this._client = new Anthropic({ apiKey });
+        this._client = new Anthropic({ apiKey, baseURL: options.baseURL });
+        this._checkTimeoutMs = options.checkTimeoutMs ?? CHECK_TIMEOUT_MS;
     }
 
     async isAvailable(): Promise<boolean> {
         // Validate key format without network call: Anthropic keys start with 'sk-ant-'
         return this._apiKey.startsWith('sk-ant-') && this._apiKey.length > 30;
+    }
+
+    /** Looks the model up with the key (GET /v1/models/{model}): checks both, generates nothing. */
+    async checkConnection(signal: AbortSignal): Promise<ConnectionCheck> {
+        try {
+            const info = await this._client.models.retrieve(this._model, {}, {
+                signal, timeout: this._checkTimeoutMs, maxRetries: 0,
+            });
+            const name = info.display_name && info.display_name !== info.id ? `${info.display_name} (${info.id})` : info.id;
+            return { ok: true, detail: `Connected to Anthropic: the key works and model ${name} is available.` };
+        } catch (error: unknown) {
+            return { ok: false, detail: describeApiFailure(anthropicFailure(error), 'Anthropic', this._model, this._checkTimeoutMs) };
+        }
     }
 
     async complete(request: LLMRequest): Promise<LLMResponse> {
@@ -81,4 +97,13 @@ export class AnthropicLLMProvider implements ILLMProvider {
     estimateTokenCount(text: string): number {
         return Math.ceil(text.length / 4);
     }
+}
+
+function anthropicFailure(error: unknown): ApiFailure {
+    // Subclasses first: a timeout is a connection error, which is an API error without a status.
+    if (error instanceof Anthropic.APIUserAbortError) { return { kind: 'abort', message: error.message }; }
+    if (error instanceof Anthropic.APIConnectionTimeoutError) { return { kind: 'timeout', message: error.message }; }
+    if (error instanceof Anthropic.APIConnectionError) { return { kind: 'connection', message: connectionReason(error) }; }
+    if (error instanceof Anthropic.APIError) { return { status: error.status, message: error.message }; }
+    return { message: error instanceof Error ? error.message : String(error) };
 }

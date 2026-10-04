@@ -79,7 +79,7 @@
                 <li>Run this command and select the DITA-OT directory</li>
             </ol>
             <p><b>Verification:</b></p>
-            <p>After configuration, DitaCraft verifies the installation by checking for:</p>
+            <p>After configuration, DITA Craft verifies the installation by checking for:</p>
             <ul>
                 <li><filepath>bin/dita</filepath> or <filepath>bin/dita.bat</filepath> executable</li>
                 <li><filepath>lib/</filepath> directory with required JAR files</li>

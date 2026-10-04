@@ -2,7 +2,7 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="publishing-workflow">
     <title>Publishing Workflow Enhancements</title>
-    <shortdesc>Save a publish configuration once and reuse it, or let DitaCraft republish
+    <shortdesc>Save a publish configuration once and reuse it, or let DITA Craft republish
         automatically every time you save.</shortdesc>
 
     <conbody>
@@ -48,13 +48,13 @@
             </simpletable>
             <p>Profiles are stored in the <codeph>ditacraft.publishingProfiles</codeph> workspace
                 setting — commit <filepath>.vscode/settings.json</filepath> to share the same
-                profiles with your whole team. DitaCraft remembers the last-used profile and
+                profiles with your whole team. DITA Craft remembers the last-used profile and
                 pre-selects it the next time you publish.</p>
         </section>
 
         <section id="watch-mode">
             <title>Watch Mode</title>
-            <p>Run <uicontrol>DITA: Start Watch Mode</uicontrol> to have DitaCraft automatically
+            <p>Run <uicontrol>DITA: Start Watch Mode</uicontrol> to have DITA Craft automatically
                 re-run a full publish every time a watched DITA file changes — no more manually
                 re-triggering <uicontrol>DITA: Publish</uicontrol> after every edit while reviewing
                 formatted output. Stop it with <uicontrol>DITA: Stop Watch Mode</uicontrol>.</p>

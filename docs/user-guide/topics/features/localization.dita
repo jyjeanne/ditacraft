@@ -2,12 +2,12 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="localization">
     <title>Localization (i18n)</title>
-    <shortdesc>DitaCraft supports localized diagnostic messages, currently available in English and French.</shortdesc>
+    <shortdesc>DITA Craft supports localized diagnostic messages, currently available in English and French.</shortdesc>
 
     <conbody>
         <section id="overview">
             <title>Overview</title>
-            <p>Starting with version 0.6.2, DitaCraft localizes diagnostic messages produced by the DITA Rules Engine, cross-reference validation, profiling validation, and structural validation. The language is detected automatically from your VS Code display language setting.</p>
+            <p>Starting with version 0.6.2, DITA Craft localizes diagnostic messages produced by the DITA Rules Engine, cross-reference validation, profiling validation, and structural validation. The language is detected automatically from your VS Code display language setting.</p>
         </section>
 
         <section id="supported-languages">
@@ -56,14 +56,14 @@
 
         <section id="changing-language">
             <title>Changing the Language</title>
-            <p>DitaCraft follows your VS Code display language. To change it:</p>
+            <p>DITA Craft follows your VS Code display language. To change it:</p>
             <ol>
                 <li>Open the Command Palette (<uicontrol>Ctrl+Shift+P</uicontrol>)</li>
                 <li>Type <userinput>Configure Display Language</userinput></li>
                 <li>Select your preferred language (e.g., <codeph>fr</codeph> for French)</li>
                 <li>Restart VS Code</li>
             </ol>
-            <p>DitaCraft diagnostics will automatically appear in the selected language on the next server start.</p>
+            <p>DITA Craft diagnostics will automatically appear in the selected language on the next server start.</p>
         </section>
     </conbody>
 </concept>

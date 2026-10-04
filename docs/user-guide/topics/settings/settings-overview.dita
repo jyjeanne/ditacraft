@@ -2,12 +2,12 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="settings-overview">
     <title>Settings Overview</title>
-    <shortdesc>Configure DitaCraft to match your workflow and preferences.</shortdesc>
+    <shortdesc>Configure DITA Craft to match your workflow and preferences.</shortdesc>
 
     <conbody>
         <section id="accessing-settings">
             <title>Accessing Settings</title>
-            <p>DitaCraft settings can be accessed in several ways:</p>
+            <p>DITA Craft settings can be accessed in several ways:</p>
             <ol>
                 <li>Open VS Code Settings (<uicontrol>Ctrl+,</uicontrol> or <uicontrol>Cmd+,</uicontrol>)</li>
                 <li>Search for <userinput>ditacraft</userinput></li>
@@ -37,7 +37,7 @@
 
         <section id="settings-categories">
             <title>Settings Categories</title>
-            <p>DitaCraft settings are organized into these categories:</p>
+            <p>DITA Craft settings are organized into these categories:</p>
             <simpletable>
                 <sthead>
                     <stentry>Category</stentry>
@@ -57,7 +57,7 @@
                 </strow>
                 <strow>
                     <stentry>Preview</stentry>
-                    <stentry>Live preview behavior and styling</stentry>
+                    <stentry>Visual preview, DITA-OT preview and visual editor: engine, page, theme, styles, sync, pasted images</stentry>
                 </strow>
             </simpletable>
         </section>

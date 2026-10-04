@@ -38,16 +38,16 @@ export async function setupCSpellCommand(extensionPath: string): Promise<void> {
             const choice = await vscode.window.showInformationMessage(
                 '.cspellrc.json already exists in your workspace.',
                 'Keep Current',
-                'Replace with DitaCraft Config',
+                'Replace with DITA Craft Config',
                 'Open Existing File'
             );
 
-            if (choice === 'Replace with DitaCraft Config') {
+            if (choice === 'Replace with DITA Craft Config') {
                 // Read template and copy (async)
                 const templateContent = await fs.readFile(templatePath, 'utf-8');
                 await fs.writeFile(cspellConfigPath, templateContent);
                 vscode.window.showInformationMessage(
-                    'cSpell configuration updated with DitaCraft DITA vocabulary.'
+                    'cSpell configuration updated with the DITA vocabulary of DITA Craft.'
                 );
             } else if (choice === 'Open Existing File') {
                 const document = await vscode.workspace.openTextDocument(cspellConfigPath);

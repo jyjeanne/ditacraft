@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DITA Craft User Guide — PDF customization catalog. DITA-OT reads the customization's
+  stylesheets only through this file (passed as -Dcustomization.dir=cfg): without it,
+  fo/attrs/custom.xsl and fo/xsl/custom.xsl are ignored.
+-->
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
+  <!-- Attribute sets and variables: A4 page, fonts, titles, tables, code -->
+  <uri name="cfg:fo/attrs/custom.xsl" uri="fo/attrs/custom.xsl"/>
+  <!-- Templates: the front cover, table row colors, preface/notices titles -->
+  <uri name="cfg:fo/xsl/custom.xsl" uri="fo/xsl/custom.xsl"/>
+</catalog>

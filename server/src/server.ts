@@ -473,7 +473,8 @@ connection.onDocumentRangeFormatting((params: DocumentRangeFormattingParams) => 
 connection.onCodeAction((params: CodeActionParams) => handleCodeActions(params, documents));
 
 // Prepare Rename handler
-connection.onPrepareRename((params: PrepareRenameParams) => handlePrepareRename(params, documents));
+connection.onPrepareRename((params: PrepareRenameParams) =>
+    handlePrepareRename(params, documents, keySpaceService, keySpaceService?.getWorkspaceFolders()));
 
 // Rename handler (cross-file via workspace folders)
 connection.onRenameRequest((params: RenameParams) => {

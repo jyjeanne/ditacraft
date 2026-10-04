@@ -96,8 +96,8 @@ function findMatchingCloseTag(content: string, fromIndex: number, tagName: strin
 }
 
 /**
- * Find every element in `content` carrying at least one of `profilingAttrs`,
- * and compute each one's full source range.
+ * Find every element in `content` carrying at least one of `profilingAttrs`
+ * (names in any case), and compute each one's full source range.
  */
 export function findProfiledElements(content: string, profilingAttrs: readonly string[]): ProfiledElement[] {
     const results: ProfiledElement[] = [];
@@ -119,7 +119,8 @@ export function findProfiledElements(content: string, profilingAttrs: readonly s
         }
 
         const attrs = parseTagAttributes(attrsText);
-        const hasProfilingAttr = profilingAttrs.some(attr => attrs[attr] !== undefined);
+        // attrs' names are lower-cased: `deliveryTarget` is looked up as `deliverytarget`.
+        const hasProfilingAttr = profilingAttrs.some(attr => attrs[attr.toLowerCase()] !== undefined);
         if (!hasProfilingAttr) {
             continue;
         }

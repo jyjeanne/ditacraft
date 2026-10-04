@@ -162,7 +162,7 @@ export class DitavalConditionEditorPanel {
             await vscode.workspace.applyEdit(edit);
         } catch (error) {
             logger.error('Failed to write DITAVAL condition edit', error);
-            vscode.window.showErrorMessage('DitaCraft: Could not save DITAVAL changes.');
+            vscode.window.showErrorMessage('DITA Craft: Could not save DITAVAL changes.');
         }
     }
 
@@ -292,18 +292,35 @@ export class DitavalConditionEditorPanel {
            regardless of the dropdown selection. Toggling visibility goes
            through this nonce-covered stylesheet class instead. */
         .hidden { display: none; }
+        /* Read by screen readers only (the change a chip or Add Condition just made). */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+        :focus-visible {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: 2px;
+        }
         .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        /* Chips are buttons (Tab, Enter/Space), drawn as chips rather than as VS Code buttons. */
         .chip {
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 3px 10px;
             cursor: pointer;
+            font: inherit;
             font-size: 0.85em;
+            color: var(--fg);
             background: var(--hover);
             display: inline-flex;
             align-items: center;
             gap: 4px;
         }
+        .chip:hover { background: var(--vscode-toolbar-hoverBackground, var(--hover)); }
         .chip[data-action="exclude"] { border-color: var(--exclude-bg); color: var(--exclude-bg); }
         .chip[data-action="include"] { border-color: var(--include-bg); color: var(--include-bg); }
         .chip[data-action="flag"] { border-color: var(--flag-bg); color: var(--flag-bg); }
@@ -332,43 +349,62 @@ export class DitavalConditionEditorPanel {
     <div class="warning">Saving from this editor regenerates the file's &lt;prop&gt; rules from the toggle state below. Other content (comments, &lt;style-conflict&gt;, etc.) is not preserved.</div>
     ${this._loadError ? `<div class="warning">Could not read ${this._esc(fileName)}: ${this._esc(this._loadError)}</div>` : ''}
     <div class="toolbar">
-        <button id="refresh-btn">Refresh</button>
+        <button type="button" id="refresh-btn">Refresh</button>
     </div>
     <div id="groups">
-        ${state.length > 0 ? state.map(g => this._renderGroup(g)).join('') : '<p class="empty">No conditions yet — add one below.</p>'}
+        ${state.length > 0 ? state.map((g, i) => this._renderGroup(g, i)).join('') : '<p class="empty">No conditions yet — add one below.</p>'}
     </div>
-    <div class="add-form">
-        <select id="add-attr">
+    <div class="add-form" role="group" aria-label="Add a condition">
+        <select id="add-attr" aria-label="Attribute">
             ${PROFILING_ATTRIBUTES.map(a => `<option value="${this._esc(a)}">${this._esc(a)}</option>`).join('')}
             <option value="">Other…</option>
         </select>
-        <input id="add-attr-custom" type="text" placeholder="attribute name" class="hidden">
-        <input id="add-val" type="text" placeholder="value">
-        <button id="add-btn">Add Condition</button>
+        <input id="add-attr-custom" type="text" placeholder="attribute name" aria-label="Attribute name" class="hidden">
+        <input id="add-val" type="text" placeholder="value" aria-label="Value">
+        <button type="button" id="add-btn">Add Condition</button>
     </div>
+    <div id="status" class="sr-only" role="status" aria-live="polite"></div>
 
     <script nonce="${nonce}">
         const vscode = acquireVsCodeApi();
+        // Every change re-renders the page: what to focus and announce then is kept in the
+        // webview state (one-shot), with the attribute picked in the add form.
+        const remember = (patch) => vscode.setState({ ...(vscode.getState() || {}), ...patch });
 
         document.getElementById('refresh-btn').addEventListener('click', () => {
+            remember({ focus: 'refresh-btn' });
             vscode.postMessage({ command: 'refresh' });
         });
 
         const attrSelect = document.getElementById('add-attr');
         const attrCustom = document.getElementById('add-attr-custom');
+        const valInput = document.getElementById('add-val');
+        const addBtn = document.getElementById('add-btn');
         attrSelect.addEventListener('change', () => {
             attrCustom.classList.toggle('hidden', attrSelect.value !== '');
         });
 
-        document.getElementById('add-btn').addEventListener('click', () => {
+        addBtn.addEventListener('click', () => {
             const attr = attrSelect.value === '' ? attrCustom.value.trim() : attrSelect.value;
-            const val = document.getElementById('add-val').value.trim();
+            const val = valInput.value.trim();
             if (!attr || !val) return;
+            remember({ focus: 'add-val', addAttr: attrSelect.value, addCustom: attrCustom.value, announce: 'Added: ' + attr + ' = ' + val + ', exclude.' });
             vscode.postMessage({ command: 'addCondition', attr, val });
         });
+        for (const input of [attrCustom, valInput]) {
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addBtn.click();
+                }
+            });
+        }
 
-        document.querySelectorAll('.chip').forEach(chip => {
+        const chipKey = (chip) => chip.getAttribute('data-attr') + '\\u0000' + chip.getAttribute('data-val');
+        const chips = [...document.querySelectorAll('.chip')];
+        chips.forEach(chip => {
             chip.addEventListener('click', () => {
+                remember({ focus: 'chip', chip: chipKey(chip) });
                 vscode.postMessage({
                     command: 'toggleCondition',
                     attr: chip.getAttribute('data-attr'),
@@ -377,12 +413,30 @@ export class DitavalConditionEditorPanel {
                 });
             });
         });
+
+        // After a re-render: the add form's attribute, the focus, the announcement.
+        const saved = vscode.getState() || {};
+        if (saved.addAttr !== undefined) {
+            attrSelect.value = saved.addAttr;
+            attrCustom.value = saved.addCustom || '';
+            attrCustom.classList.toggle('hidden', attrSelect.value !== '');
+        }
+        const target = saved.focus === 'chip' ? chips.find(chip => chipKey(chip) === saved.chip)
+            : saved.focus ? document.getElementById(saved.focus) : undefined;
+        if (target) {
+            target.focus();
+        }
+        const announcement = saved.announce || (saved.focus === 'chip' && target ? target.getAttribute('data-state') : '');
+        if (announcement) {
+            setTimeout(() => { document.getElementById('status').textContent = announcement; }, 100);
+        }
+        remember({ focus: undefined, chip: undefined, announce: undefined });
     </script>
 </body>
 </html>`;
     }
 
-    private _renderGroup(group: ConditionAttributeState): string {
+    private _renderGroup(group: ConditionAttributeState, index: number): string {
         const chips = group.values.map(v => this._renderChip(group.attribute, v, group.defaultAction)).join('');
         // `/code-review` fix: a value-less "default for this attribute"
         // rule (e.g. `<prop action="exclude" att="platform"/>`) used to be
@@ -394,8 +448,8 @@ export class DitavalConditionEditorPanel {
             ? `<span class="default-badge" data-action="${this._esc(group.defaultAction)}">default: ${this._esc(group.defaultAction)}</span>`
             : '';
         return `
-            <div class="attribute-group">
-                <div class="attribute-name">${this._esc(group.attribute)} ${defaultBadge}</div>
+            <div class="attribute-group" role="group" aria-labelledby="group-${index}">
+                <div class="attribute-name" id="group-${index}">${this._esc(group.attribute)} ${defaultBadge}</div>
                 <div class="chips">${chips}</div>
             </div>
         `;
@@ -415,7 +469,13 @@ export class DitavalConditionEditorPanel {
                 : value.value;
         const hier = value.hierarchyPath ? `<span class="hier">${this._esc(value.hierarchyPath)}</span>` : '';
         const actionAttr = value.action ? ` data-action="${this._esc(value.action)}"` : '';
-        return `<span class="chip" data-attr="${this._esc(attribute)}" data-val="${this._esc(value.value)}" data-next-action="${this._esc(nextAction)}"${actionAttr}>${this._esc(label)}${hier}</span>`;
+        // A button (Tab, Enter/Space) that says what it is and what pressing it does.
+        const current = value.action ?? (effectiveDefault ? `no rule (default: ${effectiveDefault})` : 'no rule');
+        const next = nextAction === 'none' ? 'remove its rule' : `set ${nextAction}`;
+        const name = `${attribute} = ${value.value === '' ? '""' : value.value}${value.hierarchyPath ? ` (${value.hierarchyPath})` : ''}`;
+        const stateText = `${name}: ${current}.`;
+        return `<button type="button" class="chip" data-attr="${this._esc(attribute)}" data-val="${this._esc(value.value)}" data-next-action="${this._esc(nextAction)}"${actionAttr}`
+            + ` data-state="${this._esc(stateText)}" aria-label="${this._esc(`${stateText} Press to ${next}.`)}" title="${this._esc(`Click to ${next}`)}">${this._esc(label)}${hier}</button>`;
     }
 
     private _esc(text: string): string {

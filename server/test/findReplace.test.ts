@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { URI } from 'vscode-uri';
-import { handleComputeFindReplaceEdits, buildSearchPattern, expandReplacement } from '../src/features/findReplace';
+import { handleComputeFindReplaceEdits, buildSearchPattern, expandReplacement, searchableSpans } from '../src/features/findReplace';
 import { createDoc, createDocs } from './helper';
 
 suite('buildSearchPattern', () => {
@@ -143,7 +143,7 @@ suite('handleComputeFindReplaceEdits', () => {
         const mapPath = path.join(tmpDir, 'b.ditamap');
         const txtPath = path.join(tmpDir, 'c.txt');
         fs.writeFileSync(ditaPath, '<topic id="a"><title>needle</title></topic>');
-        fs.writeFileSync(mapPath, '<map><topicref navtitle="needle"/></map>');
+        fs.writeFileSync(mapPath, '<map><title>needle</title><topicref href="a.dita"/></map>');
         fs.writeFileSync(txtPath, 'needle');
 
         const result = await handleComputeFindReplaceEdits(
@@ -384,5 +384,65 @@ suite('handleComputeFindReplaceEdits', () => {
         );
 
         assert.deepStrictEqual(result, { edit: null, matchCount: 0, fileCount: 0 });
+    });
+
+    /** The matched source texts of a search over one file's content. */
+    async function matched(content: string, params: Partial<typeof baseParams> & { includeAttributeValues?: boolean }): Promise<string[]> {
+        const filePath = path.join(tmpDir, 'topic.dita');
+        fs.writeFileSync(filePath, content);
+        const result = await handleComputeFindReplaceEdits({ ...baseParams, replacement: 'X', ...params }, createDocs(), [tmpDir]);
+        const doc = createDoc(content, URI.file(filePath).toString());
+        return (result.edit?.changes?.[URI.file(filePath).toString()] ?? []).map(e => content.slice(doc.offsetAt(e.range.start), doc.offsetAt(e.range.end)));
+    }
+
+    test('never matches tag names, attribute names or (by default) attribute values (regression: "title" rewrote <title> tags)', async () => {
+        const content = '<topic id="title"><title>title</title><p outputclass="title">a title</p></topic>';
+        const filePath = path.join(tmpDir, 'topic.dita');
+        fs.writeFileSync(filePath, content);
+        const result = await handleComputeFindReplaceEdits({ ...baseParams, query: 'title', replacement: 'heading' }, createDocs(), [tmpDir]);
+        const edits = result.edit!.changes![URI.file(filePath).toString()];
+        const doc = createDoc(content, URI.file(filePath).toString());
+        const offsets = edits.map(e => doc.offsetAt(e.range.start));
+        assert.deepStrictEqual(offsets, [content.indexOf('>title<') + 1, content.indexOf('a title') + 2], 'only the two text occurrences');
+    });
+
+    test('searches attribute values too with includeAttributeValues, never names', async () => {
+        const content = '<topic id="title"><title>title</title><p outputclass="title">a title</p></topic>';
+        assert.strictEqual((await matched(content, { query: 'title', includeAttributeValues: true })).length, 4, 'id, the title text, outputclass, the paragraph text');
+        assert.deepStrictEqual(await matched('<map><topicref navtitle="needle" href=\'needle.dita\'/></map>', { query: 'needle', includeAttributeValues: true }), ['needle', 'needle']);
+        assert.deepStrictEqual(await matched('<map><topicref navtitle="needle"/></map>', { query: 'needle' }), []);
+    });
+
+    test('a match never spans markup', async () => {
+        assert.deepStrictEqual(await matched('<p>foo <b>bar</b></p>', { query: 'foo bar' }), []);
+        assert.deepStrictEqual(await matched('<p>foo <b>bar</b> baz</p>', { query: 'foo.*baz', useRegex: true }), []);
+        assert.deepStrictEqual(await matched('<p>foo <b>bar</b> baz</p>', { query: 'ba.', useRegex: true }), ['bar', 'baz']);
+    });
+
+    test('never cuts an entity or character reference, but may contain a whole one', async () => {
+        const content = '<p>AT&amp;T and &#169; &lt;tag&gt;</p>';
+        assert.deepStrictEqual(await matched(content, { query: 'amp' }), []);
+        assert.deepStrictEqual(await matched(content, { query: '&' }), []);
+        assert.deepStrictEqual(await matched(content, { query: 'lt' }), []);
+        assert.deepStrictEqual(await matched(content, { query: '169' }), []);
+        assert.deepStrictEqual(await matched(content, { query: 'AT&amp;T' }), ['AT&amp;T']);
+        assert.deepStrictEqual(await matched(content, { query: 'tag' }), ['tag']);
+    });
+
+    test('skips the XML declaration, the DOCTYPE (internal subset included) and processing instructions', async () => {
+        const content = '<?xml version="1.0"?>\n<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd" [ <!ENTITY e "topic"> ]>\n'
+            + '<topic id="t"><?pi topic?><title>topic</title></topic>';
+        assert.deepStrictEqual(await matched(content, { query: 'topic', includeAttributeValues: true }), ['topic']);
+    });
+});
+
+suite('searchableSpans', () => {
+    test('text runs only, or attribute values too', () => {
+        const content = '<p a="x">one<!-- c --><b c=\'y\'>two</b><![CDATA[z]]>three</p>';
+        const texts = (source: string, withValues: boolean) => searchableSpans(source, withValues).map(([s, e]) => source.slice(s, e));
+        assert.deepStrictEqual(texts(content, false), ['one', 'two', 'three']);
+        assert.deepStrictEqual(texts(content, true), ['x', 'one', 'y', 'two', 'three']);
+        assert.deepStrictEqual(searchableSpans('', true), []);
+        assert.deepStrictEqual(texts('<p a="unterminated', true), ['unterminated']);
     });
 });

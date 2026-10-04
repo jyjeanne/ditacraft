@@ -44,6 +44,23 @@ export interface PublishProgress {
 }
 
 /**
+ * The transtype names in the output of `dita transtypes`, sorted: one per
+ * line, bare (DITA-OT 4.x prints `html5`, `pdf2`, `markdown_github`,
+ * `html5-bootstrap`…) or followed by ` - description`. Other lines (Java or
+ * plugin warnings, which contain spaces) are skipped.
+ */
+export function parseTranstypes(stdout: string): string[] {
+    const names = new Set<string>();
+    for (const line of stdout.split(/\r?\n/)) {
+        const match = line.trim().match(/^([A-Za-z0-9][\w.-]*)(?:\s+-\s.*)?$/);
+        if (match) {
+            names.add(match[1]);
+        }
+    }
+    return [...names].sort();
+}
+
+/**
  * Adapt PublishProgress callbacks to a VS Code progress reporter.
  * PublishProgress.percentage is absolute (0/10/30/50/80/100 per stage and can
  * repeat), while vscode Progress.report expects cumulative deltas — this
@@ -334,24 +351,14 @@ export class DitaOtWrapper {
                 stdout = result.stdout;
             }
 
-            // Parse the output to extract transtype names
-            const transtypes: string[] = [];
-            const lines = stdout.split('\n');
-
-            for (const line of lines) {
-                // Look for lines that start with transtype names (typically indented)
-                const match = line.trim().match(/^(\w+)\s+-/);
-                if (match) {
-                    transtypes.push(match[1]);
-                }
-            }
+            const transtypes = parseTranstypes(stdout);
 
             // Return default list if parsing failed
             if (transtypes.length === 0) {
                 return ['html5', 'pdf', 'xhtml', 'epub', 'htmlhelp', 'markdown'];
             }
 
-            return transtypes.sort();
+            return transtypes;
         } catch (_error) {
             // Return default transtypes if command fails
             return ['html5', 'pdf', 'xhtml', 'epub', 'htmlhelp', 'markdown'];

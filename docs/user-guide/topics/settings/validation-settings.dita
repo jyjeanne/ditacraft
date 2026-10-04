@@ -53,7 +53,7 @@
             <title>ditacraft.autoValidate</title>
             <p><b>Type:</b> Boolean</p>
             <p><b>Default:</b> <codeph>true</codeph></p>
-            <p>When enabled, DitaCraft validates DITA files automatically:</p>
+            <p>When enabled, DITA Craft validates DITA files automatically:</p>
             <ul>
                 <li>When a file is opened</li>
                 <li>When a file is saved</li>
@@ -79,7 +79,7 @@
             <title>ditacraft.ditaRulesEnabled</title>
             <p><b>Type:</b> Boolean</p>
             <p><b>Default:</b> <codeph>true</codeph></p>
-            <p>Enable or disable the DITA Rules Engine. When enabled, DitaCraft validates your content against 43 Schematron-equivalent rules covering specification compliance, best practices, and accessibility (including 10 DITA 2.0-specific rules). Set to <codeph>false</codeph> to disable all DITA rules validation.</p>
+            <p>Enable or disable the DITA Rules Engine. When enabled, DITA Craft validates your content against 43 Schematron-equivalent rules covering specification compliance, best practices, and accessibility (including 10 DITA 2.0-specific rules). Set to <codeph>false</codeph> to disable all DITA rules validation.</p>
         </section>
 
         <section id="dita-rules-categories">
@@ -103,14 +103,14 @@
             <title>ditacraft.crossRefValidationEnabled</title>
             <p><b>Type:</b> Boolean</p>
             <p><b>Default:</b> <codeph>true</codeph></p>
-            <p>Enable or disable cross-reference validation. When enabled, DitaCraft checks that href, conref, keyref, and conkeyref attributes point to valid targets. Set to <codeph>false</codeph> if you are working with incomplete content where references are expected to be unresolved.</p>
+            <p>Enable or disable cross-reference validation. When enabled, DITA Craft checks that href, conref, keyref, and conkeyref attributes point to valid targets. Set to <codeph>false</codeph> if you are working with incomplete content where references are expected to be unresolved.</p>
         </section>
 
         <section id="subject-scheme-validation-enabled">
             <title>ditacraft.subjectSchemeValidationEnabled</title>
             <p><b>Type:</b> Boolean</p>
             <p><b>Default:</b> <codeph>true</codeph></p>
-            <p>Enable or disable subject scheme validation. When enabled and a subject scheme map is present in the workspace, DitaCraft validates that profiling attribute values (audience, platform, product, etc.) match the controlled vocabulary defined by the scheme. Set to <codeph>false</codeph> to allow any profiling attribute values.</p>
+            <p>Enable or disable subject scheme validation. When enabled and a subject scheme map is present in the workspace, DITA Craft validates that profiling attribute values (audience, platform, product, etc.) match the controlled vocabulary defined by the scheme. Set to <codeph>false</codeph> to allow any profiling attribute values.</p>
         </section>
 
         <section id="dita-version">
@@ -118,7 +118,7 @@
             <p><b>Type:</b> String (enum)</p>
             <p><b>Default:</b> <codeph>"auto"</codeph></p>
             <p><b>Options:</b> <codeph>"auto"</codeph>, <codeph>"1.0"</codeph>, <codeph>"1.1"</codeph>, <codeph>"1.2"</codeph>, <codeph>"1.3"</codeph>, <codeph>"2.0"</codeph></p>
-            <p>Override the auto-detected DITA version for validation. When set to <codeph>"auto"</codeph> (default), DitaCraft detects the version from <codeph>@DITAArchVersion</codeph> or DOCTYPE. Set an explicit version to force version-specific rules (e.g., <codeph>"2.0"</codeph> to enable DITA 2.0 rules for all documents).</p>
+            <p>Override the auto-detected DITA version for validation. When set to <codeph>"auto"</codeph> (default), DITA Craft detects the version from <codeph>@DITAArchVersion</codeph> or DOCTYPE. Set an explicit version to force version-specific rules (e.g., <codeph>"2.0"</codeph> to enable DITA 2.0 rules for all documents).</p>
         </section>
 
         <section id="schema-format">
@@ -146,7 +146,7 @@
 
         <section id="rate-limiting">
             <title>Rate Limiting</title>
-            <p>DitaCraft includes built-in rate limiting to prevent performance issues:</p>
+            <p>DITA Craft includes built-in rate limiting to prevent performance issues:</p>
             <ul>
                 <li><b>Limit:</b> 10 validation requests per second per file</li>
                 <li><b>Behavior:</b> Excess requests are silently skipped during auto-validation</li>

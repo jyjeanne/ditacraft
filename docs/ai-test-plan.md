@@ -224,25 +224,27 @@ Create a folder (e.g. `ai-test-workspace/`) with the following files.
 
 ### Steps
 
-1. Open the Command Palette (`Ctrl+Shift+P`) and run **DitaCraft: Configure AI**.
-2. Verify the webview panel opens titled **DitaCraft AI Settings**.
+1. Open the Command Palette (`Ctrl+Shift+P`) and run **DITA Craft: Configure AI Settings**.
+2. Verify the webview panel opens titled **DITA Craft AI Settings** (running the command again shows the same panel).
 
 ### Expected Results
 
-- [ ] Panel opens without errors in the developer console (`Help → Toggle Developer Tools → Console`).
-- [ ] **Provider Status** section shows:
+- [ ] Panel opens without errors in the developer console (`Help → Toggle Developer Tools → Console`), in particular no Content Security Policy violation.
+- [ ] The provider table lists all four providers, each with a status and its reason:
   - `GitHub Copilot` — ✅ Available (since Copilot is installed)
-  - `Anthropic (Claude)` — ⚠ Not configured (no key set)
-  - `OpenAI (GPT-4o)` — ⚠ Not configured
-  - `Ollama` — Status depends on whether Ollama is running locally
-- [ ] The panel contains no XSS vulnerabilities: provider names are HTML-escaped (check via DevTools → Elements).
-- [ ] Entering an Anthropic key (`sk-ant-test123...`) and clicking **Save** shows a ✅ confirmation message.
-- [ ] Refreshing the panel shows the key is still stored (persisted via VS Code SecretStorage).
-- [ ] Setting **AI Mode** to `copilot-only` and saving dismisses the panel; reopening shows `copilot-only` selected.
+  - `Anthropic Claude` — ⚠️ Not configured (no API key saved), with a key field
+  - `OpenAI` — ⚠️ Not configured, with a key field
+  - `Ollama (local)` — ✅ Available or ❌ Unavailable (not reachable at its server), no key field, a **Server Settings** button
+- [ ] Provider details are rendered as text, never as HTML (check via DevTools → Elements).
+- [ ] Entering an Anthropic key (`sk-ant-` followed by 30+ characters) and clicking **Save** shows "Anthropic Claude key saved.", the row turns ✅ Available with a **Delete** button, without a restart.
+- [ ] **Refresh** shows "Providers checked."; the key is still stored (persisted via VS Code SecretStorage).
+- [ ] **Test** is a real connection check (no tokens used): with a made-up Anthropic key it reports "Anthropic refused the API key (401)" in the row and the provider stops being the active one; with a valid key it reports the model is available and makes it the active provider. With Ollama stopped, its **Test** reports the connection was refused; with a model not pulled, `ollama pull <model>`. **Test** is disabled on a provider without a key.
+- [ ] Setting **AI mode** to `copilot-only` writes `ditacraft.ai.mode` and marks Anthropic, OpenAI and Ollama "Not used"; reopening shows `copilot-only` selected.
+- [ ] **Delete** removes the key; the row is back to ⚠️ Not configured.
 
 ### Cleanup
 
-- Reset mode to `auto`.
+- Reset mode to `auto`; delete the test key.
 
 ---
 

@@ -30,6 +30,14 @@ export class SecretManager {
         await this.secrets.delete(`${KEY_PREFIX}.${provider}.apiKey`);
     }
 
+    /** Where the key `getApiKey` returns comes from: SecretStorage, the environment variable, or nowhere. */
+    async getApiKeySource(provider: string): Promise<'stored' | 'env' | undefined> {
+        if (await this.secrets.get(`${KEY_PREFIX}.${provider}.apiKey`)) {
+            return 'stored';
+        }
+        return process.env[`${provider.toUpperCase()}_API_KEY`] ? 'env' : undefined;
+    }
+
     /** Returns true if a key is configured (stored or env var). */
     async hasApiKey(provider: string): Promise<boolean> {
         return (await this.getApiKey(provider)) !== undefined;

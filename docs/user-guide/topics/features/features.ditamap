@@ -9,6 +9,63 @@
         </topicmeta>
     </topicref>
 
+    <topicref href="visual-editor.dita" keys="visual-editor">
+        <topicmeta>
+            <navtitle>Visual Editor</navtitle>
+        </topicmeta>
+        <topicref href="visual-editor-basics.dita" keys="visual-editor-basics">
+            <topicmeta>
+                <navtitle>Working in the Visual Editor</navtitle>
+            </topicmeta>
+        </topicref>
+        <topicref href="visual-editor-writing.dita" keys="visual-editor-writing">
+            <topicmeta>
+                <navtitle>Writing on the Page</navtitle>
+            </topicmeta>
+        </topicref>
+        <topicref href="visual-editor-tables.dita" keys="visual-editor-tables">
+            <topicmeta>
+                <navtitle>Tables</navtitle>
+            </topicmeta>
+        </topicref>
+        <topicref href="visual-editor-images-links.dita" keys="visual-editor-images-links">
+            <topicmeta>
+                <navtitle>Images and Links</navtitle>
+            </topicmeta>
+        </topicref>
+        <topicref href="visual-editor-reuse.dita" keys="visual-editor-reuse">
+            <topicmeta>
+                <navtitle>Reused Content, Keys and Link Titles</navtitle>
+            </topicmeta>
+        </topicref>
+        <topicref href="visual-editor-problems.dita" keys="visual-editor-problems">
+            <topicmeta>
+                <navtitle>Problems and Quick Fixes</navtitle>
+            </topicmeta>
+        </topicref>
+        <topicref href="visual-editor-maps.dita" keys="visual-editor-maps">
+            <topicmeta>
+                <navtitle>Maps and Bookmaps</navtitle>
+            </topicmeta>
+        </topicref>
+        <topicref href="properties-view.dita" keys="properties-view">
+            <topicmeta>
+                <navtitle>Properties View</navtitle>
+            </topicmeta>
+        </topicref>
+    </topicref>
+
+    <topicref href="preview.dita" keys="preview-feature">
+        <topicmeta>
+            <navtitle>Live Preview</navtitle>
+        </topicmeta>
+        <topicref href="visual-preview.dita" keys="visual-preview">
+            <topicmeta>
+                <navtitle>Visual Preview</navtitle>
+            </topicmeta>
+        </topicref>
+    </topicref>
+
     <topicref href="intellisense.dita" keys="intellisense">
         <topicmeta>
             <navtitle>IntelliSense</navtitle>
@@ -24,12 +81,6 @@
     <topicref href="validation.dita" keys="validation-feature">
         <topicmeta>
             <navtitle>Validation</navtitle>
-        </topicmeta>
-    </topicref>
-
-    <topicref href="preview.dita" keys="preview-feature">
-        <topicmeta>
-            <navtitle>Live Preview</navtitle>
         </topicmeta>
     </topicref>
 
@@ -151,5 +202,10 @@
         <topicmeta>
             <navtitle>Visual DITAVAL Condition Editor</navtitle>
         </topicmeta>
+        <topicref href="condition-highlighting.dita" keys="condition-highlighting">
+            <topicmeta>
+                <navtitle>Condition Highlighting in the Editor</navtitle>
+            </topicmeta>
+        </topicref>
     </topicref>
 </map>

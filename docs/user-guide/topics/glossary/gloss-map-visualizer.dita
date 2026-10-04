@@ -3,7 +3,7 @@
 <glossentry id="gloss-map-visualizer">
     <glossterm>Map Visualizer</glossterm>
     <glossdef>
-        <p>A DitaCraft feature that displays your DITA map hierarchy as an interactive tree diagram. Click any node to navigate to the corresponding file. The visualizer updates in real-time as you modify the map.</p>
+        <p>A DITA Craft feature that displays your DITA map hierarchy as an interactive tree diagram. Click any node to navigate to the corresponding file. The visualizer updates in real-time as you modify the map.</p>
     </glossdef>
     <related-links>
         <link href="../features/map-visualizer.dita"/>

@@ -37,7 +37,7 @@ interface FragmentValidationResult {
 
 // ── System prompts from spec §6 ────────────────────────────────────────────
 
-const RESTRUCTURE_SYSTEM_PROMPT = `You are a DITA documentation architect assistant integrated in VS Code via the DitaCraft extension.
+const RESTRUCTURE_SYSTEM_PROMPT = `You are a DITA documentation architect assistant integrated in VS Code via the DITA Craft extension.
 
 ROLE: Analyze DITA map structures and propose optimized reorganizations.
 

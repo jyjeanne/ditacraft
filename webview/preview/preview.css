@@ -1,0 +1,838 @@
+/*
+ * DitaCraft Visual Preview stylesheet (spec §8, §9).
+ *
+ * Styles the DITA-OT 4.2.1 HTML5 class contract the renderer emits, on a word-processor
+ * "page" centred on a neutral desk. Users' ditacraft.previewCustomCss is linked after this
+ * file, so DITA-OT selectors (.note, .codeblock…) or class-token selectors
+ * ([data-class~="topic/note"]) override it.
+ *
+ * Themes: body[data-theme] is auto | light | dark; "auto" follows VS Code's theme class.
+ */
+
+:root {
+    --dc-page-width: 760px;
+}
+
+body {
+    --dc-desk: #e7e8ec;
+    --dc-page-bg: #ffffff;
+    --dc-fg: #1f2328;
+    --dc-muted: #57606a;
+    --dc-border: #d0d7de;
+    --dc-soft: #f3f4f6;
+    --dc-code-bg: #f3f4f6;
+    --dc-th-bg: #f0f2f5;
+    --dc-link: #0b62c4;
+    --dc-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 10px 30px rgba(0, 0, 0, 0.08);
+    --dc-note: #3b82f6;
+    --dc-note-bg: #eef5ff;
+    --dc-tip: #16a34a;
+    --dc-tip-bg: #effaf2;
+    --dc-important: #d97706;
+    --dc-important-bg: #fff7ea;
+    --dc-danger: #dc2626;
+    --dc-danger-bg: #fdf0f0;
+    --dc-remember: #7c3aed;
+    --dc-remember-bg: #f5f0ff;
+    --dc-reuse: #8b5cf6;
+    --dc-reuse-bg: rgba(139, 92, 246, 0.07);
+    --dc-warn: #b45309;
+    --dc-warn-bg: rgba(217, 119, 6, 0.12);
+    --dc-error: #dc2626;
+    --dc-warning: #d97706;
+    --dc-info: #2563eb;
+    --dc-draft-bg: #fff8c5;
+    --dc-flash: rgba(255, 213, 0, 0.45);
+    --dc-selected: rgba(11, 98, 196, 0.35);
+    --dc-mono: var(--vscode-editor-font-family, Consolas, "Cascadia Code", Menlo, monospace);
+    margin: 0;
+    background: var(--dc-desk);
+    color: var(--dc-fg);
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+body.vscode-dark[data-theme="auto"],
+body.vscode-high-contrast:not(.vscode-high-contrast-light)[data-theme="auto"],
+body[data-theme="dark"] {
+    --dc-desk: #18191c;
+    --dc-page-bg: #24262b;
+    --dc-fg: #e3e5e8;
+    --dc-muted: #9aa3ad;
+    --dc-border: #3d424b;
+    --dc-soft: #2c2f35;
+    --dc-code-bg: #2e3138;
+    --dc-th-bg: #2c2f35;
+    --dc-link: #6cb2ff;
+    --dc-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.35);
+    --dc-note-bg: rgba(59, 130, 246, 0.12);
+    --dc-tip-bg: rgba(22, 163, 74, 0.12);
+    --dc-important-bg: rgba(217, 119, 6, 0.14);
+    --dc-danger-bg: rgba(220, 38, 38, 0.14);
+    --dc-remember-bg: rgba(124, 58, 237, 0.14);
+    --dc-reuse-bg: rgba(139, 92, 246, 0.12);
+    --dc-draft-bg: rgba(250, 204, 21, 0.14);
+    --dc-flash: rgba(255, 213, 0, 0.25);
+    --dc-selected: rgba(108, 178, 255, 0.45);
+}
+
+/* -- chrome --------------------------------------------------------------------------- */
+
+#dc-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    padding: 4px 8px;
+    background: var(--vscode-editorWidget-background, #f3f3f3);
+    border-bottom: 1px solid var(--vscode-panel-border, #ccc);
+    font: 12px var(--vscode-font-family, system-ui);
+    color: var(--vscode-foreground, #333);
+}
+
+.dc-btn {
+    border: 1px solid transparent;
+    border-radius: 3px;
+    padding: 3px 8px;
+    background: var(--vscode-button-secondaryBackground, #e5e5e5);
+    color: var(--vscode-button-secondaryForeground, #222);
+    font: inherit;
+    cursor: pointer;
+}
+
+.dc-btn:hover {
+    background: var(--vscode-button-secondaryHoverBackground, #d6d6d6);
+}
+
+.dc-btn[aria-pressed="true"] {
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+}
+
+.dc-btn:focus-visible,
+.dc-crumb:focus-visible,
+.dc-status-item:focus-visible,
+.dc-banner-link:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder, #0078d4);
+    outline-offset: 1px;
+}
+
+.dc-spacer {
+    flex: 1 1 auto;
+}
+
+.dc-banner {
+    position: sticky;
+    top: 33px;
+    z-index: 19;
+    padding: 6px 12px;
+    font: 12px var(--vscode-font-family, system-ui);
+    border-bottom: 1px solid var(--vscode-panel-border, #ccc);
+}
+
+.dc-banner-parse {
+    background: var(--vscode-inputValidation-warningBackground, #fff4ce);
+    color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground, #333));
+    border-color: var(--vscode-inputValidation-warningBorder, #b89500);
+}
+
+.dc-banner-info {
+    background: var(--vscode-editorInfo-background, var(--vscode-editorWidget-background, #eef5ff));
+    color: var(--vscode-foreground, #333);
+}
+
+.dc-banner-link {
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#dc-desk {
+    padding: 24px 16px 56px;
+}
+
+#dc-page {
+    box-sizing: border-box;
+    max-width: var(--dc-page-width);
+    min-height: 60vh;
+    margin: 0 auto;
+    padding: 48px 64px 64px;
+    background: var(--dc-page-bg);
+    box-shadow: var(--dc-shadow);
+    border-radius: 2px;
+    outline: none;
+}
+
+body.dc-fluid #dc-page {
+    max-width: none;
+}
+
+@media (max-width: 640px) {
+    #dc-page {
+        padding: 24px 20px 32px;
+    }
+}
+
+#dc-status {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    min-height: 22px;
+    padding: 2px 10px;
+    background: var(--vscode-statusBar-background, #007acc);
+    color: var(--vscode-statusBar-foreground, #fff);
+    font: 12px var(--vscode-font-family, system-ui);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* The map context (spec §13.8 M4): what the map says above the topic. */
+.dc-status-item.dc-context {
+    flex: 0 1 auto;
+    min-width: 9ch; /* in a narrow pane it shrinks, but stays */
+    max-width: 36ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dc-crumbs {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    overflow: hidden;
+}
+
+.dc-crumb,
+.dc-status-item {
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    padding: 0 3px;
+    cursor: pointer;
+}
+
+.dc-crumb:hover,
+button.dc-status-item:not(:disabled):hover {
+    text-decoration: underline;
+}
+
+.dc-crumb-sep {
+    opacity: 0.7;
+}
+
+span.dc-status-item {
+    cursor: default;
+}
+
+.dc-fallback {
+    font-weight: 600;
+}
+
+.dc-has-problems {
+    font-weight: 600;
+}
+
+.dc-empty-message {
+    color: var(--dc-muted);
+    font-style: italic;
+    text-align: center;
+    margin-top: 4em;
+}
+
+/* -- page typography ----------------------------------------------------------------- */
+
+.dc-content {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--dc-fg);
+    overflow-wrap: break-word;
+}
+
+.dc-content h1,
+.dc-content h2,
+.dc-content h3,
+.dc-content h4,
+.dc-content h5,
+.dc-content h6 {
+    line-height: 1.25;
+    font-weight: 600;
+    margin: 1.4em 0 0.5em;
+}
+
+.dc-content .topictitle1 {
+    font-size: 1.95em;
+    margin-top: 0;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid var(--dc-border);
+}
+
+.dc-content .topictitle2 { font-size: 1.55em; }
+.dc-content .topictitle3 { font-size: 1.3em; }
+.dc-content .sectiontitle { font-size: 1.2em; }
+.dc-content .topic.nested1,
+.dc-content .topic.nested2,
+.dc-content .topic.nested3 {
+    margin-top: 2em;
+}
+
+.dc-content .shortdesc {
+    font-size: 1.07em;
+    color: var(--dc-fg);
+    margin: 0.4em 0 1em;
+}
+
+.dc-content .abstract .shortdesc {
+    font-size: inherit;
+}
+
+.dc-content p.p,
+.dc-content div.p {
+    margin: 0.6em 0;
+}
+
+.dc-content .section,
+.dc-content .example {
+    margin: 1.2em 0;
+}
+
+.dc-content .example {
+    border-left: 3px solid var(--dc-border);
+    padding-left: 1em;
+}
+
+.dc-content a.xref,
+.dc-content a.link {
+    color: var(--dc-link);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dc-content a.xref:hover,
+.dc-content a.link:hover {
+    text-decoration: underline;
+}
+
+.dc-content .dc-external::after {
+    content: " ↗";
+    font-size: 0.8em;
+}
+
+/* -- notes ------------------------------------------------------------------------------ */
+
+.dc-content .note {
+    --dc-n: var(--dc-note);
+    --dc-n-bg: var(--dc-note-bg);
+    margin: 0.9em 0;
+    padding: 0.55em 0.9em;
+    border-left: 4px solid var(--dc-n);
+    background: var(--dc-n-bg);
+    border-radius: 0 4px 4px 0;
+}
+
+.dc-content .note > :first-child { margin-top: 0; }
+.dc-content .note > :last-child { margin-bottom: 0; }
+
+.dc-content .note__title {
+    font-weight: 600;
+    color: var(--dc-n);
+}
+
+.dc-content .note_tip,
+.dc-content .note_fastpath { --dc-n: var(--dc-tip); --dc-n-bg: var(--dc-tip-bg); }
+.dc-content .note_important,
+.dc-content .note_attention,
+.dc-content .note_restriction,
+.dc-content .note_notice { --dc-n: var(--dc-important); --dc-n-bg: var(--dc-important-bg); }
+.dc-content .note_caution,
+.dc-content .note_warning,
+.dc-content .note_danger { --dc-n: var(--dc-danger); --dc-n-bg: var(--dc-danger-bg); }
+.dc-content .note_remember { --dc-n: var(--dc-remember); --dc-n-bg: var(--dc-remember-bg); }
+.dc-content .note_trouble,
+.dc-content .note_other { --dc-n: var(--dc-muted); --dc-n-bg: var(--dc-soft); }
+
+.dc-content .hazardstatement {
+    border: 2px solid var(--dc-n);
+    border-left-width: 2px;
+    border-radius: 4px;
+    padding: 0;
+    background: var(--dc-page-bg);
+}
+
+.dc-content .hazardstatement--title {
+    padding: 0.3em 0.8em;
+    background: var(--dc-n);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.dc-content .hazardstatement .messagepanel {
+    padding: 0.5em 0.9em;
+}
+
+.dc-content .hazardstatement--danger,
+.dc-content .hazardstatement--warning { --dc-n: var(--dc-danger); }
+.dc-content .hazardstatement--caution { --dc-n: var(--dc-important); }
+.dc-content .hazardstatement--notice { --dc-n: var(--dc-note); }
+
+/* -- code and phrases ----------------------------------------------------------------- */
+
+.dc-content pre.pre {
+    position: relative;
+    margin: 0.8em 0;
+    padding: 0.8em 1em;
+    background: var(--dc-code-bg);
+    border-radius: 4px;
+    overflow: auto;
+    font: 0.88em/1.5 var(--dc-mono);
+    white-space: pre;
+}
+
+.dc-content pre.pre[data-lang]::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 0.2em;
+    right: 0.6em;
+    font: 0.75em var(--dc-mono);
+    color: var(--dc-muted);
+    text-transform: uppercase;
+}
+
+.dc-content pre.pre code {
+    font: inherit;
+    background: none;
+    padding: 0;
+}
+
+.dc-content .lines {
+    white-space: pre-wrap;
+    margin: 0.6em 0;
+}
+
+.dc-content code,
+.dc-content kbd,
+.dc-content samp,
+.dc-content .tt,
+.dc-content .filepath {
+    /* The page's text color, not the one VS Code's default webview styles give code (the
+       editor theme's, unreadable on a light page in a dark theme). */
+    color: inherit;
+    font-family: var(--dc-mono);
+    font-size: 0.9em;
+}
+
+.dc-content code:not(pre code) {
+    background: var(--dc-code-bg);
+    padding: 0.05em 0.3em;
+    border-radius: 3px;
+}
+
+.dc-content kbd {
+    padding: 0.05em 0.35em;
+    border: 1px solid var(--dc-border);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    background: var(--dc-soft);
+}
+
+.dc-content .uicontrol,
+.dc-content .wintitle {
+    font-weight: 600;
+}
+
+.dc-content .menucascade__separator {
+    text-decoration: none;
+    margin: 0 0.15em;
+}
+
+.dc-content .line-through { text-decoration: line-through; }
+.dc-content .overline { text-decoration: overline; }
+.dc-content dfn.term,
+.dc-content cite.cite { font-style: italic; }
+.dc-content .tmmark { font-size: 0.75em; vertical-align: super; }
+.dc-content .boolean,
+.dc-content .state { font-family: var(--dc-mono); font-size: 0.9em; }
+
+/* -- lists and tasks ---------------------------------------------------------------- */
+
+.dc-content ul.ul,
+.dc-content ol.ol {
+    margin: 0.5em 0;
+    padding-left: 1.6em;
+}
+
+.dc-content li.li {
+    margin: 0.2em 0;
+}
+
+.dc-content ul.sl {
+    list-style: none;
+    padding-left: 0.4em;
+}
+
+.dc-content ol.substeps { list-style-type: lower-alpha; }
+
+.dc-content li.step {
+    margin: 0.5em 0;
+}
+
+.dc-content li.stepsection {
+    list-style: none;
+    margin-left: -1.6em;
+    font-weight: 600;
+}
+
+.dc-content .step__importance {
+    font-weight: 600;
+    color: var(--dc-muted);
+}
+
+.dc-content .itemgroup {
+    margin: 0.3em 0;
+}
+
+.dc-content .tasklabel {
+    font-size: 1.05em;
+}
+
+.dc-content dl.dl,
+.dc-content dl.parml {
+    margin: 0.6em 0;
+}
+
+.dc-content dt.dlterm {
+    font-weight: 600;
+    margin-top: 0.5em;
+}
+
+.dc-content dd {
+    margin: 0.1em 0 0.4em 1.6em;
+}
+
+.dc-content .dlhead {
+    font-weight: 700;
+    color: var(--dc-muted);
+}
+
+/* -- figures and images ------------------------------------------------------------ */
+
+.dc-content figure.fig {
+    margin: 1.2em 0;
+    text-align: center;
+}
+
+.dc-content figure.figborder,
+.dc-content figure.figsides,
+.dc-content figure.figtop,
+.dc-content figure.figbottom,
+.dc-content figure.figtopbot {
+    padding: 0.6em;
+    border: 0 solid var(--dc-border);
+}
+
+.dc-content figure.figborder { border-width: 1px; }
+.dc-content figure.figsides { border-left-width: 1px; border-right-width: 1px; }
+.dc-content figure.figtop { border-top-width: 1px; }
+.dc-content figure.figbottom { border-bottom-width: 1px; }
+.dc-content figure.figtopbot { border-top-width: 1px; border-bottom-width: 1px; }
+
+.dc-content figcaption {
+    margin-bottom: 0.5em;
+    font-style: italic;
+    color: var(--dc-muted);
+}
+
+.dc-content .fig--title-label,
+.dc-content .table--title-label {
+    font-style: normal;
+    font-weight: 600;
+}
+
+.dc-content img.image {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+}
+
+.dc-content .image-break { margin: 0.5em 0; }
+.dc-content .image-break.imagecenter { text-align: center; }
+.dc-content .image-break.imageright { text-align: right; }
+.dc-content .image-break.imageleft { text-align: left; }
+
+.dc-content .dc-missing-image,
+.dc-content img.dc-broken-image {
+    display: inline-block;
+    min-width: 2em;
+    padding: 0.2em 0.5em;
+    border: 1px dashed var(--dc-border);
+    color: var(--dc-muted);
+    font-size: 0.85em;
+}
+
+.dc-content .dc-missing-image::before {
+    content: "🖼 ";
+}
+
+.dc-content blockquote.lq {
+    margin: 1em 0;
+    padding: 0.2em 1em;
+    border-left: 4px solid var(--dc-border);
+    color: var(--dc-muted);
+}
+
+/* -- tables (CALS and simple) ------------------------------------------------------ */
+
+.dc-content table.table,
+.dc-content table.simpletable {
+    width: 100%;
+    margin: 1em 0;
+    border-collapse: collapse;
+    border: 1px solid var(--dc-border);
+    font-size: 0.95em;
+}
+
+.dc-content table caption {
+    caption-side: top;
+    text-align: left;
+    padding-bottom: 0.4em;
+    color: var(--dc-fg);
+}
+
+.dc-content table th,
+.dc-content table td {
+    padding: 0.4em 0.6em;
+    border: 1px solid var(--dc-border);
+    vertical-align: top;
+    text-align: left;
+}
+
+.dc-content table thead th,
+.dc-content table .sthead th {
+    background: var(--dc-th-bg);
+    font-weight: 600;
+}
+
+.dc-content table th[scope="row"] {
+    background: var(--dc-soft);
+}
+
+.dc-content table [data-colsep="0"] { border-right-color: transparent; }
+.dc-content table [data-rowsep="0"] { border-bottom-color: transparent; }
+.dc-content table.frame-none { border: none; }
+.dc-content table.frame-topbot { border-left: none; border-right: none; }
+.dc-content table.frame-top { border-left: none; border-right: none; border-bottom: none; }
+.dc-content table.frame-bottom { border-left: none; border-right: none; border-top: none; }
+.dc-content table.frame-sides { border-top: none; border-bottom: none; }
+
+.dc-content table .entry > :first-child { margin-top: 0; }
+.dc-content table .entry > :last-child { margin-bottom: 0; }
+
+/* -- links, footnotes, related information ----------------------------------------- */
+
+.dc-content .related-links {
+    margin-top: 2em;
+    padding-top: 0.6em;
+    border-top: 1px solid var(--dc-border);
+}
+
+.dc-content .related-links ul.linklist {
+    padding-left: 1.4em;
+}
+
+.dc-content sup.fn {
+    color: var(--dc-link);
+    font-size: 0.75em;
+}
+
+.dc-content .fn-container {
+    margin-top: 2.5em;
+    font-size: 0.9em;
+    color: var(--dc-muted);
+}
+
+.dc-content .fn-container hr {
+    border: none;
+    border-top: 1px solid var(--dc-border);
+    width: 30%;
+    margin-left: 0;
+}
+
+.dc-content .dc-fn-heading {
+    font-weight: 600;
+    margin-bottom: 0.3em;
+}
+
+/* -- preview-specific marks -------------------------------------------------------- */
+
+.dc-content .dc-conref {
+    background: var(--dc-reuse-bg);
+    box-shadow: inset 2px 0 0 var(--dc-reuse);
+}
+
+.dc-content span.dc-conref,
+.dc-content code.dc-conref {
+    box-shadow: none;
+    border-bottom: 1px dashed var(--dc-reuse);
+}
+
+.dc-content [data-resolved="key"],
+.dc-content [data-resolved="glossary"] {
+    text-decoration: underline dotted var(--dc-muted);
+    text-underline-offset: 3px;
+}
+
+.dc-content .dc-unresolved {
+    background: var(--dc-warn-bg);
+}
+
+.dc-content .dc-placeholder {
+    color: var(--dc-warn);
+    font-family: var(--dc-mono);
+    font-size: 0.9em;
+}
+
+.dc-content .dc-unknown {
+    margin: 0.5em 0;
+    padding: 0.3em 0.6em;
+    border: 1px dashed var(--dc-border);
+    border-radius: 4px;
+}
+
+.dc-content .dc-unknown-inline {
+    display: inline;
+    margin: 0;
+    padding: 0 0.2em;
+}
+
+.dc-content .dc-tag {
+    display: inline-block;
+    margin-right: 0.4em;
+    padding: 0 0.4em;
+    border-radius: 3px;
+    background: var(--dc-code-bg);
+    color: var(--dc-muted);
+    font: 0.75em var(--dc-mono);
+}
+
+.dc-content .dc-markup {
+    margin: 0.8em 0;
+    padding: 0.5em 0.8em;
+    border: 1px dashed var(--dc-border);
+    border-radius: 4px;
+    background: var(--dc-soft);
+    color: var(--dc-muted);
+    font-size: 0.88em;
+}
+
+.dc-content .draft-comment.dc-markup,
+.dc-content .required-cleanup.dc-markup {
+    background: var(--dc-draft-bg);
+    color: var(--dc-fg);
+}
+
+.dc-content .dc-marker-label,
+.dc-content .dc-meta-name {
+    font-family: var(--dc-mono);
+    font-weight: 600;
+}
+
+.dc-content .dc-meta-attrs {
+    font-family: var(--dc-mono);
+}
+
+.dc-content .dc-meta-nested {
+    margin-left: 1.2em;
+}
+
+.dc-content .dc-marker {
+    margin: 0 0.15em;
+    padding: 0 0.3em;
+    border-radius: 3px;
+    background: var(--dc-code-bg);
+    color: var(--dc-muted);
+    font: 0.78em var(--dc-mono);
+}
+
+.dc-content .dc-excluded {
+    opacity: 0.35;
+}
+
+.dc-content .dc-flag {
+    margin: 0 0.2em;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+
+.dc-content img.dc-flag {
+    height: 1em;
+    vertical-align: middle;
+}
+
+.dc-content .dc-problem {
+    --dc-p: var(--dc-error);
+    text-decoration: underline wavy var(--dc-p);
+    text-decoration-skip-ink: none;
+    text-underline-offset: 3px;
+}
+
+.dc-content .dc-problem-warning { --dc-p: var(--dc-warning); }
+.dc-content .dc-problem-info { --dc-p: var(--dc-info); }
+
+.dc-content :is(div, section, article, table, ul, ol, dl, figure, pre, blockquote, nav, img).dc-problem {
+    text-decoration: none;
+    outline: 1px dashed var(--dc-p);
+    outline-offset: 3px;
+}
+
+.dc-content .dc-selected {
+    outline: 1px solid var(--dc-selected);
+    outline-offset: 2px;
+}
+
+.dc-content .dc-flash {
+    animation: dc-flash 1.2s ease-out;
+}
+
+@keyframes dc-flash {
+    from { background-color: var(--dc-flash); }
+    to { background-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dc-content .dc-flash {
+        animation: none;
+        outline: 2px solid var(--dc-flash);
+    }
+}
+
+@media print {
+    #dc-toolbar,
+    #dc-banner,
+    #dc-status {
+        display: none;
+    }
+
+    body,
+    #dc-desk {
+        background: #fff;
+        padding: 0;
+    }
+
+    #dc-page {
+        box-shadow: none;
+        max-width: none;
+        padding: 0;
+    }
+}

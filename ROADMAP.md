@@ -1,10 +1,10 @@
-# DitaCraft Roadmap
+# DITA Craft Roadmap
 
-This document outlines the planned features, improvements, and future direction for DitaCraft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
+This document outlines the planned features, improvements, and future direction for DITA Craft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.9.0)
+## Current Status (v0.10.0)
 
-DitaCraft is a production-ready VS Code extension for DITA editing and publishing with the following complete features:
+DITA Craft is a production-ready VS Code extension for DITA editing and publishing with the following complete features. The **visual preview** and the **visual editor** (Milestone 8 below) shipped in v0.10.0.
 
 | Feature | Status | Completeness |
 |---------|--------|--------------|
@@ -172,8 +172,28 @@ DitaCraft is a production-ready VS Code extension for DITA editing and publishin
 | **Inline Conref** | Complete | 100% |
 | **Watch Mode (auto-republish on change)** | Complete | 100% |
 | **OKF Knowledge Base (okf-rs)** | Complete | 100% |
+| **Visual Preview (live page, no DITA-OT)** | Complete | 100% |
+| **Visual Preview: keys, reuse, link titles, DITAVAL, problems, scroll sync** | Complete | 100% |
+| **Grammar Compiler (DTD → grammar JSON, DITA 1.2/1.3/2.0 + catalogs)** | Complete | 100% |
+| **Visual Editor (lossless, DTD-aware)** | Complete | 100% |
+| **Visual Editor: Tables on the CALS Grid + Column Widths** | Complete | 100% |
+| **Visual Editor: Reused Content (shown, Open Source, Replace with Copy)** | Complete | 100% |
+| **Visual Editor: Keys, Link Titles and Keyed Images Resolved** | Complete | 100% |
+| **Visual Editor: Images (insert, paste, drop, resize) and Link Picker** | Complete | 100% |
+| **Visual Editor: Right-Click Menu (DTD-aware, by domain)** | Complete | 100% |
+| **Visual Editor: Problems and Quick Fixes on the Page** | Complete | 100% |
+| **Visual Editor: Cursor and Scroll Sync with the Text Editor** | Complete | 100% |
+| **Properties View (visual and text editor)** | Complete | 100% |
 
-### Recent Changes (v0.9.0)
+### Recent Changes (v0.10.0)
+
+**Added — Visual preview** (`DITA: Preview`, the new default engine): a live, formatted page of the topic rendered by DITA Craft itself — no DITA-OT, no Java, no save. Grammars are compiled from the bundled OASIS DTDs (or your catalog), so specializations render like what they specialize; keys, reuse (ranges, nested and chained), link titles, glossary terms, DITAVAL filtering and flags, problems and exact scroll sync. DITA-OT HTML5 class names keep `previewCustomCss` working; `DITA: Preview with DITA-OT` keeps the previous preview.
+
+**Added — Visual editor** (`DITA: Open in Visual Editor`, an alternative editor for `.dita` files): ProseMirror over a format-preserving XML tree, with a lossless writer — every change reaches the document as one minimal text edit, unchanged XML byte for byte. DTD-aware styles, Insert menu and right-click menu; tables on the CALS grid with draggable column widths; reused content shown, opened and copied; keys, link titles and keyed images resolved; images inserted, pasted, dropped and resized; a link target picker; problems and quick fixes on the page; cursor and scroll sync with the text editor; the **Properties** view for the visual and the text editor. Maps and bookmaps open in it as rows: each reference with its target's title, kind and keys; fold, keyboard, Open target, insert/move/delete (Phase 3, M1); references added and retargeted from the link picker, labels edited on the row, rows nested with Tab and dragged (M2); relationship tables edited as grids (M3); topics shown in their map's context — keys, key scope, language, filtering (M4). Specification: `DITACRAFT_VISUAL_PREVIEW_SPEC.md` (Draft 2.19); user documentation: [docs/VISUAL_EDITOR.md](docs/VISUAL_EDITOR.md), [docs/VISUAL_PREVIEW.md](docs/VISUAL_PREVIEW.md) and the DITA user guide.
+
+**Changed and fixed:** the extension is displayed as **DITA Craft** (ID, settings and commands unchanged); DITAVAL filtering follows DITA's rules and condition highlighting shows flags; F2 renames from a usage; moving files and folders keeps every reference working, and the settings and publishing profiles that name them; Find and Replace in Files searches text only and, with Batch Update Metadata, confirms before applying; Inline Conref keeps attributes and rebases the copied references; the AI features work again — Configure AI Settings (every provider's status, the AI mode, a real connection Test), the AI quick fix, the `ditacraft.ai.enabled` switch, the AI modes, current default models (`claude-sonnet-5-5`, `gpt-6.1-sol`). See the [CHANGELOG](CHANGELOG.md).
+
+### Previous Changes (v0.9.0)
 
 The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — every prioritized item shipped, plus two of three Backlog items taken on as natural follow-ons (Import from Markdown/HTML deferred as the one item genuinely needing a design spike first). See Milestone 6/7 below for the per-item checklist.
 
@@ -392,7 +412,7 @@ The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — ever
 - **1040+ Total Tests** — Client (620) + Server (419)
 
 ### Previous Changes (v0.6.0)
-- **Activity Bar Views** — Dedicated DitaCraft sidebar with DITA Explorer, Key Space, and Diagnostics views
+- **Activity Bar Views** — Dedicated DITA Craft sidebar with DITA Explorer, Key Space, and Diagnostics views
 - **DITA Explorer** — Tree showing all workspace maps with hierarchy, type icons, context menus, auto-refresh
 - **Key Space View** — Defined/undefined/unused keys with usage navigation, debounced refresh
 - **Diagnostics View** — Aggregated issues with group-by-file/severity, auto-refresh on diagnostics changes
@@ -699,7 +719,7 @@ The full [v0.9.0 implementation plan](docs/V0.9-IMPLEMENTATION-PLAN.md) — ever
 ### Productivity Features
 - [x] Multi-file find and replace (DITA-aware) (§5.1)
 - [x] Batch insert/update metadata (§5.2)
-- [ ] Table editor (visual table manipulation) — delivered as a scoped-down **insertion wizard** instead (§4.3: prompts for rows/columns/type, inserts a correctly-structured skeleton); a full bidirectional visual grid editor remains unbuilt
+- [x] Table editor (visual table manipulation) — v0.9.0 delivered a scoped-down **insertion wizard** (§4.3: prompts for rows/columns/type, inserts a correctly-structured skeleton); the full visual table editor ships with the visual editor (Milestone 8: rows, columns, merge/split on the CALS grid, column widths dragged on the page)
 - [x] Image insertion with automatic figure wrapper (§3.3)
 
 **Good First Issues:**
@@ -731,7 +751,7 @@ scope (see its §7) and remain open for a future milestone.
 ### Build System Integration (not scoped into v0.9.0 — open for a future milestone)
 - [ ] VS Code task definitions for DITA workflows
 - [x] Watch mode for continuous publishing — §6.2 (watch + rerun the full publish only, not true incremental — see below)
-- [ ] Incremental publishing (only changed files) — DITA-OT has no incremental build mode; would need DitaCraft-side dependency-graph tracking, a meaningfully larger project — see Backlog in the v0.9.0 plan
+- [ ] Incremental publishing (only changed files) — DITA-OT has no incremental build mode; would need DITA Craft-side dependency-graph tracking, a meaningfully larger project — see Backlog in the v0.9.0 plan
 - [ ] Custom DITA-OT plugin management
 
 ### Output Formats (not scoped into v0.9.0 — open for a future milestone)
@@ -743,6 +763,46 @@ scope (see its §7) and remain open for a future milestone.
 **Good First Issues:**
 - ~~Add DITAVAL syntax highlighting~~ (Done in v0.5.0)
 - Create publishing profile save/load
+
+---
+
+## Milestone 8: Visual Preview & Visual Editor (v0.10.0) ✅ COMPLETE
+
+**Focus:** see and edit DITA on a page that looks like the output, without giving up clean XML. Design and decisions: `DITACRAFT_VISUAL_PREVIEW_SPEC.md` (Draft 2.19, with implementation notes per item).
+
+### Phase 0–1: Visual Preview ✅
+- [x] Format-preserving XML tree (CST) with a round-trip gate over every DITA file of the repository
+- [x] Grammar compiler: DTD shells → grammar JSON (DITA 1.2/1.3/2.0, OASIS catalogs, `ditacraft.xmlCatalogPath`)
+- [x] Renderer with the DITA-OT HTML5 class contract (custom CSS keeps working)
+- [x] References resolved: keys, conref/conkeyref (ranges, nested, chained), link titles, glossary terms, coderef, mathmlref/svgref, keyed images
+- [x] DITAVAL filtering and flags; problems on the page; exact scroll sync both ways; Show markup; themes; lock to a topic
+- [x] Hardened: MathML/SVG allowlist sanitizer, bounded entity expansion, strict CSP, Restricted Mode
+
+### Phase 2: Visual Editor ✅
+- [x] Custom editor `ditacraft.visualEditor` (alternative to the text editor), Open in Visual Editor / Open Source at the other's cursor
+- [x] Lossless writer: one minimal text edit per change, unchanged XML byte for byte (fuzzed over the corpus)
+- [x] DTD-aware schema: styles, Insert menu, phrases and Enter follow the document type (mixed-content child sets)
+- [x] Right-click menu (common elements first, others by domain; select, move, remove tags, delete), full keyboard support
+- [x] Tables on the CALS grid (rows, columns, merge/split, header row), column widths dragged on the page
+- [x] Reused content shown in its box, Open source, Replace with copy (DITA conref attribute rules, references rebased)
+- [x] Keys' texts, link targets' titles and keyed images resolved on the page
+- [x] Images: insert (inline, own line, figure), paste, drop, replace, alt text, resize by dragging
+- [x] Links: target picker (`Ctrl+K`), change, open, remove
+- [x] Problems on the page; quick fixes (`Ctrl+.`) made on the page and undoable there
+- [x] Cursor and scroll sync with a text editor beside
+- [x] Properties view (attributes from the DTD; visual and text editor)
+
+### Phase 3: Maps in the visual editor ✅
+- [x] M1 — maps and bookmaps open in the visual editor: one row per reference with its target's title (resolved by the host), kind and keys; fold/unfold; select a row (Properties); open its target (double-click, Ctrl+click, Enter, Open target); row keyboard; problems on rows; insert, move and delete rows
+- [x] M2 — editing rows: Add reference and Change target from the link picker (map mode), labels edited on the row (navtitle, locktitle), Tab/Shift+Tab and dragging where the DTD allows (moved XML re-indented)
+- [x] M3 — relationship tables: shown as tables (column types, references in cells); rows and columns inserted, moved and deleted as a grid; cells selected and navigated with the keyboard; references added or dragged into cells
+- [x] M4 — map context: a topic shown in a place of a map (first found, chosen, or opened from a row) — its keys in that map and key scope, the language and filtering its map gives it, on the status line
+
+### Phase 3: Candidates (not scheduled)
+- [ ] RelaxNG grammars in the visual editor and preview
+- [ ] Oxygen-compatible comments and tracked changes (processing instructions)
+- [ ] Rendered Git compare of two versions of a topic
+- [ ] MathML editing
 
 ---
 
@@ -841,9 +901,11 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.7.4 | AI integration (Phases 1-3): LLM router, circuit breaker, @ditacraft chat, F2/F3/F4 AI features, 1537+ Tests | Released |
 | v0.8.0 | MCP server (6 tools, 3 resources), standalone LSP distribution, 1591+ Tests | Released |
 | v0.8.1 | Preview auto-refresh fix, build/dependency tooling fixes | Released |
-| v0.8.2 | Security hardening, key space/validation race fixes, knowledge graph, 1770+ Tests | **Current** |
-| v0.9.0 | Refactoring & publishing enhancements | Planned |
+| v0.8.2 | Security hardening, key space/validation race fixes, knowledge graph, 1770+ Tests | Released |
+| v0.9.0 | Refactoring tools, templates & scaffolding, productivity & publishing enhancements, 2183+ Tests | Released |
+| v0.9.1 | Maintenance release | Released |
+| v0.10.0 | Visual preview, visual editor (topics and maps), Properties view, DITA Craft name, 2,900+ Tests | **Current** |
 
 ---
 
-*Last updated: July 2026 (v0.8.2 — security hardening, key space/validation race fixes, knowledge graph tooling, 1770+ total tests)*
+*Last updated: October 2026 (v0.10.0: visual preview and visual editor)*

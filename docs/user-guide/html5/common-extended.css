@@ -1,0 +1,97 @@
+
+:root {
+  --math-font: 'Noto Serif', serif;
+}
+
+mathml, .mathml {
+    font-family: var(--math-font);
+    /*font-style: italic;*/
+    color: inherit;
+}
+
+.mathml > svg text {
+    color: red;
+}
+
+.equation-figure {
+    text-align: left;
+}
+
+.equation-figure .eqn-dl {
+    margin-left: 16px;
+    margin-right: 40px;
+    display: table;
+}
+
+.equation-figure .eqn-dlentry {
+    display: table-row;
+    vertical-align: middle;
+}
+
+.equation-figure .eqn-dlentry .eqn-dt, 
+.equation-figure .eqn-dlentry .eqn-equal,
+.equation-figure .eqn-dlentry .eqn-dd {
+    display: table-cell;
+    padding-bottom: 16px;
+    min-height: 2em;
+    vertical-align: top;
+    width: revert;
+}
+
+.equation-figure .eqn-dlentry .eqn-dt {
+    font-family: var(--math-font);
+    color: var(--bs-body-color);
+    font-weight: normal;
+    font-style: italic;
+}
+
+.equation-figure .eqn-dlentry .eqn-dt, 
+.equation-figure .eqn-dlentry .eqn-equal {
+    min-width: 40px;    
+}
+.equation-figure .eqn-dlentry .eqn-equal {
+    text-align: left;
+}
+
+.equation-block {
+    font-family: var(--math-font);
+    vertical-align: middle;
+    clear: both;
+    width: 100%;
+    display: flex;
+}
+
+.equation-inline {
+    font-family: var(--math-font);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.1em;
+}
+
+.equation-block .equation-text {
+    font-style: italic;
+    font-weight: 500;
+    padding-bottom: 12px;
+    font-size: 1.1em;
+}
+
+div.mathmls > div.mathml {
+    display: block;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+div.equation-block > div.mathml {
+    display: inline-block;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+.equation-block > .equation-number {
+    font-style: normal;
+    text-align: right;
+    align-self: center;
+    padding-right: 40px;
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+}

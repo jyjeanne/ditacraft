@@ -2,18 +2,18 @@
 <!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
 <concept id="profiling-validation">
     <title>Profiling and Subject Scheme Validation</title>
-    <shortdesc>DitaCraft validates profiling attribute values against subject scheme constraints, ensuring controlled vocabularies are respected.</shortdesc>
+    <shortdesc>DITA Craft validates profiling attribute values against subject scheme constraints, ensuring controlled vocabularies are respected.</shortdesc>
 
     <conbody>
         <section id="overview">
             <title>Overview</title>
-            <p>Subject scheme maps define controlled vocabularies for profiling attributes such as <codeph>audience</codeph>, <codeph>platform</codeph>, <codeph>product</codeph>, and <codeph>otherprops</codeph>. When a subject scheme is present in your workspace, DitaCraft validates that profiling attribute values use only the allowed values defined by the scheme.</p>
+            <p>Subject scheme maps define controlled vocabularies for profiling attributes such as <codeph>audience</codeph>, <codeph>platform</codeph>, <codeph>product</codeph>, and <codeph>otherprops</codeph>. When a subject scheme is present in your workspace, DITA Craft validates that profiling attribute values use only the allowed values defined by the scheme.</p>
         </section>
 
         <section id="how-it-works">
             <title>How It Works</title>
             <ol>
-                <li>DitaCraft automatically discovers subject scheme maps in your workspace (or from the explicit root map)</li>
+                <li>DITA Craft automatically discovers subject scheme maps in your workspace (or from the explicit root map)</li>
                 <li>The Subject Scheme Service parses the scheme and extracts the controlled values for each attribute, building hierarchy paths for grouped values</li>
                 <li>When you use profiling attributes in your DITA content, their values are checked against the allowed values</li>
                 <li>Invalid values are reported with a diagnostic that lists the valid options</li>
@@ -23,7 +23,7 @@
 
         <section id="hierarchy-grouping">
             <title>Subject Hierarchy Grouping</title>
-            <p>When subject scheme definitions use nested <codeph>&lt;subjectdef&gt;</codeph> elements to define a hierarchy, DitaCraft displays this hierarchy in auto-completion suggestions. For example:</p>
+            <p>When subject scheme definitions use nested <codeph>&lt;subjectdef&gt;</codeph> elements to define a hierarchy, DITA Craft displays this hierarchy in auto-completion suggestions. For example:</p>
             <codeblock outputclass="language-xml">&lt;subjectdef keys="os"&gt;
     &lt;subjectdef keys="linux"&gt;
         &lt;subjectdef keys="ubuntu"/&gt;

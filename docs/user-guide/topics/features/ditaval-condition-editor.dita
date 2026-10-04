@@ -19,29 +19,36 @@
 
         <section id="condition-editing">
             <title>Editing Conditions</title>
-            <p>The panel lists every <codeph>&lt;prop&gt;</codeph> condition in the file as a form
-                row — attribute (<codeph>audience</codeph>, <codeph>platform</codeph>,
-                    <codeph>product</codeph>, and so on), value, and action
-                    (<codeph>include</codeph>, <codeph>exclude</codeph>,
-                    <codeph>passthrough</codeph>, or <codeph>flag</codeph>) — instead of raw
-                attribute-value XML. Add, edit, reorder, or remove conditions from the form, and
-                the underlying <filepath>.ditaval</filepath> file is kept in sync.</p>
+            <p>The panel groups the conditions by attribute (<codeph>audience</codeph>,
+                    <codeph>platform</codeph>, <codeph>product</codeph>, and so on): each value —
+                from the file's <codeph>&lt;prop&gt;</codeph> rules and from your subject scheme —
+                is a chip showing its action. Clicking a chip, or pressing
+                    <uicontrol>Enter</uicontrol> or <uicontrol>Space</uicontrol> on it, moves it to
+                the next action: no rule, <codeph>exclude</codeph>, <codeph>include</codeph>,
+                    <codeph>flag</codeph>, and back to no rule (the rule is removed). To add a value,
+                pick the attribute, type the value and press <uicontrol>Enter</uicontrol> (or
+                    <uicontrol>Add Condition</uicontrol>): it is added as an
+                    <codeph>exclude</codeph> rule. Each change is written to the
+                    <filepath>.ditaval</filepath> file, which you then save.</p>
+            <p>Everything works from the keyboard: <uicontrol>Tab</uicontrol> moves between the
+                chips and the add form, the focus stays on the chip you changed (or in the value
+                box after adding one), and screen readers announce each chip's value, its action
+                and what pressing it does, then the change made.</p>
         </section>
 
         <section id="live-preview">
-            <title>Live Preview with Conditions Applied</title>
-            <p>The editor renders the content the DITAVAL profile currently resolves to, so you can
-                see the effect of a condition change immediately rather than publishing to check
-                it. Toggle individual conditions on or off to compare included and excluded
-                content side by side.</p>
+            <title>Seeing the Effect</title>
+            <p>To see what a profile does to your content, choose the file as the preview filter
+                    (<uicontrol>DITA: Set Preview DITAVAL Filter</uicontrol>) and open the visual
+                preview (<uicontrol>DITA: Preview</uicontrol>): excluded content disappears and
+                flagged content shows its flags. Save the <filepath>.ditaval</filepath> file after
+                changing a condition and the preview follows.</p>
         </section>
 
         <section id="condition-highlighting">
             <title>Condition Highlighting in the Editor</title>
-            <p>With a <filepath>.ditaval</filepath> file active in the condition editor, content in
-                open DITA topics that matches an <codeph>exclude</codeph> or <codeph>flag</codeph>
-                condition is highlighted directly in the text editor — so you can see exactly which
-                passages a given profile affects without leaving your topic files.</p>
+            <p>The text editor also shows what the preview's filter excludes and flags in the topic
+                you are editing: see <xref keyref="condition-highlighting"/>.</p>
         </section>
 
     </conbody>

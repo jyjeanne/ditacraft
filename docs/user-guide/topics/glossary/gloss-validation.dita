@@ -3,7 +3,7 @@
 <glossentry id="gloss-validation">
     <glossterm>Validation</glossterm>
     <glossdef>
-        <p>The process of checking DITA content for XML well-formedness and DTD conformance. DitaCraft provides real-time validation with detailed error messages and multiple validation engine options.</p>
+        <p>The process of checking DITA content for XML well-formedness and DTD conformance. DITA Craft provides real-time validation with detailed error messages and multiple validation engine options.</p>
     </glossdef>
     <related-links>
         <link href="../features/validation.dita"/>

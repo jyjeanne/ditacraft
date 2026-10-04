@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="properties-view">
+    <title>Properties View</title>
+    <shortdesc>The Properties view lists the attributes of the element at the cursor — in the visual
+        editor or the text editor — straight from your document type, and edits them one at a
+        time.</shortdesc>
+
+    <conbody>
+        <section id="opening">
+            <title>Opening the Properties View</title>
+            <p>The view is in the DITA Craft side bar. Open it with <uicontrol>DITA: Show
+                    Properties</uicontrol>, with <uicontrol>Properties</uicontrol> in the visual
+                editor's toolbar, or with <uicontrol>Attributes…</uicontrol> in its right-click menu.
+                It follows the active DITA editor: the visual editor and the text editor, for topics
+                and maps.</p>
+            <fig id="fig-properties">
+                <title>The attributes of an image</title>
+                <image href="../../images/visual-editor-properties.png" placement="break" align="center" width="6.5in">
+                    <alt>The DITA Craft side bar with the Properties view of a selected image: the
+                        breadcrumb task, taskbody, steps, step, info, fig, image, then the Identity
+                        and reuse group with keyref set to sync-diagram, and the Profiling group.</alt>
+                </image>
+            </fig>
+        </section>
+
+        <section id="attributes">
+            <title>What It Shows</title>
+            <ul>
+                <li>The breadcrumb at the top shows the elements around the cursor; click one to edit
+                    an ancestor.</li>
+                <li>Every attribute the element may carry is listed, grouped as <b>Identity and
+                        reuse</b> (<codeph>id</codeph>, <codeph>conref</codeph>,
+                        <codeph>keyref</codeph>, <codeph>href</codeph>…), <b>Profiling</b>
+                        (<codeph>audience</codeph>, <codeph>platform</codeph>,
+                        <codeph>product</codeph>, <codeph>otherprops</codeph>, <codeph>props</codeph>
+                    and your own <codeph>props</codeph> specializations), <b>Common</b>
+                        (<codeph>outputclass</codeph>, <codeph>xml:lang</codeph>,
+                        <codeph>rev</codeph>, <codeph>status</codeph>…), <b>Element</b> (such as a
+                    note's <codeph>type</codeph>) and <b>Architecture</b> (<codeph>@class</codeph>,
+                        <codeph>@domains</codeph>, read only).</li>
+                <li>Enumerated attributes are drop-down lists, defaults are shown, and required
+                    attributes are marked <codeph>*</codeph>.</li>
+                <li>Profiling attributes offer the values of your subject scheme: type them, pick a
+                    suggestion, or add one with <uicontrol>+</uicontrol>.</li>
+            </ul>
+        </section>
+
+        <section id="editing">
+            <title>Editing Attributes</title>
+            <p>Type a value and press <uicontrol>Enter</uicontrol> (or leave the field) to set it;
+                clear it or click <uicontrol>×</uicontrol> to remove the attribute;
+                    <uicontrol>Escape</uicontrol> cancels. Values are checked first: an
+                    <codeph>id</codeph> must be a valid token and unique in its scope, and an
+                enumerated value must be one of the list.</p>
+            <p>A change edits only that attribute in the element's start tag: the other attributes
+                stay as written, and a start tag laid out over several lines keeps its layout. In the
+                visual editor the change is an ordinary editing step (<uicontrol>Ctrl+Z</uicontrol> on
+                the page undoes it); in the text editor it is a text edit.</p>
+        </section>
+    </conbody>
+</concept>

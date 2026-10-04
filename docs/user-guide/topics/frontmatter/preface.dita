@@ -2,12 +2,12 @@
 <!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
 <topic id="preface">
     <title>Preface</title>
-    <shortdesc>Welcome to the DitaCraft User Guide.</shortdesc>
+    <shortdesc>Welcome to the DITA Craft User Guide.</shortdesc>
 
     <body>
         <section id="about-guide">
             <title>About This Guide</title>
-            <p>This guide provides comprehensive documentation for DitaCraft, the Visual Studio Code extension for DITA authoring and publishing. Whether you are new to DITA or an experienced technical writer, this guide will help you get the most out of DitaCraft.</p>
+            <p>This guide provides comprehensive documentation for DITA Craft, the Visual Studio Code extension for DITA authoring and publishing. Whether you are new to DITA or an experienced technical writer, this guide will help you get the most out of DITA Craft.</p>
         </section>
 
         <section id="audience">
@@ -23,7 +23,7 @@
 
         <section id="prerequisites">
             <title>Prerequisites</title>
-            <p>To use DitaCraft effectively, you should have:</p>
+            <p>To use DITA Craft effectively, you should have:</p>
             <ul>
                 <li>Visual Studio Code 1.80 or higher installed</li>
                 <li>Basic familiarity with XML concepts</li>
@@ -37,10 +37,10 @@
             <dl>
                 <dlentry>
                     <dt>Part I: Getting Started</dt>
-                    <dd>Introduction to DitaCraft and installation steps</dd>
+                    <dd>Introduction to DITA Craft and installation steps</dd>
                 </dlentry>
                 <dlentry>
-                    <dt>Part II: Using DitaCraft</dt>
+                    <dt>Part II: Using DITA Craft</dt>
                     <dd>Commands reference and detailed feature explanations</dd>
                 </dlentry>
                 <dlentry>
@@ -87,7 +87,7 @@
 
         <section id="version">
             <title>Version Information</title>
-            <p>This guide documents DitaCraft version 0.9.0. For the latest updates and release notes, visit the project repository.</p>
+            <p>This guide documents DITA Craft version 0.10.0. For the latest updates and release notes, visit the project repository.</p>
         </section>
     </body>
 </topic>
