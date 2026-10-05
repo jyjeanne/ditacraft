@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import type { McpContext } from '../types';
-import { resolvePath, fileExists } from '../workspace';
+import { resolvePath, fileExists, fileUriToFsPath } from '../workspace';
 import { handleValidateFragment } from '../../../server/src/features/fragmentValidator';
 import { log } from '../logger';
 import { defaultMcpSettings } from '../mcpSettings';
@@ -74,7 +74,7 @@ export async function handleDitaValidate(
             return { error: `Invalid or unsafe path: ${uri}`, isValid: false, filePath: uri, diagnostics: [], errorCount: 0, warningCount: 0, validationTimeMs: 0 };
         }
 
-        const fsPath = resolvedUri.replace(/^file:\/\/\/?/, '');
+        const fsPath = fileUriToFsPath(resolvedUri);
         if (!fileExists(uri, ctx.workspaceRoot)) {
             return { error: `File not found in workspace: ${uri}`, isValid: false, filePath: uri, diagnostics: [], errorCount: 0, warningCount: 0, validationTimeMs: 0 };
         }
