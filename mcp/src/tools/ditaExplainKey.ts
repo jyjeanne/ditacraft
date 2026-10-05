@@ -1,5 +1,5 @@
 import type { McpContext } from '../types';
-import { resolvePath } from '../workspace';
+import { resolvePath, fileUriToFsPath } from '../workspace';
 
 interface DitaExplainKeyArgs {
     keyName: string;
@@ -36,7 +36,7 @@ export async function handleDitaExplainKey(
         throw new Error(`Invalid or unsafe path: ${contextFilePath}`);
     }
 
-    const fsPath = resolved.replace(/^file:\/\/\/?/, '');
+    const fsPath = fileUriToFsPath(resolved);
 
     const report = await ctx.keySpaceService.explainKey(keyName, fsPath);
 
