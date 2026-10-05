@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import type { McpContext } from '../types';
-import { resolvePath } from '../workspace';
+import { resolvePath, fileUriToFsPath } from '../workspace';
 import { log } from '../logger';
 import { discoverRootMap } from '../utils/mapDiscovery';
 
@@ -41,7 +41,7 @@ export async function handleDitaKeySpace(
         if (!resolved) {
             throw new Error(`Invalid or unsafe path: ${mapUri}`);
         }
-        rootMapPath = resolved.replace(/^file:\/\/\/?/, '');
+        rootMapPath = fileUriToFsPath(resolved);
     } else {
         // Auto-discover root map
         const discovered = discoverRootMap(ctx.workspaceRoot);
