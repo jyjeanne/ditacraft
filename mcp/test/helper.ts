@@ -32,6 +32,15 @@ export async function createTestWorkspace(): Promise<TestWorkspace> {
     const client = new Client({ name: 'mcp-test', version: '1.0' }, { capabilities: {} });
     await client.connect(transport);
 
+    // The stdio transport can report a successful connection before the server
+    // has finished registering tools/resources. Wait for the server to answer
+    // the initial capability probe so tests never race the startup sequence.
+    await Promise.all([
+        client.listTools(),
+        client.listResources(),
+        client.listResourceTemplates(),
+    ]);
+
     const ws: TestWorkspace = {
         dir,
         client,
