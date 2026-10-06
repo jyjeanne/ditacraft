@@ -14,11 +14,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 2041 · Candidates: 2612
-- Excluded: 0 untracked · 48520 ignored · 22 sensitive · 0 missing committed
+- Excluded: 0 untracked · 45758 ignored · 22 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `43989ef`
+- Built from Git commit: `6e22192`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 82 edges
@@ -52,7 +52,7 @@ Nodes (92): commonMarks(), FRESH, ITEM, SPLITTABLE, withoutMarks(), FRESH, linkA
 
 ### Community 1 - "Community 1"
 Cohesion: 0.03
-Nodes (33): main, 43989ef [npm]: bump mocha from 11.8.0 to 12.0.3, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
+Nodes (33): main, 6e22192 Fix security audit by updating proxy-addr in lockfile, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.05
