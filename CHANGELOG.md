@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A key defined by the map that references a topic was reported as not defined ("Key "release" is not defined in any map") when a map in a folder above did not reference the topic — for instance DITA-OT's own documentation (`docsrc/`) inside a user guide's `build/` folder, whose topics were resolved in the user guide's bookmap. Root map discovery used to take the map in the highest folder whatever it contained. It now takes the highest map that references the topic (as a topicref, a key definition's target or a submap), in the topic's folder or a folder above it, and falls back to the highest map only when none does. Validation, hover, completion, Go to Definition, Ctrl+click on keys and the keys offered by the visual editor's link picker all follow it. `ditacraft.rootMap` (**DITA: Set Root Map**) still overrides discovery.
+
 ## [0.10.0] - 2026-10-04
 
 The visual preview, the visual editor for topics and maps, and the Properties view (Milestone 8 of the [ROADMAP](ROADMAP.md)). The extension is now displayed as **DITA Craft**. Also in this release: DITAVAL filtering that follows DITA's rules with flags in condition highlighting, F2 rename from usages, folder and file moves that keep every reference working, and AI features that work again (their settings panel, the quick fix, current default models and the `ditacraft.ai.enabled` switch).

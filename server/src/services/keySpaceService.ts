@@ -116,6 +116,12 @@ const MAX_INLINE_SCOPE_DEPTH = 10;
 /** Cap on total qualified scope-alias entries to guard against combinatorial explosion. */
 const MAX_KEY_SPACE_ENTRIES = 50_000;
 const ROOT_MAP_CACHE_TTL_MS = ONE_MINUTE_MS;
+/**
+ * How many candidate maps findRootMap checks for a reference to the file
+ * (each costs a key space build). Below MAX_KEY_SPACES so that the
+ * candidates of one directory stay cached together.
+ */
+const MAX_ROOT_MAP_CANDIDATES = 8;
 
 /**
  * How many directory levels findRootMap scans upward for files that live
@@ -145,20 +151,30 @@ export class KeySpaceService implements IKeySpaceService {
     });
 
     private keySpaceCache: Map<string, KeySpace> = new Map();
+    /** The root map chosen for a file, keyed by the file's normalized path. */
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
+    /** The candidate root maps of a directory (findRootMap's upward walk),
+     *  keyed by the directory. */
+    private rootMapCandidatesCache: Map<string, { candidates: string[]; timestamp: number }> = new Map();
+    /** Normalized paths of the files each key space's maps reference. */
+    private referencedFilesCache = new WeakMap<KeySpace, Set<string>>();
     private cacheConfig: CacheConfig;
     private pendingBuilds: Map<string, Promise<KeySpace>> = new Map();
-    /** In-flight dedup for findRootMap(), mirroring pendingBuilds above — keyed
-     *  by the same cacheKey (the queried file's containing directory), since
-     *  concurrent resolveKey() calls for files in the same directory would
+    /** In-flight dedup for the upward walk behind findRootMap(), mirroring
+     *  pendingBuilds above — keyed by the queried file's containing directory,
+     *  since concurrent resolveKey() calls for files in the same directory would
      *  otherwise each fire their own redundant upward-directory walk on a
      *  cold cache (e.g. every keyref usage of a heavily-referenced key,
      *  resolved concurrently by rename/find-references). */
-    private pendingRootMapLookups: Map<string, Promise<string | null>> = new Map();
+    private pendingRootMapLookups: Map<string, Promise<string[]>> = new Map();
     /** Bumped on structural invalidations (workspace/root-map/path changes);
      *  in-flight builds and root-map lookups that started under an older
      *  generation drop their cache write so stale data can't resurrect. */
     private cacheGeneration = 0;
+    /** Bumped on every invalidation, content edits included: a map edit can
+     *  add or remove the reference that decides a file's root map, so a choice
+     *  made while it ran is not cached. */
+    private rootMapChoiceGeneration = 0;
     /** Files invalidated while builds are in flight. Each build captures the
      *  log length at start; on completion it drops its cache write only if a
      *  logged file is in ITS map hierarchy — so unrelated builds keep caching. */
@@ -220,8 +236,10 @@ export class KeySpaceService implements IKeySpaceService {
      */
     private invalidateAllCaches(): void {
         this.cacheGeneration++;
+        this.rootMapChoiceGeneration++;
         this.keySpaceCache.clear();
         this.rootMapCache.clear();
+        this.rootMapCandidatesCache.clear();
         this.pendingBuilds.clear();
         this.pendingRootMapLookups.clear();
     }
@@ -565,7 +583,14 @@ export class KeySpaceService implements IKeySpaceService {
     /**
      * Find root map for a given file by searching upward through directories.
      * If an explicit root map is set via setExplicitRootMap(), it is always returned.
-     * Priority: root.ditamap > main.ditamap > master.ditamap > first alphabetically.
+     *
+     * The candidates are the maps found from the file's directory up to its
+     * workspace folder, the highest directory first and, in a directory,
+     * root.ditamap > main.ditamap > master.ditamap > alphabetical order. The
+     * first candidate whose maps reference the file (a topicref, a key
+     * definition or a submap) is its root map: a map higher up that does not
+     * know the file — another publication of the workspace — is passed over.
+     * When no candidate references the file, the first candidate is used.
      */
     public async findRootMap(filePath: string): Promise<string | null> {
         // Explicit root map overrides auto-discovery
@@ -576,13 +601,55 @@ export class KeySpaceService implements IKeySpaceService {
         const absolutePath = path.isAbsolute(filePath)
             ? filePath
             : path.resolve(filePath);
+        const fileKey = normalizeFsPath(absolutePath);
 
-        const cacheKey = path.dirname(absolutePath);
-
-        // Check cache
-        const cached = this.rootMapCache.get(cacheKey);
+        const cached = this.rootMapCache.get(fileKey);
         if (cached && (Date.now() - cached.timestamp) < ROOT_MAP_CACHE_TTL_MS) {
             return cached.rootMap;
+        }
+
+        const generationAtStart = this.rootMapChoiceGeneration;
+        const candidates = await this.findRootMapCandidates(absolutePath);
+        let rootMap: string | null = candidates[0] ?? null;
+        for (const candidate of candidates.slice(0, MAX_ROOT_MAP_CANDIDATES)) {
+            if (this.referencesFile(await this.buildKeySpace(candidate), fileKey)) {
+                rootMap = candidate;
+                break;
+            }
+        }
+
+        if (generationAtStart === this.rootMapChoiceGeneration) {
+            this.rootMapCache.set(fileKey, { rootMap, timestamp: Date.now() });
+        }
+        return rootMap;
+    }
+
+    /** Whether the maps of a key space reference a file (normalized path). */
+    private referencesFile(keySpace: KeySpace, fileKey: string): boolean {
+        let files = this.referencedFilesCache.get(keySpace);
+        if (!files) {
+            files = new Set(keySpace.topicToScope.keys());
+            for (const map of keySpace.mapHierarchy) files.add(normalizeFsPath(map));
+            for (const def of keySpace.keys.values()) {
+                if (def.targetFile) files.add(normalizeFsPath(def.targetFile));
+            }
+            for (const defs of keySpace.duplicateKeys.values()) {
+                for (const def of defs) {
+                    if (def.targetFile) files.add(normalizeFsPath(def.targetFile));
+                }
+            }
+            this.referencedFilesCache.set(keySpace, files);
+        }
+        return files.has(fileKey);
+    }
+
+    /** The candidate root maps for a file, in findRootMap's order (cached per directory). */
+    private async findRootMapCandidates(absolutePath: string): Promise<string[]> {
+        const cacheKey = path.dirname(absolutePath);
+
+        const cached = this.rootMapCandidatesCache.get(cacheKey);
+        if (cached && (Date.now() - cached.timestamp) < ROOT_MAP_CACHE_TTL_MS) {
+            return cached.candidates;
         }
 
         // In-flight dedup: many concurrent callers for files in the same
@@ -595,7 +662,7 @@ export class KeySpaceService implements IKeySpaceService {
             return pendingLookup;
         }
 
-        const lookupPromise = this.doFindRootMap(absolutePath, cacheKey);
+        const lookupPromise = this.doFindRootMapCandidates(absolutePath, cacheKey);
         this.pendingRootMapLookups.set(cacheKey, lookupPromise);
         try {
             return await lookupPromise;
@@ -610,7 +677,7 @@ export class KeySpaceService implements IKeySpaceService {
 
     /** The actual upward-directory walk behind findRootMap(), run at most once
      *  per cacheKey concurrently thanks to pendingRootMapLookups above. */
-    private async doFindRootMap(absolutePath: string, cacheKey: string): Promise<string | null> {
+    private async doFindRootMapCandidates(absolutePath: string, cacheKey: string): Promise<string[]> {
         let currentDir = path.dirname(absolutePath);
         // Stop at the workspace folder that actually contains the file
         // (multi-root safe). Deliberate: a root map living ABOVE a workspace
@@ -622,41 +689,30 @@ export class KeySpaceService implements IKeySpaceService {
         const stopDir = containingFolder ?? null;
         const maxLevels = stopDir === null ? OUTSIDE_WORKSPACE_MAX_WALK_LEVELS : Number.POSITIVE_INFINITY;
 
-        // Skip the rootMapCache write below if any invalidation runs while we
+        // Skip the cache write below if any invalidation runs while we
         // are awaiting readdir — same stale-write guard as buildKeySpace.
         const generationAtStart = this.cacheGeneration;
 
         // Search up to the stop directory.
-        // Root maps are typically at the project root, so prefer maps at
-        // the highest level (closest to workspace root).
+        // Root maps are typically at the project root, so maps at the
+        // highest level (closest to workspace root) come first.
         const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
-        let bestMap: string | null = null;
+        const candidates: string[] = [];
         let level = 0;
 
         while (currentDir) {
+            const dir = currentDir;
             try {
-                const files = await fsPromises.readdir(currentDir);
+                const files = await fsPromises.readdir(dir);
                 const mapFiles = files.filter(f =>
                     f.endsWith('.ditamap') || f.endsWith('.bookmap')
-                );
-
-                if (mapFiles.length > 0) {
-                    let found: string | null = null;
-
-                    for (const preferred of preferredNames) {
-                        if (mapFiles.includes(preferred)) {
-                            found = path.join(currentDir, preferred);
-                            break;
-                        }
-                    }
-
-                    if (!found) {
-                        found = path.join(currentDir, mapFiles.sort()[0]);
-                    }
-
-                    // Higher directories overwrite lower — root maps live at project root
-                    bestMap = found;
-                }
+                ).sort();
+                const ordered = [
+                    ...preferredNames.filter(name => mapFiles.includes(name)),
+                    ...mapFiles.filter(name => !preferredNames.includes(name)),
+                ];
+                // Higher directories go before lower — root maps live at project root
+                candidates.unshift(...ordered.map(name => path.join(dir, name)));
             } catch {
                 // Directory not readable
             }
@@ -670,16 +726,17 @@ export class KeySpaceService implements IKeySpaceService {
         }
 
         if (generationAtStart === this.cacheGeneration) {
-            this.rootMapCache.set(cacheKey, { rootMap: bestMap, timestamp: Date.now() });
+            this.rootMapCandidatesCache.set(cacheKey, { candidates, timestamp: Date.now() });
         }
-        return bestMap;
+        return candidates;
     }
 
     /**
      * Invalidate cache entries for a changed file (debounced).
      * @param pathChanged true when the file was created, deleted, or renamed —
-     *   only such changes can alter name-based root-map discovery, so plain
-     *   content edits keep the root-map cache intact.
+     *   only such changes can alter the candidate root maps found by name, so
+     *   plain content edits keep that cache intact (they still reset the
+     *   root maps chosen for files, which depend on the maps' references).
      */
     public invalidateForFile(changedFile: string, pathChanged = false): void {
         const existing = this.pendingInvalidations.get(changedFile) ?? false;
@@ -737,6 +794,7 @@ export class KeySpaceService implements IKeySpaceService {
         this.pendingInvalidations.clear();
         this.keySpaceCache.clear();
         this.rootMapCache.clear();
+        this.rootMapCandidatesCache.clear();
     }
 
     // --- Internal: BFS traversal ---
@@ -1576,13 +1634,15 @@ export class KeySpaceService implements IKeySpaceService {
 
     private cleanupExpiredRootMapCache(): void {
         const now = Date.now();
-        const expired: string[] = [];
-        for (const [key, entry] of this.rootMapCache.entries()) {
-            if ((now - entry.timestamp) > ROOT_MAP_CACHE_TTL_MS) {
-                expired.push(key);
+        for (const cache of [this.rootMapCache, this.rootMapCandidatesCache]) {
+            const expired: string[] = [];
+            for (const [key, entry] of cache.entries()) {
+                if ((now - entry.timestamp) > ROOT_MAP_CACHE_TTL_MS) {
+                    expired.push(key);
+                }
             }
+            for (const key of expired) cache.delete(key);
         }
-        for (const key of expired) this.rootMapCache.delete(key);
     }
 
     private startPeriodicCleanup(): void {
@@ -1592,7 +1652,7 @@ export class KeySpaceService implements IKeySpaceService {
         );
 
         this.cleanupTimer = setInterval(() => {
-            if (this.keySpaceCache.size === 0 && this.rootMapCache.size === 0) return;
+            if (this.keySpaceCache.size === 0 && this.rootMapCache.size === 0 && this.rootMapCandidatesCache.size === 0) return;
             this.cleanupExpiredCacheEntries();
             this.cleanupExpiredRootMapCache();
         }, interval);
@@ -1612,13 +1672,18 @@ export class KeySpaceService implements IKeySpaceService {
         // builds themselves still resolve for their current awaiters.
         this.pendingBuilds.clear();
 
+        // Any map change can add or remove the reference that decides which
+        // candidate is a file's root map.
+        this.rootMapChoiceGeneration++;
+        this.rootMapCache.clear();
+
         if (pathChanged) {
-            // A created/deleted/renamed map can alter name-based root-map
-            // discovery for any directory (preferred-name and highest-level
-            // rules) — clear the whole cache and fail in-flight lookups.
-            // Content edits cannot change discovery, so they skip this.
+            // A created/deleted/renamed map can alter the candidate root maps
+            // of any directory (preferred-name and highest-level rules) —
+            // clear the whole cache and fail in-flight lookups.
+            // Content edits cannot change the candidates, so they skip this.
             this.cacheGeneration++;
-            this.rootMapCache.clear();
+            this.rootMapCandidatesCache.clear();
             // New callers must not join a possibly-stale in-flight lookup;
             // existing awaiters still resolve for their current callers (same
             // shape as pendingBuilds.clear() above for buildKeySpace).

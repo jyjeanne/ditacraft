@@ -269,10 +269,10 @@ suite('KeySpaceService', () => {
 
                 let walkCount = 0;
                 const serviceAny = service as unknown as {
-                    doFindRootMap: (absolutePath: string, cacheKey: string) => Promise<string | null>;
+                    doFindRootMapCandidates: (absolutePath: string, cacheKey: string) => Promise<string[]>;
                 };
-                const original = serviceAny.doFindRootMap.bind(service);
-                serviceAny.doFindRootMap = async (absolutePath: string, cacheKey: string) => {
+                const original = serviceAny.doFindRootMapCandidates.bind(service);
+                serviceAny.doFindRootMapCandidates = async (absolutePath: string, cacheKey: string) => {
                     walkCount++;
                     return original(absolutePath, cacheKey);
                 };
@@ -289,6 +289,104 @@ suite('KeySpaceService', () => {
                 assert.strictEqual(r1, mapPath);
                 assert.strictEqual(r2, mapPath);
                 assert.strictEqual(r3, mapPath);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        // A publication nested in another one's folder (e.g. DITA-OT's docsrc
+        // inside a user guide's build folder): the higher map does not know
+        // the topic, so its keys must come from the nested publication's map.
+        function writeNestedPublication(tmpDir: string): { topic: string; siteMap: string } {
+            fs.writeFileSync(path.join(tmpDir, 'guide.bookmap'), `<?xml version="1.0"?>
+<bookmap><chapter href="intro.dita"/></bookmap>`, 'utf-8');
+            const docsrc = path.join(tmpDir, 'build', 'docsrc');
+            fs.mkdirSync(path.join(docsrc, 'reference'), { recursive: true });
+            const siteMap = path.join(docsrc, 'site.ditamap');
+            fs.writeFileSync(siteMap, `<?xml version="1.0"?>
+<map>
+  <mapref href="keys.ditamap"/>
+  <mapref href="reference/license.ditamap"/>
+</map>`, 'utf-8');
+            fs.writeFileSync(path.join(docsrc, 'keys.ditamap'), `<?xml version="1.0"?>
+<map>
+  <keydef keys="release"><topicmeta><keywords><keyword>4.3</keyword></keywords></topicmeta></keydef>
+</map>`, 'utf-8');
+            fs.writeFileSync(path.join(docsrc, 'reference', 'license.ditamap'), `<?xml version="1.0"?>
+<map>
+  <topicref href="third-party.dita"/>
+</map>`, 'utf-8');
+            const topic = path.join(docsrc, 'reference', 'third-party.dita');
+            fs.writeFileSync(topic, '<concept id="c"><title><keyword keyref="release"/></title></concept>', 'utf-8');
+            return { topic, siteMap };
+        }
+
+        test('passes over a higher map that does not reference the file (regression)', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const { topic, siteMap } = writeNestedPublication(tmpDir);
+
+                assert.strictEqual(await service.findRootMap(topic), siteMap);
+                const release = await service.resolveKey('release', topic);
+                assert.ok(release, 'the key defined by the nested publication should resolve');
+                assert.deepStrictEqual(release!.metadata?.keywords, ['4.3']);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a file referenced only by a key definition counts as referenced', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), '<map><topicref href="a.dita"/></map>', 'utf-8');
+                const sub = path.join(tmpDir, 'sub');
+                fs.mkdirSync(sub);
+                const subMap = path.join(sub, 'sub.ditamap');
+                fs.writeFileSync(subMap, '<map><keydef keys="b" href="b.dita"/><topicref keyref="b"/></map>', 'utf-8');
+                const topic = path.join(sub, 'b.dita');
+                fs.writeFileSync(topic, '<topic id="b"/>', 'utf-8');
+
+                assert.strictEqual(await service.findRootMap(topic), subMap);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a map edit that adds the reference changes the root map', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const { topic, siteMap } = writeNestedPublication(tmpDir);
+                const guide = path.join(tmpDir, 'guide.bookmap');
+                assert.strictEqual(await service.findRootMap(topic), siteMap);
+
+                // The higher map now includes the nested publication.
+                fs.writeFileSync(guide, `<?xml version="1.0"?>
+<bookmap><chapter href="intro.dita"/><appendix href="build/docsrc/site.ditamap" format="ditamap"/></bookmap>`, 'utf-8');
+                (service as unknown as { doInvalidate: (file: string, pathChanged: boolean) => void })
+                    .doInvalidate(guide, false);
+
+                assert.strictEqual(await service.findRootMap(topic), guide);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('falls back to the highest map when no map references the file', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const { siteMap } = writeNestedPublication(tmpDir);
+                const loose = path.join(path.dirname(siteMap), 'reference', 'loose.dita');
+                fs.writeFileSync(loose, '<topic id="loose"/>', 'utf-8');
+
+                assert.strictEqual(await service.findRootMap(loose), path.join(tmpDir, 'guide.bookmap'));
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);

@@ -6,6 +6,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { KeySpaceResolver } from '../../utils/keySpaceResolver';
 
 suite('Key Space Resolver Test Suite', () => {
@@ -306,6 +307,36 @@ suite('Key Space Resolver Test Suite', () => {
             const rootMap = await resolver.findRootMap(contextFile);
 
             assert.strictEqual(rootMap, null, 'Should return null when no map found');
+        });
+
+        test('Should pass over a higher map that does not reference the file (regression)', async () => {
+            // A publication nested in another one's folder (e.g. DITA-OT's docsrc
+            // inside a user guide's build folder): the higher map does not know
+            // the topic, so its keys must come from the nested publication's map.
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-rootmap-'));
+            const local = new KeySpaceResolver();
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'guide.bookmap'), '<bookmap><chapter href="intro.dita"/></bookmap>');
+                const docsrc = path.join(tmpDir, 'build', 'docsrc');
+                fs.mkdirSync(path.join(docsrc, 'reference'), { recursive: true });
+                const siteMap = path.join(docsrc, 'site.ditamap');
+                fs.writeFileSync(siteMap, '<map><mapref href="keys.ditamap"/><mapref href="reference/license.ditamap"/></map>');
+                fs.writeFileSync(path.join(docsrc, 'keys.ditamap'),
+                    '<map><keydef keys="release" href="reference/release.dita"/></map>');
+                fs.writeFileSync(path.join(docsrc, 'reference', 'license.ditamap'), '<map><topicref href="third-party.dita"/></map>');
+                const topic = path.join(docsrc, 'reference', 'third-party.dita');
+                fs.writeFileSync(topic, '<concept id="c"><title><keyword keyref="release"/></title></concept>');
+                const loose = path.join(docsrc, 'reference', 'loose.dita');
+                fs.writeFileSync(loose, '<topic id="loose"/>');
+
+                assert.strictEqual(await local.findRootMap(topic), siteMap);
+                assert.ok(await local.resolveKey('release', topic), 'the key defined by the nested publication should resolve');
+                assert.strictEqual(await local.findRootMap(loose), path.join(tmpDir, 'guide.bookmap'),
+                    'a file no map references keeps the highest map');
+            } finally {
+                local.dispose();
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
         });
     });
 

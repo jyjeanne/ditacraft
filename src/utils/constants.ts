@@ -61,7 +61,9 @@ export const TIME_CONSTANTS = {
 export const CACHE_DEFAULTS = {
     DEFAULT_TTL_MINUTES: 5,
     MAX_KEY_SPACES: 10,
-    ROOT_MAP_CACHE_TTL: 60 * 1000 // 1 minute
+    ROOT_MAP_CACHE_TTL: 60 * 1000, // 1 minute
+    /** Candidate maps checked for a reference to a file when finding its root map (below MAX_KEY_SPACES) */
+    MAX_ROOT_MAP_CANDIDATES: 8
 };
 
 /**

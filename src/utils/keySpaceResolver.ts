@@ -110,7 +110,14 @@ interface CacheConfig {
  */
 export class KeySpaceResolver implements vscode.Disposable {
     private keySpaceCache: Map<string, KeySpace> = new Map();
+    /** The root map chosen for a file, keyed by the file's normalized path */
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
+    /** The candidate root maps of a directory (findRootMap's upward walk), keyed by the directory */
+    private rootMapCandidatesCache: Map<string, { candidates: string[]; timestamp: number }> = new Map();
+    /** Normalized paths of the files each key space's maps reference */
+    private referencedFilesCache = new WeakMap<KeySpace, Set<string>>();
+    /** Bumped when maps change: a root map chosen while it ran is not cached */
+    private rootMapChoiceGeneration = 0;
     private cacheConfig: CacheConfig;
     private disposables: vscode.Disposable[] = [];
     private rootMapCacheTtl: number = CACHE_DEFAULTS.ROOT_MAP_CACHE_TTL; // 1 minute cache for root map lookups
@@ -145,7 +152,7 @@ export class KeySpaceResolver implements vscode.Disposable {
 
         const cleanupTimer = setInterval(() => {
             // P3-7: Skip cleanup if caches are empty (adaptive cleanup)
-            if (this.keySpaceCache.size === 0 && this.rootMapCache.size === 0) {
+            if (this.keySpaceCache.size === 0 && this.rootMapCache.size === 0 && this.rootMapCandidatesCache.size === 0) {
                 logger.debug('Skipping cache cleanup - caches are empty');
                 return;
             }
@@ -316,8 +323,12 @@ export class KeySpaceResolver implements vscode.Disposable {
         const normalizedPath = path.normalize(changedFile);
         const changedDir = path.dirname(normalizedPath);
 
-        // Clear root map cache for the affected directory
-        this.rootMapCache.delete(changedDir);
+        // Clear the candidate root maps of the affected directory, and every
+        // file's chosen root map: a map change can add or remove the reference
+        // that decides it
+        this.rootMapCandidatesCache.delete(changedDir);
+        this.rootMapCache.clear();
+        this.rootMapChoiceGeneration++;
 
         // Check each cached key space to see if it includes this file
         for (const [rootMap, keySpace] of this.keySpaceCache.entries()) {
@@ -671,20 +682,23 @@ export class KeySpaceResolver implements vscode.Disposable {
      */
     private cleanupExpiredRootMapCache(): void {
         const now = Date.now();
-        const expiredKeys: string[] = [];
+        let removedCount = 0;
 
-        for (const [key, entry] of this.rootMapCache.entries()) {
-            if ((now - entry.timestamp) > this.rootMapCacheTtl) {
-                expiredKeys.push(key);
+        for (const cache of [this.rootMapCache, this.rootMapCandidatesCache]) {
+            const expiredKeys: string[] = [];
+            for (const [key, entry] of cache.entries()) {
+                if ((now - entry.timestamp) > this.rootMapCacheTtl) {
+                    expiredKeys.push(key);
+                }
             }
+            expiredKeys.forEach(key => cache.delete(key));
+            removedCount += expiredKeys.length;
         }
 
-        if (expiredKeys.length > 0) {
-            expiredKeys.forEach(key => this.rootMapCache.delete(key));
-
+        if (removedCount > 0) {
             logger.debug('Root map cache cleanup completed', {
-                removedCount: expiredKeys.length,
-                remainingCount: this.rootMapCache.size
+                removedCount,
+                remainingCount: this.rootMapCache.size + this.rootMapCandidatesCache.size
             });
         }
     }
@@ -1371,20 +1385,28 @@ export class KeySpaceResolver implements vscode.Disposable {
      * 3. Stop at workspace root (or filesystem root if no workspace)
      *
      * ## Map Selection Priority
-     * When multiple maps exist in a directory, selects in order:
+     * The maps found are candidates, the highest directory first; in a
+     * directory, in order:
      * 1. `root.ditamap` (conventional name)
      * 2. `main.ditamap` (common alternative)
      * 3. `master.ditamap` (legacy name)
-     * 4. First map alphabetically
+     * 4. The other maps alphabetically
+     *
+     * The first candidate whose maps reference the file (a topicref, a key
+     * definition or a submap) is its root map: a map higher up that does not
+     * know the file — another publication of the workspace — is passed over.
+     * When no candidate references the file, the first candidate is used.
+     * (The server's KeySpaceService follows the same rule.)
      *
      * ## Caching
-     * Results are cached by directory with 1-minute TTL to avoid expensive
-     * directory scans during rapid operations (typing, multiple file opens).
+     * The candidates are cached by directory and the choice by file, with a
+     * 1-minute TTL, to avoid expensive directory scans during rapid operations
+     * (typing, multiple file opens).
      *
      * ## Performance Considerations
      * - Uses async `readdir` to avoid blocking the UI thread
-     * - Cache key is the containing directory, not the input file
-     * - Cache is invalidated when map files change (via file watcher)
+     * - At most `MAX_ROOT_MAP_CANDIDATES` key spaces are built per lookup
+     * - Caches are invalidated when map files change (via file watcher)
      *
      * @param filePath - Absolute or relative path to any DITA file
      * @returns Promise resolving to absolute path to root map, or null if not found
@@ -1402,14 +1424,63 @@ export class KeySpaceResolver implements vscode.Disposable {
         const absolutePath = path.isAbsolute(filePath)
             ? filePath
             : path.resolve(filePath);
-
-        const cacheKey = path.dirname(absolutePath);
+        const fileKey = this.normalizePathForComparison(absolutePath);
 
         // Check cache first (avoids expensive directory scans)
-        const cached = this.rootMapCache.get(cacheKey);
+        const cached = this.rootMapCache.get(fileKey);
         if (cached && (Date.now() - cached.timestamp) < this.rootMapCacheTtl) {
-            logger.debug('Root map cache hit', { directory: cacheKey });
+            logger.debug('Root map cache hit', { file: absolutePath });
             return cached.rootMap;
+        }
+
+        const generationAtStart = this.rootMapChoiceGeneration;
+        const candidates = await this.findRootMapCandidates(absolutePath);
+        let rootMap: string | null = candidates[0] ?? null;
+        for (const candidate of candidates.slice(0, CACHE_DEFAULTS.MAX_ROOT_MAP_CANDIDATES)) {
+            if (this.referencesFile(await this.buildKeySpace(candidate), fileKey)) {
+                rootMap = candidate;
+                break;
+            }
+        }
+
+        if (!rootMap) {
+            logger.debug('No root map found', { searchedFrom: absolutePath });
+        }
+        if (generationAtStart === this.rootMapChoiceGeneration) {
+            this.rootMapCache.set(fileKey, { rootMap, timestamp: Date.now() });
+        }
+        return rootMap;
+    }
+
+    /**
+     * Whether the maps of a key space reference a file (normalized path)
+     */
+    private referencesFile(keySpace: KeySpace, fileKey: string): boolean {
+        let files = this.referencedFilesCache.get(keySpace);
+        if (!files) {
+            files = new Set(keySpace.topicToScope.keys());
+            for (const map of keySpace.mapHierarchy) {
+                files.add(this.normalizePathForComparison(map));
+            }
+            for (const def of keySpace.keys.values()) {
+                if (def.targetFile) {
+                    files.add(this.normalizePathForComparison(def.targetFile));
+                }
+            }
+            this.referencedFilesCache.set(keySpace, files);
+        }
+        return files.has(fileKey);
+    }
+
+    /**
+     * The candidate root maps for a file, in findRootMap's order (cached per directory)
+     */
+    private async findRootMapCandidates(absolutePath: string): Promise<string[]> {
+        const cacheKey = path.dirname(absolutePath);
+
+        const cached = this.rootMapCandidatesCache.get(cacheKey);
+        if (cached && (Date.now() - cached.timestamp) < this.rootMapCacheTtl) {
+            return cached.candidates;
         }
 
         let currentDir = path.dirname(absolutePath);
@@ -1420,36 +1491,26 @@ export class KeySpaceResolver implements vscode.Disposable {
 
         // Search up the directory tree to workspace root.
         // Root maps are typically at the project root, so we search all the way
-        // up and prefer maps closest to the workspace root (highest level).
+        // up and put maps closest to the workspace root (highest level) first.
         const preferredNames = ['root.ditamap', 'main.ditamap', 'master.ditamap'];
-        let bestMap: string | null = null;
+        const candidates: string[] = [];
 
         while (currentDir && currentDir.length >= stopDir.length) {
+            const dir = currentDir;
             try {
-                const files = await fsPromises.readdir(currentDir);
+                const files = await fsPromises.readdir(dir);
                 const mapFiles = files.filter(f =>
                     f.endsWith('.ditamap') || f.endsWith('.bookmap')
-                );
+                ).sort();
 
-                if (mapFiles.length > 0) {
-                    let found: string | null = null;
+                // Conventional root map names first, then alphabetically
+                const ordered = [
+                    ...preferredNames.filter(name => mapFiles.includes(name)),
+                    ...mapFiles.filter(name => !preferredNames.includes(name)),
+                ];
 
-                    // Prefer conventional root map names
-                    for (const preferred of preferredNames) {
-                        if (mapFiles.includes(preferred)) {
-                            found = path.join(currentDir, preferred);
-                            break;
-                        }
-                    }
-
-                    // Fall back to first alphabetically
-                    if (!found) {
-                        found = path.join(currentDir, mapFiles.sort()[0]);
-                    }
-
-                    // Higher directories overwrite lower — root maps live at project root
-                    bestMap = found;
-                }
+                // Higher directories go before lower — root maps live at project root
+                candidates.unshift(...ordered.map(name => path.join(dir, name)));
             } catch (_error) {
                 // Directory not readable
             }
@@ -1461,11 +1522,8 @@ export class KeySpaceResolver implements vscode.Disposable {
             currentDir = parentDir;
         }
 
-        if (!bestMap) {
-            logger.debug('No root map found', { searchedFrom: absolutePath });
-        }
-        this.rootMapCache.set(cacheKey, { rootMap: bestMap, timestamp: Date.now() });
-        return bestMap;
+        this.rootMapCandidatesCache.set(cacheKey, { candidates, timestamp: Date.now() });
+        return candidates;
     }
 
     /**
@@ -1517,6 +1575,8 @@ export class KeySpaceResolver implements vscode.Disposable {
     public clearCache(): void {
         this.keySpaceCache.clear();
         this.rootMapCache.clear();
+        this.rootMapCandidatesCache.clear();
+        this.rootMapChoiceGeneration++;
         logger.info('Key space cache cleared');
     }
 

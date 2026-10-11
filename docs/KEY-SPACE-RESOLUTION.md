@@ -163,11 +163,13 @@ Output: KeySpace with all keys from hierarchy
 
 ### Root Map Discovery
 
-Priority order for auto-detection:
+An explicit root map (`ditacraft.rootMap`, **DITA: Set Root Map**) always wins. Otherwise the maps (`.ditamap`, `.bookmap`) found from the file's directory up to its workspace folder are candidates, the highest directory first, and in a directory:
 1. `root.ditamap`
 2. `main.ditamap`
 3. `master.ditamap`
-4. First `.ditamap` file alphabetically
+4. The other maps alphabetically
+
+The root map is the first candidate whose map hierarchy references the file — a topicref, a key definition's target, or a submap. A higher map that does not reference the file (another publication of the workspace, such as DITA-OT's `docsrc` inside a build folder) is passed over. When no candidate references the file, the first candidate is used. At most 8 candidates are checked (each costs a key space build). The client resolver and the server service follow the same rule.
 
 ### Caching Strategy
 
@@ -176,7 +178,7 @@ Priority order for auto-detection:
 | TTL | 5 minutes (configurable) | `keySpaceCacheTtlMinutes` setting |
 | Max cache size | 10 root maps | LRU eviction when full |
 | Cleanup interval | `max(5min, TTL/3)` | Adaptive, only runs if entries exist |
-| Root map cache | 1 minute TTL | Separate cache for directory lookups |
+| Root map cache | 1 minute TTL | Candidates per directory, chosen root map per file (reset when a map changes) |
 | In-flight dedup | `pendingBuilds` Map | Concurrent requests share one build |
 
 ### Client Consumers
