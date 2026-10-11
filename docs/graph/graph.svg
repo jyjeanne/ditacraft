@@ -14987,7 +14987,7 @@
   <circle cx="935.9947221547012" cy="418.1167357633296" r="4.133704735376044" fill="#4E79A7" opacity="0.9"/>
   <text x="935.9947221547012" y="432.25044049870564" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">render()</text>
   <circle cx="935.9976542875667" cy="418.7444868567582" r="16" fill="#F28E2B" opacity="0.9"/>
-  <text x="935.9976542875667" y="444.7444868567582" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">e1c0976 fix(keyspace): resolve keys in the highest map that references the file</text>
+  <text x="935.9976542875667" y="444.7444868567582" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">0f974e3 chore(release): bump version to 0.10.1</text>
   <circle cx="935.9994135713798" cy="419.37224233273884" r="4.0334261838440115" fill="#F28E2B" opacity="0.9"/>
   <text x="935.9994135713798" y="433.40566851658286" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">main</text>
   <circle cx="20" cy="20" r="5" fill="#4E79A7"/>
