@@ -19,12 +19,12 @@
         </authorinformation>
         <critdates>
             <created date="2025-01-25"/>
-            <revised modified="2026-10-04"/>
+            <revised modified="2026-10-12"/>
         </critdates>
         <prodinfo>
             <prodname>DITA Craft</prodname>
             <vrmlist>
-                <vrm version="0" release="10" modification="0"/>
+                <vrm version="0" release="10" modification="1"/>
             </vrmlist>
         </prodinfo>
         <bookid>
