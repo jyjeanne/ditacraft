@@ -1,13 +1,13 @@
-# Graph Report - .  (2026-10-06)
+# Graph Report - .  (2026-10-11)
 
 ## Corpus Check
-- Large corpus: 2041 files · ~1,055,971 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 2041 files · ~1,057,545 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
-- 3358 nodes · 8252 edges · 127 communities detected
+- 3363 nodes · 8265 edges · 127 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
-- Edge kinds: contains: 2108 · imports: 1879 · calls: 1861 · imports_from: 1082 · method: 863 · MODIFIES: 358 · re_exports: 72 · implements: 14 · inherits: 14 · ON_BRANCH: 1
+- Edge kinds: contains: 2109 · imports: 1879 · calls: 1869 · imports_from: 1082 · method: 867 · MODIFIES: 358 · re_exports: 72 · implements: 14 · inherits: 14 · ON_BRANCH: 1
 
 
 ## Input Scope
@@ -18,16 +18,16 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `0de0c81`
+- Built from Git commit: `e1c0976`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
-1. `KeySpaceService` - 82 edges
+1. `KeySpaceService` - 84 edges
 2. `Logger` - 56 edges
 3. `VisualPreviewPanel` - 49 edges
 4. `DitaCommands` - 46 edges
 5. `EditorSession` - 45 edges
-6. `TableCommands` - 43 edges
-7. `KeySpaceResolver` - 43 edges
+6. `KeySpaceResolver` - 45 edges
+7. `TableCommands` - 43 edges
 8. `Renderer` - 37 edges
 9. `SubjectSchemeService` - 36 edges
 10. `ElementNode` - 34 edges
@@ -36,9 +36,9 @@
 - `parse()` --calls--> `Scanner`  [EXTRACTED]
   src/shared/cst/parse.ts → src/shared/cst/parse.ts  _Bridges community 2 → community 50_
 - `debug()` --calls--> `menuContext()`  [EXTRACTED]
-  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 32 → community 16_
+  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 31 → community 16_
 - `debug()` --calls--> `post()`  [EXTRACTED]
-  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 32 → community 51_
+  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 31 → community 51_
 - `dispatchTransaction()` --calls--> `scheduleSelectionReport()`  [EXTRACTED]
   webview/editor/main.ts → webview/editor/main.ts  _Bridges community 16 → community 51_
 - `menuContext()` --calls--> `selectedReuse()`  [EXTRACTED]
@@ -52,7 +52,7 @@ Nodes (92): commonMarks(), FRESH, ITEM, SPLITTABLE, withoutMarks(), FRESH, linkA
 
 ### Community 1 - "Community 1"
 Cohesion: 0.03
-Nodes (33): main, 0de0c81 fix: align @types/vscode with VS Code engine for packaging, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
+Nodes (33): main, e1c0976 fix(keyspace): resolve keys in the highest map that references the file, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.05
@@ -151,44 +151,44 @@ Cohesion: 0.09
 Nodes (32): attrValue(), ConditionMarks, cssColor(), flagKey(), FlagLabel, FlagLook, FlagMarks, MarkSpan (+24 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.12
-Nodes (1): KeySpaceResolver
-
-### Community 27 - "Community 27"
 Cohesion: 0.06
 Nodes (32): GridCell, gridCellFor(), TableGrid, cssLength(), Alias, ALIGN_VALUES, CAPTION_OWNERS, CONREF_ATTRIBUTES (+24 more)
 
-### Community 28 - "Community 28"
+### Community 27 - "Community 27"
 Cohesion: 0.12
 Nodes (1): TableCommands
 
-### Community 29 - "Community 29"
+### Community 28 - "Community 28"
 Cohesion: 0.07
 Nodes (25): readDiagnostics(), readError(), TOPIC_MISSING_TITLE, TOPIC_VALID, MAP_WITH_KEYS, TOPIC, MAP_CONTENT, TOPIC (+17 more)
 
-### Community 30 - "Community 30"
+### Community 29 - "Community 29"
 Cohesion: 0.10
 Nodes (32): applyProblems(), applySettings(), banner, button(), byId(), content, enhanceImages(), firstPresent() (+24 more)
 
-### Community 31 - "Community 31"
+### Community 30 - "Community 30"
 Cohesion: 0.20
 Nodes (20): AI_MODES, aiMode(), buildLLMConfig(), MODE_PROVIDERS, ChatMessage, ConnectionCheck, DitaCraftLLMConfig, ILLMProvider (+12 more)
 
-### Community 32 - "Community 32"
+### Community 31 - "Community 31"
 Cohesion: 0.16
 Nodes (32): addReference(), askHost(), cursorOffset(), cursorPlace(), debug(), dropImages(), editable(), editAltText() (+24 more)
 
-### Community 33 - "Community 33"
+### Community 32 - "Community 32"
 Cohesion: 0.13
 Nodes (25): describeProfile(), FALLBACK_TRANSTYPES, followDitavalMoves(), getLastUsedProfileName(), getPublishingProfiles(), managePublishingProfilesCommand(), pickTranstype(), promptForDitaval() (+17 more)
 
-### Community 34 - "Community 34"
+### Community 33 - "Community 33"
 Cohesion: 0.11
 Nodes (2): DitaCommands, offsetOf()
 
-### Community 35 - "Community 35"
+### Community 34 - "Community 34"
 Cohesion: 0.18
 Nodes (5): cdataText(), projectText(), rawWithAttributes(), sameXml(), Writer
+
+### Community 35 - "Community 35"
+Cohesion: 0.14
+Nodes (1): KeySpaceResolver
 
 ### Community 36 - "Community 36"
 Cohesion: 0.17
@@ -510,47 +510,47 @@ Nodes (2): CopilotLLMProvider, ILLMProvider
 Cohesion: 0.36
 Nodes (1): DtdResolver
 
-### Community 116 - "Community 116"
+### Community 117 - "Community 117"
 Cohesion: 0.33
 Nodes (5): inlineConrefCommand(), InlineConrefResponse, LspTextEdit, LspWorkspaceEdit, getLanguageClient()
 
-### Community 117 - "Community 117"
+### Community 118 - "Community 118"
 Cohesion: 0.38
 Nodes (1): LinkCommands
 
-### Community 118 - "Community 118"
+### Community 119 - "Community 119"
 Cohesion: 0.43
 Nodes (2): AICompletionProvider, registerAICompletionProvider()
 
-### Community 119 - "Community 119"
+### Community 120 - "Community 120"
 Cohesion: 0.48
 Nodes (5): escapeRegExp(), findElementById(), navigateToElement(), registerElementNavigationCommand(), showDocumentAtLine()
 
-### Community 120 - "Community 120"
+### Community 121 - "Community 121"
 Cohesion: 0.40
 Nodes (1): DitaFileDecorationProvider
 
-### Community 121 - "Community 121"
+### Community 122 - "Community 122"
 Cohesion: 0.40
 Nodes (4): PaneState, SOURCE, state(), waitFor()
 
-### Community 122 - "Community 122"
+### Community 123 - "Community 123"
 Cohesion: 0.33
 Nodes (5): extensionRoot, initializedMsg, initMsg, server, serverScript
 
-### Community 123 - "Community 123"
+### Community 124 - "Community 124"
 Cohesion: 0.50
 Nodes (4): EditorState, open(), SOURCE, waitFor()
 
-### Community 124 - "Community 124"
+### Community 125 - "Community 125"
 Cohesion: 0.50
 Nodes (3): fs, path, vscode
 
-### Community 125 - "Community 125"
+### Community 126 - "Community 126"
 Cohesion: 0.67
 Nodes (3): PreviewState, state(), waitFor()
 
-### Community 126 - "Community 126"
+### Community 127 - "Community 127"
 Cohesion: 0.50
 Nodes (1): vscode
 
@@ -559,11 +559,11 @@ Nodes (1): vscode
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 13`** (2 nodes): `IKeySpaceService`, `KeySpaceService`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 26`** (1 nodes): `KeySpaceResolver`
+- **Thin community `Community 27`** (1 nodes): `TableCommands`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 28`** (1 nodes): `TableCommands`
+- **Thin community `Community 33`** (2 nodes): `DitaCommands`, `offsetOf()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (2 nodes): `DitaCommands`, `offsetOf()`
+- **Thin community `Community 35`** (1 nodes): `KeySpaceResolver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 42`** (1 nodes): `DitaLinkProvider`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -597,20 +597,20 @@ Nodes (1): vscode
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 115`** (1 nodes): `DtdResolver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 117`** (1 nodes): `LinkCommands`
+- **Thin community `Community 118`** (1 nodes): `LinkCommands`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 118`** (2 nodes): `AICompletionProvider`, `registerAICompletionProvider()`
+- **Thin community `Community 119`** (2 nodes): `AICompletionProvider`, `registerAICompletionProvider()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 120`** (1 nodes): `DitaFileDecorationProvider`
+- **Thin community `Community 121`** (1 nodes): `DitaFileDecorationProvider`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 126`** (1 nodes): `vscode`
+- **Thin community `Community 127`** (1 nodes): `vscode`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `KeySpaceService` connect `Community 13` to `Community 20`, `Community 3`, `Community 8`, `Community 1`, `Community 47`, `Community 5`, `Community 4`, `Community 7`, `Community 37`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Why does `VisualPreviewPanel` connect `Community 14` to `Community 54`, `Community 10`, `Community 38`?**
   _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Why does `EditorSession` connect `Community 9` to `Community 10`?**
@@ -620,6 +620,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.030416951469583047 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.03454070201643017 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03406593406593406 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.049900990099009904 - nodes in this community are weakly interconnected._
