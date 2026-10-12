@@ -378,15 +378,96 @@ suite('KeySpaceService', () => {
             }
         });
 
-        test('falls back to the highest map when no map references the file', async () => {
+        test('an explicit root map that does not reference the file gives way to the map that does (regression)', async () => {
+            // ditacraft.rootMap set to the user guide's bookmap must not make
+            // the keys of DITA-OT's docsrc, in the same workspace, undefined.
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
-                const { siteMap } = writeNestedPublication(tmpDir);
-                const loose = path.join(path.dirname(siteMap), 'reference', 'loose.dita');
-                fs.writeFileSync(loose, '<topic id="loose"/>', 'utf-8');
+                const { topic, siteMap } = writeNestedPublication(tmpDir);
+                const guide = path.join(tmpDir, 'guide.bookmap');
+                const archived = path.join(path.dirname(topic), 'archived.dita');
+                fs.writeFileSync(archived, '<topic id="archived"/>', 'utf-8');
+                fs.mkdirSync(path.join(tmpDir, 'drafts'));
+                const draft = path.join(tmpDir, 'drafts', 'draft.dita');
+                fs.writeFileSync(draft, '<topic id="draft"/>', 'utf-8');
+                service.setExplicitRootMap(guide);
 
-                assert.strictEqual(await service.findRootMap(loose), path.join(tmpDir, 'guide.bookmap'));
+                assert.strictEqual(await service.findRootMap(topic), siteMap);
+                assert.ok(await service.resolveKey('release', topic), 'the key defined by the nested publication should resolve');
+                assert.strictEqual(await service.findRootMap(archived), siteMap,
+                    'a file no map references belongs to the publication of its folder');
+                assert.strictEqual(await service.findRootMap(draft), guide,
+                    'a file in a folder of the explicit root map\'s publication keeps it');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('an explicit root map that references the file wins over a higher map that does too', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), '<map><topicref href="sub/t.dita"/></map>', 'utf-8');
+                const sub = path.join(tmpDir, 'sub');
+                fs.mkdirSync(sub);
+                const subMap = path.join(sub, 'sub.ditamap');
+                fs.writeFileSync(subMap, '<map><topicref href="t.dita"/></map>', 'utf-8');
+                const topic = path.join(sub, 't.dita');
+                fs.writeFileSync(topic, '<topic id="t"/>', 'utf-8');
+                service.setExplicitRootMap(subMap);
+
+                assert.strictEqual(await service.findRootMap(topic), subMap);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a file no map references belongs to the publication of its folder (regression)', async () => {
+            // DITA-OT's archived release notes (docsrc/release-notes/rel2.4.dita)
+            // are in no map; their keys come from the maps that reference the
+            // other topics of their folder, not from the highest map.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const { topic, siteMap } = writeNestedPublication(tmpDir);
+                const archived = path.join(path.dirname(topic), 'archived.dita');
+                fs.writeFileSync(archived, '<topic id="archived"><title><keyword keyref="release"/></title></topic>', 'utf-8');
+                const newFolder = path.join(path.dirname(siteMap), 'drafts');
+                fs.mkdirSync(newFolder);
+                const draft = path.join(newFolder, 'draft.dita');
+                fs.writeFileSync(draft, '<topic id="draft"/>', 'utf-8');
+                fs.mkdirSync(path.join(tmpDir, 'other'));
+                const other = path.join(tmpDir, 'other', 'other.dita');
+                fs.writeFileSync(other, '<topic id="other"/>', 'utf-8');
+
+                assert.strictEqual(await service.findRootMap(archived), siteMap);
+                assert.ok(await service.resolveKey('release', archived));
+                assert.strictEqual(await service.findRootMap(draft), siteMap,
+                    'a new folder takes the publication of the folder above');
+                assert.strictEqual(await service.findRootMap(other), path.join(tmpDir, 'guide.bookmap'),
+                    'the highest map when only it has topics around the file');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('falls back to the highest map when no map references a topic', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootMap = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootMap, '<map><keydef keys="product"><topicmeta><keywords><keyword>P</keyword></keywords></topicmeta></keydef></map>', 'utf-8');
+                const sub = path.join(tmpDir, 'sub');
+                fs.mkdirSync(sub);
+                fs.writeFileSync(path.join(sub, 'a.ditamap'), '<map/>', 'utf-8');
+                const topic = path.join(sub, 'new.dita');
+                fs.writeFileSync(topic, '<topic id="new"/>', 'utf-8');
+
+                assert.strictEqual(await service.findRootMap(topic), rootMap);
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -1949,6 +2030,66 @@ suite('KeySpaceService', () => {
                 // At least the self-closing one should survive regex fallback
                 assert.ok(keySpace.keys.has('also-fallback'),
                     'regex fallback should still extract self-closing keydef');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('key text inside markup, <keytext> and <linktext> is the key\'s content (regression)', async () => {
+            // DITA-OT's docs: <keyword><tm …>Apache Ant</tm></keyword>; XDITA
+            // samples: <keytext>. These keys have text, not "no target".
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const content = `<?xml version="1.0"?>
+<map>
+  <keydef keys="tool.ant.tm"><topicmeta><keywords><keyword><tm trademark="Apache Ant" tmtype="tm">Apache Ant</tm></keyword></keywords></topicmeta></keydef>
+  <keydef keys="product-name"><topicmeta><keytext>Remote Lighting Network</keytext></topicmeta></keydef>
+  <keydef keys="license"><topicmeta><linktext>Apache License 2.0</linktext></topicmeta></keydef>
+`;
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, content + '</map>', 'utf-8');
+                const brokenPath = path.join(tmpDir, 'broken.ditamap');
+                fs.writeFileSync(brokenPath, content + '  <keydef keys="unclosed" href="a.dita">\n', 'utf-8');  // regex fallback
+
+                for (const map of [mapPath, brokenPath]) {
+                    const keys = (await service.buildKeySpace(map)).keys;
+                    assert.strictEqual(keys.get('tool.ant.tm')?.inlineContent, 'Apache Ant', path.basename(map));
+                    assert.strictEqual(keys.get('product-name')?.inlineContent, 'Remote Lighting Network', path.basename(map));
+                    assert.strictEqual(keys.get('license')?.inlineContent, 'Apache License 2.0', path.basename(map));
+                }
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a web address href is recorded as the key\'s external target', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="license-apache-2" href="https://www.apache.org/licenses/LICENSE-2.0" scope="external" format="html">
+    <topicmeta><linktext>Apache License 2.0</linktext></topicmeta>
+  </keydef>
+</map>`, 'utf-8');
+                const brokenPath = path.join(tmpDir, 'broken.ditamap');
+                fs.writeFileSync(brokenPath, `<?xml version="1.0"?>
+<map>
+  <keydef keys="spec" href="http://docs.oasis-open.org/dita/v1.3/spec.html#intro" scope="external"/>
+  <keydef keys="unclosed" href="a.dita">
+`, 'utf-8');  // missing </map>: regex fallback
+
+                const apache = (await service.buildKeySpace(mapPath)).keys.get('license-apache-2');
+                assert.strictEqual(apache?.externalHref, 'https://www.apache.org/licenses/LICENSE-2.0');
+                assert.strictEqual(apache?.targetFile, undefined);
+
+                const spec = (await service.buildKeySpace(brokenPath)).keys.get('spec');
+                assert.strictEqual(spec?.externalHref, 'http://docs.oasis-open.org/dita/v1.3/spec.html#intro');
+                assert.strictEqual(spec?.targetFile, undefined, 'a web address with a fragment is not a file');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);

@@ -106,6 +106,15 @@ interface CacheConfig {
 }
 
 /**
+ * What a key space's maps reference, for root map discovery (normalized paths)
+ */
+interface ReferencedFiles {
+    files: Set<string>;                 // Topics and maps referenced (topicrefs, key definition targets, submaps)
+    folders: Set<string>;               // Folders of the referenced topics, and every folder above them
+    maps: Set<string>;                  // Submaps and peer maps used, the root map left out
+}
+
+/**
  * KeySpaceResolver - Builds and manages DITA key spaces
  */
 export class KeySpaceResolver implements vscode.Disposable {
@@ -114,8 +123,8 @@ export class KeySpaceResolver implements vscode.Disposable {
     private rootMapCache: Map<string, { rootMap: string | null; timestamp: number }> = new Map();
     /** The candidate root maps of a directory (findRootMap's upward walk), keyed by the directory */
     private rootMapCandidatesCache: Map<string, { candidates: string[]; timestamp: number }> = new Map();
-    /** Normalized paths of the files each key space's maps reference */
-    private referencedFilesCache = new WeakMap<KeySpace, Set<string>>();
+    /** The files each key space's maps reference, and the folders of its topics */
+    private referencedFilesCache = new WeakMap<KeySpace, ReferencedFiles>();
     /** Bumped when maps change: a root map chosen while it ran is not cached */
     private rootMapChoiceGeneration = 0;
     private cacheConfig: CacheConfig;
@@ -1395,8 +1404,12 @@ export class KeySpaceResolver implements vscode.Disposable {
      * The first candidate whose maps reference the file (a topicref, a key
      * definition or a submap) is its root map: a map higher up that does not
      * know the file — another publication of the workspace — is passed over.
-     * When no candidate references the file, the first candidate is used.
-     * (The server's KeySpaceService follows the same rule.)
+     * A file no candidate references (a topic not yet in a map, an archived
+     * one) belongs to the publication of its folder: the first candidate, not
+     * used by another one as a submap or peer map, that references a topic in
+     * its folder, else in the folder above, and so on. Failing that, the first
+     * candidate is used. (The server's KeySpaceService follows the same rule,
+     * with its explicit root map as the first candidate.)
      *
      * ## Caching
      * The candidates are cached by directory and the choice by file, with a
@@ -1434,14 +1447,7 @@ export class KeySpaceResolver implements vscode.Disposable {
         }
 
         const generationAtStart = this.rootMapChoiceGeneration;
-        const candidates = await this.findRootMapCandidates(absolutePath);
-        let rootMap: string | null = candidates[0] ?? null;
-        for (const candidate of candidates.slice(0, CACHE_DEFAULTS.MAX_ROOT_MAP_CANDIDATES)) {
-            if (this.referencesFile(await this.buildKeySpace(candidate), fileKey)) {
-                rootMap = candidate;
-                break;
-            }
-        }
+        const rootMap = await this.chooseRootMap(absolutePath, fileKey);
 
         if (!rootMap) {
             logger.debug('No root map found', { searchedFrom: absolutePath });
@@ -1453,23 +1459,79 @@ export class KeySpaceResolver implements vscode.Disposable {
     }
 
     /**
-     * Whether the maps of a key space reference a file (normalized path)
+     * findRootMap's choice: the first candidate referencing the file, else the
+     * publication of its folder (or of the nearest folder above), else the first candidate
      */
-    private referencesFile(keySpace: KeySpace, fileKey: string): boolean {
-        let files = this.referencedFilesCache.get(keySpace);
-        if (!files) {
-            files = new Set(keySpace.topicToScope.keys());
+    private async chooseRootMap(absolutePath: string, fileKey: string): Promise<string | null> {
+        const discovered = await this.findRootMapCandidates(absolutePath);
+        const candidates: { map: string; refs: ReferencedFiles }[] = [];
+        for (const candidate of discovered.slice(0, CACHE_DEFAULTS.MAX_ROOT_MAP_CANDIDATES)) {
+            const refs = this.referencedFiles(await this.buildKeySpace(candidate));
+            if (refs.files.has(fileKey)) {
+                return candidate;
+            }
+            candidates.push({ map: candidate, refs });
+        }
+
+        // No map references the file (a topic not yet in a map, an archived one):
+        // the publication of its folder takes it — a candidate another one uses as
+        // a submap or peer map is part of that publication, not its root
+        const usedByOthers = new Set<string>();
+        for (const candidate of candidates) {
+            candidate.refs.maps.forEach(map => usedByOthers.add(map));
+        }
+        const roots = candidates.filter(candidate => !usedByOthers.has(this.normalizePathForComparison(candidate.map)));
+        for (let dir = path.dirname(fileKey); ; dir = path.dirname(dir)) {
+            const owner = roots.find(candidate => candidate.refs.folders.has(dir));
+            if (owner) {
+                return owner.map;
+            }
+            if (path.dirname(dir) === dir) {
+                break;
+            }
+        }
+        return discovered[0] ?? null;
+    }
+
+    /**
+     * The files a key space's maps reference, and the folders of its topics (normalized paths)
+     */
+    private referencedFiles(keySpace: KeySpace): ReferencedFiles {
+        let refs = this.referencedFilesCache.get(keySpace);
+        if (!refs) {
+            const topics = new Set(keySpace.topicToScope.keys());
+            for (const def of keySpace.keys.values()) {
+                if (def.targetFile) {
+                    topics.add(this.normalizePathForComparison(def.targetFile));
+                }
+            }
+            // A folder and every folder above it, for each topic (a map in a
+            // folder does not make its topics live there)
+            const folders = new Set<string>();
+            for (const topic of topics) {
+                for (let dir = path.dirname(topic); !folders.has(dir); dir = path.dirname(dir)) {
+                    folders.add(dir);
+                    if (path.dirname(dir) === dir) {
+                        break;
+                    }
+                }
+            }
+            const rootKey = this.normalizePathForComparison(keySpace.rootMap);
+            const maps = new Set<string>();
+            for (const map of [...keySpace.mapHierarchy, ...keySpace.deferredPeerMaps.values()]) {
+                const mapKey = this.normalizePathForComparison(map);
+                if (mapKey !== rootKey) {
+                    maps.add(mapKey);
+                }
+            }
+            const files = new Set(topics);
             for (const map of keySpace.mapHierarchy) {
                 files.add(this.normalizePathForComparison(map));
             }
-            for (const def of keySpace.keys.values()) {
-                if (def.targetFile) {
-                    files.add(this.normalizePathForComparison(def.targetFile));
-                }
-            }
-            this.referencedFilesCache.set(keySpace, files);
+            refs = { files, folders, maps };
+            this.referencedFilesCache.set(keySpace, refs);
         }
-        return files.has(fileKey);
+        return refs;
     }
 
     /**

@@ -938,7 +938,7 @@
         "ditacraft.rootMap": {
           "type": "string",
           "default": "",
-          "description": "Explicit root map path (relative to workspace root). Leave empty for automatic discovery. Set via 'DITA: Set Root Map' command.",
+          "description": "Explicit root map path (relative to workspace root). Leave empty for automatic discovery. Set via 'DITA: Set Root Map' command. A topic it does not reference but another map does (another publication in the workspace) resolves its keys in that map.",
           "order": 25
         },
         "ditacraft.xmlCatalogPath": {

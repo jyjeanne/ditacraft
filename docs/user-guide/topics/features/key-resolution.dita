@@ -160,7 +160,7 @@
                 <li><b>Provenance Tracking:</b> Source line recorded for every key definition</li>
                 <li><b>Navigation:</b> Ctrl+Click on keyref and conkeyref navigates to the key's target with Go to Definition across files</li>
                 <li><b>Caching:</b> Key space cached with 5-minute TTL, automatic invalidation on map changes</li>
-                <li><b>Root Map Selection:</b> Explicitly set the root map via <uicontrol>DITA: Set Root Map</uicontrol>; otherwise the highest map in the topic's folder or the folders above it that references the topic</li>
+                <li><b>Root Map Selection:</b> The root map set via <uicontrol>DITA: Set Root Map</uicontrol> when it references the topic; otherwise the highest map in the topic's folder or the folders above it that references the topic</li>
                 <li><b>Validation:</b> Undefined and missing keys flagged as diagnostics</li>
             </ul>
         </section>

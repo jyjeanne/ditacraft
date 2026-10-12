@@ -12,13 +12,15 @@
 
         <section id="auto-discovery">
             <title>Automatic Discovery</title>
-            <p>When no explicit root map is set, DITA Craft automatically discovers maps in your workspace using the following strategy:</p>
+            <p>When no explicit root map is set, DITA Craft automatically discovers the root map of each topic:</p>
             <ol>
-                <li>Scans for <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files</li>
-                <li>Selects the most likely root map based on structure and references</li>
-                <li>Builds the key space from the discovered map</li>
+                <li>Scans the topic's folder and the folders above it, up to the workspace folder, for <filepath>.ditamap</filepath> and <filepath>.bookmap</filepath> files — the highest folder first; in a folder, <filepath>root.ditamap</filepath>, <filepath>main.ditamap</filepath> and <filepath>master.ditamap</filepath> first, then the others alphabetically</li>
+                <li>Selects the first map that references the topic — as a topic reference, a key definition's target or a submap, directly or through its submaps</li>
+                <li>When no map references the topic (a topic not yet in a map, an archived one), selects the map that references other topics of its folder, or of the nearest folder above</li>
+                <li>Uses the first map found when none does</li>
+                <li>Builds the key space from the selected map</li>
             </ol>
-            <p>Auto-discovery works well for projects with a single root map. For complex projects with multiple maps, setting an explicit root map is recommended.</p>
+            <p>Auto-discovery works well for projects with a single root map, and for workspaces holding several publications. For complex projects with multiple maps, setting an explicit root map is recommended.</p>
         </section>
 
         <section id="setting-root-map">
@@ -30,6 +32,7 @@
                 <li>Select the desired map file from the list of available maps</li>
             </ol>
             <p>The selected root map is stored in your workspace settings (<codeph>ditacraft.rootMap</codeph>) and persists across sessions. Moving or renaming the map in VS Code — or a folder holding it — updates the setting, and the language server and the status bar with it.</p>
+            <p>The explicit root map is the root map of every topic it references, and of the topics no map references in the folders of its publication (a new topic not yet added to a map). A topic it does not reference but another map does, or in a folder of another map's publication, — another publication in the same workspace, such as DITA-OT's documentation in a build folder — resolves its keys in that map, as in automatic discovery.</p>
         </section>
 
         <section id="clearing-root-map">

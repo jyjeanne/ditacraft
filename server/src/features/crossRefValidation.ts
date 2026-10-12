@@ -61,6 +61,8 @@ export async function validateCrossReferences(
     let match: RegExpExecArray | null;
 
     while ((match = hrefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
+        // Only attributes: not an example written in the text (<codeph>href="a.dita"</codeph>)
+        if (!isInStartTag(cleanText, match.index)) continue;
         const attrName = match[1];
         const value = match[2];
         // Use original text offsets (comment stripping preserves them)
@@ -214,6 +216,8 @@ export async function validateCrossReferences(
         const keyrefRegex = /\b(keyref|conkeyref)\s*=\s*["']([^"']+)["']/g;
 
         while ((match = keyrefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
+            // Only attributes: not an example written in the text (<codeph>keyref="key"</codeph>)
+            if (!isInStartTag(cleanText, match.index)) continue;
             const value = match[2];
             const openQuote = match[0].match(/=\s*["']/);
             const valueStart = match.index + (openQuote ? openQuote.index! + openQuote[0].length : match[0].length - value.length - 1);
@@ -242,7 +246,7 @@ export async function validateCrossReferences(
                 continue;
             }
 
-            if (!keyDef.targetFile && !keyDef.inlineContent) {
+            if (!keyDef.targetFile && !keyDef.externalHref && !keyDef.inlineContent) {
                 diagnostics.push({
                     severity: DiagnosticSeverity.Warning,
                     range,
@@ -298,6 +302,27 @@ export async function validateCrossReferences(
 
 // --- Helpers ---
 
+/**
+ * Whether an offset is inside a start tag, outside its attribute values —
+ * where an attribute begins — rather than in text content.
+ */
+function isInStartTag(text: string, offset: number): boolean {
+    const tagStart = text.lastIndexOf('<', offset);
+    if (tagStart === -1 || !/[A-Za-z_:]/.test(text.charAt(tagStart + 1))) return false;
+    let quote: string | null = null;
+    for (let i = tagStart + 1; i < offset; i++) {
+        const c = text[i];
+        if (quote) {
+            if (c === quote) quote = null;
+        } else if (c === '"' || c === "'") {
+            quote = c;
+        } else if (c === '>') {
+            return false;
+        }
+    }
+    return quote === null;
+}
+
 /** Extract the scope attribute value from the containing tag, or null if not present. */
 function getScopeValue(text: string, refOffset: number): string | null {
     const tagStart = text.lastIndexOf('<', refOffset);
@@ -329,12 +354,12 @@ function validateFragment(
     const topicId = slashPos !== -1 ? fragment.substring(0, slashPos) : fragment;
     const elementId = slashPos !== -1 ? fragment.substring(slashPos + 1) : null;
 
-    // Check topic ID exists
+    // Check topic ID exists — "." is the topic the reference is in (DITA 1.3: href="#./element")
     const escapedTopicId = escapeRegex(topicId);
     const topicIdRegex = new RegExp(
         `<(?:${TOPIC_ELEMENTS_PATTERN})\\b[^>]*\\bid\\s*=\\s*["']${escapedTopicId}["']`
     );
-    if (!topicIdRegex.test(content)) {
+    if (topicId !== '.' && !topicIdRegex.test(content)) {
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
             range,

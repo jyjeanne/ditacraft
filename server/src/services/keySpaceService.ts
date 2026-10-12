@@ -19,6 +19,8 @@ import { IKeySpaceService } from './interfaces';
 export interface KeyDefinition {
     keyName: string;
     targetFile?: string;
+    /** The key's resource when it is a web address (`http://`, `https://`), not a file. */
+    externalHref?: string;
     elementId?: string;
     inlineContent?: string;
     sourceMap: string;
@@ -102,6 +104,16 @@ interface CacheConfig {
     maxSize: number;
 }
 
+/** What a key space's maps reference, for root map discovery (normalized paths). */
+interface ReferencedFiles {
+    /** The topics and maps referenced (topicrefs, key definition targets, submaps). */
+    files: Set<string>;
+    /** The folders of the referenced topics, and every folder above them. */
+    folders: Set<string>;
+    /** The submaps and peer maps used, the root map left out. */
+    maps: Set<string>;
+}
+
 export interface KeySpaceSettings {
     keySpaceCacheTtlMinutes: number;
     maxLinkMatches: number;
@@ -131,6 +143,37 @@ const MAX_ROOT_MAP_CANDIDATES = 8;
  */
 const OUTSIDE_WORKSPACE_MAX_WALK_LEVELS = 3;
 const FILE_WATCHER_DEBOUNCE_MS = 300;
+
+/**
+ * The text of an element parsed by fast-xml-parser, its descendants' text
+ * included (attributes left out), whitespace collapsed.
+ */
+function nodeText(node: unknown): string {
+    const collect = (n: unknown): string => {
+        if (typeof n === 'string' || typeof n === 'number' || typeof n === 'boolean') return String(n);
+        if (Array.isArray(n)) return n.map(collect).join(' ');
+        if (n && typeof n === 'object') {
+            return Object.entries(n as Record<string, unknown>)
+                .filter(([name]) => !name.startsWith('@_'))
+                .map(([, child]) => collect(child))
+                .join(' ');
+        }
+        return '';
+    };
+    return collect(node).replace(/\s+/g, ' ').trim();
+}
+
+/** A key's href that names a web resource rather than a file. */
+function isWebAddress(href: string): boolean {
+    return href.startsWith('http://') || href.startsWith('https://');
+}
+
+/** How a key definition's resource is shown in reports: its file, web address or text. */
+function describeKeyTarget(def: KeyDefinition): string {
+    if (def.targetFile) return path.basename(def.targetFile);
+    if (def.externalHref) return def.externalHref;
+    return def.inlineContent ? `"${def.inlineContent}"` : '(no target)';
+}
 const MIN_CLEANUP_INTERVAL_MS = 5 * ONE_MINUTE_MS;
 const CACHE_CLEANUP_RATIO = 3;
 
@@ -156,8 +199,8 @@ export class KeySpaceService implements IKeySpaceService {
     /** The candidate root maps of a directory (findRootMap's upward walk),
      *  keyed by the directory. */
     private rootMapCandidatesCache: Map<string, { candidates: string[]; timestamp: number }> = new Map();
-    /** Normalized paths of the files each key space's maps reference. */
-    private referencedFilesCache = new WeakMap<KeySpace, Set<string>>();
+    /** The files each key space's maps reference, and the folders of its topics. */
+    private referencedFilesCache = new WeakMap<KeySpace, ReferencedFiles>();
     private cacheConfig: CacheConfig;
     private pendingBuilds: Map<string, Promise<KeySpace>> = new Map();
     /** In-flight dedup for the upward walk behind findRootMap(), mirroring
@@ -219,7 +262,8 @@ export class KeySpaceService implements IKeySpaceService {
     }
 
     /**
-     * Set an explicit root map path, overriding auto-discovery.
+     * Set an explicit root map path: the root map of every file it references,
+     * and of the files no map references (see findRootMap).
      * Pass null to revert to auto-discovery.
      */
     public setExplicitRootMap(rootMapPath: string | null): void {
@@ -582,22 +626,21 @@ export class KeySpaceService implements IKeySpaceService {
 
     /**
      * Find root map for a given file by searching upward through directories.
-     * If an explicit root map is set via setExplicitRootMap(), it is always returned.
      *
-     * The candidates are the maps found from the file's directory up to its
-     * workspace folder, the highest directory first and, in a directory,
+     * The candidates are the explicit root map set via setExplicitRootMap(),
+     * then the maps found from the file's directory up to its workspace
+     * folder, the highest directory first and, in a directory,
      * root.ditamap > main.ditamap > master.ditamap > alphabetical order. The
      * first candidate whose maps reference the file (a topicref, a key
-     * definition or a submap) is its root map: a map higher up that does not
-     * know the file — another publication of the workspace — is passed over.
-     * When no candidate references the file, the first candidate is used.
+     * definition or a submap) is its root map: a map that does not know the
+     * file — another publication of the workspace, even the explicit root
+     * map — is passed over. A file no candidate references (a topic not yet
+     * in a map, an archived one) belongs to the publication of its folder:
+     * the first candidate that references a topic in its folder, else in the
+     * folder above, and so on. Failing that, the explicit root map, else the
+     * first map found, is used.
      */
     public async findRootMap(filePath: string): Promise<string | null> {
-        // Explicit root map overrides auto-discovery
-        if (this.explicitRootMapPath) {
-            return this.explicitRootMapPath;
-        }
-
         const absolutePath = path.isAbsolute(filePath)
             ? filePath
             : path.resolve(filePath);
@@ -609,14 +652,7 @@ export class KeySpaceService implements IKeySpaceService {
         }
 
         const generationAtStart = this.rootMapChoiceGeneration;
-        const candidates = await this.findRootMapCandidates(absolutePath);
-        let rootMap: string | null = candidates[0] ?? null;
-        for (const candidate of candidates.slice(0, MAX_ROOT_MAP_CANDIDATES)) {
-            if (this.referencesFile(await this.buildKeySpace(candidate), fileKey)) {
-                rootMap = candidate;
-                break;
-            }
-        }
+        const rootMap = await this.chooseRootMap(absolutePath, fileKey);
 
         if (generationAtStart === this.rootMapChoiceGeneration) {
             this.rootMapCache.set(fileKey, { rootMap, timestamp: Date.now() });
@@ -624,23 +660,76 @@ export class KeySpaceService implements IKeySpaceService {
         return rootMap;
     }
 
-    /** Whether the maps of a key space reference a file (normalized path). */
-    private referencesFile(keySpace: KeySpace, fileKey: string): boolean {
-        let files = this.referencedFilesCache.get(keySpace);
-        if (!files) {
-            files = new Set(keySpace.topicToScope.keys());
-            for (const map of keySpace.mapHierarchy) files.add(normalizeFsPath(map));
+    /** findRootMap's choice: the first candidate referencing the file, else its fallbacks. */
+    private async chooseRootMap(absolutePath: string, fileKey: string): Promise<string | null> {
+        const explicit = this.explicitRootMapPath;
+        const candidates: { map: string; refs: ReferencedFiles }[] = [];
+        if (explicit) {
+            const refs = this.referencedFiles(await this.buildKeySpace(explicit));
+            if (refs.files.has(fileKey)) return explicit;
+            candidates.push({ map: explicit, refs });
+        }
+
+        const explicitKey = explicit ? normalizeFsPath(explicit) : null;
+        const discovered = (await this.findRootMapCandidates(absolutePath))
+            .filter(candidate => normalizeFsPath(candidate) !== explicitKey);
+        for (const candidate of discovered.slice(0, MAX_ROOT_MAP_CANDIDATES)) {
+            const refs = this.referencedFiles(await this.buildKeySpace(candidate));
+            if (refs.files.has(fileKey)) return candidate;
+            candidates.push({ map: candidate, refs });
+        }
+
+        // No map references the file: the publication of its folder, or of
+        // the nearest folder above, takes it — a candidate another one uses as
+        // a submap or peer map is part of that publication, not its root.
+        const usedByOthers = new Set<string>();
+        for (const candidate of candidates) {
+            for (const map of candidate.refs.maps) usedByOthers.add(map);
+        }
+        const roots = candidates.filter(candidate => !usedByOthers.has(normalizeFsPath(candidate.map)));
+        for (let dir = path.dirname(fileKey); ; dir = path.dirname(dir)) {
+            const owner = roots.find(candidate => candidate.refs.folders.has(dir));
+            if (owner) return owner.map;
+            if (path.dirname(dir) === dir) break;
+        }
+        return explicit ?? discovered[0] ?? null;
+    }
+
+    /** The files a key space's maps reference, and the folders of its topics (normalized paths). */
+    private referencedFiles(keySpace: KeySpace): ReferencedFiles {
+        let refs = this.referencedFilesCache.get(keySpace);
+        if (!refs) {
+            const topics = new Set(keySpace.topicToScope.keys());
             for (const def of keySpace.keys.values()) {
-                if (def.targetFile) files.add(normalizeFsPath(def.targetFile));
+                if (def.targetFile) topics.add(normalizeFsPath(def.targetFile));
             }
             for (const defs of keySpace.duplicateKeys.values()) {
                 for (const def of defs) {
-                    if (def.targetFile) files.add(normalizeFsPath(def.targetFile));
+                    if (def.targetFile) topics.add(normalizeFsPath(def.targetFile));
                 }
             }
-            this.referencedFilesCache.set(keySpace, files);
+            // A folder and every folder above it, for each topic (the maps
+            // themselves are left out: a map in a folder does not make its
+            // topics live there).
+            const folders = new Set<string>();
+            for (const topic of topics) {
+                for (let dir = path.dirname(topic); !folders.has(dir); dir = path.dirname(dir)) {
+                    folders.add(dir);
+                    if (path.dirname(dir) === dir) break;
+                }
+            }
+            const rootKey = normalizeFsPath(keySpace.rootMap);
+            const maps = new Set<string>();
+            for (const map of [...keySpace.mapHierarchy, ...keySpace.deferredPeerMaps.values()]) {
+                const mapKey = normalizeFsPath(map);
+                if (mapKey !== rootKey) maps.add(mapKey);
+            }
+            const files = new Set(topics);
+            for (const map of keySpace.mapHierarchy) files.add(normalizeFsPath(map));
+            refs = { files, folders, maps };
+            this.referencedFilesCache.set(keySpace, refs);
         }
-        return files.has(fileKey);
+        return refs;
     }
 
     /** The candidate root maps for a file, in findRootMap's order (cached per directory). */
@@ -1104,28 +1193,21 @@ export class KeySpaceService implements IKeySpaceService {
             if (typeof t === 'string') metadata.navtitle = t.trim() || undefined;
         }
 
-        // keywords / keyword
+        // keywords / keyword — their text, markup inside included (<tm>, <ph>…)
         const kwBlock = meta['keywords'];
         if (kwBlock && typeof kwBlock === 'object') {
             const kwRaw = (kwBlock as Record<string, unknown>)['keyword'];
-            const kwList: string[] = [];
-            const addKw = (v: unknown) => {
-                if (typeof v === 'string') kwList.push(v.trim());
-                else if (v && typeof v === 'object') {
-                    const t = (v as Record<string, unknown>)['#text'];
-                    if (typeof t === 'string') kwList.push(t.trim());
-                }
-            };
-            if (Array.isArray(kwRaw)) kwRaw.forEach(addKw);
-            else addKw(kwRaw);
+            const kwList = (Array.isArray(kwRaw) ? kwRaw : [kwRaw]).map(nodeText).filter(t => t.length > 0);
             if (kwList.length > 0) { metadata.keywords = kwList; inlineContent = kwList[0]; }
         }
         if (!inlineContent) {
-            const directKw = meta['keyword'];
-            if (typeof directKw === 'string') {
-                inlineContent = directKw.trim(); metadata.keywords = [inlineContent];
+            const directKw = nodeText(meta['keyword']);
+            if (directKw) {
+                inlineContent = directKw; metadata.keywords = [inlineContent];
             }
         }
+        // The key's text otherwise: <keytext> (DITA 2.0), else <linktext>
+        if (!inlineContent) inlineContent = nodeText(meta['keytext']) || nodeText(meta['linktext']) || null;
 
         // shortdesc
         const sdRaw = meta['shortdesc'];
@@ -1237,7 +1319,9 @@ export class KeySpaceService implements IKeySpaceService {
                 if (keyLine !== undefined) keyDef.sourceLine = keyLine;
 
                 const href = attrs['href'] ?? '';
-                if (href && !href.startsWith('http://') && !href.startsWith('https://')) {
+                if (isWebAddress(href)) {
+                    keyDef.externalHref = href;
+                } else if (href) {
                     if (href.includes('#')) {
                         const [filePart, elemId] = href.split('#', 2);
                         if (filePart) {
@@ -1308,7 +1392,9 @@ export class KeySpaceService implements IKeySpaceService {
                 const hrefMatch = fullElement.match(/\bhref\s*=\s*["']([^"']+)["']/i);
                 if (hrefMatch) {
                     const href = hrefMatch[1];
-                    if (href.includes('#')) {
+                    if (isWebAddress(href)) {
+                        keyDef.externalHref = href;
+                    } else if (href.includes('#')) {
                         const [filePart, elementId] = href.split('#');
                         if (filePart) {
                             const resolvedPath = path.resolve(mapDir, filePart);
@@ -1319,7 +1405,7 @@ export class KeySpaceService implements IKeySpaceService {
                         if (elementId) {
                             keyDef.elementId = elementId;
                         }
-                    } else if (!href.startsWith('http://') && !href.startsWith('https://')) {
+                    } else {
                         const resolvedPath = path.resolve(mapDir, href);
                         if (this.isPathWithinWorkspace(resolvedPath)) {
                             keyDef.targetFile = resolvedPath;
@@ -1395,13 +1481,17 @@ export class KeySpaceService implements IKeySpaceService {
         const keywordsBlockMatch = metaContent.match(
             /<keywords\b[^>]*>([\s\S]*?)<\/keywords>/i
         );
+        // An element's text, markup inside included (<tm>, <ph>…)
+        const textOf = (content: string): string => content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
         if (keywordsBlockMatch) {
             const kwContent = keywordsBlockMatch[1];
-            const kwRegex = /<keyword\b[^>]*>([^<]+)<\/keyword>/gi;
+            const kwRegex = /<keyword\b[^>]*>([\s\S]*?)<\/keyword>/gi;
             const keywords: string[] = [];
             let kwMatch: RegExpExecArray | null;
             while ((kwMatch = kwRegex.exec(kwContent)) !== null) {
-                keywords.push(kwMatch[1].trim());
+                const text = textOf(kwMatch[1]);
+                if (text) keywords.push(text);
             }
             if (keywords.length > 0) {
                 metadata.keywords = keywords;
@@ -1412,13 +1502,20 @@ export class KeySpaceService implements IKeySpaceService {
 
         // Fallback: keyword directly in topicmeta (without <keywords> wrapper)
         if (!inlineContent) {
-            const directKwMatch = metaContent.match(/<keyword\b[^>]*>([^<]+)<\/keyword>/i);
-            if (directKwMatch) {
-                inlineContent = directKwMatch[1].trim();
+            const directKwMatch = metaContent.match(/<keyword\b[^>]*>([\s\S]*?)<\/keyword>/i);
+            if (directKwMatch && textOf(directKwMatch[1])) {
+                inlineContent = textOf(directKwMatch[1]);
                 if (!metadata.keywords) {
                     metadata.keywords = [inlineContent];
                 }
             }
+        }
+
+        // The key's text otherwise: <keytext> (DITA 2.0), else <linktext>
+        for (const element of ['keytext', 'linktext']) {
+            if (inlineContent) break;
+            const textMatch = metaContent.match(new RegExp(`<${element}\\b[^>]*>([\\s\\S]*?)</${element}>`, 'i'));
+            if (textMatch && textOf(textMatch[1])) inlineContent = textOf(textMatch[1]);
         }
 
         // Extract shortdesc
@@ -2188,9 +2285,7 @@ export function reportKeySpace(keySpace: KeySpace): string {
         lines.push(`  [${scope || 'root'}]`);
         const entries = byScope.get(scope)!.sort((a, b) => a[0].localeCompare(b[0]));
         for (const [name, def] of entries) {
-            const target = def.targetFile
-                ? path.basename(def.targetFile)
-                : (def.inlineContent ? `"${def.inlineContent}"` : '(no target)');
+            const target = describeKeyTarget(def);
             const lineSuffix = def.sourceLine ? `:${def.sourceLine}` : '';
             const keyrefSuffix = def.keyref ? ` → keyref:${def.keyref}` : '';
             lines.push(`    ${name} → ${target}  [${path.basename(def.sourceMap)}${lineSuffix}]${keyrefSuffix}`);
@@ -2236,9 +2331,7 @@ export function formatResolutionReport(report: KeyResolutionReport): string {
 
     if (report.resolvedDefinition) {
         const def = report.resolvedDefinition;
-        const target = def.targetFile
-            ? path.basename(def.targetFile)
-            : (def.inlineContent ? `"${def.inlineContent}"` : '(no target)');
+        const target = describeKeyTarget(def);
         const lineSuffix = def.sourceLine ? `:${def.sourceLine}` : '';
         lines.push(`  Winner: ${target}  [${path.basename(def.sourceMap)}${lineSuffix}]`);
     }

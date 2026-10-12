@@ -93,6 +93,7 @@ Both implementations share the same BFS algorithm, caching strategy, and data st
 interface KeyDefinition {
     keyName: string;
     targetFile?: string;           // Resolved absolute path
+    externalHref?: string;         // A web address (http/https) target — server KeySpaceService
     elementId?: string;            // For conref targets (after #)
     inlineContent?: string;        // For inline key definitions
     sourceMap: string;             // Where the key was defined
@@ -163,13 +164,13 @@ Output: KeySpace with all keys from hierarchy
 
 ### Root Map Discovery
 
-An explicit root map (`ditacraft.rootMap`, **DITA: Set Root Map**) always wins. Otherwise the maps (`.ditamap`, `.bookmap`) found from the file's directory up to its workspace folder are candidates, the highest directory first, and in a directory:
+The candidates are the explicit root map (`ditacraft.rootMap`, **DITA: Set Root Map**; server only — the client resolver does not read the setting), then the maps (`.ditamap`, `.bookmap`) found from the file's directory up to its workspace folder, the highest directory first, and in a directory:
 1. `root.ditamap`
 2. `main.ditamap`
 3. `master.ditamap`
 4. The other maps alphabetically
 
-The root map is the first candidate whose map hierarchy references the file — a topicref, a key definition's target, or a submap. A higher map that does not reference the file (another publication of the workspace, such as DITA-OT's `docsrc` inside a build folder) is passed over. When no candidate references the file, the first candidate is used. At most 8 candidates are checked (each costs a key space build). The client resolver and the server service follow the same rule.
+The root map is the first candidate whose map hierarchy references the file — a topicref, a key definition's target, or a submap. A map that does not reference the file (another publication of the workspace, such as DITA-OT's `docsrc` inside a build folder), the explicit root map included, is passed over. A file no candidate references (a topic not yet in a map, an archived one such as DITA-OT's `docsrc/release-notes/rel2.4.dita`) belongs to the publication of its folder: the first candidate — not used by another candidate as a submap or peer map — that references a topic in the file's folder, else in the folder above, and so on. Failing that, the explicit root map, else the first map found, is used. At most 8 candidates are checked (each costs a key space build). The client resolver and the server service follow the same rule.
 
 ### Caching Strategy
 
@@ -219,7 +220,7 @@ Beyond the client implementation, the server adds:
 
 - **Key scoping** (`@keyscope`): Tracks scope attributes and creates qualified key names (e.g., `scope.keyname`)
 - **Subject scheme detection**: Identifies subject scheme maps and stores paths in `keySpace.subjectSchemePaths`
-- **Explicit root map override**: `setExplicitRootMap()` bypasses auto-discovery
+- **Explicit root map**: `setExplicitRootMap()` makes a map the first candidate of root map discovery, and the fallback when no map references the file
 - **`getAllKeys()`**: Returns full key space for autocompletion
 - **`getSubjectSchemePaths()`**: Used by SubjectSchemeService for profiling validation
 

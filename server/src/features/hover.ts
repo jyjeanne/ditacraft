@@ -120,6 +120,8 @@ async function getKeyrefHover(
 
     if (keyDef.targetFile) {
         contents.push(`**Target:** ${path.basename(keyDef.targetFile)}`);
+    } else if (keyDef.externalHref) {
+        contents.push(`**Target:** ${keyDef.externalHref}`);
     }
     if (keyDef.metadata?.navtitle) {
         contents.push(`**Nav title:** ${keyDef.metadata.navtitle}`);

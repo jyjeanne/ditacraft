@@ -326,13 +326,18 @@ suite('Key Space Resolver Test Suite', () => {
                 fs.writeFileSync(path.join(docsrc, 'reference', 'license.ditamap'), '<map><topicref href="third-party.dita"/></map>');
                 const topic = path.join(docsrc, 'reference', 'third-party.dita');
                 fs.writeFileSync(topic, '<concept id="c"><title><keyword keyref="release"/></title></concept>');
-                const loose = path.join(docsrc, 'reference', 'loose.dita');
-                fs.writeFileSync(loose, '<topic id="loose"/>');
+                const archived = path.join(docsrc, 'reference', 'archived.dita');
+                fs.writeFileSync(archived, '<topic id="archived"/>');
+                fs.mkdirSync(path.join(tmpDir, 'other'));
+                const other = path.join(tmpDir, 'other', 'other.dita');
+                fs.writeFileSync(other, '<topic id="other"/>');
 
                 assert.strictEqual(await local.findRootMap(topic), siteMap);
                 assert.ok(await local.resolveKey('release', topic), 'the key defined by the nested publication should resolve');
-                assert.strictEqual(await local.findRootMap(loose), path.join(tmpDir, 'guide.bookmap'),
-                    'a file no map references keeps the highest map');
+                assert.strictEqual(await local.findRootMap(archived), siteMap,
+                    'a file no map references belongs to the publication of its folder');
+                assert.strictEqual(await local.findRootMap(other), path.join(tmpDir, 'guide.bookmap'),
+                    'the highest map when only it has topics around the file');
             } finally {
                 local.dispose();
                 fs.rmSync(tmpDir, { recursive: true, force: true });

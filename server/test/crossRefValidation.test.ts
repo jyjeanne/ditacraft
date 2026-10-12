@@ -309,6 +309,73 @@ suite('validateCrossReferences', () => {
             }
         });
 
+        test('references written as examples in the text are not validated (regression)', async () => {
+            // The user guide documents keys and links with examples such as
+            // <codeph>keyref="key"</codeph>: text, not attributes.
+            const keySpaceService = createMockKeySpaceService(new Map());
+            const text = `<topic id="t"><body>
+<p>Write <codeph>keyref="my-key"</codeph> or <codeph>conkeyref="my-key/element"</codeph>.</p>
+<p>An empty link (<codeph>&lt;xref href="missing.dita"/&gt;</codeph>) shows its target's title: href="#topic/element".</p>
+<p><xref keyref="undefined-key"/> <xref href="missing.dita" outputclass="a>b"/></p>
+</body></topic>`;
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
+                assert.deepStrictEqual(
+                    diags.map(d => `${d.code} ${d.range.start.line}`),
+                    [`${XREF_CODES.MISSING_FILE} 3`, `${XREF_CODES.UNDEFINED_KEY} 3`],
+                    'only the attributes of line 3 are references'
+                );
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('a same-topic reference (#./element) checks the element only (regression)', async () => {
+            // DITA 1.3: "." is the topic the reference is in (DITA-OT's docs:
+            // <xref href="#./copy-strings"/>).
+            const text = `<task id="adding-strings"><taskbody><steps>
+<step id="copy-strings"><cmd>See <xref href="#./copy-strings"/> and <xref href="#./missing-step"/>.</cmd></step>
+</steps></taskbody></task>`;
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                assert.deepStrictEqual(diags.map(d => d.code), [XREF_CODES.MISSING_ELEMENT_ID]);
+                assert.ok(diags[0].message.includes('missing-step'));
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('key whose target is a web address produces no warning (regression)', async () => {
+            // DITA-OT's docs define license keys as external links
+            // (href="https://…" scope="external"); they have a target.
+            const keys = new Map<string, KeyDefinition>([
+                ['license-apache-2', {
+                    keyName: 'license-apache-2',
+                    sourceMap: '/maps/external-links.ditamap',
+                    externalHref: 'https://www.apache.org/licenses/LICENSE-2.0',
+                    scope: 'external',
+                }],
+            ]);
+            const keySpaceService = createMockKeySpaceService(keys);
+
+            const text = '<xref keyref="license-apache-2"/>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
+                assert.deepStrictEqual(diags.map(d => d.code), []);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
         test('without keySpaceService, keyref is not validated', async () => {
             const text = '<keyword keyref="any-key">fallback</keyword>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));

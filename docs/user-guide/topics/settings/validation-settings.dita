@@ -141,7 +141,7 @@
             <p><b>Type:</b> String</p>
             <p><b>Default:</b> <codeph>""</codeph></p>
             <p>Explicit root map path (relative to workspace root). Leave empty for automatic root map discovery. Set via the <uicontrol>DITA: Set Root Map</uicontrol> command or directly in settings.</p>
-            <p>The root map determines the key space for keyref/conkeyref resolution, cross-reference validation scope, and subject scheme discovery. See <xref keyref="root-map"/> for details.</p>
+            <p>The root map determines the key space for keyref/conkeyref resolution, cross-reference validation scope, and subject scheme discovery. A topic it does not reference but another map does resolves in that map. See <xref keyref="root-map"/> for details.</p>
         </section>
 
         <section id="rate-limiting">

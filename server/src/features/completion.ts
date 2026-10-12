@@ -422,8 +422,9 @@ async function getKeyrefCompletions(
     let index = 0;
 
     for (const [keyName, keyDef] of allKeys) {
-        const detail = keyDef.targetFile
-            ? `\u2192 ${path.basename(keyDef.targetFile)}`
+        const target = keyDef.targetFile ? path.basename(keyDef.targetFile) : keyDef.externalHref;
+        const detail = target
+            ? `\u2192 ${target}`
             : (keyDef.inlineContent || 'Key definition');
 
         const docParts: string[] = [];

@@ -17,7 +17,8 @@ export interface IKeySpaceService {
     getWorkspaceFolders(): readonly string[];
 
     /**
-     * Set an explicit root map path, overriding auto-discovery.
+     * Set an explicit root map path: the root map of every file it references,
+     * and of the files no map references.
      * Pass null to revert to auto-discovery.
      */
     setExplicitRootMap(rootMapPath: string | null): void;
