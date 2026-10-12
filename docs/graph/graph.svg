@@ -15019,7 +15019,7 @@
   <circle cx="935.9947471754971" cy="418.12120504742404" r="4.133704735376044" fill="#F28E2B" opacity="0.9"/>
   <text x="935.9947471754971" y="432.2549097828001" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">render()</text>
   <circle cx="935.9976654079526" cy="418.74746640542725" r="16" fill="#F28E2B" opacity="0.9"/>
-  <text x="935.9976654079526" y="444.74746640542725" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">9ca9de6 fix(validation): remove false key and reference warnings</text>
+  <text x="935.9976654079526" y="444.74746640542725" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">1b5f889 chore(release): bump version to 0.10.2</text>
   <circle cx="935.9994163514813" cy="419.3737321148556" r="4.0334261838440115" fill="#F28E2B" opacity="0.9"/>
   <text x="935.9994163514813" y="433.40715829869964" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">main</text>
   <circle cx="20" cy="20" r="5" fill="#4E79A7"/>
