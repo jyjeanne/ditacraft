@@ -1,13 +1,13 @@
-# Graph Report - .  (2026-10-11)
+# Graph Report - .  (2026-10-12)
 
 ## Corpus Check
-- Large corpus: 2041 files · ~1,057,665 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 2041 files · ~1,060,315 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
-- 3363 nodes · 8265 edges · 127 communities detected
+- 3371 nodes · 8281 edges · 127 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
-- Edge kinds: contains: 2109 · imports: 1879 · calls: 1869 · imports_from: 1082 · method: 867 · MODIFIES: 358 · re_exports: 72 · implements: 14 · inherits: 14 · ON_BRANCH: 1
+- Edge kinds: contains: 2115 · imports: 1879 · calls: 1877 · imports_from: 1082 · method: 869 · MODIFIES: 358 · re_exports: 72 · implements: 14 · inherits: 14 · ON_BRANCH: 1
 
 
 ## Input Scope
@@ -18,15 +18,15 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `0f974e3`
+- Built from Git commit: `9ca9de6`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
-1. `KeySpaceService` - 84 edges
+1. `KeySpaceService` - 85 edges
 2. `Logger` - 56 edges
 3. `VisualPreviewPanel` - 49 edges
 4. `DitaCommands` - 46 edges
-5. `EditorSession` - 45 edges
-6. `KeySpaceResolver` - 45 edges
+5. `KeySpaceResolver` - 46 edges
+6. `EditorSession` - 45 edges
 7. `TableCommands` - 43 edges
 8. `Renderer` - 37 edges
 9. `SubjectSchemeService` - 36 edges
@@ -36,9 +36,9 @@
 - `parse()` --calls--> `Scanner`  [EXTRACTED]
   src/shared/cst/parse.ts → src/shared/cst/parse.ts  _Bridges community 2 → community 50_
 - `debug()` --calls--> `menuContext()`  [EXTRACTED]
-  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 31 → community 16_
+  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 32 → community 16_
 - `debug()` --calls--> `post()`  [EXTRACTED]
-  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 31 → community 51_
+  webview/editor/main.ts → webview/editor/main.ts  _Bridges community 32 → community 51_
 - `dispatchTransaction()` --calls--> `scheduleSelectionReport()`  [EXTRACTED]
   webview/editor/main.ts → webview/editor/main.ts  _Bridges community 16 → community 51_
 - `menuContext()` --calls--> `selectedReuse()`  [EXTRACTED]
@@ -52,7 +52,7 @@ Nodes (92): commonMarks(), FRESH, ITEM, SPLITTABLE, withoutMarks(), FRESH, linkA
 
 ### Community 1 - "Community 1"
 Cohesion: 0.03
-Nodes (33): main, 0f974e3 chore(release): bump version to 0.10.1, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
+Nodes (35): main, 9ca9de6 fix(validation): remove false key and reference warnings, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+27 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.05
@@ -60,7 +60,7 @@ Nodes (76): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 3 - "Community 3"
 Cohesion: 0.06
-Nodes (63): ATTRIBUTE_VALUES, COMMON_ATTRIBUTES, DITA_ELEMENTS, DITAVAL_ELEMENTS, ELEMENT_ATTRIBUTES, ELEMENT_DOCS, MAP_TYPE_NAMES, TOPIC_TYPE_NAMES (+55 more)
+Nodes (64): ATTRIBUTE_VALUES, COMMON_ATTRIBUTES, DITA_ELEMENTS, DITAVAL_ELEMENTS, ELEMENT_ATTRIBUTES, ELEMENT_DOCS, MAP_TYPE_NAMES, TOPIC_TYPE_NAMES (+56 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.05
@@ -91,16 +91,16 @@ Cohesion: 0.06
 Nodes (46): IMAGE_EXTENSIONS, DialogAnswer, LinkPickerContext, openLinkTarget(), EditorSettings, EditorToHost, HostToEditor, QuickFixItem (+38 more)
 
 ### Community 11 - "Community 11"
+Cohesion: 0.07
+Nodes (4): IKeySpaceService, isWebAddress(), KeySpaceService, nodeText()
+
+### Community 12 - "Community 12"
 Cohesion: 0.08
 Nodes (32): rootElement(), askWebAddress(), candidateFiles(), choose(), fileTargets(), keyTargets(), load(), parsed (+24 more)
 
-### Community 12 - "Community 12"
+### Community 13 - "Community 13"
 Cohesion: 0.05
 Nodes (53): createClassMatcher(), DitaClassMatcher, isLocalDita(), KEYREF_ELEMENTS, MAP_MAP, MAP_RELCOLSPEC, MAP_RELTABLE, MAP_TOPICMETA (+45 more)
-
-### Community 13 - "Community 13"
-Cohesion: 0.08
-Nodes (2): IKeySpaceService, KeySpaceService
 
 ### Community 14 - "Community 14"
 Cohesion: 0.09
@@ -131,64 +131,64 @@ Cohesion: 0.07
 Nodes (15): BatchMetadataParams, BatchMetadataResult, BatchMetadataSkippedFile, buildAttributeEdit(), escapeXmlAttrValue(), FileOutcome, findRootElement(), handleComputeBatchMetadataEdits() (+7 more)
 
 ### Community 21 - "Community 21"
+Cohesion: 0.11
+Nodes (1): KeySpaceResolver
+
+### Community 22 - "Community 22"
 Cohesion: 0.08
 Nodes (31): extensionForMime(), hrefFor(), MIME_EXTENSIONS, pastedImageFolder(), pastedImageName(), droppedUris(), isImagePath(), withAltText() (+23 more)
 
-### Community 22 - "Community 22"
+### Community 23 - "Community 23"
 Cohesion: 0.10
 Nodes (30): buildMapNode(), ContextGraph, countElements(), GetContextGraphParams, handleGetContextGraph(), KeyDef, MapNode, readShortDesc() (+22 more)
 
-### Community 23 - "Community 23"
+### Community 24 - "Community 24"
 Cohesion: 0.09
 Nodes (24): createDitacraftParticipant(), handleExplain(), handleRequest(), handleRestructure(), handleSuggestReuse(), handleValidate(), HELP_MESSAGE, isDitaMap() (+16 more)
 
-### Community 24 - "Community 24"
+### Community 25 - "Community 25"
 Cohesion: 0.08
 Nodes (27): Border, ColumnResizeContext, isTable(), tableNode(), columnPixels(), ColumnWidth, cssColumnWidths(), formatLength() (+19 more)
 
-### Community 25 - "Community 25"
+### Community 26 - "Community 26"
 Cohesion: 0.09
 Nodes (32): attrValue(), ConditionMarks, cssColor(), flagKey(), FlagLabel, FlagLook, FlagMarks, MarkSpan (+24 more)
 
-### Community 26 - "Community 26"
+### Community 27 - "Community 27"
 Cohesion: 0.06
 Nodes (32): GridCell, gridCellFor(), TableGrid, cssLength(), Alias, ALIGN_VALUES, CAPTION_OWNERS, CONREF_ATTRIBUTES (+24 more)
 
-### Community 27 - "Community 27"
+### Community 28 - "Community 28"
 Cohesion: 0.12
 Nodes (1): TableCommands
 
-### Community 28 - "Community 28"
+### Community 29 - "Community 29"
 Cohesion: 0.07
 Nodes (25): readDiagnostics(), readError(), TOPIC_MISSING_TITLE, TOPIC_VALID, MAP_WITH_KEYS, TOPIC, MAP_CONTENT, TOPIC (+17 more)
 
-### Community 29 - "Community 29"
+### Community 30 - "Community 30"
 Cohesion: 0.10
 Nodes (32): applyProblems(), applySettings(), banner, button(), byId(), content, enhanceImages(), firstPresent() (+24 more)
 
-### Community 30 - "Community 30"
+### Community 31 - "Community 31"
 Cohesion: 0.20
 Nodes (20): AI_MODES, aiMode(), buildLLMConfig(), MODE_PROVIDERS, ChatMessage, ConnectionCheck, DitaCraftLLMConfig, ILLMProvider (+12 more)
 
-### Community 31 - "Community 31"
+### Community 32 - "Community 32"
 Cohesion: 0.16
 Nodes (32): addReference(), askHost(), cursorOffset(), cursorPlace(), debug(), dropImages(), editable(), editAltText() (+24 more)
 
-### Community 32 - "Community 32"
+### Community 33 - "Community 33"
 Cohesion: 0.13
 Nodes (25): describeProfile(), FALLBACK_TRANSTYPES, followDitavalMoves(), getLastUsedProfileName(), getPublishingProfiles(), managePublishingProfilesCommand(), pickTranstype(), promptForDitaval() (+17 more)
 
-### Community 33 - "Community 33"
+### Community 34 - "Community 34"
 Cohesion: 0.11
 Nodes (2): DitaCommands, offsetOf()
 
-### Community 34 - "Community 34"
+### Community 35 - "Community 35"
 Cohesion: 0.18
 Nodes (5): cdataText(), projectText(), rawWithAttributes(), sameXml(), Writer
-
-### Community 35 - "Community 35"
-Cohesion: 0.14
-Nodes (1): KeySpaceResolver
 
 ### Community 36 - "Community 36"
 Cohesion: 0.17
@@ -283,28 +283,28 @@ Cohesion: 0.14
 Nodes (3): formatError(), Semaphore, ValidationPipeline
 
 ### Community 59 - "Community 59"
-Cohesion: 0.17
-Nodes (1): Logger
+Cohesion: 0.11
+Nodes (17): CACHE_DEFAULTS, CONFIG_KEYS, DEBOUNCE_CONSTANTS, DITA_ELEMENTS, DITA_EXTENSIONS, DITA_OT, isDitaContentPath(), isDitaContentUri() (+9 more)
 
 ### Community 60 - "Community 60"
 Cohesion: 0.17
-Nodes (19): PropertyField, PropertyGroup, closed, control(), describe(), el(), GROUP_LABEL, GROUPS (+11 more)
+Nodes (1): Logger
 
 ### Community 61 - "Community 61"
+Cohesion: 0.17
+Nodes (19): PropertyField, PropertyGroup, closed, control(), describe(), el(), GROUP_LABEL, GROUPS (+11 more)
+
+### Community 62 - "Community 62"
 Cohesion: 0.14
 Nodes (2): childPos(), RelTableCommands
 
-### Community 62 - "Community 62"
+### Community 63 - "Community 63"
 Cohesion: 0.12
 Nodes (4): BreakerWrappedProvider, ILLMProvider, isAbortError(), LLMRouterService
 
-### Community 63 - "Community 63"
+### Community 64 - "Community 64"
 Cohesion: 0.14
 Nodes (1): DitaPreviewPanel
-
-### Community 64 - "Community 64"
-Cohesion: 0.12
-Nodes (16): CACHE_DEFAULTS, CONFIG_KEYS, DEBOUNCE_CONSTANTS, DITA_ELEMENTS, DITA_EXTENSIONS, DITA_OT, isDitaContentPath(), isDitaContentUri() (+8 more)
 
 ### Community 65 - "Community 65"
 Cohesion: 0.14
@@ -510,70 +510,68 @@ Nodes (2): CopilotLLMProvider, ILLMProvider
 Cohesion: 0.36
 Nodes (1): DtdResolver
 
-### Community 117 - "Community 117"
+### Community 116 - "Community 116"
 Cohesion: 0.33
 Nodes (5): inlineConrefCommand(), InlineConrefResponse, LspTextEdit, LspWorkspaceEdit, getLanguageClient()
 
-### Community 118 - "Community 118"
+### Community 117 - "Community 117"
 Cohesion: 0.38
 Nodes (1): LinkCommands
 
-### Community 119 - "Community 119"
+### Community 118 - "Community 118"
 Cohesion: 0.43
 Nodes (2): AICompletionProvider, registerAICompletionProvider()
 
-### Community 120 - "Community 120"
+### Community 119 - "Community 119"
 Cohesion: 0.48
 Nodes (5): escapeRegExp(), findElementById(), navigateToElement(), registerElementNavigationCommand(), showDocumentAtLine()
 
-### Community 121 - "Community 121"
+### Community 120 - "Community 120"
 Cohesion: 0.40
 Nodes (1): DitaFileDecorationProvider
 
-### Community 122 - "Community 122"
+### Community 121 - "Community 121"
 Cohesion: 0.40
 Nodes (4): PaneState, SOURCE, state(), waitFor()
 
-### Community 123 - "Community 123"
+### Community 122 - "Community 122"
 Cohesion: 0.33
 Nodes (5): extensionRoot, initializedMsg, initMsg, server, serverScript
 
-### Community 124 - "Community 124"
+### Community 123 - "Community 123"
 Cohesion: 0.50
 Nodes (4): EditorState, open(), SOURCE, waitFor()
 
-### Community 125 - "Community 125"
+### Community 124 - "Community 124"
 Cohesion: 0.50
 Nodes (3): fs, path, vscode
 
-### Community 126 - "Community 126"
+### Community 125 - "Community 125"
 Cohesion: 0.67
 Nodes (3): PreviewState, state(), waitFor()
 
-### Community 127 - "Community 127"
+### Community 126 - "Community 126"
 Cohesion: 0.50
 Nodes (1): vscode
 
 ## Knowledge Gaps
-- **587 isolated node(s):** `esbuild`, `minify`, `sourcemap`, `sharedOptions`, `esbuild` (+582 more)
+- **589 isolated node(s):** `esbuild`, `minify`, `sourcemap`, `sharedOptions`, `esbuild` (+584 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 13`** (2 nodes): `IKeySpaceService`, `KeySpaceService`
+- **Thin community `Community 21`** (1 nodes): `KeySpaceResolver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 27`** (1 nodes): `TableCommands`
+- **Thin community `Community 28`** (1 nodes): `TableCommands`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (2 nodes): `DitaCommands`, `offsetOf()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (1 nodes): `KeySpaceResolver`
+- **Thin community `Community 34`** (2 nodes): `DitaCommands`, `offsetOf()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 42`** (1 nodes): `DitaLinkProvider`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 55`** (2 nodes): `Builder`, `summary()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 59`** (1 nodes): `Logger`
+- **Thin community `Community 60`** (1 nodes): `Logger`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 61`** (2 nodes): `childPos()`, `RelTableCommands`
+- **Thin community `Community 62`** (2 nodes): `childPos()`, `RelTableCommands`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 63`** (1 nodes): `DitaPreviewPanel`
+- **Thin community `Community 64`** (1 nodes): `DitaPreviewPanel`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 67`** (1 nodes): `MapCommands`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -597,29 +595,29 @@ Nodes (1): vscode
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 115`** (1 nodes): `DtdResolver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 118`** (1 nodes): `LinkCommands`
+- **Thin community `Community 117`** (1 nodes): `LinkCommands`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 119`** (2 nodes): `AICompletionProvider`, `registerAICompletionProvider()`
+- **Thin community `Community 118`** (2 nodes): `AICompletionProvider`, `registerAICompletionProvider()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 121`** (1 nodes): `DitaFileDecorationProvider`
+- **Thin community `Community 120`** (1 nodes): `DitaFileDecorationProvider`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 127`** (1 nodes): `vscode`
+- **Thin community `Community 126`** (1 nodes): `vscode`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `KeySpaceService` connect `Community 13` to `Community 20`, `Community 3`, `Community 8`, `Community 1`, `Community 47`, `Community 5`, `Community 4`, `Community 7`, `Community 37`?**
-  _High betweenness centrality (0.033) - this node is a cross-community bridge._
+- **Why does `KeySpaceService` connect `Community 11` to `Community 20`, `Community 3`, `Community 8`, `Community 1`, `Community 47`, `Community 5`, `Community 4`, `Community 7`, `Community 37`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Why does `VisualPreviewPanel` connect `Community 14` to `Community 54`, `Community 10`, `Community 38`?**
   _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Why does `EditorSession` connect `Community 9` to `Community 10`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **What connects `esbuild`, `minify`, `sourcemap` to the rest of the system?**
-  _587 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _589 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.030416951469583047 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.03406593406593406 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03350379121847999 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.049900990099009904 - nodes in this community are weakly interconnected._
