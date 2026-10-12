@@ -24,7 +24,7 @@
         <prodinfo>
             <prodname>DITA Craft</prodname>
             <vrmlist>
-                <vrm version="0" release="10" modification="1"/>
+                <vrm version="0" release="10" modification="2"/>
             </vrmlist>
         </prodinfo>
         <bookid>

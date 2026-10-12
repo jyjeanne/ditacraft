@@ -5,7 +5,7 @@
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.125+-blue.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-0.10.1-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.2-orange.svg)](CHANGELOG.md)
 
 DITA Craft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, real-time validation, smart navigation, AI-powered assistance, an MCP server for external AI agents, and seamless integration with DITA-OT for multi-format publishing. And now a **visual editor**: edit your topics on a formatted page — tables, images, links, reused content, problems and quick fixes included — and your maps and bookmaps as rows that show each topic's title, while DITA Craft keeps your DITA content clean, with a live **visual preview** and a **Properties view** for attributes.
 
@@ -649,7 +649,7 @@ Track progress: see the [Roadmap](ROADMAP.md#milestone-7-publishing-enhancements
 
 DITA Craft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
 
-> **Status:** MCP server is **available** since v0.8.0 (current release: v0.10.1). Download `mcp-server-<version>.zip` and `lsp-server-<version>.zip` from the [GitHub releases](https://github.com/jyjeanne/ditacraft/releases), or build them with `npm run build-standalone` (`dist/mcp-server.js` and `dist/lsp-server.js`).
+> **Status:** MCP server is **available** since v0.8.0 (current release: v0.10.2). Download `mcp-server-<version>.zip` and `lsp-server-<version>.zip` from the [GitHub releases](https://github.com/jyjeanne/ditacraft/releases), or build them with `npm run build-standalone` (`dist/mcp-server.js` and `dist/lsp-server.js`).
 
 ### What is MCP?
 
@@ -927,6 +927,15 @@ Developer documentation: [docs/VISUAL_EDITOR.md](docs/VISUAL_EDITOR.md), [docs/V
 - [VS Code Publishing](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 
 ## Recent Updates
+
+### Version 0.10.2
+
+**Fixed:** false key and reference warnings, found on a workspace holding a user guide and DITA-OT's documentation:
+- **Root map** — the root map set with **DITA: Set Root Map** is now the root map of the topics it references (and of the new topics in its folders); a topic of another publication resolves its keys in that publication's map. A topic in no map (a new or archived one) belongs to the publication of its folder.
+- **Keys** — a key pointing to a web address (`href="https://…" scope="external"`), or whose text is in `<keytext>`, `<linktext>` or a `<keyword>` holding markup (`<tm>`), is no longer reported as having no target.
+- **References** — examples written in the text (`<codeph>keyref="my-key"</codeph>`) are no longer validated as attributes, and same-topic links (`href="#./element"`) no longer report `Topic ID "." not found`.
+
+See the [CHANGELOG](CHANGELOG.md) for details.
 
 ### Version 0.10.1
 

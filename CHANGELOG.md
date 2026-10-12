@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-10-12
+
+A maintenance release: no more false key and reference warnings in workspaces that hold several publications, or examples of DITA markup.
+
 ### Fixed
 
 - With a root map set (`ditacraft.rootMap`, **DITA: Set Root Map**), the keys of a topic that map does not reference were still reported as not defined: the language server resolved every topic of the workspace in the explicit root map, so 0.10.1's root map discovery never ran — in a user guide workspace whose root map is the guide's bookmap, the 35 keyrefs of DITA-OT's `docsrc/reference/third-party-software.dita` were all "not defined in any map". The explicit root map is now the first candidate of root map discovery: it stays the root map of every topic it references and of the topics no map references (a new topic not yet in a map), while a topic it does not reference but another map does resolves in that map. The visual preview already used the setting this way (the root map searched first).
