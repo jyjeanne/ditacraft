@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-10-13
+
+A maintenance release: DITA-OT parity checks work on every platform.
+
+### Fixed
+
+- DITA-OT parity diagnostics missed the release-notes changes map and the resources maps on Linux and macOS: the language server recognized them by their Windows path (`\release-notes\changes.ditamap`, `\resources\`), so on other platforms it never ran the corresponding checks. The paths are now matched with the platform separator, so the same diagnostics run everywhere.
+
 ## [0.10.2] - 2026-10-12
 
 A maintenance release: no more false key and reference warnings in workspaces that hold several publications, or examples of DITA markup.

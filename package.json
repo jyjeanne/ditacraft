@@ -2,7 +2,7 @@
   "name": "ditacraft",
   "displayName": "DITA Craft",
   "description": "Best way to edit and publish your DITA files - Complete DITA editing and publishing solution for VS Code",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "publisher": "JeremyJeanne",
   "author": {
     "name": "Jeremy Jeanne",
