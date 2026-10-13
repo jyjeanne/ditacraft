@@ -2,7 +2,7 @@
   "schema": "graphify_workspace_manifest_v1",
   "schema_version": 1,
   "contract": "workspace-bundle-contract-v1",
-  "generated_at": "2026-10-13T20:40:03.455Z",
+  "generated_at": "2026-10-13T20:57:18.962Z",
   "graph_hash": null,
   "present_count": 4,
   "artifacts": [
@@ -11,7 +11,7 @@
       "path": "entities.json",
       "schema": null,
       "present": true,
-      "sha256": "8bcf84fc0904dea6ed3f4bb218be2c38175c572287393b55abb2d49ec01fa255",
+      "sha256": "3fe6098afe9753bf6a9ad0e4b6cb78c5fbecf70bd5836b254935c0c26baf6bd6",
       "size_bytes": 641431,
       "role": "entities"
     },
@@ -20,8 +20,8 @@
       "path": "graph.json",
       "schema": null,
       "present": true,
-      "sha256": "db0bd0cdfb78b63f7152c7223da1b1a559e330c98f379ba8373b25ae7a5b2152",
-      "size_bytes": 5220823,
+      "sha256": "75ba749f3e2c99c9c176be8b709cbe1b2683077e84040d5e5261795dd40ab72e",
+      "size_bytes": 5220793,
       "role": "graph"
     },
     {
@@ -38,8 +38,8 @@
       "path": "scene.json",
       "schema": null,
       "present": true,
-      "sha256": "8b98c3657196dd64882067b469292331dc1f90e11d7e478aaeda2eb3af5c9212",
-      "size_bytes": 2499387,
+      "sha256": "02406694090614b1969a2ca17b0e3bcf6d473cb22561b14ddacad3be86bbb500",
+      "size_bytes": 2499376,
       "role": "scene"
     },
     {
