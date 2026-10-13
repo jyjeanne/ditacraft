@@ -43,6 +43,9 @@
 - [trace-logo](../modules/scripts/cover/trace-logo.md) — JavaScript Module
 - [generate-graph](../modules/scripts/generate-graph.md) — JavaScript Module
 - [generate-okf-knowledge](../modules/scripts/generate-okf-knowledge.md) — JavaScript Module
+- [compare-results](../modules/scripts/parity/compare-results.md) — JavaScript Module
+- [parse-ditaot-log](../modules/scripts/parity/parse-ditaot-log.md) — JavaScript Module
+- [run-lsp-diagnostics](../modules/scripts/parity/run-lsp-diagnostics.md) — JavaScript Module
 - [screenshots](../modules/scripts/screenshots.md) — JavaScript Module
 - [extension](../modules/scripts/screenshots/driver/extension.md) — JavaScript Module
 - [shoot](../modules/scripts/screenshots/shoot.md) — JavaScript Module

@@ -80,6 +80,53 @@ cd server && npm run coverage
 - Entry: `mcp/src/server.ts`
 - Uses server-side logic to expose tooling over MCP/stdio
 
+## OKF knowledge graph usage (mandatory for non-trivial tasks)
+
+### Source of truth
+
+The project's OKF knowledge graph is in:
+
+`docs/okf-knowledge/`
+
+Treat this directory as a first-class architectural and conceptual reference.
+
+### Mandatory research policy
+
+Before answering a non-trivial question, proposing architecture, implementing a feature, refactoring, debugging, or changing conventions:
+
+1. Search `docs/okf-knowledge/` for relevant concepts.
+2. Read the relevant concept files and follow linked dependencies when needed.
+3. Extract documented relationships, constraints, and architectural decisions.
+4. Compare graph evidence with current code before proposing or applying changes.
+5. Use source code and tests to verify details that may have changed.
+
+Do not rely only on source search when relevant OKF knowledge exists.
+
+### Evidence and conflict handling
+
+- Cite relevant OKF file paths in explanations.
+- Distinguish facts from assumptions or recommendations.
+- If graph and source disagree, report the discrepancy and determine what reflects current behavior.
+- Never invent concepts, dependencies, or decisions.
+- If no relevant OKF evidence exists, state it and continue with source-code research.
+
+### Efficient retrieval
+
+- Start from root/index concepts when available.
+- Search by concept/component/dependency terms tied to the task.
+- Read only relevant concept files and directly related links.
+- Expand scope only when initial evidence is insufficient.
+
+### Completion expectation for non-trivial tasks
+
+Briefly report:
+
+- OKF concepts consulted
+- Source files inspected
+- Any conflicts, missing knowledge, or assumptions
+
+For trivial edits, avoid disproportionate graph exploration.
+
 ## Core implementation conventions
 
 ### Error handling

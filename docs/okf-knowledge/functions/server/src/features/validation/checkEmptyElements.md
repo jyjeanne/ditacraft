@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: checkEmptyElements
-resource: server/src/features/validation.ts#L700-L726
+resource: server/src/features/validation.ts#L701-L727
 generated:
   by: okf-rs/0.7.0
 relationships:

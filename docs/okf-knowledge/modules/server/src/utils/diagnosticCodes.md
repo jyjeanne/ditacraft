@@ -1,7 +1,7 @@
 ---
 type: TypeScript Module
 title: diagnosticCodes
-resource: server/src/utils/diagnosticCodes.ts#L1-L75
+resource: server/src/utils/diagnosticCodes.ts#L1-L83
 generated:
   by: okf-rs/0.7.0
 relationships:

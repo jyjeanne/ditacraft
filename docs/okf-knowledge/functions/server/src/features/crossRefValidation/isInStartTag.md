@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: isInStartTag
-resource: server/src/features/crossRefValidation.ts#L309-L324
+resource: server/src/features/crossRefValidation.ts#L445-L460
 generated:
   by: okf-rs/0.7.0
 relationships:

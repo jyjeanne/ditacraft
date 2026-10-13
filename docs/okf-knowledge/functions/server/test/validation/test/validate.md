@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validate
-resource: server/test/validation.test.ts#L30-L33
+resource: server/test/validation.test.ts#L31-L34
 generated:
   by: okf-rs/0.7.0
 relationships:

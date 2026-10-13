@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: getDocumentSettings
-resource: server/src/settings.ts#L86-L109
+resource: server/src/settings.ts#L89-L112
 generated:
   by: okf-rs/0.7.0
 relationships:

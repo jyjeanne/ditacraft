@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateDitavalStructure
-resource: server/src/features/validation.ts#L554-L669
+resource: server/src/features/validation.ts#L555-L670
 generated:
   by: okf-rs/0.7.0
 relationships:

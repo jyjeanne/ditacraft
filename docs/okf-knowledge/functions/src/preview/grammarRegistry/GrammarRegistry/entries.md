@@ -6,6 +6,12 @@ generated:
   by: okf-rs/0.7.0
 relationships:
   called_by:
+  - target: functions/scripts/parity/compare-results/countsToObject
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/scripts/parity/compare-results/mapsEqual
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/services/keySpaceService/nodeText
     resolved_by: tree-sitter
     confidence: exact
@@ -161,6 +167,8 @@ relationships:
 
 # Called by
 
+- [countsToObject](../../../../../functions/scripts/parity/compare-results/countsToObject.md)
+- [mapsEqual](../../../../../functions/scripts/parity/compare-results/mapsEqual.md)
 - [nodeText](../../../../../functions/server/src/services/keySpaceService/nodeText.md)
 - [collectXmlElements](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/collectXmlElements.md)
 - [cacheKeySpace](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/cacheKeySpace.md)

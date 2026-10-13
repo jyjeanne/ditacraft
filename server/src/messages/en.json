@@ -29,6 +29,14 @@
     "key.undefined": "Key \"{0}\" is not defined in any map",
     "key.noTarget": "Key \"{0}\" has no target (no href on keydef)",
     "key.missingElement": "Element ID \"{0}\" not found in target of key \"{1}\"",
+    "key.invalidName": "Invalid key name \"{0}\". Key names may not contain whitespace or any of: { } [ ] / # ?",
+    "key.topicsetTypeTopicrefMismatch": "The @type value 'topicset' is incompatible with the referenced topic type for this topicsetref.",
+    "key.topicsetTypeLinkMismatch": "The generated link type 'topicset' is incompatible with the referenced topic type.",
+    "key.chunkNavtitleRetrieval": "Unable to retrieve navtitle from generated chunk target during DITA-OT parity checks.",
+    "key.chunkLinktextFallback": "Unable to retrieve linktext from generated chunk target; using navigation title as fallback.",
+    "key.chunkLinktextMissing": "Unable to retrieve linktext from generated chunk target and no navigation title fallback is available.",
+    "xref.copyToCollision": "copy-to targets \"{0}\" and \"{1}\" normalize to the same generated output name",
+    "xref.nestedNavigationMapLoadError": "DITA-OT parity check: nested navigation map under title-only topicref may fail to load generated navigation map.",
 
     "sch001.missingOtherrole": "When role=\"other\", the otherrole attribute is required.",
     "sch002.missingOthertype": "When note type=\"other\", the othertype attribute is required.",
@@ -72,6 +80,7 @@
     "scope.externalRelativeHref": "scope=\"external\" but href is a relative path. External references should use absolute URIs.",
     "scope.localAbsoluteHref": "scope=\"local\" but href is an absolute URI. Local references should use relative paths.",
     "scope.missingOnUrl": "href is an absolute URL but scope is not set. Consider adding scope=\"external\".",
+    "scope.outsideInputDirectory": "Resource is outside the scope of the input directory: {0}",
 
     "cycle.detected": "Circular reference detected: {0}",
 

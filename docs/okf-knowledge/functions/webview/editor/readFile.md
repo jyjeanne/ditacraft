@@ -21,6 +21,15 @@ relationships:
   - target: functions/server/src/features/crossRefValidation/validateCrossReferences
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/crossRefValidation/getInvalidKeyNamesFromMap
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendOutsideInputDirDiagnosticsFromMap
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/findReplace/handleComputeFindReplaceEdits
     resolved_by: tree-sitter
     confidence: exact
@@ -97,6 +106,9 @@ relationships:
 - [getKeyrefCompletions](../../../functions/server/src/features/completion/getKeyrefCompletions.md)
 - [getHrefFragmentCompletions](../../../functions/server/src/features/completion/getHrefFragmentCompletions.md)
 - [validateCrossReferences](../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
+- [getInvalidKeyNamesFromMap](../../../functions/server/src/features/crossRefValidation/getInvalidKeyNamesFromMap.md)
+- [appendOutsideInputDirDiagnosticsFromMap](../../../functions/server/src/features/crossRefValidation/appendOutsideInputDirDiagnosticsFromMap.md)
+- [appendDitaOtChunkBuildWarnings](../../../functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings.md)
 - [handleComputeFindReplaceEdits](../../../functions/server/src/features/findReplace/handleComputeFindReplaceEdits.md)
 - [getConrefPreview](../../../functions/server/src/features/hover/getConrefPreview.md)
 - [readDocOrFile](../../../functions/server/src/features/inlineConref/readDocOrFile.md)

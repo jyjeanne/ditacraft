@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: checkTopicrefsWithoutHref
-resource: server/src/features/validation.ts#L675-L698
+resource: server/src/features/validation.ts#L676-L699
 generated:
   by: okf-rs/0.7.0
 relationships:

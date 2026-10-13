@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: updateGlobalSettings
-resource: server/src/settings.ts#L82-L84
+resource: server/src/settings.ts#L85-L87
 generated:
   by: okf-rs/0.7.0
 ---

@@ -9,6 +9,9 @@ relationships:
   - target: functions/mcp/src/tools/ditaResolveReference/resolveKeyref
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/scripts/parity/compare-results/filterIssues
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/scripts/screenshots/Cdp/constructor
     resolved_by: tree-sitter
     confidence: exact
@@ -387,6 +390,7 @@ relationships:
 # Called by
 
 - [resolveKeyref](../../../../../../functions/mcp/src/tools/ditaResolveReference/resolveKeyref.md)
+- [filterIssues](../../../../../../functions/scripts/parity/compare-results/filterIssues.md)
 - [constructor](../../../../../../functions/scripts/screenshots/Cdp/constructor.md)
 - [validateAgainstSubjectScheme](../../../../../../functions/server/src/features/batchMetadata/validateAgainstSubjectScheme.md)
 - [detectCircularReferences](../../../../../../functions/server/src/features/circularRefDetection/detectCircularReferences.md)

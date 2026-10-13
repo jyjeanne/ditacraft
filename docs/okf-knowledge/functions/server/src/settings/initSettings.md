@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: initSettings
-resource: server/src/settings.ts#L73-L76
+resource: server/src/settings.ts#L76-L79
 generated:
   by: okf-rs/0.7.0
 relationships:

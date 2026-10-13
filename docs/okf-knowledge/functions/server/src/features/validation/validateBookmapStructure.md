@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateBookmapStructure
-resource: server/src/features/validation.ts#L515-L552
+resource: server/src/features/validation.ts#L516-L553
 generated:
   by: okf-rs/0.7.0
 relationships:

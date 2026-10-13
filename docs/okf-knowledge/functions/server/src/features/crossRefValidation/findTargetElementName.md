@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: findTargetElementName
-resource: server/src/features/crossRefValidation.ts#L456-L463
+resource: server/src/features/crossRefValidation.ts#L812-L819
 generated:
   by: okf-rs/0.7.0
 relationships:

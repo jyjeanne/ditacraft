@@ -15,6 +15,15 @@ relationships:
   - target: functions/server/src/features/crossRefValidation/validateCrossReferences
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendCopyToCollisionError
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendNestedNavigationMapLoadError
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/customRulesValidator/validateCustomRules
     resolved_by: tree-sitter
     confidence: exact
@@ -47,6 +56,9 @@ relationships:
 - [buildAttributeEdit](../../../../../functions/server/src/features/batchMetadata/buildAttributeEdit.md)
 - [resolveRef](../../../../../functions/server/src/features/circularRefDetection/resolveRef.md)
 - [validateCrossReferences](../../../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
+- [appendDitaOtChunkBuildWarnings](../../../../../functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings.md)
+- [appendCopyToCollisionError](../../../../../functions/server/src/features/crossRefValidation/appendCopyToCollisionError.md)
+- [appendNestedNavigationMapLoadError](../../../../../functions/server/src/features/crossRefValidation/appendNestedNavigationMapLoadError.md)
 - [validateCustomRules](../../../../../functions/server/src/features/customRulesValidator/validateCustomRules.md)
 - [makeDiag](../../../../../functions/server/src/features/ditaRulesValidator/makeDiag.md)
 - [handleComputeFindReplaceEdits](../../../../../functions/server/src/features/findReplace/handleComputeFindReplaceEdits.md)

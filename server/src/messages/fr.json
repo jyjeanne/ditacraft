@@ -29,6 +29,14 @@
     "key.undefined": "La clé \"{0}\" n'est définie dans aucune carte",
     "key.noTarget": "La clé \"{0}\" n'a pas de cible (pas de href sur le keydef)",
     "key.missingElement": "Identifiant d'élément \"{0}\" introuvable dans la cible de la clé \"{1}\"",
+    "key.invalidName": "Nom de clé invalide \"{0}\". Les noms de clé ne peuvent pas contenir d'espaces ni les caractères suivants : { } [ ] / # ?",
+    "key.topicsetTypeTopicrefMismatch": "La valeur @type « topicset » est incompatible avec le type de topic référencé pour ce topicsetref.",
+    "key.topicsetTypeLinkMismatch": "Le type de lien généré « topicset » est incompatible avec le type de topic référencé.",
+    "key.chunkNavtitleRetrieval": "Impossible de récupérer le navtitle depuis la cible chunk générée pendant les vérifications de parité DITA-OT.",
+    "key.chunkLinktextFallback": "Impossible de récupérer le linktext depuis la cible chunk générée ; utilisation du titre de navigation en repli.",
+    "key.chunkLinktextMissing": "Impossible de récupérer le linktext depuis la cible chunk générée et aucun titre de navigation de repli n'est disponible.",
+    "xref.copyToCollision": "Les cibles copy-to \"{0}\" et \"{1}\" se normalisent vers le même nom de sortie généré",
+    "xref.nestedNavigationMapLoadError": "Vérification de parité DITA-OT : une map de navigation imbriquée sous un topicref title-only peut échouer à charger la map de navigation générée.",
 
     "sch001.missingOtherrole": "Lorsque role=\"other\", l'attribut otherrole est requis.",
     "sch002.missingOthertype": "Lorsque note type=\"other\", l'attribut othertype est requis.",
@@ -72,6 +80,7 @@
     "scope.externalRelativeHref": "scope=\"external\" mais href est un chemin relatif. Les références externes doivent utiliser des URI absolues.",
     "scope.localAbsoluteHref": "scope=\"local\" mais href est une URI absolue. Les références locales doivent utiliser des chemins relatifs.",
     "scope.missingOnUrl": "href est une URL absolue mais scope n'est pas défini. Envisagez d'ajouter scope=\"external\".",
+    "scope.outsideInputDirectory": "La ressource est hors du périmètre du répertoire d'entrée : {0}",
 
     "cycle.detected": "Référence circulaire détectée : {0}",
 

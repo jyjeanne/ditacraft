@@ -1,7 +1,7 @@
 ---
 type: TypeScript Module
 title: settings
-resource: server/src/settings.ts#L1-L117
+resource: server/src/settings.ts#L1-L120
 generated:
   by: okf-rs/0.7.0
 relationships:

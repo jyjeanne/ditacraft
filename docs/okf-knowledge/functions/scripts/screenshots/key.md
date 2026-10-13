@@ -5,10 +5,6 @@ resource: scripts/screenshots/lib.js#L230-L235
 generated:
   by: okf-rs/0.7.0
 relationships:
-  calls:
-  - target: functions/scripts/screenshots/Cdp/send
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
   - target: functions/scripts/screenshots/shoot/shotContext
     resolved_by: tree-sitter
@@ -24,10 +20,6 @@ relationships:
 # Signature
 
 `async function key(cdp, k, modifiers = 0)`
-
-# Calls
-
-- [send](../../../functions/scripts/screenshots/Cdp/send.md)
 
 # Called by
 

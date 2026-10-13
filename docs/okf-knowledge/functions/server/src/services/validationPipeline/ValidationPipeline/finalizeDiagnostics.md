@@ -1,7 +1,7 @@
 ---
 type: TypeScript Method
 title: finalizeDiagnostics
-resource: server/src/services/validationPipeline.ts#L686-L718
+resource: server/src/services/validationPipeline.ts#L692-L724
 generated:
   by: okf-rs/0.7.0
 relationships:

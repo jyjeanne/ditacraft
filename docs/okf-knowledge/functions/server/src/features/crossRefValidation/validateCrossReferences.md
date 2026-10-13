@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateCrossReferences
-resource: server/src/features/crossRefValidation.ts#L45-L301
+resource: server/src/features/crossRefValidation.ts#L55-L437
 generated:
   by: okf-rs/0.7.0
 relationships:
@@ -30,10 +30,22 @@ relationships:
   - target: functions/server/src/features/crossRefValidation/getScopeValue
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/webview/editor/readFile
+  - target: functions/server/src/features/crossRefValidation/getAttributeValue
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/getContainingElementName
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/isPathInsideDir
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendOutsideInputDirDiagnosticsFromMap
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/getInvalidKeyNamesFromMap
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/webview/editor/readFile
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/validateConrefCompatibility
@@ -48,6 +60,9 @@ relationships:
   - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/crossRefValidation/isInvalidKeyName
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/utils/textUtils/escapeRegex
     resolved_by: tree-sitter
     confidence: exact
@@ -55,6 +70,15 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/areConrefCompatible
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendCopyToCollisionError
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendNestedNavigationMapLoadError
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -65,7 +89,7 @@ relationships:
 
 # Signature
 
-`async function validateCrossReferences( text: string, documentUri: string, keySpaceService: KeySpaceService | undefined, maxProblems: number ): Promise<Diagnostic[]>`
+`async function validateCrossReferences( text: string, documentUri: string, keySpaceService: KeySpaceService | undefined, maxProblems: number, options?: { comparisonProfile?: 'default' | 'ditaot'; } ): Promise<Diagnostic[]>`
 
 # Calls
 
@@ -77,15 +101,23 @@ relationships:
 - [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 - [offsetToRange](../../../../../functions/server/src/utils/textUtils/offsetToRange.md)
 - [getScopeValue](../../../../../functions/server/src/features/crossRefValidation/getScopeValue.md)
-- [readFile](../../../../../functions/webview/editor/readFile.md)
+- [getAttributeValue](../../../../../functions/server/src/features/crossRefValidation/getAttributeValue.md)
 - [getContainingElementName](../../../../../functions/server/src/features/crossRefValidation/getContainingElementName.md)
+- [isPathInsideDir](../../../../../functions/server/src/features/crossRefValidation/isPathInsideDir.md)
+- [appendOutsideInputDirDiagnosticsFromMap](../../../../../functions/server/src/features/crossRefValidation/appendOutsideInputDirDiagnosticsFromMap.md)
+- [getInvalidKeyNamesFromMap](../../../../../functions/server/src/features/crossRefValidation/getInvalidKeyNamesFromMap.md)
+- [readFile](../../../../../functions/webview/editor/readFile.md)
 - [validateConrefCompatibility](../../../../../functions/server/src/features/crossRefValidation/validateConrefCompatibility.md)
 - [getDuplicateKeys](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/getDuplicateKeys.md)
 - [normalizeFsPath](../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
 - [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
+- [isInvalidKeyName](../../../../../functions/server/src/features/crossRefValidation/isInvalidKeyName.md)
 - [escapeRegex](../../../../../functions/server/src/utils/textUtils/escapeRegex.md)
 - [findTargetElementByIdOnly](../../../../../functions/server/src/features/crossRefValidation/findTargetElementByIdOnly.md)
 - [areConrefCompatible](../../../../../functions/server/src/features/crossRefValidation/areConrefCompatible.md)
+- [appendDitaOtChunkBuildWarnings](../../../../../functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings.md)
+- [appendCopyToCollisionError](../../../../../functions/server/src/features/crossRefValidation/appendCopyToCollisionError.md)
+- [appendNestedNavigationMapLoadError](../../../../../functions/server/src/features/crossRefValidation/appendNestedNavigationMapLoadError.md)
 
 # Called by
 

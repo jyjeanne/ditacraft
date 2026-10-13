@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: findTagEnd
-resource: server/src/features/validation.ts#L836-L851
+resource: server/src/features/validation.ts#L837-L852
 generated:
   by: okf-rs/0.7.0
 relationships:

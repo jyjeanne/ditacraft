@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateDITAStructure
-resource: server/src/features/validation.ts#L355-L393
+resource: server/src/features/validation.ts#L355-L394
 generated:
   by: okf-rs/0.7.0
 relationships:
@@ -38,7 +38,7 @@ relationships:
 
 # Signature
 
-`function validateDITAStructure( text: string, uri: string, diagnostics: Diagnostic[] ): void`
+`function validateDITAStructure( text: string, uri: string, diagnostics: Diagnostic[], settings: DitaCraftSettings ): void`
 
 # Calls
 

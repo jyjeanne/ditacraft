@@ -1,7 +1,7 @@
 ---
 type: TypeScript Method
 title: summarize
-resource: server/src/services/validationPipeline.ts#L723-L735
+resource: server/src/services/validationPipeline.ts#L729-L741
 generated:
   by: okf-rs/0.7.0
 ---

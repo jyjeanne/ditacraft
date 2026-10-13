@@ -24,9 +24,6 @@ relationships:
   - target: functions/scripts/screenshots/trackFrames
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/scripts/screenshots/Cdp/send
-    resolved_by: tree-sitter
-    confidence: exact
 ---
 
 # Signature
@@ -41,4 +38,3 @@ relationships:
 - [launch](../../../../functions/scripts/screenshots/launch.md)
 - [shotContext](../../../../functions/scripts/screenshots/shoot/shotContext.md)
 - [trackFrames](../../../../functions/scripts/screenshots/trackFrames.md)
-- [send](../../../../functions/scripts/screenshots/Cdp/send.md)

@@ -12,6 +12,9 @@ relationships:
   - target: functions/server/src/features/crossRefValidation/validateCrossReferences
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/crossRefValidation/getAttributeValue
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/crossRefValidation/validateFragment
     resolved_by: tree-sitter
     confidence: exact
@@ -43,6 +46,7 @@ relationships:
 
 - [buildAttributeEdit](../../../../../functions/server/src/features/batchMetadata/buildAttributeEdit.md)
 - [validateCrossReferences](../../../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
+- [getAttributeValue](../../../../../functions/server/src/features/crossRefValidation/getAttributeValue.md)
 - [validateFragment](../../../../../functions/server/src/features/crossRefValidation/validateFragment.md)
 - [findTargetElementName](../../../../../functions/server/src/features/crossRefValidation/findTargetElementName.md)
 - [findTargetElementByIdOnly](../../../../../functions/server/src/features/crossRefValidation/findTargetElementByIdOnly.md)

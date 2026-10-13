@@ -21,6 +21,9 @@ relationships:
   - target: functions/mcp/test/smoke-test/callAndParse
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/scripts/parity/compare-results/classifyFamily
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/scripts/screenshots/shoot/main
     resolved_by: tree-sitter
     confidence: exact
@@ -34,6 +37,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/contextGraph/resolveHref
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/isPathInsideDir
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/documentLinks/shouldSkip
@@ -268,11 +274,13 @@ relationships:
 - [resolvePath](../../../../../../functions/mcp/src/workspace/resolvePath.md)
 - [validateWithinWorkspace](../../../../../../functions/mcp/src/workspace/validateWithinWorkspace.md)
 - [callAndParse](../../../../../../functions/mcp/test/smoke-test/callAndParse.md)
+- [classifyFamily](../../../../../../functions/scripts/parity/compare-results/classifyFamily.md)
 - [main](../../../../../../functions/scripts/screenshots/shoot/main.md)
 - [findParentElement](../../../../../../functions/server/src/features/completion/findParentElement.md)
 - [getHrefFileCompletions](../../../../../../functions/server/src/features/completion/getHrefFileCompletions.md)
 - [parseElementTree](../../../../../../functions/server/src/features/contentModelValidation/parseElementTree.md)
 - [resolveHref](../../../../../../functions/server/src/features/contextGraph/resolveHref.md)
+- [isPathInsideDir](../../../../../../functions/server/src/features/crossRefValidation/isPathInsideDir.md)
 - [shouldSkip](../../../../../../functions/server/src/features/documentLinks/shouldSkip.md)
 - [searchableSpans](../../../../../../functions/server/src/features/findReplace/searchableSpans.md)
 - [wrapFragment](../../../../../../functions/server/src/features/fragmentValidator/wrapFragment.md)

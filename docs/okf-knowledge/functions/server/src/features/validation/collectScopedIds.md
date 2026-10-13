@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: collectScopedIds
-resource: server/src/features/validation.ts#L755-L834
+resource: server/src/features/validation.ts#L756-L835
 generated:
   by: okf-rs/0.7.0
 relationships:

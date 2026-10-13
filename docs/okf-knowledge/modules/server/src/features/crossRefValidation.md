@@ -1,7 +1,7 @@
 ---
 type: TypeScript Module
 title: crossRefValidation
-resource: server/src/features/crossRefValidation.ts#L1-L497
+resource: server/src/features/crossRefValidation.ts#L1-L852
 generated:
   by: okf-rs/0.7.0
 relationships:
@@ -41,8 +41,19 @@ relationships:
 - [validateCrossReferences](../../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
 - [isInStartTag](../../../../functions/server/src/features/crossRefValidation/isInStartTag.md)
 - [getScopeValue](../../../../functions/server/src/features/crossRefValidation/getScopeValue.md)
+- [getAttributeValue](../../../../functions/server/src/features/crossRefValidation/getAttributeValue.md)
+- [getContainingTag](../../../../functions/server/src/features/crossRefValidation/getContainingTag.md)
 - [isExternalScope](../../../../functions/server/src/features/crossRefValidation/isExternalScope.md)
 - [validateFragment](../../../../functions/server/src/features/crossRefValidation/validateFragment.md)
+- [isInvalidKeyName](../../../../functions/server/src/features/crossRefValidation/isInvalidKeyName.md)
+- [isPathInsideDir](../../../../functions/server/src/features/crossRefValidation/isPathInsideDir.md)
+- [collectInvalidKeyNames](../../../../functions/server/src/features/crossRefValidation/collectInvalidKeyNames.md)
+- [getInvalidKeyNamesFromMap](../../../../functions/server/src/features/crossRefValidation/getInvalidKeyNamesFromMap.md)
+- [appendOutsideInputDirDiagnosticsFromMap](../../../../functions/server/src/features/crossRefValidation/appendOutsideInputDirDiagnosticsFromMap.md)
+- [appendDitaOtChunkBuildWarnings](../../../../functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings.md)
+- [appendCopyToCollisionError](../../../../functions/server/src/features/crossRefValidation/appendCopyToCollisionError.md)
+- [normalizeCopyToName](../../../../functions/server/src/features/crossRefValidation/normalizeCopyToName.md)
+- [appendNestedNavigationMapLoadError](../../../../functions/server/src/features/crossRefValidation/appendNestedNavigationMapLoadError.md)
 - [getContainingElementName](../../../../functions/server/src/features/crossRefValidation/getContainingElementName.md)
 - [areConrefCompatible](../../../../functions/server/src/features/crossRefValidation/areConrefCompatible.md)
 - [findTargetElementName](../../../../functions/server/src/features/crossRefValidation/findTargetElementName.md)

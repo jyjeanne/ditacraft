@@ -510,7 +510,13 @@ export class ValidationPipeline {
                 try {
                     const xrefDiags = await timePhaseAsync('CrossRef', () =>
                         withTimeout(
-                            validateCrossReferences(text, uri, keySpaceService, settings.maxNumberOfProblems),
+                            validateCrossReferences(
+                                text,
+                                uri,
+                                keySpaceService,
+                                settings.maxNumberOfProblems,
+                                { comparisonProfile: settings.comparisonProfile }
+                            ),
                             phaseTimeoutMs, 'CrossRef', this.log, token,
                         )
                     );

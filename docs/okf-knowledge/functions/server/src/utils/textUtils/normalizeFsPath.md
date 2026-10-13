@@ -12,6 +12,9 @@ relationships:
   - target: functions/server/src/features/crossRefValidation/validateCrossReferences
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/crossRefValidation/getInvalidKeyNamesFromMap
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/inlineConref/rebaseReference
     resolved_by: tree-sitter
     confidence: exact
@@ -94,6 +97,7 @@ relationships:
 
 - [normalizePath](../../../../../functions/server/src/features/circularRefDetection/normalizePath.md)
 - [validateCrossReferences](../../../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
+- [getInvalidKeyNamesFromMap](../../../../../functions/server/src/features/crossRefValidation/getInvalidKeyNamesFromMap.md)
 - [rebaseReference](../../../../../functions/server/src/features/inlineConref/rebaseReference.md)
 - [handleComputeMoveEdits](../../../../../functions/server/src/features/moveTopic/handleComputeMoveEdits.md)
 - [handleReferences](../../../../../functions/server/src/features/references/handleReferences.md)

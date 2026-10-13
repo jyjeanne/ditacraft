@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: findTargetElementByIdOnly
-resource: server/src/features/crossRefValidation.ts#L469-L474
+resource: server/src/features/crossRefValidation.ts#L825-L830
 generated:
   by: okf-rs/0.7.0
 relationships:

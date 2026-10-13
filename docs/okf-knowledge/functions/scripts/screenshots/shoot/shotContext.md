@@ -15,9 +15,6 @@ relationships:
   - target: functions/scripts/screenshots/page
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/scripts/screenshots/Cdp/send
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/scripts/screenshots/webview
     resolved_by: tree-sitter
     confidence: exact
@@ -45,7 +42,6 @@ relationships:
 - [host](../../../../functions/scripts/screenshots/host.md)
 - [key](../../../../functions/scripts/screenshots/key.md)
 - [page](../../../../functions/scripts/screenshots/page.md)
-- [send](../../../../functions/scripts/screenshots/Cdp/send.md)
 - [webview](../../../../functions/scripts/screenshots/webview.md)
 - [click](../../../../functions/scripts/screenshots/click.md)
 - [mouse](../../../../functions/scripts/screenshots/mouse.md)

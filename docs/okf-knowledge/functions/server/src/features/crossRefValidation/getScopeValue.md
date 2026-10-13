@@ -1,11 +1,14 @@
 ---
 type: TypeScript Function
 title: getScopeValue
-resource: server/src/features/crossRefValidation.ts#L327-L335
+resource: server/src/features/crossRefValidation.ts#L463-L468
 generated:
   by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/server/src/features/crossRefValidation/getContainingTag
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
     resolved_by: tree-sitter
     confidence: exact
@@ -24,6 +27,7 @@ relationships:
 
 # Calls
 
+- [getContainingTag](../../../../../functions/server/src/features/crossRefValidation/getContainingTag.md)
 - [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 
 # Called by

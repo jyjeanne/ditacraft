@@ -39,6 +39,8 @@ export interface DitaCraftSettings {
     largeFileThresholdKB: number;
     /** Total pipeline execution budget (ms). Remaining phases are skipped when exceeded. */
     pipelineBudgetMs: number;
+    /** Optional comparison profile used for parity testing against external validators. */
+    comparisonProfile?: 'default' | 'ditaot';
 }
 
 const defaultSettings: DitaCraftSettings = {
@@ -61,6 +63,7 @@ const defaultSettings: DitaCraftSettings = {
     customRulesFile: '',
     largeFileThresholdKB: 500,
     pipelineBudgetMs: 30_000,
+    comparisonProfile: 'default',
 };
 
 // Cache of settings per document URI

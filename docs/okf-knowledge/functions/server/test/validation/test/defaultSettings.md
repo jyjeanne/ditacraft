@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: defaultSettings
-resource: server/test/validation.test.ts#L6-L28
+resource: server/test/validation.test.ts#L6-L29
 generated:
   by: okf-rs/0.7.0
 relationships:

@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateMapStructure
-resource: server/src/features/validation.ts#L474-L513
+resource: server/src/features/validation.ts#L475-L514
 generated:
   by: okf-rs/0.7.0
 relationships:
@@ -23,7 +23,7 @@ relationships:
 
 # Signature
 
-`function validateMapStructure(text: string, diagnostics: Diagnostic[]): void`
+`function validateMapStructure(text: string, diagnostics: Diagnostic[], settings: DitaCraftSettings): void`
 
 # Calls
 

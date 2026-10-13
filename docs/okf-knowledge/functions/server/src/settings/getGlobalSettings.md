@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: getGlobalSettings
-resource: server/src/settings.ts#L78-L80
+resource: server/src/settings.ts#L81-L83
 generated:
   by: okf-rs/0.7.0
 relationships:

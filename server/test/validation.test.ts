@@ -24,6 +24,7 @@ function defaultSettings(): DitaCraftSettings {
         customRulesFile: '',
         largeFileThresholdKB: 500,
         pipelineBudgetMs: 30_000,
+        comparisonProfile: 'default',
     };
 }
 
@@ -121,6 +122,15 @@ suite('validateDITADocument', () => {
             const diags = validate('<map></map>', 'file:///test.ditamap');
             const titleDiags = diags.filter(d => d.code === 'DITA-STRUCT-004');
             assert.ok(titleDiags.length > 0);
+        });
+
+        test('map without title is ignored in ditaot comparison profile', () => {
+            const settings = defaultSettings();
+            settings.comparisonProfile = 'ditaot';
+            const doc = createDoc('<map></map>', 'file:///test.ditamap');
+            const diags = validateDITADocument(doc, settings);
+            const titleDiags = diags.filter(d => d.code === 'DITA-STRUCT-004');
+            assert.strictEqual(titleDiags.length, 0);
         });
 
         test('missing map root element produces error', () => {

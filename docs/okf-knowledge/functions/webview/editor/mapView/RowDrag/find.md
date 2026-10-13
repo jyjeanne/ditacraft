@@ -25,6 +25,9 @@ relationships:
   - target: functions/scripts/screenshots/shoot/main
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/inlineConref/rootElementId
     resolved_by: tree-sitter
     confidence: exact
@@ -321,6 +324,7 @@ relationships:
 - [chromePath](../../../../../functions/scripts/cover/render/chromePath.md)
 - [launch](../../../../../functions/scripts/screenshots/launch.md)
 - [main](../../../../../functions/scripts/screenshots/shoot/main.md)
+- [appendDitaOtChunkBuildWarnings](../../../../../functions/server/src/features/crossRefValidation/appendDitaOtChunkBuildWarnings.md)
 - [rootElementId](../../../../../functions/server/src/features/inlineConref/rootElementId.md)
 - [findKeyDefinition](../../../../../functions/server/src/features/rename/findKeyDefinition.md)
 - [chooseRootMap](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/chooseRootMap.md)

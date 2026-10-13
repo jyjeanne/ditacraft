@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: clearDocumentSettings
-resource: server/src/settings.ts#L111-L117
+resource: server/src/settings.ts#L114-L120
 generated:
   by: okf-rs/0.7.0
 relationships:

@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: areConrefCompatible
-resource: server/src/features/crossRefValidation.ts#L444-L450
+resource: server/src/features/crossRefValidation.ts#L800-L806
 generated:
   by: okf-rs/0.7.0
 relationships:

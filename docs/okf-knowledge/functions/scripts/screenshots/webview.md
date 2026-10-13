@@ -6,9 +6,6 @@ generated:
   by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/scripts/screenshots/Cdp/send
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/scripts/screenshots/page
     resolved_by: tree-sitter
     confidence: exact
@@ -24,7 +21,6 @@ relationships:
 
 # Calls
 
-- [send](../../../functions/scripts/screenshots/Cdp/send.md)
 - [page](../../../functions/scripts/screenshots/page.md)
 
 # Called by

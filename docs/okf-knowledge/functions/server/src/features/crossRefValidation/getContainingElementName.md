@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: getContainingElementName
-resource: server/src/features/crossRefValidation.ts#L393-L398
+resource: server/src/features/crossRefValidation.ts#L749-L754
 generated:
   by: okf-rs/0.7.0
 relationships:

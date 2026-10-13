@@ -56,7 +56,7 @@ export function validateDITADocument(
     validateXML(text, diagnostics);
 
     // 3. DITA structure
-    validateDITAStructure(text, uri, diagnostics);
+    validateDITAStructure(text, uri, diagnostics, settings);
 
     // 4. ID validation
     validateIDs(text, textDocument, diagnostics);
@@ -355,7 +355,8 @@ function validateXML(text: string, diagnostics: Diagnostic[]): void {
 function validateDITAStructure(
     text: string,
     uri: string,
-    diagnostics: Diagnostic[]
+    diagnostics: Diagnostic[],
+    settings: DitaCraftSettings
 ): void {
     const ext = getFileExtension(uri);
 
@@ -383,7 +384,7 @@ function validateDITAStructure(
     if (ext === '.dita') {
         validateTopicStructure(cleanText, diagnostics);
     } else if (ext === '.ditamap') {
-        validateMapStructure(cleanText, diagnostics);
+        validateMapStructure(cleanText, diagnostics, settings);
     } else if (ext === '.bookmap') {
         validateBookmapStructure(cleanText, diagnostics);
     }
@@ -471,7 +472,7 @@ function validateTopicStructure(
     }
 }
 
-function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
+function validateMapStructure(text: string, diagnostics: Diagnostic[], settings: DitaCraftSettings): void {
     // Accept all DITA map specializations as valid root elements
     const hasMapRoot = [...MAP_TYPE_NAMES].some((name) => new RegExp(`<${name}[\\s>]`).test(text));
 
@@ -498,7 +499,7 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[]): void {
         return;
     }
 
-    if (!text.includes('<title>') && !text.includes('<title ')) {
+    if (settings.comparisonProfile !== 'ditaot' && !text.includes('<title>') && !text.includes('<title ')) {
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
             range: createRange(0, 0),

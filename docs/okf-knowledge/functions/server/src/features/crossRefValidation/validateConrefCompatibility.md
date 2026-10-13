@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateConrefCompatibility
-resource: server/src/features/crossRefValidation.ts#L477-L496
+resource: server/src/features/crossRefValidation.ts#L833-L852
 generated:
   by: okf-rs/0.7.0
 relationships:

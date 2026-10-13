@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateTopicStructure
-resource: server/src/features/validation.ts#L395-L472
+resource: server/src/features/validation.ts#L396-L473
 generated:
   by: okf-rs/0.7.0
 relationships:

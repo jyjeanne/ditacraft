@@ -1,7 +1,7 @@
 ---
 type: TypeScript Function
 title: validateFragment
-resource: server/src/features/crossRefValidation.ts#L346-L390
+resource: server/src/features/crossRefValidation.ts#L495-L557
 generated:
   by: okf-rs/0.7.0
 relationships:
@@ -13,7 +13,7 @@ relationships:
 
 # Signature
 
-`function validateFragment( fragment: string, content: string, range: Range, fileName: string, diagnostics: Diagnostic[] ): boolean`
+`function validateFragment( fragment: string, content: string, range: Range, fileName: string, isMapLikeTarget: boolean, diagnostics: Diagnostic[] ): boolean`
 
 # Calls
 

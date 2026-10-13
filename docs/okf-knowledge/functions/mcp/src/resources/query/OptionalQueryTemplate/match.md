@@ -12,6 +12,9 @@ relationships:
   - target: functions/mcp/src/tools/ditaResolveReference/extractTitle
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/scripts/parity/compare-results/toDitaOtIssues
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/codeActions/fixMissingDoctype
     resolved_by: tree-sitter
     confidence: exact
@@ -73,6 +76,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/getScopeValue
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/crossRefValidation/getAttributeValue
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/getContainingElementName
@@ -208,6 +214,7 @@ relationships:
 
 - [readMapsResource](../../../../../../functions/mcp/src/resources/maps/readMapsResource.md)
 - [extractTitle](../../../../../../functions/mcp/src/tools/ditaResolveReference/extractTitle.md)
+- [toDitaOtIssues](../../../../../../functions/scripts/parity/compare-results/toDitaOtIssues.md)
 - [fixMissingDoctype](../../../../../../functions/server/src/features/codeActions/fixMissingDoctype.md)
 - [fixMissingId](../../../../../../functions/server/src/features/codeActions/fixMissingId.md)
 - [fixMissingTitle](../../../../../../functions/server/src/features/codeActions/fixMissingTitle.md)
@@ -229,6 +236,7 @@ relationships:
 - [buildMapNode](../../../../../../functions/server/src/features/contextGraph/buildMapNode.md)
 - [validateCrossReferences](../../../../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
 - [getScopeValue](../../../../../../functions/server/src/features/crossRefValidation/getScopeValue.md)
+- [getAttributeValue](../../../../../../functions/server/src/features/crossRefValidation/getAttributeValue.md)
 - [getContainingElementName](../../../../../../functions/server/src/features/crossRefValidation/getContainingElementName.md)
 - [findTargetElementName](../../../../../../functions/server/src/features/crossRefValidation/findTargetElementName.md)
 - [findTargetElementByIdOnly](../../../../../../functions/server/src/features/crossRefValidation/findTargetElementByIdOnly.md)
