@@ -254,4 +254,70 @@ suite('detectCircularReferences', () => {
             fs.rmSync(tmpDir, { recursive: true, force: true });
         }
     });
+
+    test('same-file file-qualified conref to another topic does not report a cycle', async () => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+        const parametersFile = path.join(tmpDir, 'parameters.dita');
+        const settingsFile = path.join(tmpDir, 'settings.dita');
+
+        fs.writeFileSync(parametersFile, `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="parameters">
+  <title>Parameters</title>
+  <refbody><section><p>Intro</p></section></refbody>
+  <reference id="base">
+    <title>Base</title>
+    <refbody><section><div id="copycss-details"><p>Text</p></div></section></refbody>
+  </reference>
+  <reference id="html5">
+    <title>HTML5</title>
+    <refbody><section><div conref="parameters.dita#base/copycss-details"/></section></refbody>
+  </reference>
+</reference>`);
+
+        fs.writeFileSync(settingsFile, `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="settings">
+  <title>Settings</title>
+  <conbody>
+    <div conref="parameters.dita#base/copycss-details"/>
+  </conbody>
+</concept>`);
+
+        const parametersUri = URI.file(parametersFile).toString();
+        const settingsUri = URI.file(settingsFile).toString();
+        const parametersText = fs.readFileSync(parametersFile, 'utf-8');
+        const settingsText = fs.readFileSync(settingsFile, 'utf-8');
+
+        try {
+            const parametersDiags = await detectCircularReferences(parametersText, parametersUri, [tmpDir]);
+            const settingsDiags = await detectCircularReferences(settingsText, settingsUri, [tmpDir]);
+            const parametersCycleDiags = parametersDiags.filter(d => d.code === CYCLE_CODES.CIRCULAR_REF);
+            const settingsCycleDiags = settingsDiags.filter(d => d.code === CYCLE_CODES.CIRCULAR_REF);
+            assert.strictEqual(parametersCycleDiags.length, 0);
+            assert.strictEqual(settingsCycleDiags.length, 0);
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
+
+    test('cross-file conref cycle still reports CIRCULAR_REF diagnostic', async () => {
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+        const fileA = path.join(tmpDir, 'A.dita');
+        const fileB = path.join(tmpDir, 'B.dita');
+
+        fs.writeFileSync(fileA, '<concept id="a"><title>A</title><conbody><p conref="B.dita#b/pb"/></conbody></concept>');
+        fs.writeFileSync(fileB, '<concept id="b"><title>B</title><conbody><p id="pb" conref="A.dita#a/pa"/></conbody></concept>');
+
+        const textA = fs.readFileSync(fileA, 'utf-8');
+        const uriA = URI.file(fileA).toString();
+
+        try {
+            const diags = await detectCircularReferences(textA, uriA, [tmpDir]);
+            const cycleDiags = diags.filter(d => d.code === CYCLE_CODES.CIRCULAR_REF);
+            assert.strictEqual(cycleDiags.length, 1);
+        } finally {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+        }
+    });
 });

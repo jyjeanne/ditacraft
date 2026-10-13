@@ -50,7 +50,7 @@ export async function detectCircularReferences(
     const currentDir = path.dirname(filePath);
     const diagnostics: Diagnostic[] = [];
 
-    const refs = extractFileReferences(text, currentDir, workspaceFolders);
+    const refs = extractFileReferences(text, currentDir, filePath, workspaceFolders);
     const normalizedSelf = normalizePath(filePath);
 
     // Cache file contents to avoid re-reading the same file from multiple DFS paths
@@ -91,11 +91,13 @@ interface FileRef {
     range: { start: { line: number; character: number }; end: { line: number; character: number } };
 }
 
+type ReferenceKind = 'structural' | 'conref';
+
 /** Extract structural file references from text, resolving paths relative to baseDir.
  *  Only follows topicref/mapref/chapter/etc. href (not keydef, xref, link, coderef)
  *  and conref attributes on any element. */
 function extractFileReferences(
-    text: string, baseDir: string, workspaceFolders: readonly string[]
+    text: string, baseDir: string, sourceFilePath: string, workspaceFolders: readonly string[]
 ): FileRef[] {
     const refs: FileRef[] = [];
     // Strip comments and CDATA to avoid false matches
@@ -106,7 +108,9 @@ function extractFileReferences(
     const structuralRegex = new RegExp(STRUCTURAL_REF_REGEX.source, STRUCTURAL_REF_REGEX.flags);
     while ((match = structuralRegex.exec(cleanText)) !== null) {
         const refValue = match[2];
-        const ref = resolveRef(refValue, baseDir, text, match, workspaceFolders);
+        const ref = resolveRef(
+            refValue, baseDir, sourceFilePath, 'structural', text, match, workspaceFolders
+        );
         if (ref) refs.push(ref);
     }
 
@@ -114,7 +118,9 @@ function extractFileReferences(
     const conrefRegex = new RegExp(CONREF_REGEX.source, CONREF_REGEX.flags);
     while ((match = conrefRegex.exec(cleanText)) !== null) {
         const refValue = match[1];
-        const ref = resolveRef(refValue, baseDir, text, match, workspaceFolders);
+        const ref = resolveRef(
+            refValue, baseDir, sourceFilePath, 'conref', text, match, workspaceFolders
+        );
         if (ref) refs.push(ref);
     }
 
@@ -123,7 +129,12 @@ function extractFileReferences(
 
 /** Resolve a reference value to a FileRef, or null if it should be skipped. */
 function resolveRef(
-    refValue: string, baseDir: string, text: string, match: RegExpExecArray,
+    refValue: string,
+    baseDir: string,
+    sourceFilePath: string,
+    referenceKind: ReferenceKind,
+    text: string,
+    match: RegExpExecArray,
     workspaceFolders: readonly string[]
 ): FileRef | null {
     // Skip external URLs
@@ -134,6 +145,11 @@ function resolveRef(
     const targetPath = path.resolve(baseDir, refValue);
     // Only consider DITA files (not generic .xml)
     if (!isDitaFile(targetPath)) return null;
+    // Same-file conref is a same-document reference and does not form
+    // a file-level cycle by itself.
+    if (referenceKind === 'conref' && normalizePath(targetPath) === normalizePath(sourceFilePath)) {
+        return null;
+    }
     // Never follow a reference that resolves outside the workspace
     if (!isPathWithinWorkspace(targetPath, workspaceFolders)) return null;
 
@@ -191,7 +207,7 @@ async function dfsDetectAnyCycle(
     pathList.push(normalized);
 
     const dir = path.dirname(currentFile);
-    const refs = extractFileReferences(content, dir, workspaceFolders);
+    const refs = extractFileReferences(content, dir, currentFile, workspaceFolders);
 
     for (const ref of refs) {
         const cycle = await dfsDetectAnyCycle(

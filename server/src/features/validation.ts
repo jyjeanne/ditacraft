@@ -734,19 +734,120 @@ const DITA_ROOT_ELEMENTS = new Set([
     ...[...MAP_TYPE_NAMES].map(n => n.toLowerCase()),
 ]);
 
+const DITA_TOPIC_ELEMENTS = new Set([...TOPIC_TYPE_NAMES].map(n => n.toLowerCase()));
+
+interface IdLocation {
+    line: number;
+    character: number;
+    element: string;
+}
+
+interface CollectedIds {
+    globalIds: Map<string, IdLocation[]>;
+    scopedIds: Map<string, Map<string, IdLocation[]>>;
+}
+
 /**
- * Find the enclosing element name for an attribute match position.
- * Scans backward from the match to find the opening `<tagName`.
+ * Collect @id attributes while tracking nearest enclosing topic scope.
+ * - Topic/map element IDs stay global (XML ID semantics).
+ * - Non-root IDs are scoped to nearest enclosing topic.
  */
-function getEnclosingElement(text: string, matchIndex: number): string {
-    for (let i = matchIndex - 1; i >= 0; i--) {
-        if (text[i] === '<') {
-            const after = text.substring(i + 1, matchIndex);
-            const tagMatch = after.match(/^([\w][\w.-]*)/);
-            return tagMatch ? tagMatch[1].toLowerCase() : '';
+function collectScopedIds(text: string): CollectedIds {
+    const globalIds = new Map<string, IdLocation[]>();
+    const scopedIds = new Map<string, Map<string, IdLocation[]>>();
+    const topicScopeStack: string[] = [];
+    let topicScopeCounter = 0;
+
+    const idPattern = /\bid=(["'])([^"']*)\1/g;
+    let i = 0;
+    while (i < text.length) {
+        const lt = text.indexOf('<', i);
+        if (lt === -1) break;
+        if (lt + 1 >= text.length) break;
+
+        const nextChar = text[lt + 1];
+        if (nextChar === '!' || nextChar === '?') {
+            const specialTagEnd = findTagEnd(text, lt + 2);
+            i = specialTagEnd === -1 ? text.length : specialTagEnd + 1;
+            continue;
         }
+
+        const isClosingTag = nextChar === '/';
+        const nameStart = isClosingTag ? lt + 2 : lt + 1;
+        const nameMatch = text.slice(nameStart).match(/^([\w][\w.-]*)/);
+        if (!nameMatch) {
+            i = lt + 1;
+            continue;
+        }
+
+        const element = nameMatch[1].toLowerCase();
+        const tagEnd = findTagEnd(text, nameStart + nameMatch[1].length);
+        if (tagEnd === -1) break;
+
+        const fullTag = text.slice(lt, tagEnd + 1);
+        const isSelfClosingTag = !isClosingTag && /\/\s*>$/.test(fullTag);
+        const isTopicElement = DITA_TOPIC_ELEMENTS.has(element);
+        const isRootElement = DITA_ROOT_ELEMENTS.has(element);
+
+        if (isClosingTag) {
+            if (isTopicElement && topicScopeStack.length > 0) {
+                topicScopeStack.pop();
+            }
+            i = tagEnd + 1;
+            continue;
+        }
+
+        if (isTopicElement) {
+            topicScopeStack.push(`topic-scope-${topicScopeCounter++}`);
+        }
+
+        let idMatch: RegExpExecArray | null;
+        idPattern.lastIndex = 0;
+        while ((idMatch = idPattern.exec(fullTag)) !== null) {
+            const idValue = idMatch[2];
+            const idIndex = lt + idMatch.index;
+            const pos = offsetToPosition(text, idIndex);
+            const location: IdLocation = { ...pos, element };
+
+            if (isRootElement) {
+                const locations = globalIds.get(idValue) || [];
+                locations.push(location);
+                globalIds.set(idValue, locations);
+            } else {
+                const scopeKey = topicScopeStack[topicScopeStack.length - 1] ?? '__document__';
+                const byId = scopedIds.get(scopeKey) || new Map<string, IdLocation[]>();
+                const locations = byId.get(idValue) || [];
+                locations.push(location);
+                byId.set(idValue, locations);
+                scopedIds.set(scopeKey, byId);
+            }
+        }
+
+        if (isTopicElement && isSelfClosingTag) {
+            topicScopeStack.pop();
+        }
+
+        i = tagEnd + 1;
     }
-    return '';
+
+    return { globalIds, scopedIds };
+}
+
+function findTagEnd(text: string, start: number): number {
+    let quote: '"' | '\'' | null = null;
+    for (let i = start; i < text.length; i++) {
+        const ch = text[i];
+        if (quote !== null) {
+            if (ch === quote) quote = null;
+            continue;
+        }
+        if (ch === '"' || ch === '\'') {
+            quote = ch;
+            continue;
+        }
+        if (ch === '>') return i;
+    }
+    return -1;
 }
 
 /**
@@ -759,24 +860,19 @@ function validateIDs(
 ): void {
     // Use cleaned text to avoid matching IDs inside comments/CDATA
     const cleanText = stripCommentsAndCodeContent(text);
-    const idPattern = /\bid=(["'])([^"']*)\1/g;
-    const idLocations = new Map<
-        string,
-        { line: number; character: number; index: number; element: string }[]
-    >();
+    const { globalIds, scopedIds } = collectScopedIds(cleanText);
+    const allIdGroups: Array<{ idValue: string; locations: IdLocation[] }> = [];
 
-    let match;
-    while ((match = idPattern.exec(cleanText)) !== null) {
-        const idValue = match[2];
-        // Use original text for line/col since we preserved line structure
-        const pos = offsetToPosition(text, match.index);
-        const element = getEnclosingElement(cleanText, match.index);
-        const locations = idLocations.get(idValue) || [];
-        locations.push({ ...pos, index: match.index, element });
-        idLocations.set(idValue, locations);
+    for (const [idValue, locations] of globalIds) {
+        allIdGroups.push({ idValue, locations });
+    }
+    for (const byId of scopedIds.values()) {
+        for (const [idValue, locations] of byId) {
+            allIdGroups.push({ idValue, locations });
+        }
     }
 
-    for (const [idValue, locations] of idLocations) {
+    for (const { idValue, locations } of allIdGroups) {
         // id="value" or id='value' is 4 + value.length chars (id=" + value + ")
         const idAttrLen = 4 + idValue.length + 1;
 
@@ -864,4 +960,3 @@ function createRange(line: number, col: number, length?: number): Range {
     // Use a generous width so the squiggly underline is clearly visible.
     return Range.create(line, col, line, col + 1000);
 }
-

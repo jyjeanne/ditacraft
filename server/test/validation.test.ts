@@ -275,6 +275,30 @@ suite('validateDITADocument', () => {
             assert.ok(dupDiags.length >= 2);
         });
 
+        test('same element id reused in sibling nested topics does not produce duplicate error', () => {
+            const diags = validate(
+                '<reference id="parameters"><title>Parameters</title>'
+                + '<reference id="base"><title>Base</title><refbody><section><plentry id="args.copycss"><pt>A</pt></plentry></section></refbody></reference>'
+                + '<reference id="html5"><title>HTML5</title><refbody><section><plentry id="args.copycss"><pt>B</pt></plentry></section></refbody></reference>'
+                + '</reference>'
+            );
+            const dupDiags = diags.filter(d => d.code === 'DITA-ID-001');
+            assert.strictEqual(dupDiags.length, 0);
+        });
+
+        test('duplicate IDs inside the same nested topic still produce errors', () => {
+            const diags = validate(
+                '<reference id="parameters"><title>Parameters</title>'
+                + '<reference id="base"><title>Base</title><refbody><section>'
+                + '<plentry id="args.copycss"><pt>A</pt></plentry>'
+                + '<plentry id="args.copycss"><pt>B</pt></plentry>'
+                + '</section></refbody></reference>'
+                + '</reference>'
+            );
+            const dupDiags = diags.filter(d => d.code === 'DITA-ID-001');
+            assert.ok(dupDiags.length >= 2);
+        });
+
         test('unique IDs produce no duplicate error', () => {
             const diags = validate(
                 '<topic id="t1"><title>T</title><p id="p1"/><p id="p2"/></topic>'
@@ -321,6 +345,14 @@ suite('validateDITADocument', () => {
             );
             const dupDiags = diags.filter(d => d.code === 'DITA-ID-001');
             assert.strictEqual(dupDiags.length, 0);
+        });
+
+        test('duplicate IDs are detected when another attribute contains ">" in quotes', () => {
+            const diags = validate(
+                '<topic id="t1"><title>T</title><p outputclass="a>b" id="dup"/><p id="dup"/></topic>'
+            );
+            const dupDiags = diags.filter(d => d.code === 'DITA-ID-001');
+            assert.ok(dupDiags.length >= 2);
         });
 
         test('id inside codeblock text content is not a real ID', () => {
