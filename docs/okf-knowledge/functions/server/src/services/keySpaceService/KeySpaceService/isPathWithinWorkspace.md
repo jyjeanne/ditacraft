@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: isPathWithinWorkspace
-resource: server/src/services/keySpaceService.ts#L1637-L1639
+resource: server/src/services/keySpaceService.ts#L1799-L1801
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

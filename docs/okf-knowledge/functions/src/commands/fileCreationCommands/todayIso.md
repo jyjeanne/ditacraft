@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: todayIso
-resource: src/commands/fileCreationCommands.ts#L83-L85
+resource: src/commands/fileCreationCommands.ts#L89-L92
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/fileCreationCommands/resolveTemplatedOrGeneratedContent
@@ -22,7 +22,7 @@ relationships:
 
 # Signature
 
-`function todayIso(): string`
+`function todayIso(now: Date = new Date()): string`
 
 # Called by
 

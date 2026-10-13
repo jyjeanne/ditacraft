@@ -3,7 +3,7 @@ type: TypeScript Module
 title: lsp-smoke-test
 resource: mcp/test/lsp-smoke-test.ts#L1-L66
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/child-process

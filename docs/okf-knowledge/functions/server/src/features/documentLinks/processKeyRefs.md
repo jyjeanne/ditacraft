@@ -3,7 +3,7 @@ type: TypeScript Function
 title: processKeyRefs
 resource: server/src/features/documentLinks.ts#L218-L251
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/documentLinks/isInsideComment

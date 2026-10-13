@@ -3,7 +3,7 @@ type: TypeScript Module
 title: batchMetadata
 resource: server/src/features/batchMetadata.ts#L1-L268
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/fs-promises

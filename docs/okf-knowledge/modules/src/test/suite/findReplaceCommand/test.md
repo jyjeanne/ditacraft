@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: src/test/suite/findReplaceCommand.test.ts#L1-L142
+resource: src/test/suite/findReplaceCommand.test.ts#L1-L185
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -13,6 +13,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/commands-findreplacecommand
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/sinon
     resolved_by: tree-sitter
     confidence: exact
   member_of:
@@ -26,6 +29,7 @@ relationships:
 - `assert`
 - `vscode`
 - `../../commands/findReplaceCommand`
+- `sinon`
 
 # Member of
 

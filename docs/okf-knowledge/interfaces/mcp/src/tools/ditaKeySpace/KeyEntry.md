@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: KeyEntry
 resource: mcp/src/tools/ditaKeySpace.ts#L15-L23
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

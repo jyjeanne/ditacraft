@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: diagnosticSeverity
-resource: mcp/src/tools/ditaValidate.ts#L131-L139
+resource: mcp/src/tools/ditaValidate.ts#L132-L140
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/mcp/src/tools/ditaValidate/handleDitaValidate

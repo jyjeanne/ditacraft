@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: InlineConrefResponse
 resource: src/commands/inlineConrefCommand.ts#L34-L37
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

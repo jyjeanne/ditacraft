@@ -3,7 +3,7 @@ type: TypeScript Function
 title: hover
 resource: server/test/hover.test.ts#L10-L20
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDoc

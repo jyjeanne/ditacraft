@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: SubjectSchemeQueries
 resource: server/src/services/subjectSchemeService.ts#L33-L39
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

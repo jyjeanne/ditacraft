@@ -1,12 +1,18 @@
 ---
 type: TypeScript Method
 title: extractKeyDefinitionsRegex
-resource: server/src/services/keySpaceService.ts#L1213-L1306
+resource: server/src/services/keySpaceService.ts#L1355-L1450
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/computeLineNumber
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/services/keySpaceService/isWebAddress
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/services/keySpaceService/KeySpaceService/extractKeyMetadata
@@ -25,6 +31,8 @@ relationships:
 # Calls
 
 - [computeLineNumber](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/computeLineNumber.md)
+- [match](../../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
+- [isWebAddress](../../../../../../functions/server/src/services/keySpaceService/isWebAddress.md)
 - [extractKeyMetadata](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/extractKeyMetadata.md)
 
 # Called by

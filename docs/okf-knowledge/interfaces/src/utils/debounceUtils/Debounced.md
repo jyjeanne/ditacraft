@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: Debounced
 resource: src/utils/debounceUtils.ts#L109-L130
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleDocumentLinks
 resource: server/src/features/documentLinks.ts#L28-L66
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/textUtils/uriToPath
     resolved_by: tree-sitter
     confidence: exact
@@ -35,7 +32,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [uriToPath](../../../../../functions/server/src/utils/textUtils/uriToPath.md)
 - [effectiveWorkspaceFolders](../../../../../functions/server/src/utils/textUtils/effectiveWorkspaceFolders.md)
 - [getWorkspaceFolders](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/getWorkspaceFolders.md)

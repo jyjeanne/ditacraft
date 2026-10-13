@@ -1,18 +1,15 @@
 ---
 type: TypeScript Method
 title: publish
-resource: src/utils/ditaOtWrapper.ts#L423-L703
+resource: src/utils/ditaOtWrapper.ts#L430-L710
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/normalizeFilePath
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/info
+  - target: functions/server/src/features/moveTopic/isDirectory
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/ditaOtOutputChannel/getDitaOtOutputChannel
@@ -54,9 +51,8 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
 - [normalizeFilePath](../../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/normalizeFilePath.md)
-- [info](../../../../../functions/src/utils/logger/Logger/info.md)
+- [isDirectory](../../../../../functions/server/src/features/moveTopic/isDirectory.md)
 - [getDitaOtOutputChannel](../../../../../functions/src/utils/ditaOtOutputChannel/getDitaOtOutputChannel.md)
 - [logBuildStart](../../../../../functions/src/utils/ditaOtOutputChannel/DitaOtOutputChannel/logBuildStart.md)
 - [getProcessTimeoutMs](../../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/getProcessTimeoutMs.md)

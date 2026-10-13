@@ -3,7 +3,7 @@ type: TypeScript Method
 title: restructureMap
 resource: src/llm/aiServiceOrchestrator.ts#L121-L176
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/buildSnapshot

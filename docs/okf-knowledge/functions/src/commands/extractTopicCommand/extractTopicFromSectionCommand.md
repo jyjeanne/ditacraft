@@ -3,7 +3,7 @@ type: TypeScript Function
 title: extractTopicFromSectionCommand
 resource: src/commands/extractTopicCommand.ts#L32-L144
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/sectionExtractor/findEnclosingSection
@@ -18,7 +18,7 @@ relationships:
   - target: functions/src/commands/extractTopicCommand/buildExtractedTopicContent
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/info
+  - target: functions/src/test/shared/editor/test/edit
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -37,7 +37,7 @@ relationships:
 - [detectNewTopicType](../../../../functions/src/commands/extractTopicCommand/detectNewTopicType.md)
 - [slugify](../../../../functions/src/commands/extractTopicCommand/slugify.md)
 - [buildExtractedTopicContent](../../../../functions/src/commands/extractTopicCommand/buildExtractedTopicContent.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
+- [edit](../../../../functions/src/test/shared/editor/test/edit.md)
 
 # Called by
 

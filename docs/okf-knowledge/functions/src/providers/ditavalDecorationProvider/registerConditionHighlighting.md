@@ -1,15 +1,18 @@
 ---
 type: TypeScript Function
 title: registerConditionHighlighting
-resource: src/providers/ditavalDecorationProvider.ts#L147-L182
+resource: src/providers/ditavalDecorationProvider.ts#L211-L248
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/ditavalDecorationProvider/scheduleRecompute
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/configurationManager/ConfigurationManager/onConfigurationChange
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/providers/ditavalDecorationProvider/disposeFlagDecorationTypes
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -26,6 +29,7 @@ relationships:
 
 - [scheduleRecompute](../../../../functions/src/providers/ditavalDecorationProvider/scheduleRecompute.md)
 - [onConfigurationChange](../../../../functions/src/utils/configurationManager/ConfigurationManager/onConfigurationChange.md)
+- [disposeFlagDecorationTypes](../../../../functions/src/providers/ditavalDecorationProvider/disposeFlagDecorationTypes.md)
 
 # Called by
 

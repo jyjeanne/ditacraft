@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: crossRefValidation
-resource: server/src/features/crossRefValidation.ts#L1-L472
+resource: server/src/features/crossRefValidation.ts#L1-L497
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node
@@ -39,6 +39,7 @@ relationships:
 # Contains
 
 - [validateCrossReferences](../../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
+- [isInStartTag](../../../../functions/server/src/features/crossRefValidation/isInStartTag.md)
 - [getScopeValue](../../../../functions/server/src/features/crossRefValidation/getScopeValue.md)
 - [isExternalScope](../../../../functions/server/src/features/crossRefValidation/isExternalScope.md)
 - [validateFragment](../../../../functions/server/src/features/crossRefValidation/validateFragment.md)

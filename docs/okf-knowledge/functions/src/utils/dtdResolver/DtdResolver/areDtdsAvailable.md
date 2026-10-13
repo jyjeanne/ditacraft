@@ -3,7 +3,7 @@ type: TypeScript Method
 title: areDtdsAvailable
 resource: src/utils/dtdResolver.ts#L139-L141
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

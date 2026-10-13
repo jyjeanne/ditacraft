@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: safeExecuteAiQuickFix
-resource: src/providers/aiQuickFixProvider.ts#L165-L173
+resource: src/providers/aiQuickFixProvider.ts#L182-L190
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/aiQuickFixProvider/executeAiQuickFix

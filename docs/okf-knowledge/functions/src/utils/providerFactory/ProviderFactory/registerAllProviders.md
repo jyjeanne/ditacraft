@@ -3,7 +3,7 @@ type: TypeScript Method
 title: registerAllProviders
 resource: src/utils/providerFactory.ts#L111-L121
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/providerFactory/ProviderFactory/getLinkProvider

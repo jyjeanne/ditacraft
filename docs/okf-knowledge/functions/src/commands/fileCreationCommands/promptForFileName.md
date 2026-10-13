@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: promptForFileName
-resource: src/commands/fileCreationCommands.ts#L145-L151
+resource: src/commands/fileCreationCommands.ts#L152-L158
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/fileCreationCommands/newTopicCommand

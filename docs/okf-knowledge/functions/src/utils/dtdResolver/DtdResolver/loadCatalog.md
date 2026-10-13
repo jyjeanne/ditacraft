@@ -3,7 +3,7 @@ type: TypeScript Method
 title: loadCatalog
 resource: src/utils/dtdResolver.ts#L23-L58
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/dtdResolver/DtdResolver/constructor

@@ -4,7 +4,7 @@ title: _renderTreeNode
 resource: src/providers/mapVisualizerPanel.ts#L393-L423
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/mapVisualizerPanel/MapVisualizerPanel/_getHtmlContent

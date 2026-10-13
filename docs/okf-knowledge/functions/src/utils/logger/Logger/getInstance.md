@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getInstance
 resource: src/utils/logger.ts#L101-L106
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

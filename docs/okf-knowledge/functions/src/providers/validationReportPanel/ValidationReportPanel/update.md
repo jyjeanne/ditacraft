@@ -3,7 +3,7 @@ type: TypeScript Method
 title: update
 resource: src/providers/validationReportPanel.ts#L113-L117
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/validationReportPanel/ValidationReportPanel/_getHtmlForWebview

@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getChildren
 resource: src/providers/keySpaceViewProvider.ts#L111-L128
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/keySpaceViewProvider/KeySpaceViewProvider/_buildTree

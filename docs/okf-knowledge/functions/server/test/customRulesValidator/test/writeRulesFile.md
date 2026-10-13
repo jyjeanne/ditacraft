@@ -3,7 +3,7 @@ type: TypeScript Function
 title: writeRulesFile
 resource: server/test/customRulesValidator.test.ts#L20-L24
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

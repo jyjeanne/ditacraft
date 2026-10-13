@@ -3,7 +3,7 @@ type: TypeScript Function
 title: buildExtractedTopicContent
 resource: src/commands/extractTopicCommand.ts#L192-L202
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/extractTopicCommand/extractTopicFromSectionCommand

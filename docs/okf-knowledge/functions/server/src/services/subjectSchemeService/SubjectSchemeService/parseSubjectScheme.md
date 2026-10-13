@@ -3,13 +3,13 @@ type: TypeScript Method
 title: parseSubjectScheme
 resource: server/src/services/subjectSchemeService.ts#L122-L159
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/extractSubjectDefinitions
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/extractSubjectDefinitions
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/buildHierarchyPaths
@@ -30,8 +30,8 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [extractSubjectDefinitions](../../../../../../functions/server/src/services/subjectSchemeService/SubjectSchemeService/extractSubjectDefinitions.md)
+- [has](../../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [buildHierarchyPaths](../../../../../../functions/server/src/services/subjectSchemeService/SubjectSchemeService/buildHierarchyPaths.md)
 - [processEnumerationDefs](../../../../../../functions/server/src/services/subjectSchemeService/SubjectSchemeService/processEnumerationDefs.md)
 

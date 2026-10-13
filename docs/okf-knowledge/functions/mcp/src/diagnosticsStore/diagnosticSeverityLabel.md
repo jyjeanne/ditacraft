@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: diagnosticSeverityLabel
-resource: mcp/src/diagnosticsStore.ts#L75-L84
+resource: mcp/src/diagnosticsStore.ts#L76-L85
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/mcp/src/diagnosticsStore/DiagnosticsStore/query

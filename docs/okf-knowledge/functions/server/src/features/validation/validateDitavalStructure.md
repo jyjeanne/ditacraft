@@ -1,15 +1,18 @@
 ---
 type: TypeScript Function
 title: validateDitavalStructure
-resource: server/src/features/validation.ts#L460-L575
+resource: server/src/features/validation.ts#L554-L669
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/validation/createRange
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/i18n/t
+  - target: functions/src/shared/render/toHtml/Renderer/has
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -25,7 +28,8 @@ relationships:
 # Calls
 
 - [createRange](../../../../../functions/server/src/features/validation/createRange.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 
 # Called by
 

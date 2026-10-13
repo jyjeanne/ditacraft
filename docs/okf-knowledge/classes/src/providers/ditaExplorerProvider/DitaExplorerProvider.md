@@ -3,7 +3,7 @@ type: TypeScript Class
 title: DitaExplorerProvider
 resource: src/providers/ditaExplorerProvider.ts#L95-L168
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

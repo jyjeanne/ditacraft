@@ -3,7 +3,7 @@ type: TypeScript Function
 title: applyConditionToggle
 resource: src/utils/ditavalConditionState.ts#L126-L137
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/ditavalConditionEditorPanel/DitavalConditionEditorPanel/_toggleCondition

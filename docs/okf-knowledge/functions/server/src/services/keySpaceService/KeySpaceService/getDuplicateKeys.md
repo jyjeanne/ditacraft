@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: getDuplicateKeys
-resource: server/src/services/keySpaceService.ts#L490-L500
+resource: server/src/services/keySpaceService.ts#L552-L562
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/crossRefValidation/validateCrossReferences

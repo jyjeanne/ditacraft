@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleDitaMapStructure
 resource: mcp/src/tools/ditaMapStructure.ts#L13-L41
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/mcp/src/workspace/resolvePath
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/features/contextGraph/handleGetContextGraph
     resolved_by: tree-sitter
     confidence: exact
@@ -26,7 +23,6 @@ relationships:
 
 # Calls
 
-- [resolvePath](../../../../../functions/mcp/src/workspace/resolvePath.md)
 - [handleGetContextGraph](../../../../../functions/server/src/features/contextGraph/handleGetContextGraph.md)
 - [formatAsTree](../../../../../functions/mcp/src/tools/ditaMapStructure/formatAsTree.md)
 - [formatAsCsv](../../../../../functions/mcp/src/tools/ditaMapStructure/formatAsCsv.md)

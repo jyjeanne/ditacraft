@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: publishProfilesCommand
-resource: src/commands/publishProfilesCommand.ts#L1-L314
+resource: src/commands/publishProfilesCommand.ts#L1-L356
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -21,6 +21,9 @@ relationships:
   - target: external/utils-pathutils
     resolved_by: tree-sitter
     confidence: exact
+  - target: external/utils-movedpaths
+    resolved_by: tree-sitter
+    confidence: exact
   member_of:
   - target: packages/ditacraft
     resolved_by: tree-sitter
@@ -32,6 +35,7 @@ relationships:
 - [PublishingProfile](../../../interfaces/src/commands/publishProfilesCommand/PublishingProfile.md)
 - [getPublishingProfiles](../../../functions/src/commands/publishProfilesCommand/getPublishingProfiles.md)
 - [savePublishingProfiles](../../../functions/src/commands/publishProfilesCommand/savePublishingProfiles.md)
+- [followDitavalMoves](../../../functions/src/commands/publishProfilesCommand/followDitavalMoves.md)
 - [getLastUsedProfileName](../../../functions/src/commands/publishProfilesCommand/getLastUsedProfileName.md)
 - [rememberLastUsedProfile](../../../functions/src/commands/publishProfilesCommand/rememberLastUsedProfile.md)
 - [resolveDitavalPath](../../../functions/src/commands/publishProfilesCommand/resolveDitavalPath.md)
@@ -50,6 +54,7 @@ relationships:
 - `../utils/ditaOtWrapper`
 - `../utils/logger`
 - `../utils/pathUtils`
+- `../utils/movedPaths`
 
 # Member of
 

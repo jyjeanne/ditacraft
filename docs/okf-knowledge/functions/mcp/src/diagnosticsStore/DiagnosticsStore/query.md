@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: query
-resource: mcp/src/diagnosticsStore.ts#L24-L58
+resource: mcp/src/diagnosticsStore.ts#L24-L59
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/mcp/src/diagnosticsStore/matchGlob

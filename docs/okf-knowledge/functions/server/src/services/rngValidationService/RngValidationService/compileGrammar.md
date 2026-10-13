@@ -3,10 +3,10 @@ type: TypeScript Method
 title: compileGrammar
 resource: server/src/services/rngValidationService.ts#L229-L259
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
-  called_by:
-  - target: functions/server/src/services/rngValidationService/RngValidationService/getGrammar
+  calls:
+  - target: functions/webview/editor/readFile
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -15,6 +15,6 @@ relationships:
 
 `private async compileGrammar(schemaPath: string): Promise<SalveGrammar | null>`
 
-# Called by
+# Calls
 
-- [getGrammar](../../../../../../functions/server/src/services/rngValidationService/RngValidationService/getGrammar.md)
+- [readFile](../../../../../../functions/webview/editor/readFile.md)

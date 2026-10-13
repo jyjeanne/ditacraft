@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: LspWorkspaceEdit
-resource: src/extension.ts#L556-L558
+resource: src/extension.ts#L562-L564
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,11 +1,17 @@
 ---
 type: TypeScript Function
 title: executeAiQuickFix
-resource: src/providers/aiQuickFixProvider.ts#L70-L130
+resource: src/providers/aiQuickFixProvider.ts#L81-L146
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/llm/aiEnabled/isAiEnabled
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/llm/aiEnabled/showAiDisabledMessage
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/fixFragment
     resolved_by: tree-sitter
     confidence: exact
@@ -21,6 +27,8 @@ relationships:
 
 # Calls
 
+- [isAiEnabled](../../../../functions/src/llm/aiEnabled/isAiEnabled.md)
+- [showAiDisabledMessage](../../../../functions/src/llm/aiEnabled/showAiDisabledMessage.md)
 - [fixFragment](../../../../functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/fixFragment.md)
 
 # Called by

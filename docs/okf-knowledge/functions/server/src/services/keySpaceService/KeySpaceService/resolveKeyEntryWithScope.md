@@ -1,14 +1,11 @@
 ---
 type: TypeScript Method
 title: resolveKeyEntryWithScope
-resource: server/src/services/keySpaceService.ts#L276-L334
+resource: server/src/services/keySpaceService.ts#L338-L396
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/textUtils/normalizeFsPath
     resolved_by: tree-sitter
     confidence: exact
@@ -27,7 +24,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [normalizeFsPath](../../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
 
 # Called by

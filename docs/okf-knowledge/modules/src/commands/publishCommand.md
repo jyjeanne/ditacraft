@@ -3,7 +3,7 @@ type: TypeScript Module
 title: publishCommand
 resource: src/commands/publishCommand.ts#L1-L323
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

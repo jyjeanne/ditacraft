@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: ConrefElement
-resource: server/src/features/inlineConref.ts#L52-L55
+resource: server/src/features/inlineConref.ts#L62-L65
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

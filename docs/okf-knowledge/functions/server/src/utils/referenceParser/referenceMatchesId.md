@@ -1,14 +1,11 @@
 ---
 type: TypeScript Function
 title: referenceMatchesId
-resource: server/src/utils/referenceParser.ts#L389-L410
+resource: server/src/utils/referenceParser.ts#L434-L452
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/server/src/utils/referenceParser/parseReference
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/referenceParser/getTargetId
     resolved_by: tree-sitter
     confidence: exact
@@ -20,11 +17,10 @@ relationships:
 
 # Signature
 
-`function referenceMatchesId(attrType: RefAttrName, value: string, targetId: string): boolean`
+`function referenceMatchesId(attrType: RefAttrName, value: string, targetId: string, isTopicId = false): boolean`
 
 # Calls
 
-- [parseReference](../../../../../functions/server/src/utils/referenceParser/parseReference.md)
 - [getTargetId](../../../../../functions/server/src/utils/referenceParser/getTargetId.md)
 
 # Called by

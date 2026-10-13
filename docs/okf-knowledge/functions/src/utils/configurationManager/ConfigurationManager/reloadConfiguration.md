@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: reloadConfiguration
-resource: src/utils/configurationManager.ts#L320-L323
+resource: src/utils/configurationManager.ts#L362-L365
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/createConfigSnapshot

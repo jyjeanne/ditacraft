@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: collectMatchingKeyEdits
-resource: server/src/features/rename.ts#L439-L465
+resource: server/src/features/rename.ts#L667-L693
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/rename/buildEditsForVerifiedRefs

@@ -1,15 +1,12 @@
 ---
 type: TypeScript Function
 title: validateMapStructure
-resource: server/src/features/validation.ts#L380-L419
+resource: server/src/features/validation.ts#L474-L513
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/validation/createRange
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/utils/i18n/t
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/validation/validateBookmapStructure
@@ -31,7 +28,6 @@ relationships:
 # Calls
 
 - [createRange](../../../../../functions/server/src/features/validation/createRange.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
 - [validateBookmapStructure](../../../../../functions/server/src/features/validation/validateBookmapStructure.md)
 - [checkTopicrefsWithoutHref](../../../../../functions/server/src/features/validation/checkTopicrefsWithoutHref.md)
 

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: advance
 resource: server/src/utils/xmlTokenizer.ts#L74-L93
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/utils/xmlTokenizer/scanName

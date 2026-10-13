@@ -3,9 +3,15 @@ type: TypeScript Function
 title: parseMapHierarchy
 resource: src/utils/mapHierarchyParser.ts#L134-L154
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/shared/render/toHtml/basename
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/webview/editor/readFile
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/utils/mapHierarchyParser/detectMapType
     resolved_by: tree-sitter
     confidence: exact
@@ -27,6 +33,8 @@ relationships:
 
 # Calls
 
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
+- [readFile](../../../../functions/webview/editor/readFile.md)
 - [detectMapType](../../../../functions/src/utils/mapHierarchyParser/detectMapType.md)
 - [parseReferences](../../../../functions/src/utils/mapHierarchyParser/parseReferences.md)
 

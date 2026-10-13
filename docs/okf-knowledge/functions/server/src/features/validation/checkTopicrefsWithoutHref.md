@@ -1,15 +1,12 @@
 ---
 type: TypeScript Function
 title: checkTopicrefsWithoutHref
-resource: server/src/features/validation.ts#L581-L604
+resource: server/src/features/validation.ts#L675-L698
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/validation/createRange
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/utils/i18n/t
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -28,7 +25,6 @@ relationships:
 # Calls
 
 - [createRange](../../../../../functions/server/src/features/validation/createRange.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
 
 # Called by
 

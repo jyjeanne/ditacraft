@@ -3,7 +3,7 @@ type: TypeScript Function
 title: tokenize
 resource: server/src/features/formatting.ts#L263-L290
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/formatting/formatXML

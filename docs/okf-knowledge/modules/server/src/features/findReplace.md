@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: findReplace
-resource: server/src/features/findReplace.ts#L1-L182
+resource: server/src/features/findReplace.ts#L1-L283
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/fs-promises
@@ -42,6 +42,8 @@ relationships:
 - [FindReplaceResult](../../../../interfaces/server/src/features/findReplace/FindReplaceResult.md)
 - [buildSearchPattern](../../../../functions/server/src/features/findReplace/buildSearchPattern.md)
 - [expandReplacement](../../../../functions/server/src/features/findReplace/expandReplacement.md)
+- [searchableSpans](../../../../functions/server/src/features/findReplace/searchableSpans.md)
+- [cutsReference](../../../../functions/server/src/features/findReplace/cutsReference.md)
 - [handleComputeFindReplaceEdits](../../../../functions/server/src/features/findReplace/handleComputeFindReplaceEdits.md)
 
 # Imports

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: pathExists
 resource: src/utils/pathUtils.ts#L27-L34
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

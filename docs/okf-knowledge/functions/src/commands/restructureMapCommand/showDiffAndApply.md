@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: showDiffAndApply
-resource: src/commands/restructureMapCommand.ts#L103-L154
+resource: src/commands/restructureMapCommand.ts#L109-L160
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/restructureMapCommand/restructureMapCommand

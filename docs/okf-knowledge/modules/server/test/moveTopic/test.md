@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: server/test/moveTopic.test.ts#L1-L218
+resource: server/test/moveTopic.test.ts#L1-L324
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -32,6 +32,10 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
 ---
+
+# Contains
+
+- [moveFiles](../../../../functions/server/test/moveTopic/test/moveFiles.md)
 
 # Imports
 

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: stubWorkspaceOpenElsewhere
 resource: src/test/suite/insertImageCommand.test.ts#L339-L343
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

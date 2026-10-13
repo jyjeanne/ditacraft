@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: handleRestructure
-resource: src/chat/ditacraftParticipant.ts#L81-L128
+resource: src/chat/ditacraftParticipant.ts#L88-L135
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/restructureMap

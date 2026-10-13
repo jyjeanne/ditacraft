@@ -1,12 +1,12 @@
 ---
 type: TypeScript Method
 title: cleanupExpiredRootMapCache
-resource: src/utils/keySpaceResolver.ts#L672-L690
+resource: src/utils/keySpaceResolver.ts#L692-L713
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/preview/grammarRegistry/GrammarRegistry/entries
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -17,4 +17,4 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [entries](../../../../../functions/src/preview/grammarRegistry/GrammarRegistry/entries.md)

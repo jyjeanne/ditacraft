@@ -1,12 +1,12 @@
 ---
 type: TypeScript Method
 title: registerInlineMaprefKeys
-resource: src/utils/keySpaceResolver.ts#L941-L968
+resource: src/utils/keySpaceResolver.ts#L964-L991
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -17,4 +17,4 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)

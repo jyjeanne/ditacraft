@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: keySpaceResolver
-resource: src/utils/keySpaceResolver.ts#L1-L1549
+resource: src/utils/keySpaceResolver.ts#L1-L1684
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -36,6 +36,7 @@ relationships:
 - [KeyMetadata](../../../interfaces/src/utils/keySpaceResolver/KeyMetadata.md)
 - [KeySpace](../../../interfaces/src/utils/keySpaceResolver/KeySpace.md)
 - [CacheConfig](../../../interfaces/src/utils/keySpaceResolver/CacheConfig.md)
+- [ReferencedFiles](../../../interfaces/src/utils/keySpaceResolver/ReferencedFiles.md)
 - [KeySpaceResolver](../../../classes/src/utils/keySpaceResolver/KeySpaceResolver.md)
 - [constructor](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/constructor.md)
 - [setupPeriodicCleanup](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/setupPeriodicCleanup.md)
@@ -65,7 +66,11 @@ relationships:
 - [extractInlineScopeBlocks](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/extractInlineScopeBlocks.md)
 - [processInlineScopeBlocks](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/processInlineScopeBlocks.md)
 - [resolveKey](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/resolveKey.md)
+- [resolveKeyInMap](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/resolveKeyInMap.md)
 - [findRootMap](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/findRootMap.md)
+- [chooseRootMap](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/chooseRootMap.md)
+- [referencedFiles](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/referencedFiles.md)
+- [findRootMapCandidates](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/findRootMapCandidates.md)
 - [fileExistsAsync](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/fileExistsAsync.md)
 - [readFileAsync](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/readFileAsync.md)
 - [getCacheStats](../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/getCacheStats.md)

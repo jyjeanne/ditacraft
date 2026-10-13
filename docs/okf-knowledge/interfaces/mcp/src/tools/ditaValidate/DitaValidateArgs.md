@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: DitaValidateArgs
 resource: mcp/src/tools/ditaValidate.ts#L12-L16
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

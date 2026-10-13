@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleReferences
 resource: server/src/features/references.ts#L26-L88
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/referenceParser/findIdAtOffset
     resolved_by: tree-sitter
     confidence: exact
@@ -38,7 +35,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [findIdAtOffset](../../../../../functions/server/src/utils/referenceParser/findIdAtOffset.md)
 - [findElementByIdOffset](../../../../../functions/server/src/utils/referenceParser/findElementByIdOffset.md)
 - [uriToPath](../../../../../functions/server/src/utils/textUtils/uriToPath.md)

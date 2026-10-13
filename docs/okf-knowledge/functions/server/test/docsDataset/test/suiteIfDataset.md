@@ -3,7 +3,7 @@ type: TypeScript Function
 title: suiteIfDataset
 resource: server/test/docsDataset.test.ts#L105-L115
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

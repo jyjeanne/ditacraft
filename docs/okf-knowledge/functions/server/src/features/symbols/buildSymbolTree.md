@@ -3,10 +3,13 @@ type: TypeScript Function
 title: buildSymbolTree
 resource: server/src/features/symbols.ts#L118-L191
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/tagStack/resyncStackToMatch
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/symbols/extractTextContent
@@ -25,6 +28,7 @@ relationships:
 # Calls
 
 - [resyncStackToMatch](../../../../../functions/server/src/utils/tagStack/resyncStackToMatch.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [extractTextContent](../../../../../functions/server/src/features/symbols/extractTextContent.md)
 
 # Called by

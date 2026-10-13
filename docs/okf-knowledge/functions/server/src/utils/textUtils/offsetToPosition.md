@@ -3,7 +3,7 @@ type: TypeScript Function
 title: offsetToPosition
 resource: server/src/utils/textUtils.ts#L83-L105
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

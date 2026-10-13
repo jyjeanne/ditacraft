@@ -3,7 +3,7 @@ type: TypeScript Method
 title: createElementNavigationLink
 resource: src/providers/ditaLinkProvider.ts#L769-L780
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/processConrefAttributes

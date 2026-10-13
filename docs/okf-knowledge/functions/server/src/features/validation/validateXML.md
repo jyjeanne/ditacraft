@@ -1,12 +1,15 @@
 ---
 type: TypeScript Function
 title: validateXML
-resource: server/src/features/validation.ts#L206-L256
+resource: server/src/features/validation.ts#L300-L350
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/validation/createRange
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -22,6 +25,7 @@ relationships:
 # Calls
 
 - [createRange](../../../../../functions/server/src/features/validation/createRange.md)
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 
 # Called by
 

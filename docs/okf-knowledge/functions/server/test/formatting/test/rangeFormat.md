@@ -3,7 +3,7 @@ type: TypeScript Function
 title: rangeFormat
 resource: server/test/formatting.test.ts#L132-L142
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDocsFromContent

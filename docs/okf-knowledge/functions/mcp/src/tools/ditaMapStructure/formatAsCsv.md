@@ -3,7 +3,7 @@ type: TypeScript Function
 title: formatAsCsv
 resource: mcp/src/tools/ditaMapStructure.ts#L70-L78
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/mcp/src/tools/ditaMapStructure/handleDitaMapStructure

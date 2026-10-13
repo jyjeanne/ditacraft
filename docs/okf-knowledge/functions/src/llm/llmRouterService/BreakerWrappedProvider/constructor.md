@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: constructor
-resource: src/llm/llmRouterService.ts#L27-L32
+resource: src/llm/llmRouterService.ts#L28-L33
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

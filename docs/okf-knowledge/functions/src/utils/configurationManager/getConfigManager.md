@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: getConfigManager
-resource: src/utils/configurationManager.ts#L380-L382
+resource: src/utils/configurationManager.ts#L422-L424
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

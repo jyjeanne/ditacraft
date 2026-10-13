@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: setExplicitRootMap
-resource: server/src/services/keySpaceService.ts#L209-L214
+resource: server/src/services/keySpaceService.ts#L269-L274
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/invalidateAllCaches

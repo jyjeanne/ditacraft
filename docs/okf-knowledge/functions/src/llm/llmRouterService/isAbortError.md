@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isAbortError
-resource: src/llm/llmRouterService.ts#L84-L89
+resource: src/llm/llmRouterService.ts#L92-L97
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/llm/llmRouterService/BreakerWrappedProvider/complete

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: validateCrossReferences
-resource: server/src/features/crossRefValidation.ts#L45-L297
+resource: server/src/features/crossRefValidation.ts#L45-L301
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/uriToPath
@@ -18,16 +18,19 @@ relationships:
   - target: functions/server/src/utils/textUtils/stripCommentsAndCodeContent
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/crossRefValidation/isInStartTag
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/utils/textUtils/offsetToRange
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/getScopeValue
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/i18n/t
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/utils/referenceParser/parseReference
+  - target: functions/webview/editor/readFile
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/getContainingElementName
@@ -39,10 +42,10 @@ relationships:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/getDuplicateKeys
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/server/src/utils/textUtils/normalizeFsPath
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/textUtils/normalizeFsPath
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/utils/textUtils/escapeRegex
@@ -70,15 +73,16 @@ relationships:
 - [effectiveWorkspaceFolders](../../../../../functions/server/src/utils/textUtils/effectiveWorkspaceFolders.md)
 - [getWorkspaceFolders](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/getWorkspaceFolders.md)
 - [stripCommentsAndCodeContent](../../../../../functions/server/src/utils/textUtils/stripCommentsAndCodeContent.md)
+- [isInStartTag](../../../../../functions/server/src/features/crossRefValidation/isInStartTag.md)
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 - [offsetToRange](../../../../../functions/server/src/utils/textUtils/offsetToRange.md)
 - [getScopeValue](../../../../../functions/server/src/features/crossRefValidation/getScopeValue.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
-- [parseReference](../../../../../functions/server/src/utils/referenceParser/parseReference.md)
+- [readFile](../../../../../functions/webview/editor/readFile.md)
 - [getContainingElementName](../../../../../functions/server/src/features/crossRefValidation/getContainingElementName.md)
 - [validateConrefCompatibility](../../../../../functions/server/src/features/crossRefValidation/validateConrefCompatibility.md)
 - [getDuplicateKeys](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/getDuplicateKeys.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [normalizeFsPath](../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 - [escapeRegex](../../../../../functions/server/src/utils/textUtils/escapeRegex.md)
 - [findTargetElementByIdOnly](../../../../../functions/server/src/features/crossRefValidation/findTargetElementByIdOnly.md)
 - [areConrefCompatible](../../../../../functions/server/src/features/crossRefValidation/areConrefCompatible.md)

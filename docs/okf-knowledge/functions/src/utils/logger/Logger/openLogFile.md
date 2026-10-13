@@ -3,7 +3,7 @@ type: TypeScript Method
 title: openLogFile
 resource: src/utils/logger.ts#L213-L232
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/errorUtils/fireAndForget

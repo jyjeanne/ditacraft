@@ -3,7 +3,7 @@ type: TypeScript Function
 title: readMaps
 resource: mcp/test/resources/maps.test.ts#L39-L43
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

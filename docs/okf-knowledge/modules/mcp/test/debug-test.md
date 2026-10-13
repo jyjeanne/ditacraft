@@ -3,7 +3,7 @@ type: TypeScript Module
 title: debug-test
 resource: mcp/test/debug-test.ts#L1-L48
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/modelcontextprotocol-sdk-client-index-js

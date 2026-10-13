@@ -3,13 +3,10 @@ type: TypeScript Function
 title: renderMapNodeText
 resource: server/src/features/contextSnapshot.ts#L99-L124
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/contextSnapshot/isTopicRefNode
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/contextSnapshot/countTopicRefs
@@ -28,7 +25,6 @@ relationships:
 # Calls
 
 - [isTopicRefNode](../../../../../functions/server/src/features/contextSnapshot/isTopicRefNode.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [countTopicRefs](../../../../../functions/server/src/features/contextSnapshot/countTopicRefs.md)
 
 # Called by

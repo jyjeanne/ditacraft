@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: handleSuggestReuse
-resource: src/chat/ditacraftParticipant.ts#L233-L267
+resource: src/chat/ditacraftParticipant.ts#L240-L274
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/suggestReuse

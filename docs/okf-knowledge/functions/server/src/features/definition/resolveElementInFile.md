@@ -3,7 +3,7 @@ type: TypeScript Function
 title: resolveElementInFile
 resource: server/src/features/definition.ts#L147-L173
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/definition/locationAtFileStart

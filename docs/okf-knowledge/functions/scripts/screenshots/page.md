@@ -1,0 +1,32 @@
+---
+type: JavaScript Function
+title: page
+resource: scripts/screenshots/lib.js#L128-L134
+generated:
+  by: okf-rs/0.7.0
+relationships:
+  calls:
+  - target: functions/scripts/screenshots/Cdp/send
+    resolved_by: tree-sitter
+    confidence: exact
+  called_by:
+  - target: functions/scripts/screenshots/webview
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/scripts/screenshots/shoot/shotContext
+    resolved_by: tree-sitter
+    confidence: exact
+---
+
+# Signature
+
+`async function page(cdp, expression)`
+
+# Calls
+
+- [send](../../../functions/scripts/screenshots/Cdp/send.md)
+
+# Called by
+
+- [webview](../../../functions/scripts/screenshots/webview.md)
+- [shotContext](../../../functions/scripts/screenshots/shoot/shotContext.md)

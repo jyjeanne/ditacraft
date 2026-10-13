@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: ditaValidate
-resource: mcp/src/tools/ditaValidate.ts#L1-L139
+resource: mcp/src/tools/ditaValidate.ts#L1-L140
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-textdocument

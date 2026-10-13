@@ -3,7 +3,7 @@ type: TypeScript Function
 title: isSafeRegex
 resource: server/src/features/customRulesValidator.ts#L71-L91
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/customRulesValidator/loadRules

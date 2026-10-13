@@ -1,12 +1,12 @@
 ---
 type: TypeScript Method
 title: registerKeysForAdditionalScope
-resource: server/src/services/keySpaceService.ts#L1689-L1715
+resource: server/src/services/keySpaceService.ts#L1851-L1877
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -21,7 +21,7 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [has](../../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 
 # Called by
 

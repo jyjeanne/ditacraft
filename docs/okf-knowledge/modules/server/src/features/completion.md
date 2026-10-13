@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: completion
-resource: server/src/features/completion.ts#L1-L702
+resource: server/src/features/completion.ts#L1-L703
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

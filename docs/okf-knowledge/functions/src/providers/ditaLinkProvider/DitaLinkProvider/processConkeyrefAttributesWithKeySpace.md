@@ -3,13 +3,10 @@ type: TypeScript Method
 title: processConkeyrefAttributesWithKeySpace
 resource: src/providers/ditaLinkProvider.ts#L271-L366
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/resolveReference
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -24,8 +21,7 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
-- [resolveReference](../../../../../functions/src/providers/ditaLinkProvider/DitaLinkProvider/resolveReference.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 
 # Called by
 

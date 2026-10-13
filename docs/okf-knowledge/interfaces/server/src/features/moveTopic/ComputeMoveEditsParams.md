@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: ComputeMoveEditsParams
-resource: server/src/features/moveTopic.ts#L35-L37
+resource: server/src/features/moveTopic.ts#L45-L47
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

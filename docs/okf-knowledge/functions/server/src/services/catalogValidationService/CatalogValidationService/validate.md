@@ -3,7 +3,7 @@ type: TypeScript Method
 title: validate
 resource: server/src/services/catalogValidationService.ts#L121-L152
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/catalogValidationService/CatalogValidationService/createParser

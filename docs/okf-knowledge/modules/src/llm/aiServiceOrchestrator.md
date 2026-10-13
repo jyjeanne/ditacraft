@@ -3,7 +3,7 @@ type: TypeScript Module
 title: aiServiceOrchestrator
 resource: src/llm/aiServiceOrchestrator.ts#L1-L427
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

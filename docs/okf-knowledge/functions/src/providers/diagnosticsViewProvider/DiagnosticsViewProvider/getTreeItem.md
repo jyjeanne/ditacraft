@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getTreeItem
 resource: src/providers/diagnosticsViewProvider.ts#L88-L90
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

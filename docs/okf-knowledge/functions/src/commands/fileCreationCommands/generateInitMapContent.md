@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: generateInitMapContent
-resource: src/commands/fileCreationCommands.ts#L636-L647
+resource: src/commands/fileCreationCommands.ts#L643-L654
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/fileCreationCommands/runProjectInit

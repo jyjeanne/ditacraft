@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: getDitaOtWrapper
-resource: src/extension.ts#L1252-L1254
+resource: src/extension.ts#L1370-L1372
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

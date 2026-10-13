@@ -3,7 +3,7 @@ type: TypeScript Method
 title: createOrShow
 resource: src/providers/previewPanel.ts#L50-L88
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

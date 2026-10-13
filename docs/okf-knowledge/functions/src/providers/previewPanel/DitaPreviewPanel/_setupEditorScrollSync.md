@@ -4,7 +4,7 @@ title: _setupEditorScrollSync
 resource: src/providers/previewPanel.ts#L233-L257
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/previewPanel/DitaPreviewPanel/_handleEditorScroll

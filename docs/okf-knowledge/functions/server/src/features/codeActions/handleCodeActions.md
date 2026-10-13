@@ -3,10 +3,10 @@ type: TypeScript Function
 title: handleCodeActions
 resource: server/src/features/codeActions.ts#L40-L62
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/codeActions/getFixesForDiagnostic
@@ -24,7 +24,7 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [getFixesForDiagnostic](../../../../../functions/server/src/features/codeActions/getFixesForDiagnostic.md)
 
 # Called by

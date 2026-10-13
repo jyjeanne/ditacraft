@@ -1,10 +1,10 @@
 ---
 type: TypeScript Method
 title: _insertCursor
-resource: src/providers/aiCompletionProvider.ts#L131-L137
+resource: src/providers/aiCompletionProvider.ts#L132-L138
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/aiCompletionProvider/AICompletionProvider/_getAiCompletions

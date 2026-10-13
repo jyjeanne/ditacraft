@@ -3,7 +3,7 @@ type: TypeScript Function
 title: mapToValidationIssues
 resource: src/commands/validateGuideCommand.ts#L223-L245
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtErrorCodes/lookupErrorCode

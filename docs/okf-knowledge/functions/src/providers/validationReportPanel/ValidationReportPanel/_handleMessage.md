@@ -4,7 +4,7 @@ title: _handleMessage
 resource: src/providers/validationReportPanel.ts#L121-L181
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtOutputChannel/getDitaOtOutputChannel

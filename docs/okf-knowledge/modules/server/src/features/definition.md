@@ -3,7 +3,7 @@ type: TypeScript Module
 title: definition
 resource: server/src/features/definition.ts#L1-L181
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

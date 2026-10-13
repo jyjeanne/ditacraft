@@ -3,10 +3,10 @@ type: TypeScript Function
 title: handleDitaKeySpace
 resource: mcp/src/tools/ditaKeySpace.ts#L31-L94
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/mcp/src/workspace/resolvePath
+  - target: functions/mcp/src/workspace/fileUriToFsPath
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/mcp/src/utils/mapDiscovery/discoverRootMap
@@ -23,6 +23,6 @@ relationships:
 
 # Calls
 
-- [resolvePath](../../../../../functions/mcp/src/workspace/resolvePath.md)
+- [fileUriToFsPath](../../../../../functions/mcp/src/workspace/fileUriToFsPath.md)
 - [discoverRootMap](../../../../../functions/mcp/src/utils/mapDiscovery/discoverRootMap.md)
 - [getAllKeys](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/getAllKeys.md)

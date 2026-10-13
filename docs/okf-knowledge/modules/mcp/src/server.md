@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: server
-resource: mcp/src/server.ts#L1-L252
+resource: mcp/src/server.ts#L1-L284
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/modelcontextprotocol-sdk-server-mcp-js
@@ -15,7 +15,7 @@ relationships:
   - target: external/path
     resolved_by: tree-sitter
     confidence: exact
-  - target: external/zod
+  - target: external/zod-v4
     resolved_by: tree-sitter
     confidence: exact
   - target: external/logger
@@ -25,6 +25,18 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/types
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/resources-query
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/resources-diagnostics
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/resources-keys
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/package-json
     resolved_by: tree-sitter
     confidence: exact
   - target: external/server-src-services-catalogvalidationservice
@@ -50,6 +62,8 @@ relationships:
 
 # Contains
 
+- [readDiagnostics](../../../functions/mcp/src/server/readDiagnostics.md)
+- [readKeys](../../../functions/mcp/src/server/readKeys.md)
 - [main](../../../functions/mcp/src/server/main.md)
 
 # Imports
@@ -57,10 +71,14 @@ relationships:
 - `@modelcontextprotocol/sdk/server/mcp.js`
 - `@modelcontextprotocol/sdk/server/stdio.js`
 - `path`
-- `zod`
+- `zod/v4`
 - `./logger`
 - `./diagnosticsStore`
 - `./types`
+- `./resources/query`
+- `./resources/diagnostics`
+- `./resources/keys`
+- `../../package.json`
 - `../../server/src/services/catalogValidationService`
 - `../../server/src/services/rngValidationService`
 - `../../server/src/services/validationPipeline`

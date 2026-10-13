@@ -3,26 +3,19 @@ type: TypeScript Function
 title: resolveKeyref
 resource: mcp/src/tools/ditaResolveReference.ts#L52-L117
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/mcp/src/workspace/fileUriToFsPath
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/mcp/src/workspace/resolvePath
+  - target: functions/mcp/src/workspace/fileUriToFsPath
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/mcp/src/tools/ditaResolveReference/extractTitle
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/mcp/src/tools/ditaResolveReference/detectTopicType
-    resolved_by: tree-sitter
-    confidence: exact
-  called_by:
-  - target: functions/mcp/src/tools/ditaResolveReference/handleDitaResolveReference
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/mcp/src/tools/ditaResolveReference/resolveConkeyref
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -33,12 +26,7 @@ relationships:
 
 # Calls
 
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [fileUriToFsPath](../../../../../functions/mcp/src/workspace/fileUriToFsPath.md)
-- [resolvePath](../../../../../functions/mcp/src/workspace/resolvePath.md)
 - [extractTitle](../../../../../functions/mcp/src/tools/ditaResolveReference/extractTitle.md)
 - [detectTopicType](../../../../../functions/mcp/src/tools/ditaResolveReference/detectTopicType.md)
-
-# Called by
-
-- [handleDitaResolveReference](../../../../../functions/mcp/src/tools/ditaResolveReference/handleDitaResolveReference.md)
-- [resolveConkeyref](../../../../../functions/mcp/src/tools/ditaResolveReference/resolveConkeyref.md)

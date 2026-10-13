@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: registerConfigurationListener
-resource: src/extension.ts#L1030-L1044
+resource: src/extension.ts#L1148-L1162
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/setErrorHandler

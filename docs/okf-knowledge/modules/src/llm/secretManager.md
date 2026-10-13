@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: secretManager
-resource: src/llm/secretManager.ts#L1-L37
+resource: src/llm/secretManager.ts#L1-L45
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -22,6 +22,7 @@ relationships:
 - [storeApiKey](../../../functions/src/llm/secretManager/SecretManager/storeApiKey.md)
 - [getApiKey](../../../functions/src/llm/secretManager/SecretManager/getApiKey.md)
 - [deleteApiKey](../../../functions/src/llm/secretManager/SecretManager/deleteApiKey.md)
+- [getApiKeySource](../../../functions/src/llm/secretManager/SecretManager/getApiKeySource.md)
 - [hasApiKey](../../../functions/src/llm/secretManager/SecretManager/hasApiKey.md)
 
 # Imports

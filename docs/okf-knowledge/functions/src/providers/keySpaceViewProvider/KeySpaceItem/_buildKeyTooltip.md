@@ -4,7 +4,7 @@ title: _buildKeyTooltip
 resource: src/providers/keySpaceViewProvider.ts#L67-L75
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/keySpaceViewProvider/KeySpaceItem/constructor

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: offsetToLine
 resource: server/src/services/suppressionEngine.ts#L75-L82
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/services/suppressionEngine/parseSuppressions

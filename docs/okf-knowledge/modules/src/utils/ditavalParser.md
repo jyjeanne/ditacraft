@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: ditavalParser
-resource: src/utils/ditavalParser.ts#L1-L172
+resource: src/utils/ditavalParser.ts#L1-L189
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft
@@ -14,11 +14,13 @@ relationships:
 # Contains
 
 - [DitavalRule](../../../interfaces/src/utils/ditavalParser/DitavalRule.md)
+- [isFilteringAttribute](../../../functions/src/utils/ditavalParser/isFilteringAttribute.md)
 - [parseAttributes](../../../functions/src/utils/ditavalParser/parseAttributes.md)
 - [parseDitavalRules](../../../functions/src/utils/ditavalParser/parseDitavalRules.md)
 - [buildDitavalDocument](../../../functions/src/utils/ditavalParser/buildDitavalDocument.md)
 - [escapeDitavalAttr](../../../functions/src/utils/ditavalParser/escapeDitavalAttr.md)
 - [isExcludedByRules](../../../functions/src/utils/ditavalParser/isExcludedByRules.md)
+- [governingRule](../../../functions/src/utils/ditavalParser/governingRule.md)
 
 # Member of
 

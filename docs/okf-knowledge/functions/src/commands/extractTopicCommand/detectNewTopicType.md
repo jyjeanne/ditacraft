@@ -3,7 +3,7 @@ type: TypeScript Function
 title: detectNewTopicType
 resource: src/commands/extractTopicCommand.ts#L153-L166
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/extractTopicCommand/extractTopicFromSectionCommand

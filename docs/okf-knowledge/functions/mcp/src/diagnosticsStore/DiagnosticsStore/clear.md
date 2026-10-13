@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: clear
-resource: mcp/src/diagnosticsStore.ts#L60-L62
+resource: mcp/src/diagnosticsStore.ts#L61-L63
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

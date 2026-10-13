@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findOpeningTag
 resource: server/src/features/linkedEditing.ts#L173-L233
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/linkedEditing/handleLinkedEditingRange

@@ -1,10 +1,14 @@
 ---
 type: TypeScript Method
 title: getAvailableTranstypes
-resource: src/utils/ditaOtWrapper.ts#L323-L359
+resource: src/utils/ditaOtWrapper.ts#L340-L366
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
+  calls:
+  - target: functions/src/utils/ditaOtWrapper/parseTranstypes
+    resolved_by: tree-sitter
+    confidence: exact
   called_by:
   - target: functions/src/commands/publishCommand/publishCommand
     resolved_by: tree-sitter
@@ -20,6 +24,10 @@ relationships:
 # Signature
 
 `public async getAvailableTranstypes(): Promise<string[]>`
+
+# Calls
+
+- [parseTranstypes](../../../../../functions/src/utils/ditaOtWrapper/parseTranstypes.md)
 
 # Called by
 

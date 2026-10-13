@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getProviderFactory
 resource: src/utils/providerFactory.ts#L154-L165
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

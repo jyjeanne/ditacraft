@@ -1,14 +1,11 @@
 ---
 type: TypeScript Function
 title: fileExists
-resource: mcp/src/workspace.ts#L107-L118
+resource: mcp/src/workspace.ts#L111-L122
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/mcp/src/workspace/resolvePath
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/mcp/src/workspace/fileUriToFsPath
     resolved_by: tree-sitter
     confidence: exact
@@ -24,7 +21,6 @@ relationships:
 
 # Calls
 
-- [resolvePath](../../../../functions/mcp/src/workspace/resolvePath.md)
 - [fileUriToFsPath](../../../../functions/mcp/src/workspace/fileUriToFsPath.md)
 
 # Called by

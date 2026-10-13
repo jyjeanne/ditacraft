@@ -3,7 +3,7 @@ type: TypeScript Method
 title: suggestReuse
 resource: src/llm/aiServiceOrchestrator.ts#L317-L346
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/buildSnapshot

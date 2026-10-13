@@ -3,7 +3,7 @@ type: TypeScript Module
 title: maps
 resource: mcp/src/resources/maps.ts#L1-L61
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/fs

@@ -3,13 +3,13 @@ type: TypeScript Function
 title: executePublish
 resource: src/commands/publishCommand.ts#L203-L323
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/getOutputDirectory
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/getOutputDirectory
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
@@ -28,9 +28,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/updateFromParsedOutput
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/errorUtils/fireAndForget
@@ -54,15 +51,14 @@ relationships:
 
 # Calls
 
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [getOutputDirectory](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/getOutputDirectory.md)
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
 - [warn](../../../../functions/src/utils/logger/Logger/warn.md)
 - [getDitaOtDiagnostics](../../../../functions/src/utils/ditaOtErrorParser/getDitaOtDiagnostics.md)
 - [publish](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/publish.md)
 - [toVsCodeProgressReporter](../../../../functions/src/utils/ditaOtWrapper/toVsCodeProgressReporter.md)
 - [parseDitaOtOutput](../../../../functions/src/utils/ditaOtErrorParser/parseDitaOtOutput.md)
 - [updateFromParsedOutput](../../../../functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/updateFromParsedOutput.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 - [fireAndForget](../../../../functions/src/utils/errorUtils/fireAndForget.md)
 - [openLogFile](../../../../functions/src/utils/logger/Logger/openLogFile.md)
 

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: positionOnBlankBodyLine
 resource: src/test/suite/insertTableCommand.test.ts#L177-L182
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

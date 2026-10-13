@@ -3,7 +3,7 @@ type: TypeScript Function
 title: openTempTopic
 resource: src/test/suite/insertTableCommand.test.ts#L161-L175
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

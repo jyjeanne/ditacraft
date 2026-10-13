@@ -3,16 +3,16 @@ type: TypeScript Method
 title: indexFile
 resource: server/src/features/workspaceValidation.ts#L258-L277
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/webview/editor/readFile
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/workspaceValidation/extractRootId
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/utils/textUtils/normalizeFsPath
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -30,9 +30,9 @@ relationships:
 
 # Calls
 
+- [readFile](../../../../../../functions/webview/editor/readFile.md)
 - [extractRootId](../../../../../../functions/server/src/features/workspaceValidation/extractRootId.md)
 - [normalizeFsPath](../../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: ditaOtWrapper
-resource: src/utils/ditaOtWrapper.ts#L1-L852
+resource: src/utils/ditaOtWrapper.ts#L1-L859
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -47,6 +47,7 @@ relationships:
 - [DitaOtConfig](../../../interfaces/src/utils/ditaOtWrapper/DitaOtConfig.md)
 - [PublishOptions](../../../interfaces/src/utils/ditaOtWrapper/PublishOptions.md)
 - [PublishProgress](../../../interfaces/src/utils/ditaOtWrapper/PublishProgress.md)
+- [parseTranstypes](../../../functions/src/utils/ditaOtWrapper/parseTranstypes.md)
 - [toVsCodeProgressReporter](../../../functions/src/utils/ditaOtWrapper/toVsCodeProgressReporter.md)
 - [PublishResult](../../../interfaces/src/utils/ditaOtWrapper/PublishResult.md)
 - [DitaOtWrapper](../../../classes/src/utils/ditaOtWrapper/DitaOtWrapper.md)

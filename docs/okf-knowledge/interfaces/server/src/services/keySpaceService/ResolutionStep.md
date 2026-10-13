@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: ResolutionStep
-resource: server/src/services/keySpaceService.ts#L41-L52
+resource: server/src/services/keySpaceService.ts#L43-L54
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

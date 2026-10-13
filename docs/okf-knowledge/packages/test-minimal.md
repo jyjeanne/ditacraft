@@ -3,7 +3,7 @@ type: JavaScript Package
 title: ditacraft-test
 resource: test-minimal/package.json#L1
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Contains

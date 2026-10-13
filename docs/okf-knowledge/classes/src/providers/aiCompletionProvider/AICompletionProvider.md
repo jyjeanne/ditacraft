@@ -1,9 +1,9 @@
 ---
 type: TypeScript Class
 title: AICompletionProvider
-resource: src/providers/aiCompletionProvider.ts#L20-L138
+resource: src/providers/aiCompletionProvider.ts#L21-L139
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

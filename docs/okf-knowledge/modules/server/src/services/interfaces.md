@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: interfaces
-resource: server/src/services/interfaces.ts#L1-L159
+resource: server/src/services/interfaces.ts#L1-L160
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

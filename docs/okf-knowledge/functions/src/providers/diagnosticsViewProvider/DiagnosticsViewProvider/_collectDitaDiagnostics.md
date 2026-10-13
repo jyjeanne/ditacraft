@@ -4,10 +4,13 @@ title: _collectDitaDiagnostics
 resource: src/providers/diagnosticsViewProvider.ts#L107-L128
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/constants/isDitaUri
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -23,6 +26,7 @@ relationships:
 # Calls
 
 - [isDitaUri](../../../../../functions/src/utils/constants/isDitaUri.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 
 # Called by
 

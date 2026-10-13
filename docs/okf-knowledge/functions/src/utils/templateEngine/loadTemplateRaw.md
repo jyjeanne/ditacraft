@@ -3,8 +3,12 @@ type: TypeScript Function
 title: loadTemplateRaw
 resource: src/utils/templateEngine.ts#L91-L108
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
+  calls:
+  - target: functions/webview/editor/readFile
+    resolved_by: tree-sitter
+    confidence: exact
   called_by:
   - target: functions/src/commands/fileCreationCommands/resolveTemplatedOrGeneratedContent
     resolved_by: tree-sitter
@@ -20,6 +24,10 @@ relationships:
 # Signature
 
 `async function loadTemplateRaw( templatesDir: string, baseName: string, extension: string ): Promise<string | undefined>`
+
+# Calls
+
+- [readFile](../../../../functions/webview/editor/readFile.md)
 
 # Called by
 

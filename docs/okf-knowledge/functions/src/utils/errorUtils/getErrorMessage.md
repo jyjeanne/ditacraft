@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getErrorMessage
 resource: src/utils/errorUtils.ts#L17-L67
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/chat/ditacraftParticipant/handleRestructure
@@ -18,7 +18,7 @@ relationships:
   - target: functions/src/chat/ditacraftParticipant/handleSuggestReuse
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/commands/configureAICommand/configureAICommand
+  - target: functions/src/commands/configureAICommand/AiSettingsPanel/handle
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/restructureMapCommand/restructureMapCommand
@@ -54,7 +54,7 @@ relationships:
 - [handleValidate](../../../../functions/src/chat/ditacraftParticipant/handleValidate.md)
 - [handleExplain](../../../../functions/src/chat/ditacraftParticipant/handleExplain.md)
 - [handleSuggestReuse](../../../../functions/src/chat/ditacraftParticipant/handleSuggestReuse.md)
-- [configureAICommand](../../../../functions/src/commands/configureAICommand/configureAICommand.md)
+- [handle](../../../../functions/src/commands/configureAICommand/AiSettingsPanel/handle.md)
 - [restructureMapCommand](../../../../functions/src/commands/restructureMapCommand/restructureMapCommand.md)
 - [safeExecuteAiQuickFix](../../../../functions/src/providers/aiQuickFixProvider/safeExecuteAiQuickFix.md)
 - [fireAndForget](../../../../functions/src/utils/errorUtils/fireAndForget.md)

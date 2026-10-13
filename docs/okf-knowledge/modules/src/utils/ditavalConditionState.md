@@ -3,7 +3,7 @@ type: TypeScript Module
 title: ditavalConditionState
 resource: src/utils/ditavalConditionState.ts#L1-L164
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/ditavalparser

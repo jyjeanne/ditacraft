@@ -3,10 +3,10 @@ type: TypeScript Method
 title: clearOldLogs
 resource: src/utils/logger.ts#L260-L299
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/info
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -21,7 +21,7 @@ relationships:
 
 # Calls
 
-- [info](../../../../../functions/src/utils/logger/Logger/info.md)
+- [startsWith](../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 
 # Called by
 

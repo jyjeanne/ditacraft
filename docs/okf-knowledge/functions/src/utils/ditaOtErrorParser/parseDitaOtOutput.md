@@ -3,16 +3,13 @@ type: TypeScript Function
 title: parseDitaOtOutput
 resource: src/utils/ditaOtErrorParser.ts#L145-L208
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtErrorParser/isErrorLine
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/ditaOtErrorParser/parseErrorLine
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -35,7 +32,6 @@ relationships:
 
 - [isErrorLine](../../../../functions/src/utils/ditaOtErrorParser/isErrorLine.md)
 - [parseErrorLine](../../../../functions/src/utils/ditaOtErrorParser/parseErrorLine.md)
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
 
 # Called by
 

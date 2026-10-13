@@ -3,7 +3,7 @@ type: TypeScript Function
 title: createDebounced
 resource: src/utils/debounceUtils.ts#L157-L195
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/diagnosticsViewProvider/DiagnosticsViewProvider/constructor

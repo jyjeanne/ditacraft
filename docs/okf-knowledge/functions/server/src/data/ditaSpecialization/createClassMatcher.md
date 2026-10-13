@@ -3,7 +3,7 @@ type: TypeScript Function
 title: createClassMatcher
 resource: server/src/data/ditaSpecialization.ts#L30-L34
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

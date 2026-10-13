@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isDitaUri
-resource: src/utils/constants.ts#L111-L113
+resource: src/utils/constants.ts#L113-L115
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/diagnosticsViewProvider/DiagnosticsViewProvider/_collectDitaDiagnostics

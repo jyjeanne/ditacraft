@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: getOutputDirectory
-resource: src/utils/ditaOtWrapper.ts#L735-L737
+resource: src/utils/ditaOtWrapper.ts#L742-L744
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/previewCommand/generateHtml5OutputIfNeeded

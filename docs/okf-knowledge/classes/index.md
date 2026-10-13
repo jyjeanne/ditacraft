@@ -1,6 +1,8 @@
 # Classes
 
 - [DiagnosticsStore](../classes/mcp/src/diagnosticsStore/DiagnosticsStore.md) — TypeScript Class
+- [OptionalQueryTemplate](../classes/mcp/src/resources/query/OptionalQueryTemplate.md) — TypeScript Class
+- [Cdp](../classes/scripts/screenshots/Cdp.md) — JavaScript Class
 - [WorkspaceIndex](../classes/server/src/features/workspaceValidation/WorkspaceIndex.md) — TypeScript Class
 - [CatalogValidationService](../classes/server/src/services/catalogValidationService/CatalogValidationService.md) — TypeScript Class
 - [KeySpaceService](../classes/server/src/services/keySpaceService/KeySpaceService.md) — TypeScript Class
@@ -9,6 +11,9 @@
 - [SubjectSchemeSnapshot](../classes/server/src/services/subjectSchemeService/SubjectSchemeSnapshot.md) — TypeScript Class
 - [Semaphore](../classes/server/src/services/validationPipeline/Semaphore.md) — TypeScript Class
 - [ValidationPipeline](../classes/server/src/services/validationPipeline/ValidationPipeline.md) — TypeScript Class
+- [AiSettingsPanel](../classes/src/commands/configureAICommand/AiSettingsPanel.md) — TypeScript Class
+- [EditorSession](../classes/src/editor/visualEditorProvider/EditorSession.md) — TypeScript Class
+- [VisualEditorProvider](../classes/src/editor/visualEditorProvider/VisualEditorProvider.md) — TypeScript Class
 - [AIServiceOrchestrator](../classes/src/llm/aiServiceOrchestrator/AIServiceOrchestrator.md) — TypeScript Class
 - [CircuitBreaker](../classes/src/llm/circuitBreaker/CircuitBreaker.md) — TypeScript Class
 - [BreakerWrappedProvider](../classes/src/llm/llmRouterService/BreakerWrappedProvider.md) — TypeScript Class
@@ -19,6 +24,11 @@
 - [OllamaLLMProvider](../classes/src/llm/providers/ollamaProvider/OllamaLLMProvider.md) — TypeScript Class
 - [OpenAILLMProvider](../classes/src/llm/providers/openaiProvider/OpenAILLMProvider.md) — TypeScript Class
 - [SecretManager](../classes/src/llm/secretManager/SecretManager.md) — TypeScript Class
+- [GrammarRegistry](../classes/src/preview/grammarRegistry/GrammarRegistry.md) — TypeScript Class
+- [MapContexts](../classes/src/preview/mapContexts/MapContexts.md) — TypeScript Class
+- [ReferenceResolver](../classes/src/preview/resolver/ReferenceResolver.md) — TypeScript Class
+- [VisualPreviewPanel](../classes/src/preview/visualPreviewPanel/VisualPreviewPanel.md) — TypeScript Class
+- [PropertiesViewProvider](../classes/src/properties/propertiesView/PropertiesViewProvider.md) — TypeScript Class
 - [AICompletionProvider](../classes/src/providers/aiCompletionProvider/AICompletionProvider.md) — TypeScript Class
 - [AIQuickFixProvider](../classes/src/providers/aiQuickFixProvider/AIQuickFixProvider.md) — TypeScript Class
 - [DiagnosticItem](../classes/src/providers/diagnosticsViewProvider/DiagnosticItem.md) — TypeScript Class
@@ -33,6 +43,20 @@
 - [MapVisualizerPanel](../classes/src/providers/mapVisualizerPanel/MapVisualizerPanel.md) — TypeScript Class
 - [DitaPreviewPanel](../classes/src/providers/previewPanel/DitaPreviewPanel.md) — TypeScript Class
 - [ValidationReportPanel](../classes/src/providers/validationReportPanel/ValidationReportPanel.md) — TypeScript Class
+- [ElementIndex](../classes/src/shared/cst/elementIndex/ElementIndex.md) — TypeScript Class
+- [ParseError](../classes/src/shared/cst/parse/ParseError.md) — TypeScript Class
+- [Scanner](../classes/src/shared/cst/parse/Scanner.md) — TypeScript Class
+- [DitaCommands](../classes/src/shared/editor/commands/DitaCommands.md) — TypeScript Class
+- [ImageCommands](../classes/src/shared/editor/images/ImageCommands.md) — TypeScript Class
+- [LinkCommands](../classes/src/shared/editor/links/LinkCommands.md) — TypeScript Class
+- [MapCommands](../classes/src/shared/editor/mapCommands/MapCommands.md) — TypeScript Class
+- [RelTableCommands](../classes/src/shared/editor/relTables/RelTableCommands.md) — TypeScript Class
+- [SourcePositions](../classes/src/shared/editor/sourcePositions/SourcePositions.md) — TypeScript Class
+- [EditSync](../classes/src/shared/editor/sync/EditSync.md) — TypeScript Class
+- [TableCommands](../classes/src/shared/editor/tables/TableCommands.md) — TypeScript Class
+- [Builder](../classes/src/shared/editor/toProseMirror/Builder.md) — TypeScript Class
+- [Writer](../classes/src/shared/editor/toSource/Writer.md) — TypeScript Class
+- [Renderer](../classes/src/shared/render/toHtml/Renderer.md) — TypeScript Class
 - [ConfigurationManager](../classes/src/utils/configurationManager/ConfigurationManager.md) — TypeScript Class
 - [DitaOtDiagnostics](../classes/src/utils/ditaOtErrorParser/DitaOtDiagnostics.md) — TypeScript Class
 - [DitaOtOutputChannel](../classes/src/utils/ditaOtOutputChannel/DitaOtOutputChannel.md) — TypeScript Class
@@ -42,3 +66,9 @@
 - [Logger](../classes/src/utils/logger/Logger.md) — TypeScript Class
 - [ProviderFactory](../classes/src/utils/providerFactory/ProviderFactory.md) — TypeScript Class
 - [RateLimiter](../classes/src/utils/rateLimiter/RateLimiter.md) — TypeScript Class
+- [MapCellView](../classes/webview/editor/mapView/MapCellView.md) — TypeScript Class
+- [MapRowView](../classes/webview/editor/mapView/MapRowView.md) — TypeScript Class
+- [RowDrag](../classes/webview/editor/mapView/RowDrag.md) — TypeScript Class
+- [ContextMenu](../classes/webview/editor/menu/ContextMenu.md) — TypeScript Class
+- [KeptView](../classes/webview/editor/reusedView/KeptView.md) — TypeScript Class
+- [ReusedView](../classes/webview/editor/reusedView/ReusedView.md) — TypeScript Class

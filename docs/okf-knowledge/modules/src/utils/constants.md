@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: constants
-resource: src/utils/constants.ts#L1-L194
+resource: src/utils/constants.ts#L1-L196
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft

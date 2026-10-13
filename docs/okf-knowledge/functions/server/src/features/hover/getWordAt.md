@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: getWordAt
-resource: server/src/features/hover.ts#L273-L282
+resource: server/src/features/hover.ts#L275-L284
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/hover/handleHover

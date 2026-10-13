@@ -3,7 +3,7 @@ type: TypeScript Method
 title: parseLogLevel
 resource: src/utils/logger.ts#L108-L116
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/logger/Logger/loadConfiguration

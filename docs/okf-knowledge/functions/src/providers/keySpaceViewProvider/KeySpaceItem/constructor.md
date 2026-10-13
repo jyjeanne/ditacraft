@@ -3,7 +3,7 @@ type: TypeScript Method
 title: constructor
 resource: src/providers/keySpaceViewProvider.ts#L20-L65
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/keySpaceViewProvider/KeySpaceItem/_buildKeyTooltip

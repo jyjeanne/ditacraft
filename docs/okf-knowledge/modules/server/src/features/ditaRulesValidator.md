@@ -3,7 +3,7 @@ type: TypeScript Module
 title: ditaRulesValidator
 resource: server/src/features/ditaRulesValidator.ts#L1-L1090
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

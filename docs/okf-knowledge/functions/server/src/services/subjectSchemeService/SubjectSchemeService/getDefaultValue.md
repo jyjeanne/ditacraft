@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getDefaultValue
 resource: server/src/services/subjectSchemeService.ts#L290-L292
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/getMergedSnapshot

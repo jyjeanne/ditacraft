@@ -3,7 +3,7 @@ type: TypeScript Function
 title: isMapFile
 resource: server/src/serverHandlers.ts#L114-L116
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

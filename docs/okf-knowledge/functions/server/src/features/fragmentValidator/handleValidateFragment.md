@@ -3,7 +3,7 @@ type: TypeScript Function
 title: handleValidateFragment
 resource: server/src/features/fragmentValidator.ts#L58-L110
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/fragmentValidator/wrapFragment

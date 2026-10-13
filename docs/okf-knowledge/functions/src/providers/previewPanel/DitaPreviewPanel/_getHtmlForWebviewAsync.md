@@ -4,10 +4,13 @@ title: _getHtmlForWebviewAsync
 resource: src/providers/previewPanel.ts#L598-L629
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/previewPanel/DitaPreviewPanel/_getNoContentHtml
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/webview/editor/readFile
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/previewPanel/DitaPreviewPanel/_convertLocalResourcesAsync
@@ -29,6 +32,7 @@ relationships:
 # Calls
 
 - [_getNoContentHtml](../../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_getNoContentHtml.md)
+- [readFile](../../../../../functions/webview/editor/readFile.md)
 - [_convertLocalResourcesAsync](../../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_convertLocalResourcesAsync.md)
 - [_injectPreviewEnhancementsAsync](../../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_injectPreviewEnhancementsAsync.md)
 

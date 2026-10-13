@@ -3,7 +3,7 @@ type: TypeScript Method
 title: isAvailable
 resource: server/src/services/catalogValidationService.ts#L108-L110
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

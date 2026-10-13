@@ -1,10 +1,10 @@
 ---
 type: TypeScript Method
 title: _fetchWithTimeout
-resource: src/providers/aiCompletionProvider.ts#L49-L76
+resource: src/providers/aiCompletionProvider.ts#L50-L77
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/aiCompletionProvider/AICompletionProvider/_getAiCompletions

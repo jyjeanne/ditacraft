@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: matchGlob
-resource: mcp/src/diagnosticsStore.ts#L86-L91
+resource: mcp/src/diagnosticsStore.ts#L87-L92
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/mcp/src/diagnosticsStore/globToRegex

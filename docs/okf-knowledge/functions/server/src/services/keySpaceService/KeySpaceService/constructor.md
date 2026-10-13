@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: constructor
-resource: server/src/services/keySpaceService.ts#L176-L196
+resource: server/src/services/keySpaceService.ts#L235-L255
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/startPeriodicCleanup

@@ -1,15 +1,12 @@
 ---
 type: TypeScript Method
 title: invalidateCacheForFile
-resource: src/utils/keySpaceResolver.ts#L315-L331
+resource: src/utils/keySpaceResolver.ts#L331-L351
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/test/suite/keySpaceResolver/test/normalize
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/preview/grammarRegistry/GrammarRegistry/entries
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -24,8 +21,7 @@ relationships:
 
 # Calls
 
-- [normalize](../../../../../functions/src/test/suite/keySpaceResolver/test/normalize.md)
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [entries](../../../../../functions/src/preview/grammarRegistry/GrammarRegistry/entries.md)
 
 # Called by
 

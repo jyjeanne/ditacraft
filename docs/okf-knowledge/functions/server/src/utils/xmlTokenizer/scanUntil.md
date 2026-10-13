@@ -3,7 +3,7 @@ type: TypeScript Function
 title: scanUntil
 resource: server/src/utils/xmlTokenizer.ts#L376-L385
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/xmlTokenizer/advance

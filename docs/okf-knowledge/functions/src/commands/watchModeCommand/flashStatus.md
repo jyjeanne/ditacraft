@@ -3,7 +3,7 @@ type: TypeScript Function
 title: flashStatus
 resource: src/commands/watchModeCommand.ts#L319-L330
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/watchModeCommand/setWatchingStatus

@@ -3,7 +3,7 @@ type: TypeScript Module
 title: ditavalConditions
 resource: server/src/features/ditavalConditions.ts#L1-L99
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/services-subjectschemeservice

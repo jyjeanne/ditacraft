@@ -4,7 +4,7 @@ title: _tick
 resource: src/llm/circuitBreaker.ts#L65-L81
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/llm/circuitBreaker/CircuitBreaker/state

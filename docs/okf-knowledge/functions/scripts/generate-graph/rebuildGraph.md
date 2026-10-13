@@ -3,7 +3,7 @@ type: JavaScript Function
 title: rebuildGraph
 resource: scripts/generate-graph.js#L46-L52
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/scripts/generate-graph/runGraphify

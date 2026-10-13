@@ -3,10 +3,10 @@ type: TypeScript Function
 title: handleDitaExplainKey
 resource: mcp/src/tools/ditaExplainKey.ts#L28-L67
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/mcp/src/workspace/resolvePath
+  - target: functions/mcp/src/workspace/fileUriToFsPath
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/services/keySpaceService/KeySpaceService/explainKey
@@ -20,5 +20,5 @@ relationships:
 
 # Calls
 
-- [resolvePath](../../../../../functions/mcp/src/workspace/resolvePath.md)
+- [fileUriToFsPath](../../../../../functions/mcp/src/workspace/fileUriToFsPath.md)
 - [explainKey](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/explainKey.md)

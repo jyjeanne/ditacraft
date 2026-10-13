@@ -1,9 +1,9 @@
 ---
 type: JavaScript Module
 title: generate-okf-knowledge
-resource: scripts/generate-okf-knowledge.js#L1-L133
+resource: scripts/generate-okf-knowledge.js#L1-L141
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft

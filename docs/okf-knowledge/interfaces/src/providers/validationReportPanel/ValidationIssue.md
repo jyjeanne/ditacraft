@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: ValidationIssue
 resource: src/providers/validationReportPanel.ts#L30-L42
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

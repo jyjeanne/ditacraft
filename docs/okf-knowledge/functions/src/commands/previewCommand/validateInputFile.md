@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: validateInputFile
-resource: src/commands/previewCommand.ts#L287-L293
+resource: src/commands/previewCommand.ts#L339-L345
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

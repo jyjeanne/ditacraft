@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: findInnerContent
-resource: src/utils/keySpaceResolver.ts#L1007-L1058
+resource: src/utils/keySpaceResolver.ts#L1030-L1081
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

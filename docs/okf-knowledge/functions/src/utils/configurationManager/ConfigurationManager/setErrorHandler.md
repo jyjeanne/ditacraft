@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: setErrorHandler
-resource: src/utils/configurationManager.ts#L347-L349
+resource: src/utils/configurationManager.ts#L389-L391
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/extension/registerConfigurationListener

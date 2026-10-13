@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: isValidPath
-resource: src/utils/ditaOtWrapper.ts#L160-L182
+resource: src/utils/ditaOtWrapper.ts#L177-L199
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/loadConfiguration

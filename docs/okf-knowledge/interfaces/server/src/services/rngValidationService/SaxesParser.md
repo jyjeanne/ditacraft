@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: SaxesParser
 resource: server/src/services/rngValidationService.ts#L71-L77
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

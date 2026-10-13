@@ -3,7 +3,7 @@ type: TypeScript Function
 title: loadRules
 resource: server/src/features/customRulesValidator.ts#L97-L187
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/logger/Logger/warn

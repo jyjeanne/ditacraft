@@ -3,13 +3,10 @@ type: TypeScript Function
 title: buildLevel3
 resource: server/src/features/contextSnapshot.ts#L138-L196
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/contextSnapshot/collectRefs
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -25,7 +22,6 @@ relationships:
 # Calls
 
 - [collectRefs](../../../../../functions/server/src/features/contextSnapshot/collectRefs.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

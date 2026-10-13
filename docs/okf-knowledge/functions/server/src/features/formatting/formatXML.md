@@ -3,7 +3,7 @@ type: TypeScript Function
 title: formatXML
 resource: server/src/features/formatting.ts#L130-L259
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/formatting/tokenize
@@ -12,7 +12,7 @@ relationships:
   - target: functions/server/src/features/formatting/detectEOL
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/features/formatting/flush
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/formatting/getSimpleTextContent
@@ -35,7 +35,7 @@ relationships:
 
 - [tokenize](../../../../../functions/server/src/features/formatting/tokenize.md)
 - [detectEOL](../../../../../functions/server/src/features/formatting/detectEOL.md)
-- [flush](../../../../../functions/server/src/features/formatting/flush.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [getSimpleTextContent](../../../../../functions/server/src/features/formatting/getSimpleTextContent.md)
 
 # Called by

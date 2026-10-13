@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: PublishingProfile
-resource: src/commands/publishProfilesCommand.ts#L20-L26
+resource: src/commands/publishProfilesCommand.ts#L21-L27
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

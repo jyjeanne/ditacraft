@@ -3,7 +3,7 @@ type: TypeScript Function
 title: isConrefLink
 resource: src/test/suite/ditaLinkProvider.test.ts#L41-L45
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

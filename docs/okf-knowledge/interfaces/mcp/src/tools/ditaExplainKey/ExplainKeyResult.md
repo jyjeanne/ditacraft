@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: ExplainKeyResult
 resource: mcp/src/tools/ditaExplainKey.ts#L9-L26
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

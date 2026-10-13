@@ -1,18 +1,12 @@
 ---
 type: TypeScript Method
 title: resolveKey
-resource: src/utils/keySpaceResolver.ts#L1272-L1347
+resource: src/utils/keySpaceResolver.ts#L1295-L1307
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/normalizePathForComparison
+  - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/resolveKeyInMap
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -23,6 +17,4 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
-- [normalizePathForComparison](../../../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/normalizePathForComparison.md)
+- [resolveKeyInMap](../../../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/resolveKeyInMap.md)

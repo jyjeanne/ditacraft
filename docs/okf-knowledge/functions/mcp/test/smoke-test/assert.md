@@ -3,7 +3,7 @@ type: TypeScript Function
 title: assert
 resource: mcp/test/smoke-test.ts#L184-L191
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/mcp/test/smoke-test/main

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isDitaContentPath
-resource: src/utils/constants.ts#L122-L125
+resource: src/utils/constants.ts#L124-L127
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/constants/isDitaContentUri

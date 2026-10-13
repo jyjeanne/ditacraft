@@ -1,12 +1,12 @@
 ---
 type: TypeScript Method
 title: verifyInstallation
-resource: src/utils/ditaOtWrapper.ts#L290-L318
+resource: src/utils/ditaOtWrapper.ts#L307-L335
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -39,7 +39,7 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 
 # Called by
 

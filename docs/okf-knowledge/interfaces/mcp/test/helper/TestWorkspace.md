@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: TestWorkspace
 resource: mcp/test/helper.ts#L15-L22
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

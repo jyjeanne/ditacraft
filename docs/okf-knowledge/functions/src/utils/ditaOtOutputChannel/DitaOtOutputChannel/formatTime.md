@@ -3,7 +3,7 @@ type: TypeScript Method
 title: formatTime
 resource: src/utils/ditaOtOutputChannel.ts#L178-L180
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditaOtOutputChannel/DitaOtOutputChannel/logBuildStart

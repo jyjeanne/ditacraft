@@ -3,7 +3,7 @@ type: TypeScript Module
 title: mcpSettings
 resource: mcp/src/mcpSettings.ts#L1-L29
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/server-src-settings

@@ -4,13 +4,13 @@ title: _injectPreviewEnhancementsAsync
 resource: src/providers/previewPanel.ts#L752-L990
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/providers/previewPanel/DitaPreviewPanel/_loadCustomCssAsync
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/providers/previewPanel/DitaPreviewPanel/_loadCustomCssAsync
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
@@ -28,8 +28,8 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [_loadCustomCssAsync](../../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_loadCustomCssAsync.md)
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 - [warn](../../../../../functions/src/utils/logger/Logger/warn.md)
 
 # Called by

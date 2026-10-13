@@ -3,7 +3,7 @@ type: TypeScript Class
 title: DitaOtDiagnostics
 resource: src/utils/ditaOtErrorParser.ts#L314-L422
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

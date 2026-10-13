@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getDitaOtDiagnostics
 resource: src/utils/ditaOtErrorParser.ts#L432-L437
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/publishCommand/executePublish

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: filterMatchingRefs
 resource: server/src/features/references.ts#L95-L111
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/workspaceScanner/referenceMatchesTarget

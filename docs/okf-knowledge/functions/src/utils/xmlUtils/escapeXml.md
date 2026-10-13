@@ -3,7 +3,7 @@ type: TypeScript Function
 title: escapeXml
 resource: src/utils/xmlUtils.ts#L16-L18
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

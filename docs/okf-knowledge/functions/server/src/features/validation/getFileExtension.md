@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: getFileExtension
-resource: server/src/features/validation.ts#L753-L757
+resource: server/src/features/validation.ts#L943-L947
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/uriToPath

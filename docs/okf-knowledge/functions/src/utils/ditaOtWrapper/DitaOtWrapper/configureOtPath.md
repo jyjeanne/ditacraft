@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: configureOtPath
-resource: src/utils/ditaOtWrapper.ts#L749-L797
+resource: src/utils/ditaOtWrapper.ts#L756-L804
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration

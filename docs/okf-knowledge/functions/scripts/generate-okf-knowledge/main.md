@@ -1,9 +1,9 @@
 ---
 type: JavaScript Function
 title: main
-resource: scripts/generate-okf-knowledge.js#L124-L131
+resource: scripts/generate-okf-knowledge.js#L132-L139
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/scripts/generate-okf-knowledge/findOkfRs

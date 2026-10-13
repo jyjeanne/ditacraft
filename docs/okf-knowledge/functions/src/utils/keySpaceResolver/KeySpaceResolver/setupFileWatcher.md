@@ -1,14 +1,11 @@
 ---
 type: TypeScript Method
 title: setupFileWatcher
-resource: src/utils/keySpaceResolver.ts#L248-L283
+resource: src/utils/keySpaceResolver.ts#L264-L299
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/queueInvalidation
     resolved_by: tree-sitter
     confidence: exact
@@ -24,7 +21,6 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
 - [queueInvalidation](../../../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/queueInvalidation.md)
 
 # Called by

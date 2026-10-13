@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: validateDITAStructure
-resource: server/src/features/validation.ts#L261-L299
+resource: server/src/features/validation.ts#L355-L393
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/validation/getFileExtension
@@ -16,9 +16,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/validation/createRange
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/utils/i18n/t
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/validation/validateTopicStructure
@@ -49,7 +46,6 @@ relationships:
 - [stripCommentsAndCodeContent](../../../../../functions/server/src/utils/textUtils/stripCommentsAndCodeContent.md)
 - [validateDitavalStructure](../../../../../functions/server/src/features/validation/validateDitavalStructure.md)
 - [createRange](../../../../../functions/server/src/features/validation/createRange.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
 - [validateTopicStructure](../../../../../functions/server/src/features/validation/validateTopicStructure.md)
 - [validateMapStructure](../../../../../functions/server/src/features/validation/validateMapStructure.md)
 - [validateBookmapStructure](../../../../../functions/server/src/features/validation/validateBookmapStructure.md)

@@ -3,7 +3,7 @@ type: TypeScript Module
 title: documentLinks
 resource: server/src/features/documentLinks.ts#L1-L251
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/path

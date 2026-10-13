@@ -3,13 +3,19 @@ type: TypeScript Function
 title: buildMapNode
 resource: server/src/features/contextGraph.ts#L131-L225
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/contextGraph/readTitle
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/features/contextGraph/resolveHref
+  - target: functions/src/shared/render/toHtml/Renderer/has
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/contextGraph/readTopicType
@@ -34,7 +40,9 @@ relationships:
 # Calls
 
 - [readTitle](../../../../../functions/server/src/features/contextGraph/readTitle.md)
-- [resolveHref](../../../../../functions/server/src/features/contextGraph/resolveHref.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 - [readTopicType](../../../../../functions/server/src/features/contextGraph/readTopicType.md)
 - [readShortDesc](../../../../../functions/server/src/features/contextGraph/readShortDesc.md)
 - [countElements](../../../../../functions/server/src/features/contextGraph/countElements.md)

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: resolveTemplatedOrGeneratedContent
-resource: src/commands/fileCreationCommands.ts#L163-L187
+resource: src/commands/fileCreationCommands.ts#L170-L194
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/templateEngine/loadTemplateRaw

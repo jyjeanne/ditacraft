@@ -1,22 +1,22 @@
 ---
 type: TypeScript Function
 title: displayPreview
-resource: src/commands/previewCommand.ts#L379-L412
+resource: src/commands/previewCommand.ts#L431-L464
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/commands/previewCommand/findMainHtmlFile
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/info
+  - target: functions/src/commands/previewCommand/findMainHtmlFile
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
     resolved_by: tree-sitter
     confidence: exact
   called_by:
-  - target: functions/src/commands/previewCommand/previewHTML5Command
+  - target: functions/src/commands/previewCommand/previewDitaOtCommand
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -27,10 +27,10 @@ relationships:
 
 # Calls
 
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [findMainHtmlFile](../../../../functions/src/commands/previewCommand/findMainHtmlFile.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 - [warn](../../../../functions/src/utils/logger/Logger/warn.md)
 
 # Called by
 
-- [previewHTML5Command](../../../../functions/src/commands/previewCommand/previewHTML5Command.md)
+- [previewDitaOtCommand](../../../../functions/src/commands/previewCommand/previewDitaOtCommand.md)

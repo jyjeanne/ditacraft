@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: complete
-resource: src/llm/providers/ollamaProvider.ts#L46-L72
+resource: src/llm/providers/ollamaProvider.ts#L81-L107
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/_buildMessages

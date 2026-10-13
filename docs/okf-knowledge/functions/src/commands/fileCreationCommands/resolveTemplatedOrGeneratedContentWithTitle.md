@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: resolveTemplatedOrGeneratedContentWithTitle
-resource: src/commands/fileCreationCommands.ts#L196-L213
+resource: src/commands/fileCreationCommands.ts#L203-L220
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/templateEngine/renderTemplate

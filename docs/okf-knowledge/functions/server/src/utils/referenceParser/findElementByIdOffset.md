@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: findElementByIdOffset
-resource: server/src/utils/referenceParser.ts#L370-L380
+resource: server/src/utils/referenceParser.ts#L412-L422
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/mcp/src/tools/ditaResolveReference/resolveConkeyref
@@ -18,6 +18,9 @@ relationships:
   - target: functions/server/src/features/references/handleReferences
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/rename/findIdDefinition
+    resolved_by: tree-sitter
+    confidence: exact
 ---
 
 # Signature
@@ -30,3 +33,4 @@ relationships:
 - [resolveInDocument](../../../../../functions/server/src/features/definition/resolveInDocument.md)
 - [resolveElementInFile](../../../../../functions/server/src/features/definition/resolveElementInFile.md)
 - [handleReferences](../../../../../functions/server/src/features/references/handleReferences.md)
+- [findIdDefinition](../../../../../functions/server/src/features/rename/findIdDefinition.md)

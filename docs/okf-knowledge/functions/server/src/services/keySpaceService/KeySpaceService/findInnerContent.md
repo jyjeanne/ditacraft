@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: findInnerContent
-resource: server/src/services/keySpaceService.ts#L1841-L1897
+resource: server/src/services/keySpaceService.ts#L2003-L2059
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

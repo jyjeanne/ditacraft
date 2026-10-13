@@ -1,15 +1,15 @@
 ---
 type: TypeScript Function
 title: getHrefHover
-resource: server/src/features/hover.ts#L159-L226
+resource: server/src/features/hover.ts#L161-L228
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/uriToPath
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/referenceParser/parseReference
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/hover/getConrefPreview
@@ -28,7 +28,7 @@ relationships:
 # Calls
 
 - [uriToPath](../../../../../functions/server/src/utils/textUtils/uriToPath.md)
-- [parseReference](../../../../../functions/server/src/utils/referenceParser/parseReference.md)
+- [startsWith](../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 - [getConrefPreview](../../../../../functions/server/src/features/hover/getConrefPreview.md)
 
 # Called by

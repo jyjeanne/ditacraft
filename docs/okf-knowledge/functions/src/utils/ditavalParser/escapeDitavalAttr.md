@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: escapeDitavalAttr
-resource: src/utils/ditavalParser.ts#L119-L121
+resource: src/utils/ditavalParser.ts#L132-L134
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditavalParser/buildDitavalDocument

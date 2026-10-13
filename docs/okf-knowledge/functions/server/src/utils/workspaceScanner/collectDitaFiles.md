@@ -3,7 +3,7 @@ type: TypeScript Function
 title: collectDitaFiles
 resource: server/src/utils/workspaceScanner.ts#L21-L49
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

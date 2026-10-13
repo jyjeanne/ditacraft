@@ -3,7 +3,7 @@ type: TypeScript Module
 title: test
 resource: mcp/test/tools/ditaExplainKey.test.ts#L1-L64
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert

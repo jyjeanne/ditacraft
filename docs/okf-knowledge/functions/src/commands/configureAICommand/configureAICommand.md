@@ -1,27 +1,12 @@
 ---
 type: TypeScript Function
 title: configureAICommand
-resource: src/commands/configureAICommand.ts#L16-L63
+resource: src/commands/configureAICommand.ts#L129-L139
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/llm/llmRouterService/LLMRouterService/getProviderStatuses
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/commands/configureAICommand/buildSettingsHtml
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/llm/secretManager/SecretManager/storeApiKey
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/llm/secretManager/SecretManager/deleteApiKey
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/llm/llmRouterService/LLMRouterService/forceProvider
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/errorUtils/getErrorMessage
+  - target: functions/src/commands/configureAICommand/AiSettingsPanel/redetect
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -32,16 +17,11 @@ relationships:
 
 # Signature
 
-`async function configureAICommand( context: vscode.ExtensionContext, router: LLMRouterService, secretManager: SecretManager ): Promise<void>`
+`async function configureAICommand(router: LLMRouterService, secretManager: SecretManager): Promise<void>`
 
 # Calls
 
-- [getProviderStatuses](../../../../functions/src/llm/llmRouterService/LLMRouterService/getProviderStatuses.md)
-- [buildSettingsHtml](../../../../functions/src/commands/configureAICommand/buildSettingsHtml.md)
-- [storeApiKey](../../../../functions/src/llm/secretManager/SecretManager/storeApiKey.md)
-- [deleteApiKey](../../../../functions/src/llm/secretManager/SecretManager/deleteApiKey.md)
-- [forceProvider](../../../../functions/src/llm/llmRouterService/LLMRouterService/forceProvider.md)
-- [getErrorMessage](../../../../functions/src/utils/errorUtils/getErrorMessage.md)
+- [redetect](../../../../functions/src/commands/configureAICommand/AiSettingsPanel/redetect.md)
 
 # Called by
 

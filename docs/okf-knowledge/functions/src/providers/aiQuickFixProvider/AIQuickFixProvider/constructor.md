@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: constructor
-resource: src/providers/aiQuickFixProvider.ts#L45
+resource: src/providers/aiQuickFixProvider.ts#L56
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

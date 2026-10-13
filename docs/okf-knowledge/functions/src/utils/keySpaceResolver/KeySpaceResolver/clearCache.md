@@ -1,20 +1,11 @@
 ---
 type: TypeScript Method
 title: clearCache
-resource: src/utils/keySpaceResolver.ts#L1504-L1508
+resource: src/utils/keySpaceResolver.ts#L1637-L1643
 generated:
-  by: okf-rs/0.4.0
-relationships:
-  calls:
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
+  by: okf-rs/0.7.0
 ---
 
 # Signature
 
 `public clearCache(): void`
-
-# Calls
-
-- [info](../../../../../functions/src/utils/logger/Logger/info.md)

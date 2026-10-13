@@ -3,7 +3,7 @@ type: JavaScript Module
 title: config
 resource: eslint.config.mjs#L1-L46
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/eslint-js

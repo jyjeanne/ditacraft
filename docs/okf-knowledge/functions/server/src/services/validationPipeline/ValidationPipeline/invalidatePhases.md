@@ -3,7 +3,7 @@ type: TypeScript Method
 title: invalidatePhases
 resource: server/src/services/validationPipeline.ts#L283-L287
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/validationPipeline/ValidationPipeline/cacheKey

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isDitaContentUri
-resource: src/utils/constants.ts#L131-L133
+resource: src/utils/constants.ts#L133-L135
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/constants/isDitaContentPath
@@ -17,9 +17,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/insertImageCommand/isEligibleDocument
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/extension/registerMoveTopicFeature
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/ditavalDecorationProvider/recompute
@@ -40,5 +37,4 @@ relationships:
 - [findReplaceInFilesCommand](../../../../functions/src/commands/findReplaceCommand/findReplaceInFilesCommand.md)
 - [inlineConrefCommand](../../../../functions/src/commands/inlineConrefCommand/inlineConrefCommand.md)
 - [isEligibleDocument](../../../../functions/src/commands/insertImageCommand/isEligibleDocument.md)
-- [registerMoveTopicFeature](../../../../functions/src/extension/registerMoveTopicFeature.md)
 - [recompute](../../../../functions/src/providers/ditavalDecorationProvider/recompute.md)

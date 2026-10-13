@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: mcp/test/resources/diagnostics.test.ts#L1-L96
+resource: mcp/test/resources/diagnostics.test.ts#L1-L138
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -21,6 +21,7 @@ relationships:
 # Contains
 
 - [readDiagnostics](../../../../../functions/mcp/test/resources/diagnostics/test/readDiagnostics.md)
+- [readError](../../../../../functions/mcp/test/resources/diagnostics/test/readError.md)
 
 # Imports
 

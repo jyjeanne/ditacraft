@@ -1,14 +1,10 @@
 ---
 type: TypeScript Method
 title: loadCacheConfig
-resource: src/utils/keySpaceResolver.ts#L173-L179
+resource: src/utils/keySpaceResolver.ts#L189-L195
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
-  calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
   - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/constructor
     resolved_by: tree-sitter
@@ -21,10 +17,6 @@ relationships:
 # Signature
 
 `private loadCacheConfig(): CacheConfig`
-
-# Calls
-
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

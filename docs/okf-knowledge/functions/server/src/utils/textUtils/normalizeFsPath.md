@@ -3,7 +3,7 @@ type: TypeScript Function
 title: normalizeFsPath
 resource: server/src/utils/textUtils.ts#L112-L115
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/circularRefDetection/normalizePath
@@ -12,13 +12,16 @@ relationships:
   - target: functions/server/src/features/crossRefValidation/validateCrossReferences
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/inlineConref/rebaseReference
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/features/moveTopic/handleComputeMoveEdits
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/references/handleReferences
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/features/rename/handleRename
+  - target: functions/server/src/features/rename/handleIdRename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/rename/handleKeyRename
@@ -48,7 +51,16 @@ relationships:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/isBuildStale
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMap
+  - target: functions/server/src/services/keySpaceService/KeySpaceService/findRootMap
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/services/keySpaceService/KeySpaceService/chooseRootMap
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/services/keySpaceService/KeySpaceService/referencedFiles
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMapCandidates
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/services/keySpaceService/KeySpaceService/doBuildKeySpace
@@ -82,9 +94,10 @@ relationships:
 
 - [normalizePath](../../../../../functions/server/src/features/circularRefDetection/normalizePath.md)
 - [validateCrossReferences](../../../../../functions/server/src/features/crossRefValidation/validateCrossReferences.md)
+- [rebaseReference](../../../../../functions/server/src/features/inlineConref/rebaseReference.md)
 - [handleComputeMoveEdits](../../../../../functions/server/src/features/moveTopic/handleComputeMoveEdits.md)
 - [handleReferences](../../../../../functions/server/src/features/references/handleReferences.md)
-- [handleRename](../../../../../functions/server/src/features/rename/handleRename.md)
+- [handleIdRename](../../../../../functions/server/src/features/rename/handleIdRename.md)
 - [handleKeyRename](../../../../../functions/server/src/features/rename/handleKeyRename.md)
 - [sameKeyDefinition](../../../../../functions/server/src/features/rename/sameKeyDefinition.md)
 - [detectCrossFileDuplicateIds](../../../../../functions/server/src/features/workspaceValidation/detectCrossFileDuplicateIds.md)
@@ -94,7 +107,10 @@ relationships:
 - [resolveKeyEntryWithScope](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/resolveKeyEntryWithScope.md)
 - [explainKey](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/explainKey.md)
 - [isBuildStale](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/isBuildStale.md)
-- [doFindRootMap](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMap.md)
+- [findRootMap](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/findRootMap.md)
+- [chooseRootMap](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/chooseRootMap.md)
+- [referencedFiles](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/referencedFiles.md)
+- [doFindRootMapCandidates](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMapCandidates.md)
 - [doBuildKeySpace](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/doBuildKeySpace.md)
 - [extractTopicReferences](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/extractTopicReferences.md)
 - [doInvalidate](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/doInvalidate.md)

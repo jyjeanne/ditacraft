@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: validation
-resource: server/src/features/validation.ts#L1-L773
+resource: server/src/features/validation.ts#L1-L962
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node
@@ -41,6 +41,8 @@ relationships:
 - [validateDITADocument](../../../../functions/server/src/features/validation/validateDITADocument.md)
 - [entityRange](../../../../functions/server/src/features/validation/entityRange.md)
 - [hasNonPredefinedEntityRef](../../../../functions/server/src/features/validation/hasNonPredefinedEntityRef.md)
+- [extractDoctypeInternalSubset](../../../../functions/server/src/features/validation/extractDoctypeInternalSubset.md)
+- [extractBracketedSubset](../../../../functions/server/src/features/validation/extractBracketedSubset.md)
 - [checkEntityExpansion](../../../../functions/server/src/features/validation/checkEntityExpansion.md)
 - [validateXML](../../../../functions/server/src/features/validation/validateXML.md)
 - [validateDITAStructure](../../../../functions/server/src/features/validation/validateDITAStructure.md)
@@ -50,7 +52,10 @@ relationships:
 - [validateDitavalStructure](../../../../functions/server/src/features/validation/validateDitavalStructure.md)
 - [checkTopicrefsWithoutHref](../../../../functions/server/src/features/validation/checkTopicrefsWithoutHref.md)
 - [checkEmptyElements](../../../../functions/server/src/features/validation/checkEmptyElements.md)
-- [getEnclosingElement](../../../../functions/server/src/features/validation/getEnclosingElement.md)
+- [IdLocation](../../../../interfaces/server/src/features/validation/IdLocation.md)
+- [CollectedIds](../../../../interfaces/server/src/features/validation/CollectedIds.md)
+- [collectScopedIds](../../../../functions/server/src/features/validation/collectScopedIds.md)
+- [findTagEnd](../../../../functions/server/src/features/validation/findTagEnd.md)
 - [validateIDs](../../../../functions/server/src/features/validation/validateIDs.md)
 - [getFileExtension](../../../../functions/server/src/features/validation/getFileExtension.md)
 - [createRange](../../../../functions/server/src/features/validation/createRange.md)

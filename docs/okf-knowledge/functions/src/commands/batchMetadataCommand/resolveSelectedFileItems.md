@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: resolveSelectedFileItems
-resource: src/commands/batchMetadataCommand.ts#L119-L125
+resource: src/commands/batchMetadataCommand.ts#L132-L138
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/batchMetadataCommand/batchUpdateMetadataCommand

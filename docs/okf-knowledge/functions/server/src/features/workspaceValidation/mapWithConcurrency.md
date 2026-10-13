@@ -3,7 +3,7 @@ type: TypeScript Function
 title: mapWithConcurrency
 resource: server/src/features/workspaceValidation.ts#L53-L71
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/workspaceValidation/worker

@@ -3,7 +3,7 @@ type: TypeScript Method
 title: invalidate
 resource: server/src/services/subjectSchemeService.ts#L300-L305
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

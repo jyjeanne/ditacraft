@@ -3,10 +3,10 @@ type: TypeScript Method
 title: processEnumerationDefs
 resource: server/src/services/subjectSchemeService.ts#L414-L466
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/flattenKeys
@@ -24,7 +24,7 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [has](../../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [flattenKeys](../../../../../../functions/server/src/services/subjectSchemeService/SubjectSchemeService/flattenKeys.md)
 
 # Called by

@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: KeyAtOffset
 resource: server/src/utils/referenceParser.ts#L150-L154
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

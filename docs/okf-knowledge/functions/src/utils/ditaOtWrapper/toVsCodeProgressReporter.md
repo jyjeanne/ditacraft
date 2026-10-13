@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: toVsCodeProgressReporter
-resource: src/utils/ditaOtWrapper.ts#L52-L63
+resource: src/utils/ditaOtWrapper.ts#L69-L80
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/previewCommand/generateHtml5OutputIfNeeded

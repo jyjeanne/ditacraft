@@ -3,7 +3,7 @@ type: TypeScript Function
 title: resolveInDocument
 resource: server/src/features/definition.ts#L128-L140
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/referenceParser/findElementByIdOffset

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: hover
-resource: server/src/features/hover.ts#L1-L314
+resource: server/src/features/hover.ts#L1-L316
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

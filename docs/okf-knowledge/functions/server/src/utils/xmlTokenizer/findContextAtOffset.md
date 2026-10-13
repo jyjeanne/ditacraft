@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findContextAtOffset
 resource: server/src/utils/xmlTokenizer.ts#L445-L543
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/formatting/tokenize

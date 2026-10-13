@@ -3,7 +3,7 @@ type: TypeScript Function
 title: disposeDitaOtOutputChannel
 resource: src/utils/ditaOtOutputChannel.ts#L242-L244
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/extension/deactivate

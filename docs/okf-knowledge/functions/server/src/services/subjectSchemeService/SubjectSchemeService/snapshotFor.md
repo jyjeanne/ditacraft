@@ -3,12 +3,9 @@ type: TypeScript Method
 title: snapshotFor
 resource: server/src/services/subjectSchemeService.ts#L179-L191
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/mergeSchemes
     resolved_by: tree-sitter
     confidence: exact
@@ -27,7 +24,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [mergeSchemes](../../../../../../functions/server/src/services/subjectSchemeService/SubjectSchemeService/mergeSchemes.md)
 
 # Called by

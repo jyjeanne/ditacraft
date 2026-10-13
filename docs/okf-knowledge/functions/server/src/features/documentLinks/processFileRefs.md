@@ -3,13 +3,16 @@ type: TypeScript Function
 title: processFileRefs
 resource: server/src/features/documentLinks.ts#L165-L212
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/documentLinks/shouldSkip
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/documentLinks/isInsideComment
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -26,6 +29,7 @@ relationships:
 
 - [shouldSkip](../../../../../functions/server/src/features/documentLinks/shouldSkip.md)
 - [isInsideComment](../../../../../functions/server/src/features/documentLinks/isInsideComment.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 
 # Called by
 

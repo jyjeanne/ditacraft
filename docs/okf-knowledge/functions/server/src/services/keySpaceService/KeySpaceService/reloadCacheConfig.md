@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: reloadCacheConfig
-resource: server/src/services/keySpaceService.ts#L714-L725
+resource: server/src/services/keySpaceService.ts#L860-L871
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

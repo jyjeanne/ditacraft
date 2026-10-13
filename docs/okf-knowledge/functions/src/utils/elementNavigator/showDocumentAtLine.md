@@ -3,7 +3,7 @@ type: TypeScript Function
 title: showDocumentAtLine
 resource: src/utils/elementNavigator.ts#L92-L124
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/elementNavigator/navigateToElement

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: ditavalDecorationProvider
-resource: src/providers/ditavalDecorationProvider.ts#L1-L182
+resource: src/providers/ditavalDecorationProvider.ts#L1-L248
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -15,10 +15,13 @@ relationships:
   - target: external/commands-previewcommand
     resolved_by: tree-sitter
     confidence: exact
-  - target: external/utils-ditavalparser
+  - target: external/preview-ditaval
     resolved_by: tree-sitter
     confidence: exact
-  - target: external/utils-xmlelementscanner
+  - target: external/preview-conditionmarks
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/shared-render-types
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-constants
@@ -38,7 +41,12 @@ relationships:
 
 # Contains
 
-- [loadActiveRules](../../../functions/src/providers/ditavalDecorationProvider/loadActiveRules.md)
+- [flagDecorationType](../../../functions/src/providers/ditavalDecorationProvider/flagDecorationType.md)
+- [flagAttachment](../../../functions/src/providers/ditavalDecorationProvider/flagAttachment.md)
+- [disposeFlagDecorationTypes](../../../functions/src/providers/ditavalDecorationProvider/disposeFlagDecorationTypes.md)
+- [flagHover](../../../functions/src/providers/ditavalDecorationProvider/flagHover.md)
+- [clearDecorations](../../../functions/src/providers/ditavalDecorationProvider/clearDecorations.md)
+- [loadActiveFilter](../../../functions/src/providers/ditavalDecorationProvider/loadActiveFilter.md)
 - [exceedsLargeFileThreshold](../../../functions/src/providers/ditavalDecorationProvider/exceedsLargeFileThreshold.md)
 - [recompute](../../../functions/src/providers/ditavalDecorationProvider/recompute.md)
 - [scheduleRecompute](../../../functions/src/providers/ditavalDecorationProvider/scheduleRecompute.md)
@@ -49,8 +57,9 @@ relationships:
 - `vscode`
 - `fs/promises`
 - `../commands/previewCommand`
-- `../utils/ditavalParser`
-- `../utils/xmlElementScanner`
+- `../preview/ditaval`
+- `../preview/conditionMarks`
+- `../shared/render/types`
 - `../utils/constants`
 - `../utils/configurationManager`
 - `../utils/logger`

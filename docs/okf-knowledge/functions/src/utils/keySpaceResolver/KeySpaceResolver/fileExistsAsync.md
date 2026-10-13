@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: fileExistsAsync
-resource: src/utils/keySpaceResolver.ts#L1461-L1468
+resource: src/utils/keySpaceResolver.ts#L1594-L1601
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

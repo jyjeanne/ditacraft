@@ -3,7 +3,7 @@ type: TypeScript Function
 title: isErrorLine
 resource: src/utils/ditaOtErrorParser.ts#L214-L245
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditaOtErrorParser/parseDitaOtOutput

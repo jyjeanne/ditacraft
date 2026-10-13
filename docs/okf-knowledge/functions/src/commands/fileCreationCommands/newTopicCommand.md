@@ -1,14 +1,11 @@
 ---
 type: TypeScript Function
 title: newTopicCommand
-resource: src/commands/fileCreationCommands.ts#L219-L287
+resource: src/commands/fileCreationCommands.ts#L226-L294
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/commands/fileCreationCommands/getWorkspaceFolder
     resolved_by: tree-sitter
     confidence: exact
@@ -39,7 +36,6 @@ relationships:
 
 # Calls
 
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
 - [getWorkspaceFolder](../../../../functions/src/commands/fileCreationCommands/getWorkspaceFolder.md)
 - [promptForFileName](../../../../functions/src/commands/fileCreationCommands/promptForFileName.md)
 - [resolveTemplatedOrGeneratedContent](../../../../functions/src/commands/fileCreationCommands/resolveTemplatedOrGeneratedContent.md)

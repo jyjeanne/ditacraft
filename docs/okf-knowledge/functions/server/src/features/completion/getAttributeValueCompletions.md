@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getAttributeValueCompletions
 resource: server/src/features/completion.ts#L316-L384
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/completion/getKeyrefCompletions

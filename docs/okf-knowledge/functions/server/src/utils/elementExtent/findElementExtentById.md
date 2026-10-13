@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findElementExtentById
 resource: server/src/utils/elementExtent.ts#L49-L77
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/escapeRegex

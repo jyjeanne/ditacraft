@@ -3,7 +3,7 @@ type: TypeScript Method
 title: buildEnhancedTooltip
 resource: src/providers/ditaLinkProvider.ts#L847-L891
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/extractScope

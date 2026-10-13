@@ -3,7 +3,7 @@ type: TypeScript Method
 title: tryExecute
 resource: src/utils/rateLimiter.ts#L121-L130
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/rateLimiter/RateLimiter/isAllowed

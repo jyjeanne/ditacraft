@@ -3,7 +3,7 @@ type: TypeScript Module
 title: formatting
 resource: server/src/features/formatting.ts#L1-L327
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

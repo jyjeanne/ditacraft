@@ -3,7 +3,7 @@ type: TypeScript Function
 title: tryAsync
 resource: src/utils/errorUtils.ts#L135-L144
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

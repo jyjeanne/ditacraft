@@ -3,7 +3,7 @@ type: TypeScript Class
 title: DiagnosticItem
 resource: src/providers/diagnosticsViewProvider.ts#L17-L54
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

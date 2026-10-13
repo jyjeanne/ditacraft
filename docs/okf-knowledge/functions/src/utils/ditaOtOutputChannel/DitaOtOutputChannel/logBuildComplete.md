@@ -3,12 +3,9 @@ type: TypeScript Method
 title: logBuildComplete
 resource: src/utils/ditaOtOutputChannel.ts#L196-L208
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/utils/ditaOtOutputChannel/DitaOtOutputChannel/formatTime
     resolved_by: tree-sitter
     confidence: exact
@@ -24,7 +21,6 @@ relationships:
 
 # Calls
 
-- [info](../../../../../functions/src/utils/logger/Logger/info.md)
 - [formatTime](../../../../../functions/src/utils/ditaOtOutputChannel/DitaOtOutputChannel/formatTime.md)
 
 # Called by

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: computeLineNumber
-resource: server/src/services/keySpaceService.ts#L1755-L1762
+resource: server/src/services/keySpaceService.ts#L1917-L1924
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/extractKeyDefinitionsFromElements

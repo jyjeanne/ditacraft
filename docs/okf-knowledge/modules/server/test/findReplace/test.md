@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: server/test/findReplace.test.ts#L1-L388
+resource: server/test/findReplace.test.ts#L1-L448
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -36,6 +36,7 @@ relationships:
 # Contains
 
 - [matchOf](../../../../functions/server/test/findReplace/test/matchOf.md)
+- [matched](../../../../functions/server/test/findReplace/test/matched.md)
 
 # Imports
 

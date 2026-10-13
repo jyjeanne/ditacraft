@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: KeyMetadata
 resource: src/utils/keySpaceResolver.ts#L60-L64
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: getSubjectSchemePaths
-resource: server/src/services/keySpaceService.ts#L474-L484
+resource: server/src/services/keySpaceService.ts#L536-L546
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/batchMetadata/processFile

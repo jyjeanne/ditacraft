@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: copilotProvider
-resource: src/llm/providers/copilotProvider.ts#L1-L91
+resource: src/llm/providers/copilotProvider.ts#L1-L109
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -23,6 +23,7 @@ relationships:
 - [CopilotLLMProvider](../../../../classes/src/llm/providers/copilotProvider/CopilotLLMProvider.md)
 - [displayName](../../../../functions/src/llm/providers/copilotProvider/CopilotLLMProvider/displayName.md)
 - [isAvailable](../../../../functions/src/llm/providers/copilotProvider/CopilotLLMProvider/isAvailable.md)
+- [checkConnection](../../../../functions/src/llm/providers/copilotProvider/CopilotLLMProvider/checkConnection.md)
 - [complete](../../../../functions/src/llm/providers/copilotProvider/CopilotLLMProvider/complete.md)
 - [stream](../../../../functions/src/llm/providers/copilotProvider/CopilotLLMProvider/stream.md)
 - [estimateTokenCount](../../../../functions/src/llm/providers/copilotProvider/CopilotLLMProvider/estimateTokenCount.md)

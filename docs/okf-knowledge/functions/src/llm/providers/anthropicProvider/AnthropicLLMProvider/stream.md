@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: stream
-resource: src/llm/providers/anthropicProvider.ts#L50-L79
+resource: src/llm/providers/anthropicProvider.ts#L66-L95
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,14 +1,10 @@
 ---
 type: TypeScript Function
 title: showWelcomeMessage
-resource: src/extension.ts#L1154-L1183
+resource: src/extension.ts#L1272-L1301
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
-  calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
   - target: functions/src/extension/activate
     resolved_by: tree-sitter
@@ -18,10 +14,6 @@ relationships:
 # Signature
 
 `async function showWelcomeMessage(context: vscode.ExtensionContext): Promise<void>`
-
-# Calls
-
-- [get](../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

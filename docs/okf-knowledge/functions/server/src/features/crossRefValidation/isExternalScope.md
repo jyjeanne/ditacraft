@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isExternalScope
-resource: server/src/features/crossRefValidation.ts#L313-L315
+resource: server/src/features/crossRefValidation.ts#L338-L340
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/crossRefValidation/getScopeValue

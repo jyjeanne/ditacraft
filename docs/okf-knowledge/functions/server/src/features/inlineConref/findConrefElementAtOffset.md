@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: findConrefElementAtOffset
-resource: server/src/features/inlineConref.ts#L68-L105
+resource: server/src/features/inlineConref.ts#L78-L115
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/elementExtent/findClosingTagEnd

@@ -1,15 +1,12 @@
 ---
 type: TypeScript Method
 title: reloadCacheConfig
-resource: src/utils/keySpaceResolver.ts#L184-L196
+resource: src/utils/keySpaceResolver.ts#L200-L212
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/loadCacheConfig
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -21,4 +18,3 @@ relationships:
 # Calls
 
 - [loadCacheConfig](../../../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/loadCacheConfig.md)
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)

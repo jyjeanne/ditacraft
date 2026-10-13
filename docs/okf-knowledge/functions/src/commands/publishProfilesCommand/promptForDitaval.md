@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: promptForDitaval
-resource: src/commands/publishProfilesCommand.ts#L230-L263
+resource: src/commands/publishProfilesCommand.ts#L269-L302
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/publishProfilesCommand/storeDitavalPath

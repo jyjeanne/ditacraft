@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getGlobalSettings
 resource: server/src/settings.ts#L78-L80
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/test/docsDataset/test/settings

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: normalizeFilePath
-resource: src/utils/ditaOtWrapper.ts#L803-L809
+resource: src/utils/ditaOtWrapper.ts#L810-L816
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/publish

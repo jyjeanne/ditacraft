@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: promptForAttribute
-resource: src/commands/batchMetadataCommand.ts#L142-L159
+resource: src/commands/batchMetadataCommand.ts#L155-L172
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/batchMetadataCommand/batchUpdateMetadataCommand

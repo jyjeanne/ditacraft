@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: findReferencesToKey
-resource: server/src/utils/referenceParser.ts#L312-L335
+resource: server/src/utils/referenceParser.ts#L354-L377
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/referenceParser/referenceMatchesKey

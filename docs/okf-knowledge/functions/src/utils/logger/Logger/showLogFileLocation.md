@@ -3,7 +3,7 @@ type: TypeScript Method
 title: showLogFileLocation
 resource: src/utils/logger.ts#L234-L258
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/errorUtils/fireAndForget

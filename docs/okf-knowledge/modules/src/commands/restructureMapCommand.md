@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: restructureMapCommand
-resource: src/commands/restructureMapCommand.ts#L1-L161
+resource: src/commands/restructureMapCommand.ts#L1-L167
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -19,6 +19,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/llm-aiserviceorchestrator
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/llm-aienabled
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-errorutils
@@ -43,6 +46,7 @@ relationships:
 - `path`
 - `os`
 - `../llm/aiServiceOrchestrator`
+- `../llm/aiEnabled`
 - `../utils/errorUtils`
 
 # Member of

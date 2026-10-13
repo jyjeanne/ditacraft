@@ -3,13 +3,16 @@ type: TypeScript Function
 title: extractWorkspaceSymbols
 resource: server/src/features/symbols.ts#L269-L333
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/tagStack/resyncStackToMatch
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/symbols/extractTextContent
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -26,6 +29,7 @@ relationships:
 
 - [resyncStackToMatch](../../../../../functions/server/src/utils/tagStack/resyncStackToMatch.md)
 - [extractTextContent](../../../../../functions/server/src/features/symbols/extractTextContent.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 
 # Called by
 

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: isWatchModeActive
 resource: src/commands/watchModeCommand.ts#L67-L69
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

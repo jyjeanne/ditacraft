@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: replaceIdInReference
-resource: server/src/features/rename.ts#L264-L295
+resource: server/src/features/rename.ts#L488-L523
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/rename/collectMatchingEdits
@@ -13,7 +13,7 @@ relationships:
 
 # Signature
 
-`function replaceIdInReference( type: string, value: string, oldId: string, newId: string ): string`
+`function replaceIdInReference( type: string, value: string, oldId: string, newId: string, isTopicId = false ): string`
 
 # Called by
 

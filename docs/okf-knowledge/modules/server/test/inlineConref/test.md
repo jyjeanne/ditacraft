@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: server/test/inlineConref.test.ts#L1-L301
+resource: server/test/inlineConref.test.ts#L1-L411
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -39,6 +39,7 @@ relationships:
 # Contains
 
 - [createKeySpaceService](../../../../functions/server/test/inlineConref/test/createKeySpaceService.md)
+- [inline](../../../../functions/server/test/inlineConref/test/inline.md)
 
 # Imports
 

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: generateTopicContent
-resource: src/commands/fileCreationCommands.ts#L708-L798
+resource: src/commands/fileCreationCommands.ts#L715-L805
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/fileCreationCommands/newTopicCommand

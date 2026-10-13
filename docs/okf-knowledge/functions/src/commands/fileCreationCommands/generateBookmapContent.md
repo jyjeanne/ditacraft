@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: generateBookmapContent
-resource: src/commands/fileCreationCommands.ts#L828-L859
+resource: src/commands/fileCreationCommands.ts#L835-L866
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/fileCreationCommands/todayIso

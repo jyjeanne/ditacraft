@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getMergedSnapshot
 resource: server/src/services/subjectSchemeService.ts#L255-L263
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/getMergedSchemeData

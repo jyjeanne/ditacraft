@@ -3,7 +3,7 @@ type: TypeScript Function
 title: executeValidation
 resource: src/commands/validateGuideCommand.ts#L115-L218
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/validateGuideCommand/validateGuidePrerequisites
@@ -24,13 +24,13 @@ relationships:
   - target: functions/src/commands/validateGuideCommand/mapToValidationIssues
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/utils/ditaOtErrorParser/getDitaOtDiagnostics
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/updateFromParsedOutput
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
@@ -54,9 +54,9 @@ relationships:
 - [toVsCodeProgressReporter](../../../../functions/src/utils/ditaOtWrapper/toVsCodeProgressReporter.md)
 - [parseDitaOtOutput](../../../../functions/src/utils/ditaOtErrorParser/parseDitaOtOutput.md)
 - [mapToValidationIssues](../../../../functions/src/commands/validateGuideCommand/mapToValidationIssues.md)
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [getDitaOtDiagnostics](../../../../functions/src/utils/ditaOtErrorParser/getDitaOtDiagnostics.md)
 - [updateFromParsedOutput](../../../../functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/updateFromParsedOutput.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 - [warn](../../../../functions/src/utils/logger/Logger/warn.md)
 
 # Called by

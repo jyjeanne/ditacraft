@@ -3,10 +3,13 @@ type: TypeScript Method
 title: extractSubjectDefinitions
 resource: server/src/services/subjectSchemeService.ts#L318-L331
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/parseSubjectDefs
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -22,6 +25,7 @@ relationships:
 # Calls
 
 - [parseSubjectDefs](../../../../../../functions/server/src/services/subjectSchemeService/SubjectSchemeService/parseSubjectDefs.md)
+- [has](../../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 
 # Called by
 

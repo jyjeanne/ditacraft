@@ -1,11 +1,14 @@
 ---
 type: TypeScript Function
 title: getConrefPreview
-resource: server/src/features/hover.ts#L249-L268
+resource: server/src/features/hover.ts#L251-L270
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/webview/editor/readFile
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/utils/referenceParser/getTargetId
     resolved_by: tree-sitter
     confidence: exact
@@ -27,6 +30,7 @@ relationships:
 
 # Calls
 
+- [readFile](../../../../../functions/webview/editor/readFile.md)
 - [getTargetId](../../../../../functions/server/src/utils/referenceParser/getTargetId.md)
 - [findElementExtentById](../../../../../functions/server/src/utils/elementExtent/findElementExtentById.md)
 

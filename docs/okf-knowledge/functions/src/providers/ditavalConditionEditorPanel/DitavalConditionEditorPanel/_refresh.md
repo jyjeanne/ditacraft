@@ -4,7 +4,7 @@ title: _refresh
 resource: src/providers/ditavalConditionEditorPanel.ts#L171-L188
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditavalParser/parseDitavalRules

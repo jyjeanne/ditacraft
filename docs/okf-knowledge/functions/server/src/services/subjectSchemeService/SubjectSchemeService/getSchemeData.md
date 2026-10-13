@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getSchemeData
 resource: server/src/services/subjectSchemeService.ts#L202-L204
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/mergeSchemes

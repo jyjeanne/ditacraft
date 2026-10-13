@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: server/test/keySpaceService.test.ts#L1-L2470
+resource: server/test/keySpaceService.test.ts#L1-L2709
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -35,6 +35,7 @@ relationships:
 - [makeTmpDir](../../../../functions/server/test/keySpaceService/test/makeTmpDir.md)
 - [cleanup](../../../../functions/server/test/keySpaceService/test/cleanup.md)
 - [createService](../../../../functions/server/test/keySpaceService/test/createService.md)
+- [writeNestedPublication](../../../../functions/server/test/keySpaceService/test/writeNestedPublication.md)
 
 # Imports
 

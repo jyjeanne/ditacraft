@@ -3,7 +3,7 @@ type: TypeScript Function
 title: publishHTML5Command
 resource: src/commands/publishCommand.ts#L168-L184
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/publishCommand/validateAndPrepareForPublish

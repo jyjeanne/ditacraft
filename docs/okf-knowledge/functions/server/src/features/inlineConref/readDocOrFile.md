@@ -1,12 +1,12 @@
 ---
 type: TypeScript Function
 title: readDocOrFile
-resource: server/src/features/inlineConref.ts#L129-L137
+resource: server/src/features/inlineConref.ts#L262-L270
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/webview/editor/readFile
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -21,7 +21,7 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [readFile](../../../../../functions/webview/editor/readFile.md)
 
 # Called by
 

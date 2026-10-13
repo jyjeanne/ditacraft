@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getTargetId
 resource: server/src/utils/referenceParser.ts#L50-L54
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/definition/handleDefinition

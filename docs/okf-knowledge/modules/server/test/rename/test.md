@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: server/test/rename.test.ts#L1-L698
+resource: server/test/rename.test.ts#L1-L827
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -39,6 +39,8 @@ relationships:
 # Contains
 
 - [mockKeySpaceService](../../../../functions/server/test/rename/test/mockKeySpaceService.md)
+- [project](../../../../functions/server/test/rename/test/project.md)
+- [renameAt](../../../../functions/server/test/rename/test/renameAt.md)
 
 # Imports
 

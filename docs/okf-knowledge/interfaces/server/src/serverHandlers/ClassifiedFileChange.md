@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: ClassifiedFileChange
 resource: server/src/serverHandlers.ts#L120-L126
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

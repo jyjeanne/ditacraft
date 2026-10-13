@@ -3,7 +3,7 @@ type: TypeScript Function
 title: handleBuildContextSnapshot
 resource: server/src/features/contextSnapshot.ts#L200-L230
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/contextGraph/handleGetContextGraph

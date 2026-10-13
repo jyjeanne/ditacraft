@@ -3,7 +3,7 @@ type: TypeScript Function
 title: readKeys
 resource: mcp/test/resources/keys.test.ts#L38-L45
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

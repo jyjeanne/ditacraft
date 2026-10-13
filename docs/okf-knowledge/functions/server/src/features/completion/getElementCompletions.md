@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getElementCompletions
 resource: server/src/features/completion.ts#L261-L289
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/completion/handleCompletion

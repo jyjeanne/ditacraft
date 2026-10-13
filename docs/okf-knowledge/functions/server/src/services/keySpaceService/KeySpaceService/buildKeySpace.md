@@ -1,14 +1,11 @@
 ---
 type: TypeScript Method
 title: buildKeySpace
-resource: server/src/services/keySpaceService.ts#L505-L547
+resource: server/src/services/keySpaceService.ts#L567-L609
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/services/keySpaceService/KeySpaceService/isBuildStale
     resolved_by: tree-sitter
     confidence: exact
@@ -20,5 +17,4 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [isBuildStale](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/isBuildStale.md)

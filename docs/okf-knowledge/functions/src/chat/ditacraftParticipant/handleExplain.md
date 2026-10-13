@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: handleExplain
-resource: src/chat/ditacraftParticipant.ts#L185-L229
+resource: src/chat/ditacraftParticipant.ts#L192-L236
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/explainElement

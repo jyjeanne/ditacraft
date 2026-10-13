@@ -3,7 +3,7 @@ type: TypeScript Method
 title: resetAll
 resource: src/utils/rateLimiter.ts#L158-L160
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/validateCommand/resetValidationRateLimiter

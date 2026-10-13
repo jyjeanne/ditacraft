@@ -1,10 +1,10 @@
 ---
 type: TypeScript Method
 title: _renderGroup
-resource: src/providers/ditavalConditionEditorPanel.ts#L385-L402
+resource: src/providers/ditavalConditionEditorPanel.ts#L439-L456
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/ditavalConditionEditorPanel/DitavalConditionEditorPanel/_renderChip
@@ -21,7 +21,7 @@ relationships:
 
 # Signature
 
-`private _renderGroup(group: ConditionAttributeState): string`
+`private _renderGroup(group: ConditionAttributeState, index: number): string`
 
 # Calls
 

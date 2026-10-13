@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: promptForProfile
-resource: src/commands/publishProfilesCommand.ts#L172-L216
+resource: src/commands/publishProfilesCommand.ts#L211-L255
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/publishProfilesCommand/pickTranstype

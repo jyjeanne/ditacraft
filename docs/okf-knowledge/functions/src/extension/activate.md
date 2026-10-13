@@ -1,14 +1,11 @@
 ---
 type: TypeScript Function
 title: activate
-resource: src/extension.ts#L76-L306
+resource: src/extension.ts#L87-L333
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/commands/validateCommand/initializeValidator
     resolved_by: tree-sitter
     confidence: exact
@@ -45,6 +42,9 @@ relationships:
   - target: functions/src/extension/registerMoveTopicFeature
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/extension/registerPathFollowing
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/extension/registerWatchModeFeature
     resolved_by: tree-sitter
     confidence: exact
@@ -60,10 +60,13 @@ relationships:
   - target: functions/src/llm/llmRouterService/LLMRouterService/setMetrics
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/errorUtils/fireAndForget
+  - target: functions/src/llm/llmConfig/buildLLMConfig
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/extension/buildLLMConfig
+  - target: functions/src/llm/aiEnabled/isAiEnabled
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/utils/errorUtils/fireAndForget
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/configureAICommand/configureAICommand
@@ -98,7 +101,6 @@ relationships:
 
 # Calls
 
-- [info](../../../functions/src/utils/logger/Logger/info.md)
 - [initializeValidator](../../../functions/src/commands/validateCommand/initializeValidator.md)
 - [initializePreview](../../../functions/src/commands/previewCommand/initializePreview.md)
 - [registerPreviewPanelSerializer](../../../functions/src/providers/previewPanel/registerPreviewPanelSerializer.md)
@@ -111,13 +113,15 @@ relationships:
 - [setGroupMode](../../../functions/src/providers/diagnosticsViewProvider/DiagnosticsViewProvider/setGroupMode.md)
 - [registerRootMapFeature](../../../functions/src/extension/registerRootMapFeature.md)
 - [registerMoveTopicFeature](../../../functions/src/extension/registerMoveTopicFeature.md)
+- [registerPathFollowing](../../../functions/src/extension/registerPathFollowing.md)
 - [registerWatchModeFeature](../../../functions/src/extension/registerWatchModeFeature.md)
 - [startLanguageClient](../../../functions/src/languageClient/startLanguageClient.md)
 - [sendInitialRootMapSetting](../../../functions/src/extension/sendInitialRootMapSetting.md)
 - [clearOldLogs](../../../functions/src/utils/logger/Logger/clearOldLogs.md)
 - [setMetrics](../../../functions/src/llm/llmRouterService/LLMRouterService/setMetrics.md)
+- [buildLLMConfig](../../../functions/src/llm/llmConfig/buildLLMConfig.md)
+- [isAiEnabled](../../../functions/src/llm/aiEnabled/isAiEnabled.md)
 - [fireAndForget](../../../functions/src/utils/errorUtils/fireAndForget.md)
-- [buildLLMConfig](../../../functions/src/extension/buildLLMConfig.md)
 - [configureAICommand](../../../functions/src/commands/configureAICommand/configureAICommand.md)
 - [createDitacraftParticipant](../../../functions/src/chat/ditacraftParticipant/createDitacraftParticipant.md)
 - [restructureMapCommand](../../../functions/src/commands/restructureMapCommand/restructureMapCommand.md)

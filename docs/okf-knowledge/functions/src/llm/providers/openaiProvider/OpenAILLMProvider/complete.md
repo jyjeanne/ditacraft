@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: complete
-resource: src/llm/providers/openaiProvider.ts#L35-L47
+resource: src/llm/providers/openaiProvider.ts#L76-L88
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: estimateTokenCount
-resource: src/llm/providers/copilotProvider.ts#L87-L90
+resource: src/llm/providers/copilotProvider.ts#L105-L108
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

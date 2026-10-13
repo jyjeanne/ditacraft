@@ -3,7 +3,7 @@ type: TypeScript Module
 title: ditaOtErrorCodes
 resource: src/utils/ditaOtErrorCodes.ts#L1-L257
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft

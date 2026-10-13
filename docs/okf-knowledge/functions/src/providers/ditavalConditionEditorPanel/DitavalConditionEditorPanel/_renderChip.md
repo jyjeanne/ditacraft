@@ -1,10 +1,10 @@
 ---
 type: TypeScript Method
 title: _renderChip
-resource: src/providers/ditavalConditionEditorPanel.ts#L404-L419
+resource: src/providers/ditavalConditionEditorPanel.ts#L458-L479
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditavalConditionState/nextConditionAction

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: extractTopicIds
-resource: server/src/features/completion.ts#L608-L618
+resource: server/src/features/completion.ts#L609-L619
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/completion/getHrefFragmentCompletions

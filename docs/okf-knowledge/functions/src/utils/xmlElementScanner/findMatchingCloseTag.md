@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findMatchingCloseTag
 resource: src/utils/xmlElementScanner.ts#L76-L96
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/xmlElementScanner/findProfiledElements

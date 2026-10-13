@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: moveTopic
-resource: server/src/features/moveTopic.ts#L1-L168
+resource: server/src/features/moveTopic.ts#L1-L288
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/fs-promises
@@ -19,9 +19,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/vscode-uri
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: external/utils-referenceparser
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-workspacescanner
@@ -45,6 +42,12 @@ relationships:
 - [ComputeMoveEditsParams](../../../../interfaces/server/src/features/moveTopic/ComputeMoveEditsParams.md)
 - [isDitaFilePath](../../../../functions/server/src/features/moveTopic/isDitaFilePath.md)
 - [toHrefPath](../../../../functions/server/src/features/moveTopic/toHrefPath.md)
+- [FileReference](../../../../interfaces/server/src/features/moveTopic/FileReference.md)
+- [relativeFileReferences](../../../../functions/server/src/features/moveTopic/relativeFileReferences.md)
+- [resolveReference](../../../../functions/server/src/features/moveTopic/resolveReference.md)
+- [referenceValue](../../../../functions/server/src/features/moveTopic/referenceValue.md)
+- [isDirectory](../../../../functions/server/src/features/moveTopic/isDirectory.md)
+- [readContent](../../../../functions/server/src/features/moveTopic/readContent.md)
 - [handleComputeMoveEdits](../../../../functions/server/src/features/moveTopic/handleComputeMoveEdits.md)
 
 # Imports
@@ -54,7 +57,6 @@ relationships:
 - `vscode-languageserver/node`
 - `vscode-languageserver-textdocument`
 - `vscode-uri`
-- `../utils/referenceParser`
 - `../utils/workspaceScanner`
 - `../utils/textUtils`
 - `./workspaceValidation`

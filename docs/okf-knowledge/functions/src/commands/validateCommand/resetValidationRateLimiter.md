@@ -3,7 +3,7 @@ type: TypeScript Function
 title: resetValidationRateLimiter
 resource: src/commands/validateCommand.ts#L233-L237
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/rateLimiter/RateLimiter/resetAll

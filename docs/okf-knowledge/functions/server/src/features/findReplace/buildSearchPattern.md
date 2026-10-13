@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: buildSearchPattern
-resource: server/src/features/findReplace.ts#L66-L77
+resource: server/src/features/findReplace.ts#L70-L81
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/escapeRegex

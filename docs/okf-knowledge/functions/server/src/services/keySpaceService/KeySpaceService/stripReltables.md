@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: stripReltables
-resource: server/src/services/keySpaceService.ts#L2051-L2062
+resource: server/src/services/keySpaceService.ts#L2213-L2224
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/doBuildKeySpace

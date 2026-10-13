@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: stream
-resource: src/llm/providers/copilotProvider.ts#L56-L85
+resource: src/llm/providers/copilotProvider.ts#L74-L103
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

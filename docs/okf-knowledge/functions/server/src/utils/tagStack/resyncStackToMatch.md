@@ -3,7 +3,7 @@ type: TypeScript Function
 title: resyncStackToMatch
 resource: server/src/utils/tagStack.ts#L20-L38
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/completion/findParentElement

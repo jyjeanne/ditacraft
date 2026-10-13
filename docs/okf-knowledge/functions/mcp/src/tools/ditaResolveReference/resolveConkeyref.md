@@ -3,12 +3,9 @@ type: TypeScript Function
 title: resolveConkeyref
 resource: mcp/src/tools/ditaResolveReference.ts#L119-L161
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/mcp/src/tools/ditaResolveReference/resolveKeyref
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/mcp/src/workspace/fileUriToFsPath
     resolved_by: tree-sitter
     confidence: exact
@@ -30,7 +27,6 @@ relationships:
 
 # Calls
 
-- [resolveKeyref](../../../../../functions/mcp/src/tools/ditaResolveReference/resolveKeyref.md)
 - [fileUriToFsPath](../../../../../functions/mcp/src/workspace/fileUriToFsPath.md)
 - [validateWithinWorkspace](../../../../../functions/mcp/src/workspace/validateWithinWorkspace.md)
 - [findElementByIdOffset](../../../../../functions/server/src/utils/referenceParser/findElementByIdOffset.md)

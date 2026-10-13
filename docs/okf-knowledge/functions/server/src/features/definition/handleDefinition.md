@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleDefinition
 resource: server/src/features/definition.ts#L27-L123
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/textUtils/effectiveWorkspaceFolders
     resolved_by: tree-sitter
     confidence: exact
@@ -33,9 +30,6 @@ relationships:
   - target: functions/server/src/features/definition/resolveInDocument
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/referenceParser/parseReference
-    resolved_by: tree-sitter
-    confidence: exact
 ---
 
 # Signature
@@ -44,7 +38,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [effectiveWorkspaceFolders](../../../../../functions/server/src/utils/textUtils/effectiveWorkspaceFolders.md)
 - [uriToPath](../../../../../functions/server/src/utils/textUtils/uriToPath.md)
 - [getWorkspaceFolders](../../../../../functions/server/src/services/keySpaceService/KeySpaceService/getWorkspaceFolders.md)
@@ -53,4 +46,3 @@ relationships:
 - [getTargetId](../../../../../functions/server/src/utils/referenceParser/getTargetId.md)
 - [locationAtFileStart](../../../../../functions/server/src/features/definition/locationAtFileStart.md)
 - [resolveInDocument](../../../../../functions/server/src/features/definition/resolveInDocument.md)
-- [parseReference](../../../../../functions/server/src/utils/referenceParser/parseReference.md)

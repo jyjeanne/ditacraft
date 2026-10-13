@@ -3,7 +3,7 @@ type: TypeScript Function
 title: uriToPath
 resource: server/src/utils/textUtils.ts#L195-L197
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/batchMetadata/processFile
@@ -60,7 +60,10 @@ relationships:
   - target: functions/server/src/features/references/handleReferences
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/features/rename/handleRename
+  - target: functions/server/src/features/rename/resolveUsage
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/rename/handleIdRename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/rename/handleKeyRename
@@ -104,7 +107,8 @@ relationships:
 - [handleComputeInlineConrefEdit](../../../../../functions/server/src/features/inlineConref/handleComputeInlineConrefEdit.md)
 - [handleComputeMoveEdits](../../../../../functions/server/src/features/moveTopic/handleComputeMoveEdits.md)
 - [handleReferences](../../../../../functions/server/src/features/references/handleReferences.md)
-- [handleRename](../../../../../functions/server/src/features/rename/handleRename.md)
+- [resolveUsage](../../../../../functions/server/src/features/rename/resolveUsage.md)
+- [handleIdRename](../../../../../functions/server/src/features/rename/handleIdRename.md)
 - [handleKeyRename](../../../../../functions/server/src/features/rename/handleKeyRename.md)
 - [getFileExtension](../../../../../functions/server/src/features/validation/getFileExtension.md)
 - [extractWorkspaceFolderPaths](../../../../../functions/server/src/serverHandlers/extractWorkspaceFolderPaths.md)

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: extractKeyDefinitions
-resource: server/src/services/keySpaceService.ts#L1084-L1094
+resource: server/src/services/keySpaceService.ts#L1224-L1234
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/parseMapElements

@@ -1,0 +1,11 @@
+---
+type: TypeScript Method
+title: paragraph
+resource: src/shared/editor/commands.ts#L53-L55
+generated:
+  by: okf-rs/0.7.0
+---
+
+# Signature
+
+`get paragraph(): NodeType | undefined`

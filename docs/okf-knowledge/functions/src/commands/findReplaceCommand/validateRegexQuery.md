@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: validateRegexQuery
-resource: src/commands/findReplaceCommand.ts#L159-L166
+resource: src/commands/findReplaceCommand.ts#L219-L226
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/findReplaceCommand/findReplaceInFilesCommand

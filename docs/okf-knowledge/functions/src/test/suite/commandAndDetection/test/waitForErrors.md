@@ -3,7 +3,7 @@ type: TypeScript Function
 title: waitForErrors
 resource: src/test/suite/commandAndDetection.test.ts#L17-L27
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: ChatMessage
 resource: src/llm/types.ts#L7-L10
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

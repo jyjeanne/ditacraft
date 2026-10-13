@@ -3,14 +3,13 @@ type: TypeScript Function
 title: resolveHref
 resource: server/src/features/contextGraph.ts#L108-L129
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/test/suite/keySpaceResolver/test/normalize
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
     resolved_by: tree-sitter
     confidence: exact
-  called_by:
-  - target: functions/server/src/features/contextGraph/buildMapNode
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -21,8 +20,5 @@ relationships:
 
 # Calls
 
-- [normalize](../../../../../functions/src/test/suite/keySpaceResolver/test/normalize.md)
-
-# Called by
-
-- [buildMapNode](../../../../../functions/server/src/features/contextGraph/buildMapNode.md)
+- [startsWith](../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)

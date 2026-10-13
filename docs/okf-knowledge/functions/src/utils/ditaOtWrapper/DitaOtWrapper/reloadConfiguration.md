@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: reloadConfiguration
-resource: src/utils/ditaOtWrapper.ts#L187-L190
+resource: src/utils/ditaOtWrapper.ts#L204-L207
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/detectDitaOtCommand

@@ -4,7 +4,7 @@ title: _buildTree
 resource: src/providers/keySpaceViewProvider.ts#L130-L262
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/ditaLinkProvider/getGlobalKeySpaceResolver
@@ -13,10 +13,10 @@ relationships:
   - target: functions/src/utils/mapHierarchyParser/findAllMapsInWorkspace
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/keyUsageScanner/scanKeyUsages
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/utils/keyUsageScanner/scanKeyUsages
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -33,8 +33,8 @@ relationships:
 
 - [getGlobalKeySpaceResolver](../../../../../functions/src/providers/ditaLinkProvider/getGlobalKeySpaceResolver.md)
 - [findAllMapsInWorkspace](../../../../../functions/src/utils/mapHierarchyParser/findAllMapsInWorkspace.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [scanKeyUsages](../../../../../functions/src/utils/keyUsageScanner/scanKeyUsages.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

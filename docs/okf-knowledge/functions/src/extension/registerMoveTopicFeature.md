@@ -1,21 +1,21 @@
 ---
 type: TypeScript Function
 title: registerMoveTopicFeature
-resource: src/extension.ts#L576-L640
+resource: src/extension.ts#L622-L697
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/languageClient/getLanguageClient
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/constants/isDitaContentUri
+  - target: functions/src/preview/grammarRegistry/GrammarRegistry/entries
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/info
+  - target: functions/webview/editor/mapView/RowDrag/find
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -31,9 +31,9 @@ relationships:
 # Calls
 
 - [getLanguageClient](../../../functions/src/languageClient/getLanguageClient.md)
-- [isDitaContentUri](../../../functions/src/utils/constants/isDitaContentUri.md)
+- [entries](../../../functions/src/preview/grammarRegistry/GrammarRegistry/entries.md)
 - [warn](../../../functions/src/utils/logger/Logger/warn.md)
-- [info](../../../functions/src/utils/logger/Logger/info.md)
+- [find](../../../functions/webview/editor/mapView/RowDrag/find.md)
 
 # Called by
 

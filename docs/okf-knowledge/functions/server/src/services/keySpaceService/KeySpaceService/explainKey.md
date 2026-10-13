@@ -1,14 +1,11 @@
 ---
 type: TypeScript Method
 title: explainKey
-resource: server/src/services/keySpaceService.ts#L342-L452
+resource: server/src/services/keySpaceService.ts#L404-L514
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/textUtils/normalizeFsPath
     resolved_by: tree-sitter
     confidence: exact
@@ -16,6 +13,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/services/keySpaceService/KeySpaceService/appendKeyrefSteps
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -30,10 +30,10 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [normalizeFsPath](../../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
 - [followKeyrefChainWithTrace](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/followKeyrefChainWithTrace.md)
 - [appendKeyrefSteps](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/appendKeyrefSteps.md)
+- [basename](../../../../../../functions/src/shared/render/toHtml/basename.md)
 
 # Called by
 

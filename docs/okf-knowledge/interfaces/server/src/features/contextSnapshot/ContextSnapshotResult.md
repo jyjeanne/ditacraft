@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: ContextSnapshotResult
 resource: server/src/features/contextSnapshot.ts#L23-L28
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

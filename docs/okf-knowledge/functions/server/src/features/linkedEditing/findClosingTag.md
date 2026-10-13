@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findClosingTag
 resource: server/src/features/linkedEditing.ts#L132-L166
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

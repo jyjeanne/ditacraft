@@ -1,10 +1,10 @@
 ---
 type: TypeScript Method
 title: _getAiCompletions
-resource: src/providers/aiCompletionProvider.ts#L78-L129
+resource: src/providers/aiCompletionProvider.ts#L79-L130
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/aiCompletionProvider/AICompletionProvider/_insertCursor

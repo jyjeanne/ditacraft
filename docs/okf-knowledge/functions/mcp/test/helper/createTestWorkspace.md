@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: createTestWorkspace
-resource: mcp/test/helper.ts#L24-L66
+resource: mcp/test/helper.ts#L24-L75
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

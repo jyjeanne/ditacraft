@@ -3,8 +3,12 @@ type: TypeScript Function
 title: setWatchingStatus
 resource: src/commands/watchModeCommand.ts#L216-L221
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
+  calls:
+  - target: functions/src/shared/render/toHtml/basename
+    resolved_by: tree-sitter
+    confidence: exact
   called_by:
   - target: functions/src/commands/watchModeCommand/startWatchModeCommand
     resolved_by: tree-sitter
@@ -17,6 +21,10 @@ relationships:
 # Signature
 
 `function setWatchingStatus(): void`
+
+# Calls
+
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 
 # Called by
 

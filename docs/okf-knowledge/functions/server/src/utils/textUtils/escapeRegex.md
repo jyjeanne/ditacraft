@@ -3,7 +3,7 @@ type: TypeScript Function
 title: escapeRegex
 resource: server/src/utils/textUtils.ts#L183-L185
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/batchMetadata/buildAttributeEdit
@@ -27,6 +27,9 @@ relationships:
   - target: functions/server/src/features/profilingValidation/validateProfilingAttributes
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/src/features/rename/findIdDefinition
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/utils/elementExtent/findElementExtentById
     resolved_by: tree-sitter
     confidence: exact
@@ -45,4 +48,5 @@ relationships:
 - [findTargetElementByIdOnly](../../../../../functions/server/src/features/crossRefValidation/findTargetElementByIdOnly.md)
 - [buildSearchPattern](../../../../../functions/server/src/features/findReplace/buildSearchPattern.md)
 - [validateProfilingAttributes](../../../../../functions/server/src/features/profilingValidation/validateProfilingAttributes.md)
+- [findIdDefinition](../../../../../functions/server/src/features/rename/findIdDefinition.md)
 - [findElementExtentById](../../../../../functions/server/src/utils/elementExtent/findElementExtentById.md)

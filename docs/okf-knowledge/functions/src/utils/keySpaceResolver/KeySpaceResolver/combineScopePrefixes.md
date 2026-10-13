@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: combineScopePrefixes
-resource: src/utils/keySpaceResolver.ts#L917-L927
+resource: src/utils/keySpaceResolver.ts#L940-L950
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

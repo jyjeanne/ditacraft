@@ -3,7 +3,7 @@ type: TypeScript Module
 title: ditaSchema
 resource: server/src/data/ditaSchema.ts#L1-L759
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/server

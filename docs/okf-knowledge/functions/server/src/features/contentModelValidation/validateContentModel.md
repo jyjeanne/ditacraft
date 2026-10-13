@@ -3,7 +3,7 @@ type: TypeScript Function
 title: validateContentModel
 resource: server/src/features/contentModelValidation.ts#L481-L490
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/contentModelValidation/parseElementTree

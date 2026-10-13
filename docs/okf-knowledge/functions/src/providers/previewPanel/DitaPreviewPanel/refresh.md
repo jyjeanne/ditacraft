@@ -3,7 +3,7 @@ type: TypeScript Method
 title: refresh
 resource: src/providers/previewPanel.ts#L197-L199
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

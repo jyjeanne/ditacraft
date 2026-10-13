@@ -4,7 +4,7 @@ title: _escapeHtml
 resource: src/providers/previewPanel.ts#L1044-L1051
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

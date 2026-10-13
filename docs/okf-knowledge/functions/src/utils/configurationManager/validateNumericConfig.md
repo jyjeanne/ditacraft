@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: validateNumericConfig
-resource: src/utils/configurationManager.ts#L92-L97
+resource: src/utils/configurationManager.ts#L107-L112
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/configurationManager/ConfigurationManager/loadConfiguration

@@ -3,7 +3,7 @@ type: JavaScript Function
 title: watchAndPublish
 resource: scripts/generate-graph.js#L107-L127
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/scripts/generate-graph/publishOutputs

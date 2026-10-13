@@ -1,9 +1,9 @@
 ---
 type: JavaScript Function
 title: linkReadmeFromIndex
-resource: scripts/generate-okf-knowledge.js#L117-L122
+resource: scripts/generate-okf-knowledge.js#L117-L130
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/scripts/generate-okf-knowledge/main

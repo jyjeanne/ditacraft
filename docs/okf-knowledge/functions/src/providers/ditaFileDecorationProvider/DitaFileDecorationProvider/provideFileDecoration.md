@@ -3,7 +3,7 @@ type: TypeScript Method
 title: provideFileDecoration
 resource: src/providers/ditaFileDecorationProvider.ts#L27-L64
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/constants/isDitaUri

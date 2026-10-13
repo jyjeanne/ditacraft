@@ -4,7 +4,7 @@ title: _getErrorHtml
 resource: src/providers/previewPanel.ts#L995-L1039
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

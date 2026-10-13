@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: updateRootMapStatusBar
-resource: src/extension.ts#L435-L445
+resource: src/extension.ts#L462-L472
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/extension/registerRootMapFeature

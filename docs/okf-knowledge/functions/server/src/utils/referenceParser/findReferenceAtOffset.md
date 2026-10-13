@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findReferenceAtOffset
 resource: server/src/utils/referenceParser.ts#L60-L101
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/referenceParser/isRefAttr
@@ -14,6 +14,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/hover/handleHover
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/rename/usageAtOffset
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -30,3 +33,4 @@ relationships:
 
 - [handleDefinition](../../../../../functions/server/src/features/definition/handleDefinition.md)
 - [handleHover](../../../../../functions/server/src/features/hover/handleHover.md)
+- [usageAtOffset](../../../../../functions/server/src/features/rename/usageAtOffset.md)

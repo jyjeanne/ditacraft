@@ -3,7 +3,7 @@ type: TypeScript Function
 title: createDoc
 resource: server/test/helper.ts#L10-L16
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/test/codeActions/test/actions
@@ -15,6 +15,9 @@ relationships:
   - target: functions/server/test/edgeCases/test/validate
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/server/test/findReplace/test/matched
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/test/helper/createDocsFromContent
     resolved_by: tree-sitter
     confidence: exact
@@ -22,6 +25,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/test/linkedEditing/test/linked
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/test/rename/test/project
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/test/symbols/test/symbols
@@ -41,8 +47,10 @@ relationships:
 - [actions](../../../../functions/server/test/codeActions/test/actions.md)
 - [complete](../../../../functions/server/test/completion/test/complete.md)
 - [validate](../../../../functions/server/test/edgeCases/test/validate.md)
+- [matched](../../../../functions/server/test/findReplace/test/matched.md)
 - [createDocsFromContent](../../../../functions/server/test/helper/createDocsFromContent.md)
 - [hover](../../../../functions/server/test/hover/test/hover.md)
 - [linked](../../../../functions/server/test/linkedEditing/test/linked.md)
+- [project](../../../../functions/server/test/rename/test/project.md)
 - [symbols](../../../../functions/server/test/symbols/test/symbols.md)
 - [validate](../../../../functions/server/test/validation/test/validate.md)

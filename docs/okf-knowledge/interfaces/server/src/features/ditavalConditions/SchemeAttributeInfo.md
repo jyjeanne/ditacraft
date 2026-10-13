@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: SchemeAttributeInfo
 resource: server/src/features/ditavalConditions.ts#L31-L34
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

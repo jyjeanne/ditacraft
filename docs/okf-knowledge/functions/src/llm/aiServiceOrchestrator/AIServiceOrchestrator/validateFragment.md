@@ -3,7 +3,7 @@ type: TypeScript Method
 title: validateFragment
 resource: src/llm/aiServiceOrchestrator.ts#L384-L398
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

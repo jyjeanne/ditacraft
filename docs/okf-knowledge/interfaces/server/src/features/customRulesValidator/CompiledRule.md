@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: CompiledRule
 resource: server/src/features/customRulesValidator.ts#L46-L51
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

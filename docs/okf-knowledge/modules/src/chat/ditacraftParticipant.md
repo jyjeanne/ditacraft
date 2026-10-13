@@ -1,15 +1,18 @@
 ---
 type: TypeScript Module
 title: ditacraftParticipant
-resource: src/chat/ditacraftParticipant.ts#L1-L267
+resource: src/chat/ditacraftParticipant.ts#L1-L274
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
     resolved_by: tree-sitter
     confidence: exact
   - target: external/llm-aiserviceorchestrator
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/llm-aienabled
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-errorutils
@@ -34,6 +37,7 @@ relationships:
 
 - `vscode`
 - `../llm/aiServiceOrchestrator`
+- `../llm/aiEnabled`
 - `../utils/errorUtils`
 
 # Member of

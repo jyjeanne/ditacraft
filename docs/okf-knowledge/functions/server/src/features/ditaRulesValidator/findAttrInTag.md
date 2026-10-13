@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findAttrInTag
 resource: server/src/features/ditaRulesValidator.ts#L1085-L1090
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

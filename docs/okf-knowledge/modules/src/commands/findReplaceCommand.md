@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: findReplaceCommand
-resource: src/commands/findReplaceCommand.ts#L1-L199
+resource: src/commands/findReplaceCommand.ts#L1-L260
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -30,10 +30,12 @@ relationships:
 - [LspWorkspaceEdit](../../../interfaces/src/commands/findReplaceCommand/LspWorkspaceEdit.md)
 - [FindReplaceResponse](../../../interfaces/src/commands/findReplaceCommand/FindReplaceResponse.md)
 - [findReplaceInFilesCommand](../../../functions/src/commands/findReplaceCommand/findReplaceInFilesCommand.md)
+- [confirmWorkspaceEdit](../../../functions/src/commands/findReplaceCommand/confirmWorkspaceEdit.md)
+- [describeFileChanges](../../../functions/src/commands/findReplaceCommand/describeFileChanges.md)
 - [parseFindOptions](../../../functions/src/commands/findReplaceCommand/parseFindOptions.md)
 - [validateRegexQuery](../../../functions/src/commands/findReplaceCommand/validateRegexQuery.md)
 - [describeSearchLabel](../../../functions/src/commands/findReplaceCommand/describeSearchLabel.md)
-- [buildConfirmableWorkspaceEdit](../../../functions/src/commands/findReplaceCommand/buildConfirmableWorkspaceEdit.md)
+- [buildWorkspaceEdit](../../../functions/src/commands/findReplaceCommand/buildWorkspaceEdit.md)
 
 # Imports
 

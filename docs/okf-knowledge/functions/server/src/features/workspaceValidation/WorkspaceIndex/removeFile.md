@@ -3,13 +3,10 @@ type: TypeScript Method
 title: removeFile
 resource: server/src/features/workspaceValidation.ts#L232-L248
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/normalizeFsPath
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -25,7 +22,6 @@ relationships:
 # Calls
 
 - [normalizeFsPath](../../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

@@ -3,7 +3,7 @@ type: JavaScript Module
 title: generate-graph
 resource: scripts/generate-graph.js#L1-L142
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft

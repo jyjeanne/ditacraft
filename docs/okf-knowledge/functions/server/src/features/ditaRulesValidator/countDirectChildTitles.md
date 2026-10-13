@@ -3,7 +3,7 @@ type: TypeScript Function
 title: countDirectChildTitles
 resource: server/src/features/ditaRulesValidator.ts#L1035-L1066
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

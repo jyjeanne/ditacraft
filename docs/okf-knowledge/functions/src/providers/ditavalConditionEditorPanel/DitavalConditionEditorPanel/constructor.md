@@ -3,7 +3,7 @@ type: TypeScript Method
 title: constructor
 resource: src/providers/ditavalConditionEditorPanel.ts#L57-L71
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/ditavalConditionEditorPanel/DitavalConditionEditorPanel/_refresh

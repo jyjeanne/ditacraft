@@ -3,7 +3,7 @@ type: TypeScript Method
 title: finalizeDiagnostics
 resource: server/src/services/validationPipeline.ts#L686-L718
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/suppressionEngine/applySuppressions

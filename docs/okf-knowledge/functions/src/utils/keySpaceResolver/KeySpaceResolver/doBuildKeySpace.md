@@ -1,18 +1,12 @@
 ---
 type: TypeScript Method
 title: doBuildKeySpace
-resource: src/utils/keySpaceResolver.ts#L435-L606
+resource: src/utils/keySpaceResolver.ts#L455-L626
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/test/suite/keySpaceResolver/test/normalize
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
@@ -21,7 +15,7 @@ relationships:
   - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/readFileAsync
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -32,9 +26,7 @@ relationships:
 
 # Calls
 
-- [info](../../../../../functions/src/utils/logger/Logger/info.md)
-- [normalize](../../../../../functions/src/test/suite/keySpaceResolver/test/normalize.md)
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [warn](../../../../../functions/src/utils/logger/Logger/warn.md)
 - [readFileAsync](../../../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/readFileAsync.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)

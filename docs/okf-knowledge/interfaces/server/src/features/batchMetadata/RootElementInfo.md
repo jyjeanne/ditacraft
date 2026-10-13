@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: RootElementInfo
 resource: server/src/features/batchMetadata.ts#L47-L52
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

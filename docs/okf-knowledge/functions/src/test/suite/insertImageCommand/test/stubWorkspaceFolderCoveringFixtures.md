@@ -3,10 +3,10 @@ type: TypeScript Function
 title: stubWorkspaceFolderCoveringFixtures
 resource: src/test/suite/insertImageCommand.test.ts#L316-L327
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/test/suite/keySpaceResolver/test/normalize
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -17,4 +17,4 @@ relationships:
 
 # Calls
 
-- [normalize](../../../../../../functions/src/test/suite/keySpaceResolver/test/normalize.md)
+- [startsWith](../../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)

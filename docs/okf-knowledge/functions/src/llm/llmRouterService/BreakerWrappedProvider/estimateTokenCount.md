@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: estimateTokenCount
-resource: src/llm/llmRouterService.ts#L38
+resource: src/llm/llmRouterService.ts#L39
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

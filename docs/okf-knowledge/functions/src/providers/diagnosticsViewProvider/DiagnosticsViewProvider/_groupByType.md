@@ -4,7 +4,7 @@ title: _groupByType
 resource: src/providers/diagnosticsViewProvider.ts#L181-L248
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/diagnosticsViewProvider/DiagnosticsViewProvider/getChildren

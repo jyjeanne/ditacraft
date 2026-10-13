@@ -3,7 +3,7 @@ type: TypeScript Function
 title: formatErrorMessage
 resource: src/utils/errorUtils.ts#L183-L216
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/errorUtils/getErrorMessage

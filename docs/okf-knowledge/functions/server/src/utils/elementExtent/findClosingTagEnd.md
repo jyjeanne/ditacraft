@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findClosingTagEnd
 resource: server/src/utils/elementExtent.ts#L105-L141
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/inlineConref/findConrefElementAtOffset

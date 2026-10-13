@@ -3,7 +3,7 @@ type: TypeScript Module
 title: suite
 resource: src/test/suite/index.ts#L1-L35
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/path

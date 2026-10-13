@@ -3,7 +3,7 @@ type: TypeScript Function
 title: main
 resource: mcp/test/smoke-test.ts#L11-L192
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/mcp/test/smoke-test/callAndParse

@@ -3,7 +3,7 @@ type: TypeScript Module
 title: circuitBreaker
 resource: src/llm/circuitBreaker.ts#L1-L82
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft

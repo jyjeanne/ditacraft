@@ -3,8 +3,12 @@ type: TypeScript Function
 title: shouldSkip
 resource: server/src/features/documentLinks.ts#L126-L132
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
+  calls:
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
+    resolved_by: tree-sitter
+    confidence: exact
   called_by:
   - target: functions/server/src/features/documentLinks/processFileRefs
     resolved_by: tree-sitter
@@ -14,6 +18,10 @@ relationships:
 # Signature
 
 `function shouldSkip(value: string): boolean`
+
+# Calls
+
+- [startsWith](../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 
 # Called by
 

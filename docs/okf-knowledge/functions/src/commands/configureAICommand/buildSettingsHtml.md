@@ -1,28 +1,20 @@
 ---
 type: TypeScript Function
 title: buildSettingsHtml
-resource: src/commands/configureAICommand.ts#L80-L169
+resource: src/commands/configureAICommand.ts#L294-L463
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
-  calls:
-  - target: functions/src/commands/configureAICommand/escapeHtml
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
-  - target: functions/src/commands/configureAICommand/configureAICommand
+  - target: functions/src/commands/configureAICommand/AiSettingsPanel/constructor
     resolved_by: tree-sitter
     confidence: exact
 ---
 
 # Signature
 
-`function buildSettingsHtml( providers: Array<{ id: string; name: string; available: boolean }>, activeId: string | null ): string`
-
-# Calls
-
-- [escapeHtml](../../../../functions/src/commands/configureAICommand/escapeHtml.md)
+`function buildSettingsHtml(): string`
 
 # Called by
 
-- [configureAICommand](../../../../functions/src/commands/configureAICommand/configureAICommand.md)
+- [constructor](../../../../functions/src/commands/configureAICommand/AiSettingsPanel/constructor.md)

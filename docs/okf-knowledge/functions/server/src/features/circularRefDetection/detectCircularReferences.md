@@ -3,7 +3,7 @@ type: TypeScript Function
 title: detectCircularReferences
 resource: server/src/features/circularRefDetection.ts#L44-L87
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/uriToPath
@@ -21,7 +21,10 @@ relationships:
   - target: functions/server/src/features/circularRefDetection/canonicalizeCycle
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/i18n/t
+  - target: functions/src/shared/render/toHtml/Renderer/has
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -41,7 +44,8 @@ relationships:
 - [normalizePath](../../../../../functions/server/src/features/circularRefDetection/normalizePath.md)
 - [dfsDetectAnyCycle](../../../../../functions/server/src/features/circularRefDetection/dfsDetectAnyCycle.md)
 - [canonicalizeCycle](../../../../../functions/server/src/features/circularRefDetection/canonicalizeCycle.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 
 # Called by
 

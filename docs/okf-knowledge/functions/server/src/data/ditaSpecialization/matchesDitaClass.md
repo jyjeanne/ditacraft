@@ -3,7 +3,7 @@ type: TypeScript Function
 title: matchesDitaClass
 resource: server/src/data/ditaSpecialization.ts#L47-L56
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: KeySpaceSettings
-resource: server/src/services/keySpaceService.ts#L105-L108
+resource: server/src/services/keySpaceService.ts#L117-L120
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

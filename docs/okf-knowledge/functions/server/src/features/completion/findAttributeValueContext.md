@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findAttributeValueContext
 resource: server/src/features/completion.ts#L173-L213
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/completion/findCurrentElement

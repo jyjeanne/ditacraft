@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getSimpleTextContent
 resource: server/src/features/formatting.ts#L298-L321
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/formatting/formatXML

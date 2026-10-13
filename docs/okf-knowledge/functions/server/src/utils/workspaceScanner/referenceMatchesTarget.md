@@ -1,14 +1,11 @@
 ---
 type: TypeScript Function
 title: referenceMatchesTarget
-resource: server/src/utils/workspaceScanner.ts#L103-L133
+resource: server/src/utils/workspaceScanner.ts#L104-L134
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/server/src/utils/referenceParser/parseReference
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/textUtils/normalizeFsPath
     resolved_by: tree-sitter
     confidence: exact
@@ -30,7 +27,6 @@ relationships:
 
 # Calls
 
-- [parseReference](../../../../../functions/server/src/utils/referenceParser/parseReference.md)
 - [normalizeFsPath](../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
 
 # Called by

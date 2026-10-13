@@ -3,7 +3,7 @@ type: TypeScript Function
 title: detectClientCapabilities
 resource: server/src/serverHandlers.ts#L46-L52
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

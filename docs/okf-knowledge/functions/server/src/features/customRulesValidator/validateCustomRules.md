@@ -3,13 +3,16 @@ type: TypeScript Function
 title: validateCustomRules
 resource: server/src/features/customRulesValidator.ts#L213-L260
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/customRulesValidator/loadRules
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/customRulesValidator/detectFileType
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
@@ -32,6 +35,7 @@ relationships:
 
 - [loadRules](../../../../../functions/server/src/features/customRulesValidator/loadRules.md)
 - [detectFileType](../../../../../functions/server/src/features/customRulesValidator/detectFileType.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 - [warn](../../../../../functions/src/utils/logger/Logger/warn.md)
 - [offsetToRange](../../../../../functions/server/src/utils/textUtils/offsetToRange.md)
 

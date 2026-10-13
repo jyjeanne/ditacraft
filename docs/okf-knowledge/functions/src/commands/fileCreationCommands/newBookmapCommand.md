@@ -1,14 +1,11 @@
 ---
 type: TypeScript Function
 title: newBookmapCommand
-resource: src/commands/fileCreationCommands.ts#L342-L396
+resource: src/commands/fileCreationCommands.ts#L349-L403
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/commands/fileCreationCommands/getWorkspaceFolder
     resolved_by: tree-sitter
     confidence: exact
@@ -39,7 +36,6 @@ relationships:
 
 # Calls
 
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
 - [getWorkspaceFolder](../../../../functions/src/commands/fileCreationCommands/getWorkspaceFolder.md)
 - [promptForFileName](../../../../functions/src/commands/fileCreationCommands/promptForFileName.md)
 - [resolveTemplatedOrGeneratedContentWithTitle](../../../../functions/src/commands/fileCreationCommands/resolveTemplatedOrGeneratedContentWithTitle.md)

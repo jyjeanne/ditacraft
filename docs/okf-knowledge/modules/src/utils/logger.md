@@ -3,7 +3,7 @@ type: TypeScript Module
 title: logger
 resource: src/utils/logger.ts#L1-L308
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

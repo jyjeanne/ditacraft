@@ -3,7 +3,7 @@ type: TypeScript Function
 title: stubQuickPicksByTitle
 resource: src/test/suite/insertImageCommand.test.ts#L355-L364
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

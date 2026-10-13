@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: previewCommand
-resource: src/commands/previewCommand.ts#L1-L458
+resource: src/commands/previewCommand.ts#L1-L510
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -33,7 +33,16 @@ relationships:
   - target: external/providers-previewpanel
     resolved_by: tree-sitter
     confidence: exact
+  - target: external/preview-visualpreviewpanel
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/utils-configurationmanager
+    resolved_by: tree-sitter
+    confidence: exact
   - target: external/publishprofilescommand
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/utils-movedpaths
     resolved_by: tree-sitter
     confidence: exact
   member_of:
@@ -45,11 +54,13 @@ relationships:
 # Contains
 
 - [getActiveDitavalPath](../../../functions/src/commands/previewCommand/getActiveDitavalPath.md)
+- [followActiveDitavalMove](../../../functions/src/commands/previewCommand/followActiveDitavalMove.md)
 - [requestPreviewRefresh](../../../functions/src/commands/previewCommand/requestPreviewRefresh.md)
 - [isPreviewRefreshInFlight](../../../functions/src/commands/previewCommand/isPreviewRefreshInFlight.md)
 - [initializePreview](../../../functions/src/commands/previewCommand/initializePreview.md)
 - [pickPreviewFilterCommand](../../../functions/src/commands/previewCommand/pickPreviewFilterCommand.md)
 - [previewHTML5Command](../../../functions/src/commands/previewCommand/previewHTML5Command.md)
+- [previewDitaOtCommand](../../../functions/src/commands/previewCommand/previewDitaOtCommand.md)
 - [shouldAutoRefreshPreview](../../../functions/src/commands/previewCommand/shouldAutoRefreshPreview.md)
 - [pathsEqual](../../../functions/src/commands/previewCommand/pathsEqual.md)
 - [getAndValidateFileUri](../../../functions/src/commands/previewCommand/getAndValidateFileUri.md)
@@ -73,7 +84,10 @@ relationships:
 - `../utils/logger`
 - `../utils/errorUtils`
 - `../providers/previewPanel`
+- `../preview/visualPreviewPanel`
+- `../utils/configurationManager`
 - `./publishProfilesCommand`
+- `../utils/movedPaths`
 
 # Member of
 

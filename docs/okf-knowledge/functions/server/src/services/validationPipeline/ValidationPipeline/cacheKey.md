@@ -3,7 +3,7 @@ type: TypeScript Method
 title: cacheKey
 resource: server/src/services/validationPipeline.ts#L205-L207
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/services/validationPipeline/ValidationPipeline/getCached

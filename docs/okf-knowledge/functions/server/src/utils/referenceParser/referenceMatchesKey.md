@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: referenceMatchesKey
-resource: server/src/utils/referenceParser.ts#L427-L433
+resource: server/src/utils/referenceParser.ts#L469-L475
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/referenceParser/extractKeyPart

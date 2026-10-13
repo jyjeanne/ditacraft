@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: anthropicProvider
-resource: src/llm/providers/anthropicProvider.ts#L1-L84
+resource: src/llm/providers/anthropicProvider.ts#L1-L109
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/anthropic-ai-sdk
@@ -13,6 +13,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/types
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/connectioncheck
     resolved_by: tree-sitter
     confidence: exact
   member_of:
@@ -27,15 +30,18 @@ relationships:
 - [displayName](../../../../functions/src/llm/providers/anthropicProvider/AnthropicLLMProvider/displayName.md)
 - [constructor](../../../../functions/src/llm/providers/anthropicProvider/AnthropicLLMProvider/constructor.md)
 - [isAvailable](../../../../functions/src/llm/providers/anthropicProvider/AnthropicLLMProvider/isAvailable.md)
+- [checkConnection](../../../../functions/src/llm/providers/anthropicProvider/AnthropicLLMProvider/checkConnection.md)
 - [complete](../../../../functions/src/llm/providers/anthropicProvider/AnthropicLLMProvider/complete.md)
 - [stream](../../../../functions/src/llm/providers/anthropicProvider/AnthropicLLMProvider/stream.md)
 - [estimateTokenCount](../../../../functions/src/llm/providers/anthropicProvider/AnthropicLLMProvider/estimateTokenCount.md)
+- [anthropicFailure](../../../../functions/src/llm/providers/anthropicProvider/anthropicFailure.md)
 
 # Imports
 
 - `@anthropic-ai/sdk`
 - `@anthropic-ai/sdk/resources/messages/messages`
 - `../types`
+- `./connectionCheck`
 
 # Member of
 

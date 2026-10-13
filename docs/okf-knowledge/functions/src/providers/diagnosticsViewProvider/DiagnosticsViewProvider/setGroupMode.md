@@ -3,7 +3,7 @@ type: TypeScript Method
 title: setGroupMode
 resource: src/providers/diagnosticsViewProvider.ts#L79-L82
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/extension/activate

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: batchUpdateMetadataCommand
-resource: src/commands/batchMetadataCommand.ts#L43-L109
+resource: src/commands/batchMetadataCommand.ts#L42-L122
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/languageClient/getLanguageClient
@@ -18,16 +18,16 @@ relationships:
   - target: functions/src/commands/batchMetadataCommand/summarizeSkipped
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/commands/findReplaceCommand/confirmWorkspaceEdit
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/commands/findReplaceCommand/describeFileChanges
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/commands/batchMetadataCommand/describeBatchLabel
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/commands/findReplaceCommand/buildConfirmableWorkspaceEdit
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/commands/findReplaceCommand/buildWorkspaceEdit
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -46,10 +46,10 @@ relationships:
 - [resolveSelectedFileItems](../../../../functions/src/commands/batchMetadataCommand/resolveSelectedFileItems.md)
 - [promptForAttribute](../../../../functions/src/commands/batchMetadataCommand/promptForAttribute.md)
 - [summarizeSkipped](../../../../functions/src/commands/batchMetadataCommand/summarizeSkipped.md)
+- [confirmWorkspaceEdit](../../../../functions/src/commands/findReplaceCommand/confirmWorkspaceEdit.md)
+- [describeFileChanges](../../../../functions/src/commands/findReplaceCommand/describeFileChanges.md)
 - [describeBatchLabel](../../../../functions/src/commands/batchMetadataCommand/describeBatchLabel.md)
-- [buildConfirmableWorkspaceEdit](../../../../functions/src/commands/findReplaceCommand/buildConfirmableWorkspaceEdit.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
+- [buildWorkspaceEdit](../../../../functions/src/commands/findReplaceCommand/buildWorkspaceEdit.md)
 
 # Called by
 

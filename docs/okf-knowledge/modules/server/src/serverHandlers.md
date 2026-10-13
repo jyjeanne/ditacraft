@@ -3,7 +3,7 @@ type: TypeScript Module
 title: serverHandlers
 resource: server/src/serverHandlers.ts#L1-L161
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

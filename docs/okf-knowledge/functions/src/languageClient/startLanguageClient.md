@@ -3,16 +3,13 @@ type: TypeScript Function
 title: startLanguageClient
 resource: src/languageClient.ts#L17-L64
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
+  - target: functions/webview/editor/start
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -28,8 +25,7 @@ relationships:
 # Calls
 
 - [getConfiguration](../../../functions/src/utils/configurationManager/ConfigurationManager/getConfiguration.md)
-- [get](../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
-- [info](../../../functions/src/utils/logger/Logger/info.md)
+- [start](../../../functions/webview/editor/start.md)
 
 # Called by
 

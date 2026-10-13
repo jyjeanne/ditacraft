@@ -1,12 +1,15 @@
 ---
 type: TypeScript Module
 title: ollamaProvider
-resource: src/llm/providers/ollamaProvider.ts#L1-L157
+resource: src/llm/providers/ollamaProvider.ts#L1-L192
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/types
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/connectioncheck
     resolved_by: tree-sitter
     confidence: exact
   member_of:
@@ -21,6 +24,7 @@ relationships:
 - [constructor](../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/constructor.md)
 - [displayName](../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/displayName.md)
 - [isAvailable](../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/isAvailable.md)
+- [checkConnection](../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/checkConnection.md)
 - [complete](../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/complete.md)
 - [stream](../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/stream.md)
 - [estimateTokenCount](../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/estimateTokenCount.md)
@@ -29,6 +33,7 @@ relationships:
 # Imports
 
 - `../types`
+- `./connectionCheck`
 
 # Member of
 

@@ -3,16 +3,13 @@ type: TypeScript Function
 title: validateGuidePrerequisites
 resource: src/commands/validateGuideCommand.ts#L52-L110
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/verifyInstallation
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -29,7 +26,6 @@ relationships:
 
 - [verifyInstallation](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/verifyInstallation.md)
 - [getConfiguration](../../../../functions/src/utils/configurationManager/ConfigurationManager/getConfiguration.md)
-- [get](../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: writeHrefFile
 resource: server/test/workspaceScanner.test.ts#L261-L265
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,18 +1,15 @@
 ---
 type: TypeScript Function
 title: validateConrefCompatibility
-resource: server/src/features/crossRefValidation.ts#L452-L471
+resource: server/src/features/crossRefValidation.ts#L477-L496
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/crossRefValidation/findTargetElementName
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/features/crossRefValidation/areConrefCompatible
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/utils/i18n/t
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -29,7 +26,6 @@ relationships:
 
 - [findTargetElementName](../../../../../functions/server/src/features/crossRefValidation/findTargetElementName.md)
 - [areConrefCompatible](../../../../../functions/server/src/features/crossRefValidation/areConrefCompatible.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
 
 # Called by
 

@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleDocumentSymbol
 resource: server/src/features/symbols.ts#L69-L81
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/features/symbols/parseTags
     resolved_by: tree-sitter
     confidence: exact
@@ -27,7 +24,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [parseTags](../../../../../functions/server/src/features/symbols/parseTags.md)
 - [buildSymbolTree](../../../../../functions/server/src/features/symbols/buildSymbolTree.md)
 

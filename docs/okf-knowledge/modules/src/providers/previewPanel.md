@@ -3,7 +3,7 @@ type: TypeScript Module
 title: previewPanel
 resource: src/providers/previewPanel.ts#L1-L1065
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

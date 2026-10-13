@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: registerRootMapFeature
-resource: src/extension.ts#L311-L430
+resource: src/extension.ts#L338-L457
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/extension/updateRootMapStatusBar
@@ -13,9 +13,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/languageClient/getLanguageClient
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -33,7 +30,6 @@ relationships:
 - [updateRootMapStatusBar](../../../functions/src/extension/updateRootMapStatusBar.md)
 - [getConfiguration](../../../functions/src/utils/configurationManager/ConfigurationManager/getConfiguration.md)
 - [getLanguageClient](../../../functions/src/languageClient/getLanguageClient.md)
-- [info](../../../functions/src/utils/logger/Logger/info.md)
 
 # Called by
 

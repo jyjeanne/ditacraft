@@ -3,7 +3,7 @@ type: TypeScript Method
 title: dispose
 resource: src/utils/ditaOtOutputChannel.ts#L227-L229
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: hasApiKey
-resource: src/llm/secretManager.ts#L34-L36
+resource: src/llm/secretManager.ts#L42-L44
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/secretManager/SecretManager/getApiKey

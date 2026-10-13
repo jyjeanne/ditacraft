@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: savePublishingProfiles
-resource: src/commands/publishProfilesCommand.ts#L35-L38
+resource: src/commands/publishProfilesCommand.ts#L36-L39
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration

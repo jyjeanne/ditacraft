@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: resolveKey
-resource: server/src/services/keySpaceService.ts#L239-L246
+resource: server/src/services/keySpaceService.ts#L301-L308
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/resolveKeyEntryWithScope

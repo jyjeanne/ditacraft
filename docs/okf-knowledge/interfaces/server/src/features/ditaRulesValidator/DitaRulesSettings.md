@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: DitaRulesSettings
 resource: server/src/features/ditaRulesValidator.ts#L975-L979
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

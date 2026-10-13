@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getChildren
 resource: src/providers/ditaExplorerProvider.ts#L129-L159
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/mapHierarchyParser/findAllMapsInWorkspace

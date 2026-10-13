@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: managePublishingProfilesCommand
-resource: src/commands/publishProfilesCommand.ts#L92-L157
+resource: src/commands/publishProfilesCommand.ts#L131-L196
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/publishProfilesCommand/getPublishingProfiles
@@ -18,9 +18,6 @@ relationships:
   - target: functions/src/commands/publishProfilesCommand/savePublishingProfiles
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
 ---
 
 # Signature
@@ -33,4 +30,3 @@ relationships:
 - [describeProfile](../../../../functions/src/commands/publishProfilesCommand/describeProfile.md)
 - [promptForProfile](../../../../functions/src/commands/publishProfilesCommand/promptForProfile.md)
 - [savePublishingProfiles](../../../../functions/src/commands/publishProfilesCommand/savePublishingProfiles.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)

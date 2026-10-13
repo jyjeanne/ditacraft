@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: generateInitBookmapContent
-resource: src/commands/fileCreationCommands.ts#L661-L692
+resource: src/commands/fileCreationCommands.ts#L668-L699
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/fileCreationCommands/runProjectInit

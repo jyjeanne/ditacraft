@@ -1,15 +1,18 @@
 ---
 type: TypeScript Module
 title: aiCompletionProvider
-resource: src/providers/aiCompletionProvider.ts#L1-L152
+resource: src/providers/aiCompletionProvider.ts#L1-L153
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
     resolved_by: tree-sitter
     confidence: exact
   - target: external/llm-aiserviceorchestrator
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/llm-aienabled
     resolved_by: tree-sitter
     confidence: exact
   member_of:
@@ -32,6 +35,7 @@ relationships:
 
 - `vscode`
 - `../llm/aiServiceOrchestrator`
+- `../llm/aiEnabled`
 
 # Member of
 

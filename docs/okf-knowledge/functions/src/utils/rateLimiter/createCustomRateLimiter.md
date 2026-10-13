@@ -3,7 +3,7 @@ type: TypeScript Function
 title: createCustomRateLimiter
 resource: src/utils/rateLimiter.ts#L241-L243
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

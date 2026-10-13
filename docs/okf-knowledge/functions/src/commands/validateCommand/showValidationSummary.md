@@ -3,7 +3,7 @@ type: TypeScript Function
 title: showValidationSummary
 resource: src/commands/validateCommand.ts#L203-L221
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/validateCommand/validateCommand

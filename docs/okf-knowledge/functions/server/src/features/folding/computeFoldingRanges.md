@@ -3,7 +3,7 @@ type: TypeScript Function
 title: computeFoldingRanges
 resource: server/src/features/folding.ts#L36-L94
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/folding/buildLineOffsets

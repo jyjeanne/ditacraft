@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: workspaceScanner
-resource: server/src/utils/workspaceScanner.ts#L1-L202
+resource: server/src/utils/workspaceScanner.ts#L1-L203
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/fs

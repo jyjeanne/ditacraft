@@ -3,7 +3,7 @@ type: TypeScript Function
 title: actions
 resource: server/test/codeActions.test.ts#L23-L34
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDoc

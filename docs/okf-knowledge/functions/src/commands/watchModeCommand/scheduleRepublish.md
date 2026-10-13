@@ -3,7 +3,7 @@ type: TypeScript Function
 title: scheduleRepublish
 resource: src/commands/watchModeCommand.ts#L149-L156
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/watchModeCommand/runWatchPublish

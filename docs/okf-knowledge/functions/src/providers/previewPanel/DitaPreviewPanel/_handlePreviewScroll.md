@@ -4,13 +4,13 @@ title: _handlePreviewScroll
 resource: src/providers/previewPanel.ts#L395-L478
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/utils/errorUtils/fireAndForget
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/errorUtils/fireAndForget
+  - target: functions/webview/editor/mapView/RowDrag/find
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -25,8 +25,8 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
 - [fireAndForget](../../../../../functions/src/utils/errorUtils/fireAndForget.md)
+- [find](../../../../../functions/webview/editor/mapView/RowDrag/find.md)
 
 # Called by
 

@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: ContextGraph
 resource: server/src/features/contextGraph.ts#L55-L61
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

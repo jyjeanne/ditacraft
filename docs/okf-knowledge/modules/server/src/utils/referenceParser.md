@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: referenceParser
-resource: server/src/utils/referenceParser.ts#L1-L433
+resource: server/src/utils/referenceParser.ts#L1-L475
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/server
@@ -23,6 +23,7 @@ relationships:
 - [KeyAtOffset](../../../../interfaces/server/src/utils/referenceParser/KeyAtOffset.md)
 - [findKeyAtOffset](../../../../functions/server/src/utils/referenceParser/findKeyAtOffset.md)
 - [findReferencesToId](../../../../functions/server/src/utils/referenceParser/findReferencesToId.md)
+- [referencePartAtOffset](../../../../functions/server/src/utils/referenceParser/referencePartAtOffset.md)
 - [findFileReferences](../../../../functions/server/src/utils/referenceParser/findFileReferences.md)
 - [findReferencesToKey](../../../../functions/server/src/utils/referenceParser/findReferencesToKey.md)
 - [countKeyDefinitionOccurrences](../../../../functions/server/src/utils/referenceParser/countKeyDefinitionOccurrences.md)

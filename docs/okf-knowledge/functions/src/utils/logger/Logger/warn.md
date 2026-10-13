@@ -3,7 +3,7 @@ type: TypeScript Method
 title: warn
 resource: src/utils/logger.ts#L193-L195
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/customRulesValidator/loadRules
@@ -37,6 +37,12 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/extension/verifyDitaOtInstallation
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/sharedRegistry/sharedGrammarRegistry
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/resolveReferences
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/ditaExplorerProvider/DitaExplorerProvider/getChildren
@@ -88,6 +94,8 @@ relationships:
 - [registerMoveTopicFeature](../../../../../functions/src/extension/registerMoveTopicFeature.md)
 - [registerCommands](../../../../../functions/src/extension/registerCommands.md)
 - [verifyDitaOtInstallation](../../../../../functions/src/extension/verifyDitaOtInstallation.md)
+- [sharedGrammarRegistry](../../../../../functions/src/preview/sharedRegistry/sharedGrammarRegistry.md)
+- [resolveReferences](../../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/resolveReferences.md)
 - [getChildren](../../../../../functions/src/providers/ditaExplorerProvider/DitaExplorerProvider/getChildren.md)
 - [_loadCustomCssAsync](../../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_loadCustomCssAsync.md)
 - [_injectPreviewEnhancementsAsync](../../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_injectPreviewEnhancementsAsync.md)

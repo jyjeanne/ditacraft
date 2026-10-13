@@ -3,7 +3,7 @@ type: TypeScript Function
 title: getLanguageClient
 resource: src/languageClient.ts#L69-L71
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/batchMetadataCommand/batchUpdateMetadataCommand
@@ -27,6 +27,9 @@ relationships:
   - target: functions/src/extension/registerMoveTopicFeature
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/properties/propertiesView/PropertiesViewProvider/schemeValues
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/providers/ditavalConditionEditorPanel/DitavalConditionEditorPanel/_fetchSchemeAttributes
     resolved_by: tree-sitter
     confidence: exact
@@ -45,4 +48,5 @@ relationships:
 - [registerRootMapFeature](../../../functions/src/extension/registerRootMapFeature.md)
 - [sendInitialRootMapSetting](../../../functions/src/extension/sendInitialRootMapSetting.md)
 - [registerMoveTopicFeature](../../../functions/src/extension/registerMoveTopicFeature.md)
+- [schemeValues](../../../functions/src/properties/propertiesView/PropertiesViewProvider/schemeValues.md)
 - [_fetchSchemeAttributes](../../../functions/src/providers/ditavalConditionEditorPanel/DitavalConditionEditorPanel/_fetchSchemeAttributes.md)

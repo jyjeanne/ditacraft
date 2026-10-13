@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: BuildContextSnapshotParams
 resource: server/src/features/contextSnapshot.ts#L15-L21
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

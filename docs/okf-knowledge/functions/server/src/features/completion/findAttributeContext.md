@@ -3,8 +3,12 @@ type: TypeScript Function
 title: findAttributeContext
 resource: server/src/features/completion.ts#L218-L245
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
+  calls:
+  - target: functions/mcp/src/resources/query/OptionalQueryTemplate/match
+    resolved_by: tree-sitter
+    confidence: exact
   called_by:
   - target: functions/server/src/features/completion/detectContext
     resolved_by: tree-sitter
@@ -14,6 +18,10 @@ relationships:
 # Signature
 
 `function findAttributeContext(text: string, beforeWord: number, _offset: number): DetectedContext | null`
+
+# Calls
+
+- [match](../../../../../functions/mcp/src/resources/query/OptionalQueryTemplate/match.md)
 
 # Called by
 

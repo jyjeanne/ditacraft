@@ -1,11 +1,17 @@
 ---
 type: TypeScript Function
 title: restructureMapCommand
-resource: src/commands/restructureMapCommand.ts#L32-L99
+resource: src/commands/restructureMapCommand.ts#L33-L105
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/llm/aiEnabled/isAiEnabled
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/llm/aiEnabled/showAiDisabledMessage
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/commands/restructureMapCommand/isDitaMap
     resolved_by: tree-sitter
     confidence: exact
@@ -30,6 +36,8 @@ relationships:
 
 # Calls
 
+- [isAiEnabled](../../../../functions/src/llm/aiEnabled/isAiEnabled.md)
+- [showAiDisabledMessage](../../../../functions/src/llm/aiEnabled/showAiDisabledMessage.md)
 - [isDitaMap](../../../../functions/src/commands/restructureMapCommand/isDitaMap.md)
 - [restructureMap](../../../../functions/src/llm/aiServiceOrchestrator/AIServiceOrchestrator/restructureMap.md)
 - [showDiffAndApply](../../../../functions/src/commands/restructureMapCommand/showDiffAndApply.md)

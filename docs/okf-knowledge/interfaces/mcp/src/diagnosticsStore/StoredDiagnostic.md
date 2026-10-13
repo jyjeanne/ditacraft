@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: StoredDiagnostic
-resource: mcp/src/diagnosticsStore.ts#L133-L140
+resource: mcp/src/diagnosticsStore.ts#L134-L141
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

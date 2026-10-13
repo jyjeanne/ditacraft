@@ -3,7 +3,7 @@ type: TypeScript Function
 title: lineAtOffset
 resource: server/src/features/folding.ts#L120-L132
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/folding/computeFoldingRanges

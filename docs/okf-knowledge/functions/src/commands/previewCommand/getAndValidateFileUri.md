@@ -1,16 +1,12 @@
 ---
 type: TypeScript Function
 title: getAndValidateFileUri
-resource: src/commands/previewCommand.ts#L208-L232
+resource: src/commands/previewCommand.ts#L260-L284
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
-  calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
-  - target: functions/src/commands/previewCommand/previewHTML5Command
+  - target: functions/src/commands/previewCommand/previewDitaOtCommand
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -19,10 +15,6 @@ relationships:
 
 `async function getAndValidateFileUri(uri?: vscode.Uri): Promise<vscode.Uri>`
 
-# Calls
-
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
-
 # Called by
 
-- [previewHTML5Command](../../../../functions/src/commands/previewCommand/previewHTML5Command.md)
+- [previewDitaOtCommand](../../../../functions/src/commands/previewCommand/previewDitaOtCommand.md)

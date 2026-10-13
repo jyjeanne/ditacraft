@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: updateWorkspaceFolders
-resource: server/src/services/keySpaceService.ts#L702-L711
+resource: server/src/services/keySpaceService.ts#L848-L857
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/keySpaceService/KeySpaceService/invalidateAllCaches

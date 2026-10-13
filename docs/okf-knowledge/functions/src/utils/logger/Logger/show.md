@@ -3,7 +3,7 @@ type: TypeScript Method
 title: show
 resource: src/utils/logger.ts#L201-L203
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

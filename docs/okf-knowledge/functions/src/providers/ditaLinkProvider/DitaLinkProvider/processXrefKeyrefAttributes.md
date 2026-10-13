@@ -3,10 +3,10 @@ type: TypeScript Method
 title: processXrefKeyrefAttributes
 resource: src/providers/ditaLinkProvider.ts#L554-L615
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -21,7 +21,7 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 
 # Called by
 

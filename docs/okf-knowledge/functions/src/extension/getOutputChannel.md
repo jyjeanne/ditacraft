@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: getOutputChannel
-resource: src/extension.ts#L1245-L1247
+resource: src/extension.ts#L1363-L1365
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

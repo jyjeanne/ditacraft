@@ -3,7 +3,7 @@ type: TypeScript Method
 title: resolveEntity
 resource: src/utils/dtdResolver.ts#L97-L127
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/dtdResolver/DtdResolver/resolvePublicId

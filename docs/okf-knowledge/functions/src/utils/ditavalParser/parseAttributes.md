@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: parseAttributes
-resource: src/utils/ditavalParser.ts#L53-L63
+resource: src/utils/ditavalParser.ts#L66-L76
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditavalParser/parseDitavalRules

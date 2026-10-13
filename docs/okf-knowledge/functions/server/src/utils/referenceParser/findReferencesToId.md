@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: findReferencesToId
-resource: server/src/utils/referenceParser.ts#L240-L263
+resource: server/src/utils/referenceParser.ts#L241-L264
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/referenceParser/referenceMatchesId
@@ -13,7 +13,7 @@ relationships:
   - target: functions/server/src/features/references/handleReferences
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/features/rename/handleRename
+  - target: functions/server/src/features/rename/handleIdRename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/utils/workspaceScanner/findCrossFileReferences
@@ -23,7 +23,7 @@ relationships:
 
 # Signature
 
-`function findReferencesToId(text: string, targetId: string): ReferenceOccurrence[]`
+`function findReferencesToId(text: string, targetId: string, isTopicId = false): ReferenceOccurrence[]`
 
 # Calls
 
@@ -32,5 +32,5 @@ relationships:
 # Called by
 
 - [handleReferences](../../../../../functions/server/src/features/references/handleReferences.md)
-- [handleRename](../../../../../functions/server/src/features/rename/handleRename.md)
+- [handleIdRename](../../../../../functions/server/src/features/rename/handleIdRename.md)
 - [findCrossFileReferences](../../../../../functions/server/src/utils/workspaceScanner/findCrossFileReferences.md)

@@ -1,11 +1,14 @@
 ---
 type: TypeScript Function
 title: generateHtml5OutputIfNeeded
-resource: src/commands/previewCommand.ts#L323-L374
+resource: src/commands/previewCommand.ts#L375-L426
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/shared/render/toHtml/basename
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/getOutputDirectory
     resolved_by: tree-sitter
     confidence: exact
@@ -19,7 +22,7 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   called_by:
-  - target: functions/src/commands/previewCommand/previewHTML5Command
+  - target: functions/src/commands/previewCommand/previewDitaOtCommand
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -30,6 +33,7 @@ relationships:
 
 # Calls
 
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [getOutputDirectory](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/getOutputDirectory.md)
 - [computeFilterSuffix](../../../../functions/src/commands/previewCommand/computeFilterSuffix.md)
 - [publish](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/publish.md)
@@ -37,4 +41,4 @@ relationships:
 
 # Called by
 
-- [previewHTML5Command](../../../../functions/src/commands/previewCommand/previewHTML5Command.md)
+- [previewDitaOtCommand](../../../../functions/src/commands/previewCommand/previewDitaOtCommand.md)

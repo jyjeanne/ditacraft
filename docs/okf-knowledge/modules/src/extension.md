@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: extension
-resource: src/extension.ts#L1-L1254
+resource: src/extension.ts#L1-L1379
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode
@@ -33,6 +33,21 @@ relationships:
   - target: external/providers-previewpanel
     resolved_by: tree-sitter
     confidence: exact
+  - target: external/preview-visualpreviewpanel
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/editor-messages
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/editor-visualeditorprovider
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/properties-propertiesview
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/preview-mapcontexts
+    resolved_by: tree-sitter
+    confidence: exact
   - target: external/providers-ditavaldecorationprovider
     resolved_by: tree-sitter
     confidence: exact
@@ -40,6 +55,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-constants
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/utils-pathsettings
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-ditaotoutputchannel
@@ -93,10 +111,10 @@ relationships:
 - [registerRootMapFeature](../../functions/src/extension/registerRootMapFeature.md)
 - [updateRootMapStatusBar](../../functions/src/extension/updateRootMapStatusBar.md)
 - [sendInitialRootMapSetting](../../functions/src/extension/sendInitialRootMapSetting.md)
-- [buildLLMConfig](../../functions/src/extension/buildLLMConfig.md)
 - [deactivate](../../functions/src/extension/deactivate.md)
 - [LspTextEdit](../../interfaces/src/extension/LspTextEdit.md)
 - [LspWorkspaceEdit](../../interfaces/src/extension/LspWorkspaceEdit.md)
+- [registerPathFollowing](../../functions/src/extension/registerPathFollowing.md)
 - [registerMoveTopicFeature](../../functions/src/extension/registerMoveTopicFeature.md)
 - [registerWatchModeFeature](../../functions/src/extension/registerWatchModeFeature.md)
 - [registerPreviewAutoRefresh](../../functions/src/extension/registerPreviewAutoRefresh.md)
@@ -109,6 +127,7 @@ relationships:
 - [suggestCSpellSetup](../../functions/src/extension/suggestCSpellSetup.md)
 - [getOutputChannel](../../functions/src/extension/getOutputChannel.md)
 - [getDitaOtWrapper](../../functions/src/extension/getDitaOtWrapper.md)
+- [activeTopicUri](../../functions/src/extension/activeTopicUri.md)
 
 # Imports
 
@@ -121,9 +140,15 @@ relationships:
 - `./utils/elementNavigator`
 - `./commands`
 - `./providers/previewPanel`
+- `./preview/visualPreviewPanel`
+- `./editor/messages`
+- `./editor/visualEditorProvider`
+- `./properties/propertiesView`
+- `./preview/mapContexts`
 - `./providers/ditavalDecorationProvider`
 - `./utils/ditaOtErrorParser`
 - `./utils/constants`
+- `./utils/pathSettings`
 - `./utils/ditaOtOutputChannel`
 - `./providers/mapVisualizerPanel`
 - `./providers/validationReportPanel`

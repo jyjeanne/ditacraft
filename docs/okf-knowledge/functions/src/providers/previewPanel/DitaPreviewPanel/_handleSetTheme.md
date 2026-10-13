@@ -4,16 +4,13 @@ title: _handleSetTheme
 resource: src/providers/previewPanel.ts#L211-L228
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/errorUtils/fireAndForget
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -30,7 +27,6 @@ relationships:
 
 - [fireAndForget](../../../../../functions/src/utils/errorUtils/fireAndForget.md)
 - [getConfiguration](../../../../../functions/src/utils/configurationManager/ConfigurationManager/getConfiguration.md)
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
 
 # Called by
 

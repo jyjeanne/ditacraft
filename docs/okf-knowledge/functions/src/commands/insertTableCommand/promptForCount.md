@@ -3,7 +3,7 @@ type: TypeScript Function
 title: promptForCount
 resource: src/commands/insertTableCommand.ts#L117-L130
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/insertTableCommand/insertTableCommand

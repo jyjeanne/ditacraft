@@ -3,7 +3,7 @@ type: TypeScript Method
 title: constructor
 resource: src/utils/dtdResolver.ts#L15-L18
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/dtdResolver/DtdResolver/loadCatalog

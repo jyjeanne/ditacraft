@@ -1,14 +1,11 @@
 ---
 type: TypeScript Function
 title: registerWatchModeFeature
-resource: src/extension.ts#L650-L672
+resource: src/extension.ts#L707-L729
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/commands/watchModeCommand/startWatchModeCommand
     resolved_by: tree-sitter
     confidence: exact
@@ -30,7 +27,6 @@ relationships:
 
 # Calls
 
-- [info](../../../functions/src/utils/logger/Logger/info.md)
 - [startWatchModeCommand](../../../functions/src/commands/watchModeCommand/startWatchModeCommand.md)
 - [stopWatchModeCommand](../../../functions/src/commands/watchModeCommand/stopWatchModeCommand.md)
 - [disposeWatchMode](../../../functions/src/commands/watchModeCommand/disposeWatchMode.md)

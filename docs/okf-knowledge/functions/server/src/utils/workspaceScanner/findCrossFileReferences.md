@@ -1,15 +1,12 @@
 ---
 type: TypeScript Function
 title: findCrossFileReferences
-resource: server/src/utils/workspaceScanner.ts#L146-L202
+resource: server/src/utils/workspaceScanner.ts#L147-L203
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/normalizeFsPath
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/utils/referenceParser/findReferencesToId
@@ -31,7 +28,6 @@ relationships:
 # Calls
 
 - [normalizeFsPath](../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [findReferencesToId](../../../../../functions/server/src/utils/referenceParser/findReferencesToId.md)
 - [referenceMatchesTarget](../../../../../functions/server/src/utils/workspaceScanner/referenceMatchesTarget.md)
 

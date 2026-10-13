@@ -3,7 +3,7 @@ type: TypeScript Function
 title: isWithinSpans
 resource: src/utils/xmlElementScanner.ts#L65-L67
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/xmlElementScanner/findProfiledElements

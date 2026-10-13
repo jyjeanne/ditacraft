@@ -1,12 +1,12 @@
 ---
 type: TypeScript Method
 title: validateInputFile
-resource: src/utils/ditaOtWrapper.ts#L814-L851
+resource: src/utils/ditaOtWrapper.ts#L821-L858
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/server/src/features/moveTopic/isDirectory
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -17,4 +17,4 @@ relationships:
 
 # Calls
 
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [isDirectory](../../../../../functions/server/src/features/moveTopic/isDirectory.md)

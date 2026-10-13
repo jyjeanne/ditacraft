@@ -3,7 +3,7 @@ type: TypeScript Function
 title: validateAndPrepareForPublish
 resource: src/commands/publishCommand.ts#L26-L68
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/verifyInstallation

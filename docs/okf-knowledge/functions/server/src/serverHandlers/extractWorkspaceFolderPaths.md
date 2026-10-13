@@ -3,7 +3,7 @@ type: TypeScript Function
 title: extractWorkspaceFolderPaths
 resource: server/src/serverHandlers.ts#L57-L60
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/uriToPath

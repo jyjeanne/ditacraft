@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: TemplateVariables
 resource: src/utils/templateEngine.ts#L26-L31
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: describeSearchLabel
-resource: src/commands/findReplaceCommand.ts#L169-L173
+resource: src/commands/findReplaceCommand.ts#L229-L233
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/findReplaceCommand/findReplaceInFilesCommand

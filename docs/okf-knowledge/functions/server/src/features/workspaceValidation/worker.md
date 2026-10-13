@@ -3,7 +3,7 @@ type: TypeScript Function
 title: worker
 resource: server/src/features/workspaceValidation.ts#L61-L66
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/workspaceValidation/mapWithConcurrency

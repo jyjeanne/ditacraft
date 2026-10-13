@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: estimateTokenCount
-resource: src/llm/providers/openaiProvider.ts#L79-L81
+resource: src/llm/providers/openaiProvider.ts#L119-L121
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

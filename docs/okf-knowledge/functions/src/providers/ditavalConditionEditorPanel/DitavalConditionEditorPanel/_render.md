@@ -4,7 +4,7 @@ title: _render
 resource: src/providers/ditavalConditionEditorPanel.ts#L208-L210
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/ditavalConditionEditorPanel/DitavalConditionEditorPanel/_toggleCondition

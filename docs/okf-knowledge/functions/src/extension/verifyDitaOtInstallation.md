@@ -1,18 +1,12 @@
 ---
 type: TypeScript Function
 title: verifyDitaOtInstallation
-resource: src/extension.ts#L1112-L1149
+resource: src/extension.ts#L1230-L1267
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/verifyInstallation
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/logger/Logger/warn
@@ -36,9 +30,7 @@ relationships:
 
 # Calls
 
-- [debug](../../../functions/src/utils/logger/Logger/debug.md)
 - [verifyInstallation](../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/verifyInstallation.md)
-- [info](../../../functions/src/utils/logger/Logger/info.md)
 - [warn](../../../functions/src/utils/logger/Logger/warn.md)
 - [fireAndForget](../../../functions/src/utils/errorUtils/fireAndForget.md)
 

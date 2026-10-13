@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: createDitacraftParticipant
-resource: src/chat/ditacraftParticipant.ts#L33-L45
+resource: src/chat/ditacraftParticipant.ts#L34-L46
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/chat/ditacraftParticipant/handleRequest

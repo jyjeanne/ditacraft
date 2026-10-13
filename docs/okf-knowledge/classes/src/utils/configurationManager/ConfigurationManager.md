@@ -1,9 +1,9 @@
 ---
 type: TypeScript Class
 title: ConfigurationManager
-resource: src/utils/configurationManager.ts#L133-L373
+resource: src/utils/configurationManager.ts#L156-L415
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

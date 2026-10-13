@@ -3,7 +3,7 @@ type: TypeScript Method
 title: error
 resource: server/src/services/catalogValidationService.ts#L113-L115
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

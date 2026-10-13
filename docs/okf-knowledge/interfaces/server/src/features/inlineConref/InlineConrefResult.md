@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: InlineConrefResult
-resource: server/src/features/inlineConref.ts#L46-L50
+resource: server/src/features/inlineConref.ts#L56-L60
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

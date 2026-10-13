@@ -4,7 +4,7 @@ title: _writeDocument
 resource: src/providers/ditavalConditionEditorPanel.ts#L151-L167
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditavalParser/buildDitavalDocument

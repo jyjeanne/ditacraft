@@ -3,16 +3,13 @@ type: TypeScript Method
 title: updateFromParsedOutput
 resource: src/utils/ditaOtErrorParser.ts#L331-L407
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/createDiagnosticKey
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -34,8 +31,7 @@ relationships:
 # Calls
 
 - [createDiagnosticKey](../../../../../functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/createDiagnosticKey.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 
 # Called by
 

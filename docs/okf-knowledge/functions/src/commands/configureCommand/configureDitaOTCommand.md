@@ -3,7 +3,7 @@ type: TypeScript Function
 title: configureDitaOTCommand
 resource: src/commands/configureCommand.ts#L13-L21
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/configureOtPath

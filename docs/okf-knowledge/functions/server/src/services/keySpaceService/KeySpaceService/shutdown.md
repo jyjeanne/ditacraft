@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: shutdown
-resource: server/src/services/keySpaceService.ts#L728-L740
+resource: server/src/services/keySpaceService.ts#L874-L887
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

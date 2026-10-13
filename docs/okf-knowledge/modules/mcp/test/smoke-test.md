@@ -3,7 +3,7 @@ type: TypeScript Module
 title: smoke-test
 resource: mcp/test/smoke-test.ts#L1-L197
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/modelcontextprotocol-sdk-client-index-js

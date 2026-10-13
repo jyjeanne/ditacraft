@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: resolveProfileOutputDir
-resource: src/commands/publishProfilesCommand.ts#L81-L84
+resource: src/commands/publishProfilesCommand.ts#L120-L123
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/pathUtils/substituteWorkspaceFolderVar

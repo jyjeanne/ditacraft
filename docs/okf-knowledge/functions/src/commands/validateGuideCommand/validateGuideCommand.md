@@ -3,7 +3,7 @@ type: TypeScript Function
 title: validateGuideCommand
 resource: src/commands/validateGuideCommand.ts#L31-L47
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/validateGuideCommand/executeValidation

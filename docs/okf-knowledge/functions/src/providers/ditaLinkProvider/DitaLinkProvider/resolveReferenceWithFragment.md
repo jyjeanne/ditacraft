@@ -3,10 +3,10 @@ type: TypeScript Method
 title: resolveReferenceWithFragment
 resource: src/providers/ditaLinkProvider.ts#L722-L763
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/test/suite/keySpaceResolver/test/normalize
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -30,7 +30,7 @@ relationships:
 
 # Calls
 
-- [normalize](../../../../../functions/src/test/suite/keySpaceResolver/test/normalize.md)
+- [startsWith](../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 
 # Called by
 

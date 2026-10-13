@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isPreviewRefreshInFlight
-resource: src/commands/previewCommand.ts#L96-L98
+resource: src/commands/previewCommand.ts#L115-L117
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/extension/registerPreviewAutoRefresh

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: allTokens
 resource: server/test/xmlTokenizer.test.ts#L11-L13
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/formatting/tokenize

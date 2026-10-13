@@ -3,7 +3,7 @@ type: TypeScript Function
 title: isFileNotFoundError
 resource: src/utils/errorUtils.ts#L153-L172
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/errorUtils/getErrorMessage

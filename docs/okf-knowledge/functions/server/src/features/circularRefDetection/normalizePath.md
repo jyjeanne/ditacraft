@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: normalizePath
-resource: server/src/features/circularRefDetection.ts#L234-L236
+resource: server/src/features/circularRefDetection.ts#L250-L252
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/normalizeFsPath

@@ -4,7 +4,7 @@ title: _fetchSchemeAttributes
 resource: src/providers/ditavalConditionEditorPanel.ts#L190-L204
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/languageClient/getLanguageClient

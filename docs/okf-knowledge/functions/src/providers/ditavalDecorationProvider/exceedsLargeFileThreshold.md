@@ -1,15 +1,12 @@
 ---
 type: TypeScript Function
 title: exceedsLargeFileThreshold
-resource: src/providers/ditavalDecorationProvider.ts#L72-L79
+resource: src/providers/ditavalDecorationProvider.ts#L132-L139
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -25,7 +22,6 @@ relationships:
 # Calls
 
 - [getConfiguration](../../../../functions/src/utils/configurationManager/ConfigurationManager/getConfiguration.md)
-- [get](../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 
 # Called by
 

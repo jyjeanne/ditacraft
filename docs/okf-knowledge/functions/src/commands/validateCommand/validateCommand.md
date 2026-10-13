@@ -3,10 +3,13 @@ type: TypeScript Function
 title: validateCommand
 resource: src/commands/validateCommand.ts#L83-L129
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/rateLimiter/RateLimiter/isAllowed
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/validateCommand/validateViaLsp
@@ -28,6 +31,7 @@ relationships:
 # Calls
 
 - [isAllowed](../../../../functions/src/utils/rateLimiter/RateLimiter/isAllowed.md)
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [validateViaLsp](../../../../functions/src/commands/validateCommand/validateViaLsp.md)
 - [showValidationSummary](../../../../functions/src/commands/validateCommand/showValidationSummary.md)
 

@@ -3,7 +3,7 @@ type: TypeScript Method
 title: constructor
 resource: src/providers/ditaExplorerProvider.ts#L31-L66
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/providers/ditaExplorerProvider/DitaExplorerItem/_buildTooltip

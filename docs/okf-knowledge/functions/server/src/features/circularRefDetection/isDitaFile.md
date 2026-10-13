@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isDitaFile
-resource: server/src/features/circularRefDetection.ts#L229-L232
+resource: server/src/features/circularRefDetection.ts#L245-L248
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/circularRefDetection/resolveRef

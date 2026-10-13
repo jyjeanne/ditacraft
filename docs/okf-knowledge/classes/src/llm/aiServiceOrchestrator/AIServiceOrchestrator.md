@@ -3,7 +3,7 @@ type: TypeScript Class
 title: AIServiceOrchestrator
 resource: src/llm/aiServiceOrchestrator.ts#L110-L399
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

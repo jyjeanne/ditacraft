@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: configurationManager
-resource: src/utils/configurationManager.ts#L1-L401
+resource: src/utils/configurationManager.ts#L1-L443
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

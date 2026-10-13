@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: extractFileReferences
-resource: server/src/features/circularRefDetection.ts#L97-L122
+resource: server/src/features/circularRefDetection.ts#L99-L128
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/circularRefDetection/resolveRef
@@ -20,7 +20,7 @@ relationships:
 
 # Signature
 
-`function extractFileReferences( text: string, baseDir: string, workspaceFolders: readonly string[] ): FileRef[]`
+`function extractFileReferences( text: string, baseDir: string, sourceFilePath: string, workspaceFolders: readonly string[] ): FileRef[]`
 
 # Calls
 

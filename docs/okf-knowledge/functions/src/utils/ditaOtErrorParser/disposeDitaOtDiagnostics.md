@@ -3,7 +3,7 @@ type: TypeScript Function
 title: disposeDitaOtDiagnostics
 resource: src/utils/ditaOtErrorParser.ts#L442-L447
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/extension/deactivate

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: shouldAutoRefreshPreview
-resource: src/commands/previewCommand.ts#L180-L189
+resource: src/commands/previewCommand.ts#L232-L241
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/previewCommand/pathsEqual

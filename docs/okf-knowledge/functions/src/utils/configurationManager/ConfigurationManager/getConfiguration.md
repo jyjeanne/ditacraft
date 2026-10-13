@@ -1,12 +1,15 @@
 ---
 type: TypeScript Method
 title: getConfiguration
-resource: src/utils/configurationManager.ts#L300-L308
+resource: src/utils/configurationManager.ts#L342-L350
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/settings/getDocumentSettings
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/commands/configureAICommand/AiSettingsPanel/handle
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/fileCreationCommands/getTemplateContext
@@ -16,6 +19,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/publishProfilesCommand/savePublishingProfiles
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/commands/publishProfilesCommand/followDitavalMoves
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/publishProfilesCommand/getLastUsedProfileName
@@ -36,16 +42,37 @@ relationships:
   - target: functions/src/extension/sendInitialRootMapSetting
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/extension/buildLLMConfig
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/extension/suggestCSpellSetup
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/languageClient/startLanguageClient
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/llm/aiEnabled/isAiEnabled
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/llm/llmConfig/aiMode
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/llm/llmConfig/buildLLMConfig
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/llm/metricsCollector/MetricsCollector/record
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/grammarOptions/grammarSelectOptions
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/grammarOptions/externalCatalog
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/mapContexts/MapContexts/preferredRoot
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/renderNow
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/externalCatalog
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/aiCompletionProvider/AICompletionProvider/provideCompletionItems
@@ -60,6 +87,9 @@ relationships:
   - target: functions/src/providers/previewPanel/DitaPreviewPanel/_handleSetTheme
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/test/suite/aiEnabled/test/setEnabled
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/utils/configurationManager/ConfigurationManager/loadConfiguration
     resolved_by: tree-sitter
     confidence: exact
@@ -72,6 +102,9 @@ relationships:
   - target: functions/src/utils/logger/Logger/loadConfiguration
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/utils/pathSettings/followPathSettings
+    resolved_by: tree-sitter
+    confidence: exact
 ---
 
 # Signature
@@ -81,24 +114,35 @@ relationships:
 # Called by
 
 - [getDocumentSettings](../../../../../functions/server/src/settings/getDocumentSettings.md)
+- [handle](../../../../../functions/src/commands/configureAICommand/AiSettingsPanel/handle.md)
 - [getTemplateContext](../../../../../functions/src/commands/fileCreationCommands/getTemplateContext.md)
 - [getPublishingProfiles](../../../../../functions/src/commands/publishProfilesCommand/getPublishingProfiles.md)
 - [savePublishingProfiles](../../../../../functions/src/commands/publishProfilesCommand/savePublishingProfiles.md)
+- [followDitavalMoves](../../../../../functions/src/commands/publishProfilesCommand/followDitavalMoves.md)
 - [getLastUsedProfileName](../../../../../functions/src/commands/publishProfilesCommand/getLastUsedProfileName.md)
 - [rememberLastUsedProfile](../../../../../functions/src/commands/publishProfilesCommand/rememberLastUsedProfile.md)
 - [validateGuidePrerequisites](../../../../../functions/src/commands/validateGuideCommand/validateGuidePrerequisites.md)
 - [resolveWatchTarget](../../../../../functions/src/commands/watchModeCommand/resolveWatchTarget.md)
 - [registerRootMapFeature](../../../../../functions/src/extension/registerRootMapFeature.md)
 - [sendInitialRootMapSetting](../../../../../functions/src/extension/sendInitialRootMapSetting.md)
-- [buildLLMConfig](../../../../../functions/src/extension/buildLLMConfig.md)
 - [suggestCSpellSetup](../../../../../functions/src/extension/suggestCSpellSetup.md)
 - [startLanguageClient](../../../../../functions/src/languageClient/startLanguageClient.md)
+- [isAiEnabled](../../../../../functions/src/llm/aiEnabled/isAiEnabled.md)
+- [aiMode](../../../../../functions/src/llm/llmConfig/aiMode.md)
+- [buildLLMConfig](../../../../../functions/src/llm/llmConfig/buildLLMConfig.md)
 - [record](../../../../../functions/src/llm/metricsCollector/MetricsCollector/record.md)
+- [grammarSelectOptions](../../../../../functions/src/preview/grammarOptions/grammarSelectOptions.md)
+- [externalCatalog](../../../../../functions/src/preview/grammarOptions/externalCatalog.md)
+- [preferredRoot](../../../../../functions/src/preview/mapContexts/MapContexts/preferredRoot.md)
+- [renderNow](../../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/renderNow.md)
+- [externalCatalog](../../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/externalCatalog.md)
 - [provideCompletionItems](../../../../../functions/src/providers/aiCompletionProvider/AICompletionProvider/provideCompletionItems.md)
 - [provideCodeActions](../../../../../functions/src/providers/aiQuickFixProvider/AIQuickFixProvider/provideCodeActions.md)
 - [exceedsLargeFileThreshold](../../../../../functions/src/providers/ditavalDecorationProvider/exceedsLargeFileThreshold.md)
 - [_handleSetTheme](../../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_handleSetTheme.md)
+- [setEnabled](../../../../../functions/src/test/suite/aiEnabled/test/setEnabled.md)
 - [loadConfiguration](../../../../../functions/src/utils/configurationManager/ConfigurationManager/loadConfiguration.md)
 - [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [configureOtPath](../../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/configureOtPath.md)
 - [loadConfiguration](../../../../../functions/src/utils/logger/Logger/loadConfiguration.md)
+- [followPathSettings](../../../../../functions/src/utils/pathSettings/followPathSettings.md)

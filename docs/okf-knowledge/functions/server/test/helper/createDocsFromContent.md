@@ -3,7 +3,7 @@ type: TypeScript Function
 title: createDocsFromContent
 resource: server/test/helper.ts#L36-L43
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDoc

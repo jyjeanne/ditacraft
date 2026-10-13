@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: getWorkspaceFolders
-resource: server/src/services/keySpaceService.ts#L201-L203
+resource: server/src/services/keySpaceService.ts#L260-L262
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/completion/getAttributeValueCompletions

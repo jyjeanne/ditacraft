@@ -3,7 +3,7 @@ type: TypeScript Function
 title: insertImageCommand
 resource: src/commands/insertImageCommand.ts#L50-L95
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/insertImageCommand/resolveImageHref
@@ -16,9 +16,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/editorInsertUtils/insertAtCursor
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -37,7 +34,6 @@ relationships:
 - [promptForImageSize](../../../../functions/src/commands/insertImageCommand/promptForImageSize.md)
 - [buildImageSnippet](../../../../functions/src/commands/insertImageCommand/buildImageSnippet.md)
 - [insertAtCursor](../../../../functions/src/utils/editorInsertUtils/insertAtCursor.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 
 # Called by
 

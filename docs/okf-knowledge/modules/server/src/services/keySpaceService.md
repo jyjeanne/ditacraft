@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: keySpaceService
-resource: server/src/services/keySpaceService.ts#L1-L2192
+resource: server/src/services/keySpaceService.ts#L1-L2350
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/path
@@ -38,7 +38,11 @@ relationships:
 - [KeyResolutionReport](../../../../interfaces/server/src/services/keySpaceService/KeyResolutionReport.md)
 - [KeySpace](../../../../interfaces/server/src/services/keySpaceService/KeySpace.md)
 - [CacheConfig](../../../../interfaces/server/src/services/keySpaceService/CacheConfig.md)
+- [ReferencedFiles](../../../../interfaces/server/src/services/keySpaceService/ReferencedFiles.md)
 - [KeySpaceSettings](../../../../interfaces/server/src/services/keySpaceService/KeySpaceSettings.md)
+- [nodeText](../../../../functions/server/src/services/keySpaceService/nodeText.md)
+- [isWebAddress](../../../../functions/server/src/services/keySpaceService/isWebAddress.md)
+- [describeKeyTarget](../../../../functions/server/src/services/keySpaceService/describeKeyTarget.md)
 - [KeySpaceService](../../../../classes/server/src/services/keySpaceService/KeySpaceService.md)
 - [constructor](../../../../functions/server/src/services/keySpaceService/KeySpaceService/constructor.md)
 - [getWorkspaceFolders](../../../../functions/server/src/services/keySpaceService/KeySpaceService/getWorkspaceFolders.md)
@@ -55,7 +59,10 @@ relationships:
 - [buildKeySpace](../../../../functions/server/src/services/keySpaceService/KeySpaceService/buildKeySpace.md)
 - [isBuildStale](../../../../functions/server/src/services/keySpaceService/KeySpaceService/isBuildStale.md)
 - [findRootMap](../../../../functions/server/src/services/keySpaceService/KeySpaceService/findRootMap.md)
-- [doFindRootMap](../../../../functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMap.md)
+- [chooseRootMap](../../../../functions/server/src/services/keySpaceService/KeySpaceService/chooseRootMap.md)
+- [referencedFiles](../../../../functions/server/src/services/keySpaceService/KeySpaceService/referencedFiles.md)
+- [findRootMapCandidates](../../../../functions/server/src/services/keySpaceService/KeySpaceService/findRootMapCandidates.md)
+- [doFindRootMapCandidates](../../../../functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMapCandidates.md)
 - [invalidateForFile](../../../../functions/server/src/services/keySpaceService/KeySpaceService/invalidateForFile.md)
 - [updateWorkspaceFolders](../../../../functions/server/src/services/keySpaceService/KeySpaceService/updateWorkspaceFolders.md)
 - [reloadCacheConfig](../../../../functions/server/src/services/keySpaceService/KeySpaceService/reloadCacheConfig.md)

@@ -1,12 +1,12 @@
 ---
 type: TypeScript Function
 title: requestPreviewRefresh
-resource: src/commands/previewCommand.ts#L69-L84
+resource: src/commands/previewCommand.ts#L88-L103
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/commands/previewCommand/previewHTML5Command
+  - target: functions/src/commands/previewCommand/previewDitaOtCommand
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/errorUtils/fireAndForget
@@ -27,7 +27,7 @@ relationships:
 
 # Calls
 
-- [previewHTML5Command](../../../../functions/src/commands/previewCommand/previewHTML5Command.md)
+- [previewDitaOtCommand](../../../../functions/src/commands/previewCommand/previewDitaOtCommand.md)
 - [fireAndForget](../../../../functions/src/utils/errorUtils/fireAndForget.md)
 
 # Called by

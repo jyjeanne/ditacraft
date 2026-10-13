@@ -3,7 +3,7 @@ type: TypeScript Function
 title: conditionKey
 resource: src/utils/ditavalConditionState.ts#L162-L164
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditavalConditionState/mergeAttributeState

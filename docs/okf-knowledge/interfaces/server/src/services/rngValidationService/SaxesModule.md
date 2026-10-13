@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: SaxesModule
 resource: server/src/services/rngValidationService.ts#L79-L81
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

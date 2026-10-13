@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: SalveGrammar
 resource: server/src/services/rngValidationService.ts#L34-L36
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

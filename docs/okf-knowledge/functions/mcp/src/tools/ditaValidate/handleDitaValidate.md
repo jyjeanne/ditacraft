@@ -1,15 +1,15 @@
 ---
 type: TypeScript Function
 title: handleDitaValidate
-resource: mcp/src/tools/ditaValidate.ts#L37-L129
+resource: mcp/src/tools/ditaValidate.ts#L37-L130
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/fragmentValidator/handleValidateFragment
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/mcp/src/workspace/resolvePath
+  - target: functions/mcp/src/workspace/fileUriToFsPath
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/mcp/src/workspace/fileExists
@@ -30,7 +30,7 @@ relationships:
 # Calls
 
 - [handleValidateFragment](../../../../../functions/server/src/features/fragmentValidator/handleValidateFragment.md)
-- [resolvePath](../../../../../functions/mcp/src/workspace/resolvePath.md)
+- [fileUriToFsPath](../../../../../functions/mcp/src/workspace/fileUriToFsPath.md)
 - [fileExists](../../../../../functions/mcp/src/workspace/fileExists.md)
 - [defaultMcpSettings](../../../../../functions/mcp/src/mcpSettings/defaultMcpSettings.md)
 - [diagnosticSeverity](../../../../../functions/mcp/src/tools/ditaValidate/diagnosticSeverity.md)

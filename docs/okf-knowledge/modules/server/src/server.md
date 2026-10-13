@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: server
-resource: server/src/server.ts#L1-L549
+resource: server/src/server.ts#L1-L550
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode-languageserver-node

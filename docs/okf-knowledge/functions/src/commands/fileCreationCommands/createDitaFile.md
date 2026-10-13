@@ -1,21 +1,15 @@
 ---
 type: TypeScript Function
 title: createDitaFile
-resource: src/commands/fileCreationCommands.ts#L100-L140
+resource: src/commands/fileCreationCommands.ts#L107-L147
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/fileCreationCommands/getWorkspaceFolder
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/src/utils/logger/Logger/warn
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -37,9 +31,7 @@ relationships:
 # Calls
 
 - [getWorkspaceFolder](../../../../functions/src/commands/fileCreationCommands/getWorkspaceFolder.md)
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
 - [warn](../../../../functions/src/utils/logger/Logger/warn.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 
 # Called by
 

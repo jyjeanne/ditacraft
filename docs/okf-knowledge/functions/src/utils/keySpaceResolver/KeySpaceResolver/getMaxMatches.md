@@ -1,20 +1,11 @@
 ---
 type: TypeScript Method
 title: getMaxMatches
-resource: src/utils/keySpaceResolver.ts#L202-L204
+resource: src/utils/keySpaceResolver.ts#L218-L220
 generated:
-  by: okf-rs/0.4.0
-relationships:
-  calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
+  by: okf-rs/0.7.0
 ---
 
 # Signature
 
 `private getMaxMatches(): number`
-
-# Calls
-
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)

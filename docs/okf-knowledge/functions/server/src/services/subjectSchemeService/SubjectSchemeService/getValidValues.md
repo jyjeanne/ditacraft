@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getValidValues
 resource: server/src/services/subjectSchemeService.ts#L269-L271
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/getMergedSnapshot

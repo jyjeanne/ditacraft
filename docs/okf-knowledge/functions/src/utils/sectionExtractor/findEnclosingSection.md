@@ -3,7 +3,7 @@ type: TypeScript Function
 title: findEnclosingSection
 resource: src/utils/sectionExtractor.ts#L48-L101
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/sectionExtractor/buildExtractedSection

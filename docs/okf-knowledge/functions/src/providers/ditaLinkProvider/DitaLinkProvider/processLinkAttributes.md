@@ -3,13 +3,19 @@ type: TypeScript Method
 title: processLinkAttributes
 resource: src/providers/ditaLinkProvider.ts#L621-L707
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/createElementNavigationLink
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/resolveReferenceWithFragment
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/buildEnhancedTooltip
@@ -27,8 +33,10 @@ relationships:
 
 # Calls
 
+- [startsWith](../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 - [createElementNavigationLink](../../../../../functions/src/providers/ditaLinkProvider/DitaLinkProvider/createElementNavigationLink.md)
 - [resolveReferenceWithFragment](../../../../../functions/src/providers/ditaLinkProvider/DitaLinkProvider/resolveReferenceWithFragment.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 - [buildEnhancedTooltip](../../../../../functions/src/providers/ditaLinkProvider/DitaLinkProvider/buildEnhancedTooltip.md)
 
 # Called by

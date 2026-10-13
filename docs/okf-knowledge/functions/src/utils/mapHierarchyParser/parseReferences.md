@@ -3,10 +3,19 @@ type: TypeScript Function
 title: parseReferences
 resource: src/utils/mapHierarchyParser.ts#L61-L129
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/mapHierarchyParser/extractAttribute
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/Renderer/has
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/webview/editor/readFile
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -22,6 +31,9 @@ relationships:
 # Calls
 
 - [extractAttribute](../../../../functions/src/utils/mapHierarchyParser/extractAttribute.md)
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
+- [has](../../../../functions/src/shared/render/toHtml/Renderer/has.md)
+- [readFile](../../../../functions/webview/editor/readFile.md)
 
 # Called by
 

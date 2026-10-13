@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: findProfiledElements
-resource: src/utils/xmlElementScanner.ts#L102-L137
+resource: src/utils/xmlElementScanner.ts#L102-L138
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/xmlElementScanner/findCommentSpans
@@ -19,7 +19,7 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   called_by:
-  - target: functions/src/providers/ditavalDecorationProvider/recompute
+  - target: functions/src/preview/conditionMarks/conditionMarks
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -37,4 +37,4 @@ relationships:
 
 # Called by
 
-- [recompute](../../../../functions/src/providers/ditavalDecorationProvider/recompute.md)
+- [conditionMarks](../../../../functions/src/preview/conditionMarks/conditionMarks.md)

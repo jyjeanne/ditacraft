@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: humanizeFileName
-resource: src/commands/fileCreationCommands.ts#L88-L94
+resource: src/commands/fileCreationCommands.ts#L95-L101
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/fileCreationCommands/resolveTemplatedOrGeneratedContent

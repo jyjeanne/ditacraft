@@ -3,7 +3,7 @@ type: TypeScript Function
 title: linked
 resource: server/test/linkedEditing.test.ts#L5-L15
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDoc

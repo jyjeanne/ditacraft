@@ -3,7 +3,7 @@ type: TypeScript Function
 title: wsSymbols
 resource: server/test/symbols.test.ts#L177-L184
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDocs

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: buildLevel1
 resource: server/src/features/contextSnapshot.ts#L92-L95
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/contextSnapshot/renderMapNodeXml

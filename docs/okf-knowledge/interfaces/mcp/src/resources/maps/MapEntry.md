@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: MapEntry
 resource: mcp/src/resources/maps.ts#L7-L13
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

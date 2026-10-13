@@ -3,13 +3,16 @@ type: TypeScript Function
 title: resolveWatchPublishOptions
 resource: src/commands/watchModeCommand.ts#L200-L214
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/publishProfilesCommand/getLastUsedProfileName
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/publishProfilesCommand/getPublishingProfiles
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/webview/editor/mapView/RowDrag/find
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/publishProfilesCommand/resolveProfileOutputDir
@@ -32,6 +35,7 @@ relationships:
 
 - [getLastUsedProfileName](../../../../functions/src/commands/publishProfilesCommand/getLastUsedProfileName.md)
 - [getPublishingProfiles](../../../../functions/src/commands/publishProfilesCommand/getPublishingProfiles.md)
+- [find](../../../../functions/webview/editor/mapView/RowDrag/find.md)
 - [resolveProfileOutputDir](../../../../functions/src/commands/publishProfilesCommand/resolveProfileOutputDir.md)
 - [resolveDitavalPath](../../../../functions/src/commands/publishProfilesCommand/resolveDitavalPath.md)
 

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: mockKeySpaceService
 resource: server/test/workspaceScanner.test.ts#L11-L15
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

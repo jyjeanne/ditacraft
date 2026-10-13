@@ -1,20 +1,11 @@
 ---
 type: TypeScript Function
 title: debouncedRefresh
-resource: server/src/server.ts#L507-L514
+resource: server/src/server.ts#L508-L515
 generated:
-  by: okf-rs/0.4.0
-relationships:
-  calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
+  by: okf-rs/0.7.0
 ---
 
 # Signature
 
 `function debouncedRefresh(key: string, delayMs: number): void`
-
-# Calls
-
-- [get](../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)

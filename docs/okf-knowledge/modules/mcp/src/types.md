@@ -3,7 +3,7 @@ type: TypeScript Module
 title: types
 resource: mcp/src/types.ts#L1-L19
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/server-src-services-validationpipeline

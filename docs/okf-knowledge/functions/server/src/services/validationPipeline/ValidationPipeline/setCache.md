@@ -3,7 +3,7 @@ type: TypeScript Method
 title: setCache
 resource: server/src/services/validationPipeline.ts#L243-L257
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/validationPipeline/ValidationPipeline/evictOldest

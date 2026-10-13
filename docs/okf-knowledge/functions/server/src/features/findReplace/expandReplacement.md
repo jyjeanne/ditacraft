@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: expandReplacement
-resource: server/src/features/findReplace.ts#L90-L98
+resource: server/src/features/findReplace.ts#L94-L102
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/findReplace/handleComputeFindReplaceEdits

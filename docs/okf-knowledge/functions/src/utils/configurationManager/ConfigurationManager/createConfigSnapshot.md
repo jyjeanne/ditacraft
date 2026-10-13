@@ -1,10 +1,14 @@
 ---
 type: TypeScript Method
 title: createConfigSnapshot
-resource: src/utils/configurationManager.ts#L231-L239
+resource: src/utils/configurationManager.ts#L273-L281
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
+  calls:
+  - target: functions/src/preview/grammarRegistry/GrammarRegistry/entries
+    resolved_by: tree-sitter
+    confidence: exact
   called_by:
   - target: functions/src/utils/configurationManager/ConfigurationManager/constructor
     resolved_by: tree-sitter
@@ -20,6 +24,10 @@ relationships:
 # Signature
 
 `private createConfigSnapshot(): Map<string, unknown>`
+
+# Calls
+
+- [entries](../../../../../functions/src/preview/grammarRegistry/GrammarRegistry/entries.md)
 
 # Called by
 

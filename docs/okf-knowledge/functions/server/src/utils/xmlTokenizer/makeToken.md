@@ -3,7 +3,7 @@ type: TypeScript Function
 title: makeToken
 resource: server/src/utils/xmlTokenizer.ts#L95-L101
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

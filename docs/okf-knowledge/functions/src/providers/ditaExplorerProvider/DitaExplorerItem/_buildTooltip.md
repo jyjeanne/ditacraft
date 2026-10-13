@@ -4,7 +4,7 @@ title: _buildTooltip
 resource: src/providers/ditaExplorerProvider.ts#L68-L89
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/ditaExplorerProvider/DitaExplorerItem/constructor

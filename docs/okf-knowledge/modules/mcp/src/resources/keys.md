@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: keys
-resource: mcp/src/resources/keys.ts#L1-L59
+resource: mcp/src/resources/keys.ts#L1-L67
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/types
@@ -13,6 +13,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-mapdiscovery
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/query
     resolved_by: tree-sitter
     confidence: exact
   member_of:
@@ -32,6 +35,7 @@ relationships:
 - `../types`
 - `../logger`
 - `../utils/mapDiscovery`
+- `./query`
 
 # Member of
 

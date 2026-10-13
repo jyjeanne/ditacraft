@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: createRange
-resource: server/src/features/validation.ts#L765-L772
+resource: server/src/features/validation.ts#L955-L962
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/validation/validateXML

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: makeRef
 resource: server/test/workspaceScanner.test.ts#L17-L19
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

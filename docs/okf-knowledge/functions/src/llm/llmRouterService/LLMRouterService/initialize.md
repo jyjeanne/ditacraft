@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: initialize
-resource: src/llm/llmRouterService.ts#L110-L137
+resource: src/llm/llmRouterService.ts#L142-L177
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/llmRouterService/LLMRouterService/buildProviders
@@ -16,7 +16,7 @@ relationships:
 
 # Signature
 
-`async initialize(config: DitaCraftLLMConfig): Promise<void>`
+`async initialize(config: DitaCraftLLMConfig, { quiet = false }: { quiet?: boolean } = {}): Promise<void>`
 
 # Calls
 

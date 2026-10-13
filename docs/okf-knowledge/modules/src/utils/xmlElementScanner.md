@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: xmlElementScanner
-resource: src/utils/xmlElementScanner.ts#L1-L137
+resource: src/utils/xmlElementScanner.ts#L1-L138
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft

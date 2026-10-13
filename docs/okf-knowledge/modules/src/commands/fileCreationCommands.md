@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: fileCreationCommands
-resource: src/commands/fileCreationCommands.ts#L1-L859
+resource: src/commands/fileCreationCommands.ts#L1-L866
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

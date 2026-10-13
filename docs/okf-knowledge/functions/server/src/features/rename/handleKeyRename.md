@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: handleKeyRename
-resource: server/src/features/rename.ts#L320-L422
+resource: server/src/features/rename.ts#L548-L650
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/uriToPath

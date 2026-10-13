@@ -1,21 +1,18 @@
 ---
 type: TypeScript Function
 title: validateIDs
-resource: server/src/features/validation.ts#L661-L749
+resource: server/src/features/validation.ts#L856-L939
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/stripCommentsAndCodeContent
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/features/validation/getEnclosingElement
+  - target: functions/server/src/features/validation/collectScopedIds
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/utils/i18n/t
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -31,9 +28,8 @@ relationships:
 # Calls
 
 - [stripCommentsAndCodeContent](../../../../../functions/server/src/utils/textUtils/stripCommentsAndCodeContent.md)
-- [getEnclosingElement](../../../../../functions/server/src/features/validation/getEnclosingElement.md)
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
-- [t](../../../../../functions/server/src/utils/i18n/t.md)
+- [collectScopedIds](../../../../../functions/server/src/features/validation/collectScopedIds.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 
 # Called by
 

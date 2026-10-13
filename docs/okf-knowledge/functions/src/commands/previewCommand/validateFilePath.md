@@ -1,16 +1,12 @@
 ---
 type: TypeScript Function
 title: validateFilePath
-resource: src/commands/previewCommand.ts#L238-L258
+resource: src/commands/previewCommand.ts#L290-L310
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
-  calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
-  - target: functions/src/commands/previewCommand/previewHTML5Command
+  - target: functions/src/commands/previewCommand/previewDitaOtCommand
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -19,10 +15,6 @@ relationships:
 
 `function validateFilePath(filePath: string): void`
 
-# Calls
-
-- [debug](../../../../functions/src/utils/logger/Logger/debug.md)
-
 # Called by
 
-- [previewHTML5Command](../../../../functions/src/commands/previewCommand/previewHTML5Command.md)
+- [previewDitaOtCommand](../../../../functions/src/commands/previewCommand/previewDitaOtCommand.md)

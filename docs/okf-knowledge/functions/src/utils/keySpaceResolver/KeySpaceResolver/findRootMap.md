@@ -1,15 +1,12 @@
 ---
 type: TypeScript Method
 title: findRootMap
-resource: src/utils/keySpaceResolver.ts#L1388-L1456
+resource: src/utils/keySpaceResolver.ts#L1436-L1459
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/debug
+  - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/normalizePathForComparison
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -20,5 +17,4 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
+- [normalizePathForComparison](../../../../../functions/src/utils/keySpaceResolver/KeySpaceResolver/normalizePathForComparison.md)

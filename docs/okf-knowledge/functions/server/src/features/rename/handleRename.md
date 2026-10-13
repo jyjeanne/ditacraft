@@ -1,15 +1,18 @@
 ---
 type: TypeScript Function
 title: handleRename
-resource: server/src/features/rename.ts#L71-L135
+resource: server/src/features/rename.ts#L114-L158
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/server/src/utils/referenceParser/findIdAtOffset
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/referenceParser/findIdAtOffset
+  - target: functions/server/src/features/rename/handleIdRename
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/features/rename/isTopicIdAt
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/utils/referenceParser/findKeyAtOffset
@@ -18,19 +21,14 @@ relationships:
   - target: functions/server/src/features/rename/handleKeyRename
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/textUtils/uriToPath
+  - target: functions/server/src/features/rename/usageAtOffset
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/textUtils/normalizeFsPath
+  - target: functions/server/src/features/rename/resolveUsage
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/server/src/utils/referenceParser/findReferencesToId
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/features/rename/collectMatchingEdits
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/features/rename/collectCrossFileEdits
+  called_by:
+  - target: functions/server/test/rename/test/renameAt
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -41,12 +39,14 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [findIdAtOffset](../../../../../functions/server/src/utils/referenceParser/findIdAtOffset.md)
+- [handleIdRename](../../../../../functions/server/src/features/rename/handleIdRename.md)
+- [isTopicIdAt](../../../../../functions/server/src/features/rename/isTopicIdAt.md)
 - [findKeyAtOffset](../../../../../functions/server/src/utils/referenceParser/findKeyAtOffset.md)
 - [handleKeyRename](../../../../../functions/server/src/features/rename/handleKeyRename.md)
-- [uriToPath](../../../../../functions/server/src/utils/textUtils/uriToPath.md)
-- [normalizeFsPath](../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)
-- [findReferencesToId](../../../../../functions/server/src/utils/referenceParser/findReferencesToId.md)
-- [collectMatchingEdits](../../../../../functions/server/src/features/rename/collectMatchingEdits.md)
-- [collectCrossFileEdits](../../../../../functions/server/src/features/rename/collectCrossFileEdits.md)
+- [usageAtOffset](../../../../../functions/server/src/features/rename/usageAtOffset.md)
+- [resolveUsage](../../../../../functions/server/src/features/rename/resolveUsage.md)
+
+# Called by
+
+- [renameAt](../../../../../functions/server/test/rename/test/renameAt.md)

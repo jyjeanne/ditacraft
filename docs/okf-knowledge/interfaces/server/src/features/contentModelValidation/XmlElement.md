@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: XmlElement
 resource: server/src/features/contentModelValidation.ts#L306-L311
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

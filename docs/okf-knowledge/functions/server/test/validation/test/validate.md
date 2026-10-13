@@ -3,7 +3,7 @@ type: TypeScript Function
 title: validate
 resource: server/test/validation.test.ts#L30-L33
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDoc

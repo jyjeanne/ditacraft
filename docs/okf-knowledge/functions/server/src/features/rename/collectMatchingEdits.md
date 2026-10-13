@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: collectMatchingEdits
-resource: server/src/features/rename.ts#L243-L259
+resource: server/src/features/rename.ts#L463-L480
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/features/rename/buildEditsForVerifiedRefs
@@ -16,14 +16,14 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   called_by:
-  - target: functions/server/src/features/rename/handleRename
+  - target: functions/server/src/features/rename/handleIdRename
     resolved_by: tree-sitter
     confidence: exact
 ---
 
 # Signature
 
-`async function collectMatchingEdits( refs: ReferenceOccurrence[], content: string, contextFilePath: string, normalizedTargetPath: string, oldId: string, newId: string, keySpaceService: KeySpaceService | undefined, log?: (msg: string) => void ): Promise<TextEdit[]>`
+`async function collectMatchingEdits( refs: ReferenceOccurrence[], content: string, contextFilePath: string, normalizedTargetPath: string, oldId: string, newId: string, isTopicId: boolean, keySpaceService: KeySpaceService | undefined, log?: (msg: string) => void ): Promise<TextEdit[]>`
 
 # Calls
 
@@ -33,4 +33,4 @@ relationships:
 
 # Called by
 
-- [handleRename](../../../../../functions/server/src/features/rename/handleRename.md)
+- [handleIdRename](../../../../../functions/server/src/features/rename/handleIdRename.md)

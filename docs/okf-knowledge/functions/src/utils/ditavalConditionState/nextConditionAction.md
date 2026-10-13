@@ -3,7 +3,7 @@ type: TypeScript Function
 title: nextConditionAction
 resource: src/utils/ditavalConditionState.ts#L148-L151
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/providers/ditavalConditionEditorPanel/DitavalConditionEditorPanel/_renderChip

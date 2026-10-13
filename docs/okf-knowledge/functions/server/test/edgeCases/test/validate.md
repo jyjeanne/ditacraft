@@ -3,7 +3,7 @@ type: TypeScript Function
 title: validate
 resource: server/test/edgeCases.test.ts#L81-L84
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/test/helper/createDoc

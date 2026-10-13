@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: KeyUsage
 resource: src/utils/keyUsageScanner.ts#L13-L18
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

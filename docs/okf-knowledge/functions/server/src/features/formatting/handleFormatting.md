@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleFormatting
 resource: server/src/features/formatting.ts#L41-L60
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/features/formatting/formatXML
     resolved_by: tree-sitter
     confidence: exact
@@ -20,5 +17,4 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [formatXML](../../../../../functions/server/src/features/formatting/formatXML.md)

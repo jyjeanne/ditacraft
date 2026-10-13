@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: extractAllIds
-resource: server/src/features/completion.ts#L623-L631
+resource: server/src/features/completion.ts#L624-L632
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/completion/getKeyrefCompletions

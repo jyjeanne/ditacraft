@@ -3,7 +3,7 @@ type: TypeScript Method
 title: buildFull
 resource: server/src/features/workspaceValidation.ts#L205-L217
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/workspaceScanner/collectDitaFilesAsync

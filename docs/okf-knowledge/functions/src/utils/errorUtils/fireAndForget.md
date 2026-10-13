@@ -3,7 +3,7 @@ type: TypeScript Function
 title: fireAndForget
 resource: src/utils/errorUtils.ts#L98-L125
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/errorUtils/getErrorMessage
@@ -23,6 +23,27 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/extension/verifyDitaOtInstallation
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/revive
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/refreshContext
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/loadDitaval
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/scheduleResolve
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/renderNow
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/onMessage
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/visualPreviewPanel/VisualPreviewPanel/runCommand
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/previewPanel/DitaPreviewPanel/constructor
@@ -60,6 +81,13 @@ relationships:
 - [activate](../../../../functions/src/extension/activate.md)
 - [registerPreviewAutoRefresh](../../../../functions/src/extension/registerPreviewAutoRefresh.md)
 - [verifyDitaOtInstallation](../../../../functions/src/extension/verifyDitaOtInstallation.md)
+- [revive](../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/revive.md)
+- [refreshContext](../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/refreshContext.md)
+- [loadDitaval](../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/loadDitaval.md)
+- [scheduleResolve](../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/scheduleResolve.md)
+- [renderNow](../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/renderNow.md)
+- [onMessage](../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/onMessage.md)
+- [runCommand](../../../../functions/src/preview/visualPreviewPanel/VisualPreviewPanel/runCommand.md)
 - [constructor](../../../../functions/src/providers/previewPanel/DitaPreviewPanel/constructor.md)
 - [_handleSetTheme](../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_handleSetTheme.md)
 - [_handlePreviewScroll](../../../../functions/src/providers/previewPanel/DitaPreviewPanel/_handlePreviewScroll.md)

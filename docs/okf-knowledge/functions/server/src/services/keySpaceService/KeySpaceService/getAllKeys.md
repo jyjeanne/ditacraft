@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: getAllKeys
-resource: server/src/services/keySpaceService.ts#L459-L469
+resource: server/src/services/keySpaceService.ts#L521-L531
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/mcp/src/resources/keys/readKeysResource

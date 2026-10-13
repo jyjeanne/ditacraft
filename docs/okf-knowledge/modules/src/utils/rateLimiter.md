@@ -3,7 +3,7 @@ type: TypeScript Module
 title: rateLimiter
 resource: src/utils/rateLimiter.ts#L1-L243
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

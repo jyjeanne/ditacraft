@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: LspTextEdit
-resource: src/commands/findReplaceCommand.ts#L23-L26
+resource: src/commands/findReplaceCommand.ts#L27-L30
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

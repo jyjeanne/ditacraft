@@ -3,7 +3,7 @@ type: TypeScript Function
 title: resolveImageHref
 resource: src/commands/insertImageCommand.ts#L118-L161
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/fileCreationCommands/getWorkspaceFolder
@@ -13,6 +13,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/insertImageCommand/computeImageHref
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/insertImageCommand/copyImageIntoDirectory
@@ -33,6 +36,7 @@ relationships:
 - [getWorkspaceFolder](../../../../functions/src/commands/fileCreationCommands/getWorkspaceFolder.md)
 - [reportUnresolvableHref](../../../../functions/src/commands/insertImageCommand/reportUnresolvableHref.md)
 - [computeImageHref](../../../../functions/src/commands/insertImageCommand/computeImageHref.md)
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [copyImageIntoDirectory](../../../../functions/src/commands/insertImageCommand/copyImageIntoDirectory.md)
 
 # Called by

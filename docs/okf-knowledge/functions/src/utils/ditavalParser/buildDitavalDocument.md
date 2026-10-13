@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: buildDitavalDocument
-resource: src/utils/ditavalParser.ts#L103-L117
+resource: src/utils/ditavalParser.ts#L116-L130
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/ditavalParser/escapeDitavalAttr

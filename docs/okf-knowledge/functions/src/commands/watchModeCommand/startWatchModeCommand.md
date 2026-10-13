@@ -3,9 +3,12 @@ type: TypeScript Function
 title: startWatchModeCommand
 resource: src/commands/watchModeCommand.ts#L74-L119
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/shared/render/toHtml/basename
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/commands/watchModeCommand/resolveWatchTarget
     resolved_by: tree-sitter
     confidence: exact
@@ -16,9 +19,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/watchModeCommand/setWatchingStatus
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/watchModeCommand/runWatchPublish
@@ -36,11 +36,11 @@ relationships:
 
 # Calls
 
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [resolveWatchTarget](../../../../functions/src/commands/watchModeCommand/resolveWatchTarget.md)
 - [verifyInstallation](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/verifyInstallation.md)
 - [scheduleRepublish](../../../../functions/src/commands/watchModeCommand/scheduleRepublish.md)
 - [setWatchingStatus](../../../../functions/src/commands/watchModeCommand/setWatchingStatus.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 - [runWatchPublish](../../../../functions/src/commands/watchModeCommand/runWatchPublish.md)
 
 # Called by

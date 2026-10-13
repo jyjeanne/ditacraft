@@ -3,7 +3,7 @@ type: TypeScript Method
 title: getDtdBasePath
 resource: src/utils/dtdResolver.ts#L132-L134
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

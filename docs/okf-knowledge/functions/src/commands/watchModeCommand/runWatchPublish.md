@@ -3,9 +3,12 @@ type: TypeScript Function
 title: runWatchPublish
 resource: src/commands/watchModeCommand.ts#L223-L316
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/shared/render/toHtml/basename
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/getOutputDirectory
     resolved_by: tree-sitter
     confidence: exact
@@ -22,9 +25,6 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/updateFromParsedOutput
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/logger/Logger/info
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/watchModeCommand/flashStatus
@@ -45,13 +45,13 @@ relationships:
 
 # Calls
 
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [getOutputDirectory](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/getOutputDirectory.md)
 - [warn](../../../../functions/src/utils/logger/Logger/warn.md)
 - [getDitaOtDiagnostics](../../../../functions/src/utils/ditaOtErrorParser/getDitaOtDiagnostics.md)
 - [publish](../../../../functions/src/utils/ditaOtWrapper/DitaOtWrapper/publish.md)
 - [parseDitaOtOutput](../../../../functions/src/utils/ditaOtErrorParser/parseDitaOtOutput.md)
 - [updateFromParsedOutput](../../../../functions/src/utils/ditaOtErrorParser/DitaOtDiagnostics/updateFromParsedOutput.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 - [flashStatus](../../../../functions/src/commands/watchModeCommand/flashStatus.md)
 
 # Called by

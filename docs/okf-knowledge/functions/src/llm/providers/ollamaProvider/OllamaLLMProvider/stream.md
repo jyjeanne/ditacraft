@@ -1,12 +1,15 @@
 ---
 type: TypeScript Method
 title: stream
-resource: src/llm/providers/ollamaProvider.ts#L74-L138
+resource: src/llm/providers/ollamaProvider.ts#L109-L173
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/_buildMessages
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/preview/resolver/decode
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -18,3 +21,4 @@ relationships:
 # Calls
 
 - [_buildMessages](../../../../../../functions/src/llm/providers/ollamaProvider/OllamaLLMProvider/_buildMessages.md)
+- [decode](../../../../../../functions/src/preview/resolver/decode.md)

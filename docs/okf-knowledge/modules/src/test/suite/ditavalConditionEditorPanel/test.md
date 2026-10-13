@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: src/test/suite/ditavalConditionEditorPanel.test.ts#L1-L149
+resource: src/test/suite/ditavalConditionEditorPanel.test.ts#L1-L171
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert

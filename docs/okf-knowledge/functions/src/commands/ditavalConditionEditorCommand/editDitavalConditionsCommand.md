@@ -3,7 +3,7 @@ type: TypeScript Function
 title: editDitavalConditionsCommand
 resource: src/commands/ditavalConditionEditorCommand.ts#L16-L43
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/extension/registerCommands

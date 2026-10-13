@@ -4,7 +4,7 @@ title: _updateAsync
 resource: src/providers/mapVisualizerPanel.ts#L161-L164
 visibility: private
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/mapHierarchyParser/parseMapHierarchy

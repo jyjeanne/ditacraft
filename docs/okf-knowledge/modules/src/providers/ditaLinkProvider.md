@@ -3,7 +3,7 @@ type: TypeScript Module
 title: ditaLinkProvider
 resource: src/providers/ditaLinkProvider.ts#L1-L944
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/vscode

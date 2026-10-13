@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: src/test/suite/xmlElementScanner.test.ts#L1-L97
+resource: src/test/suite/xmlElementScanner.test.ts#L1-L105
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert

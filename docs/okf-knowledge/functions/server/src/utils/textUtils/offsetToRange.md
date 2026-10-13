@@ -3,7 +3,7 @@ type: TypeScript Function
 title: offsetToRange
 resource: server/src/utils/textUtils.ts#L42-L73
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/batchMetadata/buildAttributeEdit

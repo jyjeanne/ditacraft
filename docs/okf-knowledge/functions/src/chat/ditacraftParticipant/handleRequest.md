@@ -1,11 +1,14 @@
 ---
 type: TypeScript Function
 title: handleRequest
-resource: src/chat/ditacraftParticipant.ts#L49-L77
+resource: src/chat/ditacraftParticipant.ts#L51-L84
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/llm/aiEnabled/isAiEnabled
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/chat/ditacraftParticipant/handleRestructure
     resolved_by: tree-sitter
     confidence: exact
@@ -30,6 +33,7 @@ relationships:
 
 # Calls
 
+- [isAiEnabled](../../../../functions/src/llm/aiEnabled/isAiEnabled.md)
 - [handleRestructure](../../../../functions/src/chat/ditacraftParticipant/handleRestructure.md)
 - [handleValidate](../../../../functions/src/chat/ditacraftParticipant/handleValidate.md)
 - [handleExplain](../../../../functions/src/chat/ditacraftParticipant/handleExplain.md)

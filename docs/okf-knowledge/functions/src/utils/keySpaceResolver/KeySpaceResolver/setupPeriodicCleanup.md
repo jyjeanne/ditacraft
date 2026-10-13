@@ -1,14 +1,10 @@
 ---
 type: TypeScript Method
 title: setupPeriodicCleanup
-resource: src/utils/keySpaceResolver.ts#L140-L167
+resource: src/utils/keySpaceResolver.ts#L156-L183
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
-  calls:
-  - target: functions/src/utils/logger/Logger/debug
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
   - target: functions/src/utils/keySpaceResolver/KeySpaceResolver/constructor
     resolved_by: tree-sitter
@@ -18,10 +14,6 @@ relationships:
 # Signature
 
 `private setupPeriodicCleanup(): void`
-
-# Calls
-
-- [debug](../../../../../functions/src/utils/logger/Logger/debug.md)
 
 # Called by
 

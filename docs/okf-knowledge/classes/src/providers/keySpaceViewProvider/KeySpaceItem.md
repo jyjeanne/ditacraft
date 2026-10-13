@@ -3,7 +3,7 @@ type: TypeScript Class
 title: KeySpaceItem
 resource: src/providers/keySpaceViewProvider.ts#L19-L76
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

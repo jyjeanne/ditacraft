@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: types
-resource: src/llm/types.ts#L1-L74
+resource: src/llm/types.ts#L1-L101
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/ditacraft
@@ -17,6 +17,8 @@ relationships:
 - [LLMRequest](../../../interfaces/src/llm/types/LLMRequest.md)
 - [LLMResponse](../../../interfaces/src/llm/types/LLMResponse.md)
 - [ILLMProvider](../../../interfaces/src/llm/types/ILLMProvider.md)
+- [ConnectionCheck](../../../interfaces/src/llm/types/ConnectionCheck.md)
+- [ProviderOptions](../../../interfaces/src/llm/types/ProviderOptions.md)
 - [DitaCraftLLMConfig](../../../interfaces/src/llm/types/DitaCraftLLMConfig.md)
 
 # Member of

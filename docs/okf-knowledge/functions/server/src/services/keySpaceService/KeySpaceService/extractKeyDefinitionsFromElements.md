@@ -1,15 +1,21 @@
 ---
 type: TypeScript Method
 title: extractKeyDefinitionsFromElements
-resource: server/src/services/keySpaceService.ts#L1097-L1210
+resource: server/src/services/keySpaceService.ts#L1237-L1352
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/server/src/services/keySpaceService/KeySpaceService/computeLineNumber
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/src/shared/render/toHtml/Renderer/has
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/server/src/services/keySpaceService/isWebAddress
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/server/src/services/keySpaceService/KeySpaceService/extractMetadataFromNode
@@ -27,8 +33,10 @@ relationships:
 
 # Calls
 
+- [startsWith](../../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 - [computeLineNumber](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/computeLineNumber.md)
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [has](../../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
+- [isWebAddress](../../../../../../functions/server/src/services/keySpaceService/isWebAddress.md)
 - [extractMetadataFromNode](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/extractMetadataFromNode.md)
 
 # Called by

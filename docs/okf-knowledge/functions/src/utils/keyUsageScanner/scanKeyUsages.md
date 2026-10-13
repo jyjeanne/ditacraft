@@ -3,10 +3,16 @@ type: TypeScript Function
 title: scanKeyUsages
 resource: src/utils/keyUsageScanner.ts#L44-L107
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
+  - target: functions/webview/editor/mapView/RowDrag/find
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/webview/editor/readFile
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -21,7 +27,9 @@ relationships:
 
 # Calls
 
-- [get](../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
+- [find](../../../../functions/webview/editor/mapView/RowDrag/find.md)
+- [readFile](../../../../functions/webview/editor/readFile.md)
+- [startsWith](../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 
 # Called by
 

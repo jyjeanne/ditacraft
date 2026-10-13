@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: helper
-resource: mcp/test/helper.ts#L1-L66
+resource: mcp/test/helper.ts#L1-L75
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/modelcontextprotocol-sdk-client-index-js

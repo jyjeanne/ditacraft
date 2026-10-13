@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: inlineConref
-resource: server/src/features/inlineConref.ts#L1-L234
+resource: server/src/features/inlineConref.ts#L1-L377
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/fs-promises
@@ -45,7 +45,12 @@ relationships:
 - [InlineConrefResult](../../../../interfaces/server/src/features/inlineConref/InlineConrefResult.md)
 - [ConrefElement](../../../../interfaces/server/src/features/inlineConref/ConrefElement.md)
 - [findConrefElementAtOffset](../../../../functions/server/src/features/inlineConref/findConrefElementAtOffset.md)
-- [buildOpenTagWithoutRefAttr](../../../../functions/server/src/features/inlineConref/buildOpenTagWithoutRefAttr.md)
+- [TagAttribute](../../../../interfaces/server/src/features/inlineConref/TagAttribute.md)
+- [tagAttributes](../../../../functions/server/src/features/inlineConref/tagAttributes.md)
+- [resolvedOpenTag](../../../../functions/server/src/features/inlineConref/resolvedOpenTag.md)
+- [rebaseReference](../../../../functions/server/src/features/inlineConref/rebaseReference.md)
+- [rebaseContentReferences](../../../../functions/server/src/features/inlineConref/rebaseContentReferences.md)
+- [rootElementId](../../../../functions/server/src/features/inlineConref/rootElementId.md)
 - [stripNestedIds](../../../../functions/server/src/features/inlineConref/stripNestedIds.md)
 - [readDocOrFile](../../../../functions/server/src/features/inlineConref/readDocOrFile.md)
 - [handleComputeInlineConrefEdit](../../../../functions/server/src/features/inlineConref/handleComputeInlineConrefEdit.md)

@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isDitaMap
-resource: src/commands/restructureMapCommand.ts#L158-L161
+resource: src/commands/restructureMapCommand.ts#L164-L167
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/restructureMapCommand/restructureMapCommand

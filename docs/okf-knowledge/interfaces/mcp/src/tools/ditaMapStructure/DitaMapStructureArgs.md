@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: DitaMapStructureArgs
 resource: mcp/src/tools/ditaMapStructure.ts#L6-L11
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

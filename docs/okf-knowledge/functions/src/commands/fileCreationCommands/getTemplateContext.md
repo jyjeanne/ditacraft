@@ -3,13 +3,10 @@ type: TypeScript Function
 title: getTemplateContext
 resource: src/commands/fileCreationCommands.ts#L72-L80
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/templateEngine/resolveTemplatesDir
@@ -37,7 +34,6 @@ relationships:
 # Calls
 
 - [getConfiguration](../../../../functions/src/utils/configurationManager/ConfigurationManager/getConfiguration.md)
-- [get](../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [resolveTemplatesDir](../../../../functions/src/utils/templateEngine/resolveTemplatesDir.md)
 
 # Called by

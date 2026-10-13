@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: replaceKeyInReference
-resource: server/src/features/rename.ts#L518-L525
+resource: server/src/features/rename.ts#L748-L751
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/features/rename/collectMatchingKeyEdits
@@ -13,7 +13,7 @@ relationships:
 
 # Signature
 
-`function replaceKeyInReference(type: string, value: string, newKey: string): string`
+`function replaceKeyInReference(value: string, newKey: string): string`
 
 # Called by
 

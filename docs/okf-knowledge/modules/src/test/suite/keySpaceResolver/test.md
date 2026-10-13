@@ -1,9 +1,9 @@
 ---
 type: TypeScript Module
 title: test
-resource: src/test/suite/keySpaceResolver.test.ts#L1-L594
+resource: src/test/suite/keySpaceResolver.test.ts#L1-L637
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   imports:
   - target: external/assert
@@ -13,6 +13,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: external/fs
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: external/os
     resolved_by: tree-sitter
     confidence: exact
   - target: external/utils-keyspaceresolver
@@ -33,6 +36,7 @@ relationships:
 - `assert`
 - `path`
 - `fs`
+- `os`
 - `../../utils/keySpaceResolver`
 
 # Member of

@@ -1,15 +1,12 @@
 ---
 type: TypeScript Function
 title: sendInitialRootMapSetting
-resource: src/extension.ts#L450-L469
+resource: src/extension.ts#L477-L496
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/utils/configurationManager/ConfigurationManager/getConfiguration
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/languageClient/getLanguageClient
@@ -22,6 +19,9 @@ relationships:
   - target: functions/src/extension/activate
     resolved_by: tree-sitter
     confidence: exact
+  - target: functions/src/extension/registerPathFollowing
+    resolved_by: tree-sitter
+    confidence: exact
 ---
 
 # Signature
@@ -31,10 +31,10 @@ relationships:
 # Calls
 
 - [getConfiguration](../../../functions/src/utils/configurationManager/ConfigurationManager/getConfiguration.md)
-- [get](../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [getLanguageClient](../../../functions/src/languageClient/getLanguageClient.md)
 - [updateRootMapStatusBar](../../../functions/src/extension/updateRootMapStatusBar.md)
 
 # Called by
 
 - [activate](../../../functions/src/extension/activate.md)
+- [registerPathFollowing](../../../functions/src/extension/registerPathFollowing.md)

@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleCompletion
 resource: server/src/features/completion.ts#L55-L92
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/features/completion/detectContext
     resolved_by: tree-sitter
     confidence: exact
@@ -33,7 +30,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [detectContext](../../../../../functions/server/src/features/completion/detectContext.md)
 - [getElementCompletions](../../../../../functions/server/src/features/completion/getElementCompletions.md)
 - [getAttributeCompletions](../../../../../functions/server/src/features/completion/getAttributeCompletions.md)

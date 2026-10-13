@@ -1,9 +1,9 @@
 ---
 type: TypeScript Class
 title: AIQuickFixProvider
-resource: src/providers/aiQuickFixProvider.ts#L41-L62
+resource: src/providers/aiQuickFixProvider.ts#L52-L73
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

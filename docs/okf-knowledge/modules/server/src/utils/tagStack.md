@@ -3,7 +3,7 @@ type: TypeScript Module
 title: tagStack
 resource: server/src/utils/tagStack.ts#L1-L38
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   member_of:
   - target: packages/server

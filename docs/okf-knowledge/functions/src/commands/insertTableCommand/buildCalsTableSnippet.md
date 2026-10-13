@@ -3,7 +3,7 @@ type: TypeScript Function
 title: buildCalsTableSnippet
 resource: src/commands/insertTableCommand.ts#L140-L175
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/insertTableCommand/insertTableCommand

@@ -3,7 +3,7 @@ type: TypeScript Function
 title: offsetToPosition
 resource: src/utils/keyUsageScanner.ts#L24-L38
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

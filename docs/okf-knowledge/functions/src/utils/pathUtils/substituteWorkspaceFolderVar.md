@@ -3,7 +3,7 @@ type: TypeScript Function
 title: substituteWorkspaceFolderVar
 resource: src/utils/pathUtils.ts#L21-L24
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/commands/publishProfilesCommand/resolveProfileOutputDir

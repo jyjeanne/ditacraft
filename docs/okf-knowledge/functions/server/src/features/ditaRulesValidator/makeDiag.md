@@ -3,7 +3,7 @@ type: TypeScript Function
 title: makeDiag
 resource: server/src/features/ditaRulesValidator.ts#L1016-L1027
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/utils/textUtils/offsetToRange

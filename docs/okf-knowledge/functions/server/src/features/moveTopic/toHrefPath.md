@@ -1,12 +1,12 @@
 ---
 type: TypeScript Function
 title: toHrefPath
-resource: server/src/features/moveTopic.ts#L61-L66
+resource: server/src/features/moveTopic.ts#L71-L76
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
-  - target: functions/server/src/features/moveTopic/handleComputeMoveEdits
+  - target: functions/server/src/features/moveTopic/referenceValue
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -17,4 +17,4 @@ relationships:
 
 # Called by
 
-- [handleComputeMoveEdits](../../../../../functions/server/src/features/moveTopic/handleComputeMoveEdits.md)
+- [referenceValue](../../../../../functions/server/src/features/moveTopic/referenceValue.md)

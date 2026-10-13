@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: DitaResolveReferenceArgs
 resource: mcp/src/tools/ditaResolveReference.ts#L10-L14
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

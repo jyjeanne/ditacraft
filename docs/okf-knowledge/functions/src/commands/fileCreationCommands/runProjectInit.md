@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: runProjectInit
-resource: src/commands/fileCreationCommands.ts#L506-L604
+resource: src/commands/fileCreationCommands.ts#L513-L611
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/src/commands/fileCreationCommands/findExistingPaths
@@ -16,6 +16,9 @@ relationships:
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/commands/fileCreationCommands/todayIso
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/utils/templateEngine/loadTemplateRaw
@@ -39,9 +42,6 @@ relationships:
   - target: functions/src/commands/fileCreationCommands/generateStarterDitavalContent
     resolved_by: tree-sitter
     confidence: exact
-  - target: functions/src/utils/logger/Logger/info
-    resolved_by: tree-sitter
-    confidence: exact
   called_by:
   - target: functions/src/commands/fileCreationCommands/initProjectCommand
     resolved_by: tree-sitter
@@ -58,6 +58,7 @@ relationships:
 - [findNonDirectoryConflicts](../../../../functions/src/commands/fileCreationCommands/findNonDirectoryConflicts.md)
 - [getTemplateContext](../../../../functions/src/commands/fileCreationCommands/getTemplateContext.md)
 - [todayIso](../../../../functions/src/commands/fileCreationCommands/todayIso.md)
+- [basename](../../../../functions/src/shared/render/toHtml/basename.md)
 - [loadTemplateRaw](../../../../functions/src/utils/templateEngine/loadTemplateRaw.md)
 - [substitutePlaceholders](../../../../functions/src/utils/templateEngine/substitutePlaceholders.md)
 - [humanizeFileName](../../../../functions/src/commands/fileCreationCommands/humanizeFileName.md)
@@ -65,7 +66,6 @@ relationships:
 - [generateInitBookmapContent](../../../../functions/src/commands/fileCreationCommands/generateInitBookmapContent.md)
 - [generateInitMapContent](../../../../functions/src/commands/fileCreationCommands/generateInitMapContent.md)
 - [generateStarterDitavalContent](../../../../functions/src/commands/fileCreationCommands/generateStarterDitavalContent.md)
-- [info](../../../../functions/src/utils/logger/Logger/info.md)
 
 # Called by
 

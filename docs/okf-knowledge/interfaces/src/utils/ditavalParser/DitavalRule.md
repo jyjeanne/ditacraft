@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: DitavalRule
 resource: src/utils/ditavalParser.ts#L22-L26
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

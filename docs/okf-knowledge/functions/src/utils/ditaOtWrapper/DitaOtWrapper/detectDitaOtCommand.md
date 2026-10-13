@@ -1,9 +1,9 @@
 ---
 type: TypeScript Method
 title: detectDitaOtCommand
-resource: src/utils/ditaOtWrapper.ts#L222-L259
+resource: src/utils/ditaOtWrapper.ts#L239-L276
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/src/utils/ditaOtWrapper/DitaOtWrapper/constructor

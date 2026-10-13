@@ -1,9 +1,9 @@
 ---
 type: TypeScript Function
 title: isRefAttr
-resource: server/src/utils/referenceParser.ts#L382-L384
+resource: server/src/utils/referenceParser.ts#L424-L426
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
   - target: functions/server/src/utils/referenceParser/findReferenceAtOffset

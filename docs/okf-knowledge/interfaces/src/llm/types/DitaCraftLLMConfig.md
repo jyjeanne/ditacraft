@@ -1,9 +1,9 @@
 ---
 type: TypeScript Interface
 title: DitaCraftLLMConfig
-resource: src/llm/types.ts#L65-L74
+resource: src/llm/types.ts#L92-L101
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

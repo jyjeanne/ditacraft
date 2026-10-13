@@ -1,15 +1,12 @@
 ---
 type: TypeScript Method
 title: findRootMap
-resource: server/src/services/keySpaceService.ts#L570-L609
+resource: server/src/services/keySpaceService.ts#L643-L661
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
-  - target: functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMap
+  - target: functions/server/src/utils/textUtils/normalizeFsPath
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -20,5 +17,4 @@ relationships:
 
 # Calls
 
-- [get](../../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
-- [doFindRootMap](../../../../../../functions/server/src/services/keySpaceService/KeySpaceService/doFindRootMap.md)
+- [normalizeFsPath](../../../../../../functions/server/src/utils/textUtils/normalizeFsPath.md)

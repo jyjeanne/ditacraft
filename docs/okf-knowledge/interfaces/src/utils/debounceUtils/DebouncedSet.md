@@ -3,7 +3,7 @@ type: TypeScript Interface
 title: DebouncedSet
 resource: src/utils/debounceUtils.ts#L221-L241
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -3,10 +3,13 @@ type: TypeScript Function
 title: applySuppressions
 resource: server/src/services/suppressionEngine.ts#L129-L151
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/suppressionEngine/parseSuppressions
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/Renderer/has
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -22,6 +25,7 @@ relationships:
 # Calls
 
 - [parseSuppressions](../../../../../functions/server/src/services/suppressionEngine/parseSuppressions.md)
+- [has](../../../../../functions/src/shared/render/toHtml/Renderer/has.md)
 
 # Called by
 

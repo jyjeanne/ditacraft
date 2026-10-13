@@ -3,13 +3,19 @@ type: TypeScript Method
 title: processConrefAttributes
 resource: src/providers/ditaLinkProvider.ts#L194-L265
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
+  - target: functions/src/shared/cst/parse/Scanner/startsWith
+    resolved_by: tree-sitter
+    confidence: exact
   - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/createElementNavigationLink
     resolved_by: tree-sitter
     confidence: exact
   - target: functions/src/providers/ditaLinkProvider/DitaLinkProvider/resolveReferenceWithFragment
+    resolved_by: tree-sitter
+    confidence: exact
+  - target: functions/src/shared/render/toHtml/basename
     resolved_by: tree-sitter
     confidence: exact
   called_by:
@@ -24,8 +30,10 @@ relationships:
 
 # Calls
 
+- [startsWith](../../../../../functions/src/shared/cst/parse/Scanner/startsWith.md)
 - [createElementNavigationLink](../../../../../functions/src/providers/ditaLinkProvider/DitaLinkProvider/createElementNavigationLink.md)
 - [resolveReferenceWithFragment](../../../../../functions/src/providers/ditaLinkProvider/DitaLinkProvider/resolveReferenceWithFragment.md)
+- [basename](../../../../../functions/src/shared/render/toHtml/basename.md)
 
 # Called by
 

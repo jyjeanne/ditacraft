@@ -3,7 +3,7 @@ type: TypeScript Function
 title: createSchemeService
 resource: server/test/batchMetadata.test.ts#L19-L25
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
   - target: functions/server/src/services/subjectSchemeService/SubjectSchemeService/registerSchemes

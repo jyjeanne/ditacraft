@@ -3,7 +3,7 @@ type: TypeScript Class
 title: RngValidationService
 resource: server/src/services/rngValidationService.ts#L87-L358
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 ---
 
 # Signature

@@ -3,10 +3,10 @@ type: TypeScript Method
 title: deleteApiKey
 resource: src/llm/secretManager.ts#L29-L31
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   called_by:
-  - target: functions/src/commands/configureAICommand/configureAICommand
+  - target: functions/src/commands/configureAICommand/AiSettingsPanel/handle
     resolved_by: tree-sitter
     confidence: exact
 ---
@@ -17,4 +17,4 @@ relationships:
 
 # Called by
 
-- [configureAICommand](../../../../../functions/src/commands/configureAICommand/configureAICommand.md)
+- [handle](../../../../../functions/src/commands/configureAICommand/AiSettingsPanel/handle.md)

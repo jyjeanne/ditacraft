@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleLinkedEditingRange
 resource: server/src/features/linkedEditing.ts#L14-L48
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/features/linkedEditing/findTagAtOffset
     resolved_by: tree-sitter
     confidence: exact
@@ -27,7 +24,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [findTagAtOffset](../../../../../functions/server/src/features/linkedEditing/findTagAtOffset.md)
 - [findOpeningTag](../../../../../functions/server/src/features/linkedEditing/findOpeningTag.md)
 

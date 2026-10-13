@@ -3,12 +3,9 @@ type: TypeScript Function
 title: handleHover
 resource: server/src/features/hover.ts#L24-L84
 generated:
-  by: okf-rs/0.4.0
+  by: okf-rs/0.7.0
 relationships:
   calls:
-  - target: functions/src/utils/configurationManager/ConfigurationManager/get
-    resolved_by: tree-sitter
-    confidence: exact
   - target: functions/server/src/utils/referenceParser/findReferenceAtOffset
     resolved_by: tree-sitter
     confidence: exact
@@ -42,7 +39,6 @@ relationships:
 
 # Calls
 
-- [get](../../../../../functions/src/utils/configurationManager/ConfigurationManager/get.md)
 - [findReferenceAtOffset](../../../../../functions/server/src/utils/referenceParser/findReferenceAtOffset.md)
 - [getKeyrefHover](../../../../../functions/server/src/features/hover/getKeyrefHover.md)
 - [effectiveWorkspaceFolders](../../../../../functions/server/src/utils/textUtils/effectiveWorkspaceFolders.md)
