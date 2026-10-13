@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-13T12:09:19.968Z",
+  "generatedAt": "2026-10-13T16:11:59.951Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.graphify/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -969,6 +969,28 @@
       "warnings": []
     },
     {
+      "id": "flow:parity_run_lsp_diagnostics_request",
+      "name": "request",
+      "entryPoint": "parity_run_lsp_diagnostics_request",
+      "entryPointId": "parity_run_lsp_diagnostics_request",
+      "path": [
+        "parity_run_lsp_diagnostics_request",
+        "parity_run_lsp_diagnostics_send"
+      ],
+      "qualifiedPath": [
+        "parity_run_lsp_diagnostics_request",
+        "parity_run_lsp_diagnostics_send"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "scripts/parity/run-lsp-diagnostics.js"
+      ],
+      "criticality": 0.285,
+      "warnings": []
+    },
+    {
       "id": "flow:preview_resolver_referenceresolver_invalidate",
       "name": ".invalidate",
       "entryPoint": "preview_resolver_referenceresolver_invalidate",
@@ -1116,42 +1138,6 @@
       "fileCount": 1,
       "files": [
         "server/src/services/rngValidationService.ts"
-      ],
-      "criticality": 0.2533,
-      "warnings": []
-    },
-    {
-      "id": "flow:features_crossrefvalidation_validatecrossreferences",
-      "name": "validateCrossReferences",
-      "entryPoint": "features_crossrefvalidation_validatecrossreferences",
-      "entryPointId": "features_crossrefvalidation_validatecrossreferences",
-      "path": [
-        "features_crossrefvalidation_validatecrossreferences",
-        "features_crossrefvalidation_areconrefcompatible",
-        "features_crossrefvalidation_findtargetelementbyidonly",
-        "features_crossrefvalidation_getcontainingelementname",
-        "features_crossrefvalidation_getscopevalue",
-        "features_crossrefvalidation_isinstarttag",
-        "features_crossrefvalidation_validateconrefcompatibility",
-        "features_crossrefvalidation_validatefragment",
-        "features_crossrefvalidation_findtargetelementname"
-      ],
-      "qualifiedPath": [
-        "features_crossrefvalidation_validatecrossreferences",
-        "features_crossrefvalidation_areconrefcompatible",
-        "features_crossrefvalidation_findtargetelementbyidonly",
-        "features_crossrefvalidation_getcontainingelementname",
-        "features_crossrefvalidation_getscopevalue",
-        "features_crossrefvalidation_isinstarttag",
-        "features_crossrefvalidation_validateconrefcompatibility",
-        "features_crossrefvalidation_validatefragment",
-        "features_crossrefvalidation_findtargetelementname"
-      ],
-      "depth": 2,
-      "nodeCount": 9,
-      "fileCount": 1,
-      "files": [
-        "server/src/features/crossRefValidation.ts"
       ],
       "criticality": 0.2533,
       "warnings": []
@@ -3360,6 +3346,64 @@
         "src/shared/render/toHtml.ts"
       ],
       "criticality": 0.2078,
+      "warnings": []
+    },
+    {
+      "id": "flow:features_crossrefvalidation_validatecrossreferences",
+      "name": "validateCrossReferences",
+      "entryPoint": "features_crossrefvalidation_validatecrossreferences",
+      "entryPointId": "features_crossrefvalidation_validatecrossreferences",
+      "path": [
+        "features_crossrefvalidation_validatecrossreferences",
+        "features_crossrefvalidation_appendcopytocollisionerror",
+        "features_crossrefvalidation_appendditaotchunkbuildwarnings",
+        "features_crossrefvalidation_appendnestednavigationmaploaderror",
+        "features_crossrefvalidation_appendoutsideinputdirdiagnosticsfrommap",
+        "features_crossrefvalidation_areconrefcompatible",
+        "features_crossrefvalidation_findtargetelementbyidonly",
+        "features_crossrefvalidation_getattributevalue",
+        "features_crossrefvalidation_getcontainingelementname",
+        "features_crossrefvalidation_getinvalidkeynamesfrommap",
+        "features_crossrefvalidation_getscopevalue",
+        "features_crossrefvalidation_isinstarttag",
+        "features_crossrefvalidation_isinvalidkeyname",
+        "features_crossrefvalidation_ispathinsidedir",
+        "features_crossrefvalidation_validateconrefcompatibility",
+        "features_crossrefvalidation_validatefragment",
+        "features_crossrefvalidation_normalizecopytoname",
+        "features_crossrefvalidation_getcontainingtag",
+        "features_crossrefvalidation_collectinvalidkeynames",
+        "features_crossrefvalidation_findtargetelementname"
+      ],
+      "qualifiedPath": [
+        "features_crossrefvalidation_validatecrossreferences",
+        "features_crossrefvalidation_appendcopytocollisionerror",
+        "features_crossrefvalidation_appendditaotchunkbuildwarnings",
+        "features_crossrefvalidation_appendnestednavigationmaploaderror",
+        "features_crossrefvalidation_appendoutsideinputdirdiagnosticsfrommap",
+        "features_crossrefvalidation_areconrefcompatible",
+        "features_crossrefvalidation_findtargetelementbyidonly",
+        "features_crossrefvalidation_getattributevalue",
+        "features_crossrefvalidation_getcontainingelementname",
+        "features_crossrefvalidation_getinvalidkeynamesfrommap",
+        "features_crossrefvalidation_getscopevalue",
+        "features_crossrefvalidation_isinstarttag",
+        "features_crossrefvalidation_isinvalidkeyname",
+        "features_crossrefvalidation_ispathinsidedir",
+        "features_crossrefvalidation_validateconrefcompatibility",
+        "features_crossrefvalidation_validatefragment",
+        "features_crossrefvalidation_normalizecopytoname",
+        "features_crossrefvalidation_getcontainingtag",
+        "features_crossrefvalidation_collectinvalidkeynames",
+        "features_crossrefvalidation_findtargetelementname"
+      ],
+      "depth": 2,
+      "nodeCount": 20,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/crossRefValidation.ts"
+      ],
+      "criticality": 0.2075,
       "warnings": []
     },
     {
@@ -9671,6 +9715,30 @@
       "warnings": []
     },
     {
+      "id": "flow:features_crossrefvalidation_isexternalscope",
+      "name": "isExternalScope",
+      "entryPoint": "features_crossrefvalidation_isexternalscope",
+      "entryPointId": "features_crossrefvalidation_isexternalscope",
+      "path": [
+        "features_crossrefvalidation_isexternalscope",
+        "features_crossrefvalidation_getscopevalue",
+        "features_crossrefvalidation_getcontainingtag"
+      ],
+      "qualifiedPath": [
+        "features_crossrefvalidation_isexternalscope",
+        "features_crossrefvalidation_getscopevalue",
+        "features_crossrefvalidation_getcontainingtag"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "server/src/features/crossRefValidation.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
       "id": "flow:render_tohtml_linkpoolrule",
       "name": "linkpoolRule",
       "entryPoint": "render_tohtml_linkpoolrule",
@@ -12791,28 +12859,6 @@
       "warnings": []
     },
     {
-      "id": "flow:features_crossrefvalidation_isexternalscope",
-      "name": "isExternalScope",
-      "entryPoint": "features_crossrefvalidation_isexternalscope",
-      "entryPointId": "features_crossrefvalidation_isexternalscope",
-      "path": [
-        "features_crossrefvalidation_isexternalscope",
-        "features_crossrefvalidation_getscopevalue"
-      ],
-      "qualifiedPath": [
-        "features_crossrefvalidation_isexternalscope",
-        "features_crossrefvalidation_getscopevalue"
-      ],
-      "depth": 1,
-      "nodeCount": 2,
-      "fileCount": 1,
-      "files": [
-        "server/src/features/crossRefValidation.ts"
-      ],
-      "criticality": 0.16,
-      "warnings": []
-    },
-    {
       "id": "flow:utils_errorutils_isfilenotfounderror",
       "name": "isFileNotFoundError",
       "entryPoint": "utils_errorutils_isfilenotfounderror",
@@ -13872,6 +13918,32 @@
       "fileCount": 1,
       "files": [
         "src/shared/editor/columnWidths.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:parity_compare_results_toditaotissues",
+      "name": "toDitaOtIssues",
+      "entryPoint": "parity_compare_results_toditaotissues",
+      "entryPointId": "parity_compare_results_toditaotissues",
+      "path": [
+        "parity_compare_results_toditaotissues",
+        "parity_compare_results_canonicalcode",
+        "parity_compare_results_classifyfamily",
+        "parity_compare_results_normalizecode"
+      ],
+      "qualifiedPath": [
+        "parity_compare_results_toditaotissues",
+        "parity_compare_results_canonicalcode",
+        "parity_compare_results_classifyfamily",
+        "parity_compare_results_normalizecode"
+      ],
+      "depth": 1,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "scripts/parity/compare-results.js"
       ],
       "criticality": 0.16,
       "warnings": []
