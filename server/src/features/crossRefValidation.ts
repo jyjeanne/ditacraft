@@ -70,7 +70,9 @@ export async function validateCrossReferences(
     const isDitaOtComparison = options?.comparisonProfile === 'ditaot';
     const isResourceMapContext = isDitaOtComparison && isDitaOtResourceMapContext(filePath);
     const isReferenceMap = isDitaOtComparison && path.basename(filePath).toLowerCase() === 'reference.ditamap';
-    const isReleaseNotesChangesMap = isDitaOtComparison && normalizeFsPath(filePath).toLowerCase().endsWith('\\release-notes\\changes.ditamap');
+    const isReleaseNotesChangesMap = isDitaOtComparison
+        && normalizeFsPath(filePath).toLowerCase()
+            .endsWith(`${path.sep}release-notes${path.sep}changes.ditamap`);
     const invalidKeyNameCache = new Map<string, string[] | null>();
     const workspaceFolders = effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? []);
     const missingFileSeverity = isDitaOtComparison ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
@@ -949,7 +951,7 @@ async function appendDitaOtReleaseNotesBuildDiagnostics(
     maxProblems: number
 ): Promise<void> {
     const normalized = normalizeFsPath(mapFilePath).toLowerCase();
-    if (!normalized.endsWith('\\release-notes\\changes.ditamap')) return;
+    if (!normalized.endsWith(`${path.sep}release-notes${path.sep}changes.ditamap`)) return;
     const topicrefRegex = /<topicref\b[^>]*\bhref\s*=\s*["']([^"']+\.dita(?:#[^"']*)?)["'][^>]*>/gi;
     let topicrefMatch: RegExpExecArray | null;
     let outsideWarnings = 0;
@@ -1143,7 +1145,7 @@ function appendDitaOtCommonTocMaprefLoadError(
 
 function isDitaOtResourceMapContext(filePath: string): boolean {
     const normalized = normalizeFsPath(filePath).toLowerCase();
-    return normalized.includes('\\resources\\');
+    return normalized.includes(`${path.sep}resources${path.sep}`);
 }
 
 async function collectUnresolvedConkeyrefs(
