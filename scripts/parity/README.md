@@ -10,6 +10,8 @@ Utilities to compare DitaCraft LSP diagnostics with DITA-OT validation output.
   Parses `DitaOtValidateTask` console logs into structured JSON counts by file, including per-issue code/severity entries.
 - `compare-results.js`  
   Compares LSP and DITA-OT summaries and emits JSON + Markdown report with mismatch families (`scope`, `key-space`, `dotx-build-time`, `resource-availability`, `other`).
+- `generate-mismatch-testsets.js`  
+  Generates reproducible file lists (`strict-mismatch-files.{txt,json}`, `family-*.{txt,json}`, `code-*.{txt,json}`) from a strict comparison report to run targeted parity loops.
 
 ## Typical flow
 
@@ -23,6 +25,8 @@ Utilities to compare DitaCraft LSP diagnostics with DITA-OT validation output.
    - `node scripts/parity/compare-results.js <mapFilesJson> <lspOutJson> <ditaotOutJson> <reportJson> <reportMd>`
    - optional normalization profile:
      - `node scripts/parity/compare-results.js <mapFilesJson> <lspOutJson> <ditaotOutJson> <reportJson> <reportMd> --normalization ditaot-known-limits`
+6. Generate targeted reproduction sets from strict mismatches:
+   - `node scripts/parity/generate-mismatch-testsets.js <reportJson> <outputDir>`
 
 ## Notes
 

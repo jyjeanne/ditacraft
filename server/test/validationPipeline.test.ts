@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { URI } from 'vscode-uri';
+import { DiagnosticSeverity } from 'vscode-languageserver/node';
 import { ValidationPipeline, ValidationPhase, WorkspaceContext } from '../src/services/validationPipeline';
 import { CatalogValidationService } from '../src/services/catalogValidationService';
 import { RngValidationService } from '../src/services/rngValidationService';
@@ -1165,6 +1166,38 @@ suite('ValidationPipeline', () => {
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
+        });
+    });
+
+    suite('DITA-OT comparison profile filters', () => {
+        test('ditaot profile suppresses external-subset DTD diagnostics', async () => {
+            const dtdDiag = {
+                severity: DiagnosticSeverity.Error,
+                range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1000 } },
+                message: 'External subset not found: lw-map.dtd',
+                source: 'dita-dtd',
+                code: 'DITA-DTD-001',
+            };
+            const pipeline = new ValidationPipeline(
+                makeCatalogService({
+                    isAvailable: true,
+                    validate: () => [dtdDiag],
+                }),
+                makeRngService(),
+                makeSubjectSchemeService(),
+            );
+            const doc = createDoc('<!DOCTYPE map SYSTEM "lw-map.dtd"><map><title>T</title></map>', 'file:///test.ditamap');
+
+            const defaultDiags = await pipeline.validate(doc, { ...defaultSettings }, undefined, emptyWorkspace);
+            assert.strictEqual(defaultDiags.filter(d => d.code === 'DITA-DTD-001').length, 1);
+
+            const ditaotDiags = await pipeline.validate(
+                doc,
+                { ...defaultSettings, comparisonProfile: 'ditaot' },
+                undefined,
+                emptyWorkspace
+            );
+            assert.strictEqual(ditaotDiags.filter(d => d.code === 'DITA-DTD-001').length, 0);
         });
     });
 });

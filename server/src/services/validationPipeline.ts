@@ -356,6 +356,9 @@ export class ValidationPipeline {
     ): Promise<Diagnostic[]> {
         const startTime = Date.now();
         const pipelineBudgetMs = settings.pipelineBudgetMs ?? 30_000;
+        const effectivePhaseTimeoutMs = settings.comparisonProfile === 'ditaot'
+            ? Math.max(phaseTimeoutMs, 30_000)
+            : phaseTimeoutMs;
         const text = document.getText();
         const uri = document.uri;
         const docVersion = document.version;
@@ -517,7 +520,7 @@ export class ValidationPipeline {
                                 settings.maxNumberOfProblems,
                                 { comparisonProfile: settings.comparisonProfile }
                             ),
-                            phaseTimeoutMs, 'CrossRef', this.log, token,
+                            effectivePhaseTimeoutMs, 'CrossRef', this.log, token,
                         )
                     );
                     if (xrefDiags !== null) {
@@ -576,7 +579,7 @@ export class ValidationPipeline {
                                 text, uri,
                                 effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? [])
                             ),
-                            phaseTimeoutMs, 'CircularRef', this.log, token,
+                            effectivePhaseTimeoutMs, 'CircularRef', this.log, token,
                         )
                     );
                     if (cycleDiags !== null) {
@@ -604,7 +607,7 @@ export class ValidationPipeline {
                 await timePhaseAsync('SubjectScheme', async () => {
                     const schemePaths = await withTimeout(
                         keySpaceService.getSubjectSchemePaths(filePath),
-                        phaseTimeoutMs, 'SubjectScheme', this.log, token,
+                        effectivePhaseTimeoutMs, 'SubjectScheme', this.log, token,
                     );
                     if (schemePaths === null) {
                         schemeQueries = null;
@@ -715,6 +718,14 @@ export class ValidationPipeline {
 
         // Apply comment-based suppression (Phase 5.2)
         finalDiags = applySuppressions(finalDiags, text);
+
+        if (settings.comparisonProfile === 'ditaot') {
+            finalDiags = finalDiags.filter((diag) => {
+                const code = typeof diag.code === 'string' ? diag.code : String(diag.code ?? '');
+                if (code !== 'DITA-DTD-001') return true;
+                return !diag.message.includes('External subset not found');
+            });
+        }
 
         // Cap total diagnostics
         const maxProblems = settings.maxNumberOfProblems ?? 100;

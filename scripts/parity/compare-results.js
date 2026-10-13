@@ -65,7 +65,13 @@ function classifyFamily(code) {
     if (code === 'DOTX008E' || code === 'DOTX023W' || code === 'DOTX026W' || code === 'DOTX027W') {
         return 'dotx-build-time';
     }
-    if (code === 'DITA-XREF-005' || code === 'DITA-KEY-008' || code === 'DITA-KEY-009' || code === 'DITA-KEY-010') {
+    if (
+        code === 'DITA-XREF-005'
+        || code === 'DITA-KEY-008'
+        || code === 'DITA-KEY-009'
+        || code === 'DITA-KEY-010'
+        || code === 'DITA-KEY-012'
+    ) {
         return 'dotx-build-time';
     }
     return 'other';
@@ -80,6 +86,7 @@ function canonicalCode(code) {
     if (code === 'DITA-KEY-008' || code === 'DOTX023W') return 'CHUNK_NAVTITLE_RETRIEVAL';
     if (code === 'DITA-KEY-009' || code === 'DOTX026W') return 'CHUNK_LINKTEXT_FALLBACK';
     if (code === 'DITA-KEY-010' || code === 'DOTX027W') return 'CHUNK_LINKTEXT_MISSING';
+    if (code === 'DITA-KEY-012' || code === 'DOTX061W') return 'CHUNK_TOPIC_FRAGMENT_MISMATCH';
     if (code === 'DITA-SCOPE-004' || code === 'DOTJ036W') return 'OUTSIDE_INPUT_DIRECTORY';
     return code;
 }

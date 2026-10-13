@@ -386,7 +386,7 @@ function validateDITAStructure(
     } else if (ext === '.ditamap') {
         validateMapStructure(cleanText, diagnostics, settings);
     } else if (ext === '.bookmap') {
-        validateBookmapStructure(cleanText, diagnostics);
+        validateBookmapStructure(cleanText, diagnostics, settings);
     }
 
     // Empty elements check
@@ -489,7 +489,7 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[], settings:
 
     // If this is actually a bookmap, delegate to bookmap validation
     if (/<bookmap[\s>]/.test(text)) {
-        validateBookmapStructure(text, diagnostics);
+        validateBookmapStructure(text, diagnostics, settings);
         return;
     }
 
@@ -515,7 +515,8 @@ function validateMapStructure(text: string, diagnostics: Diagnostic[], settings:
 
 function validateBookmapStructure(
     text: string,
-    diagnostics: Diagnostic[]
+    diagnostics: Diagnostic[],
+    settings: DitaCraftSettings
 ): void {
     if (!/<bookmap[\s>]/.test(text)) {
         diagnostics.push({
@@ -529,7 +530,7 @@ function validateBookmapStructure(
     }
 
     // Check for <booktitle> element
-    if (!/<booktitle[\s>]/.test(text)) {
+    if (settings.comparisonProfile !== 'ditaot' && !/<booktitle[\s>]/.test(text)) {
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
             range: createRange(0, 0),
@@ -537,7 +538,7 @@ function validateBookmapStructure(
             source: SOURCE,
             code: CODES.MISSING_BOOKTITLE,
         });
-    } else if (!/<mainbooktitle[\s>]/.test(text)) {
+    } else if (settings.comparisonProfile !== 'ditaot' && !/<mainbooktitle[\s>]/.test(text)) {
         // Only check <mainbooktitle> if <booktitle> exists
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,

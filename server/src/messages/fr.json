@@ -35,6 +35,8 @@
     "key.chunkNavtitleRetrieval": "Impossible de récupérer le navtitle depuis la cible chunk générée pendant les vérifications de parité DITA-OT.",
     "key.chunkLinktextFallback": "Impossible de récupérer le linktext depuis la cible chunk générée ; utilisation du titre de navigation en repli.",
     "key.chunkLinktextMissing": "Impossible de récupérer le linktext depuis la cible chunk générée et aucun titre de navigation de repli n'est disponible.",
+    "key.chunkTopicFragmentMismatch": "Le fragment @href dans la sortie chunk générée ne référence pas un élément de topic.",
+    "key.conkeyrefFallbackUnresolved": "La valeur @conkeyref \"{0}\" ne peut pas être résolue car la clé est absente ou n'a pas de cible. Utilisation de @conref comme repli si présent.",
     "xref.copyToCollision": "Les cibles copy-to \"{0}\" et \"{1}\" se normalisent vers le même nom de sortie généré",
     "xref.nestedNavigationMapLoadError": "Vérification de parité DITA-OT : une map de navigation imbriquée sous un topicref title-only peut échouer à charger la map de navigation générée.",
 

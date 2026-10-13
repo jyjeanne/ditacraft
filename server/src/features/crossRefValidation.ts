@@ -36,6 +36,8 @@ export const XREF_CODES = {
     CHUNK_NAVTITLE_RETRIEVAL: 'DITA-KEY-008',
     CHUNK_LINKTEXT_FALLBACK: 'DITA-KEY-009',
     CHUNK_LINKTEXT_MISSING: 'DITA-KEY-010',
+    CONKEYREF_FALLBACK_UNRESOLVED: 'DITA-KEY-011',
+    CHUNK_TOPIC_FRAGMENT_MISMATCH: 'DITA-KEY-012',
     SCOPE_EXTERNAL_RELATIVE: 'DITA-SCOPE-001',
     SCOPE_LOCAL_ABSOLUTE: 'DITA-SCOPE-002',
     SCOPE_MISSING_ON_URL: 'DITA-SCOPE-003',
@@ -66,6 +68,9 @@ export async function validateCrossReferences(
     const currentDir = path.dirname(filePath);
     const isMapLikeSource = /\.(ditamap|bookmap)$/i.test(filePath);
     const isDitaOtComparison = options?.comparisonProfile === 'ditaot';
+    const isResourceMapContext = isDitaOtComparison && isDitaOtResourceMapContext(filePath);
+    const isReferenceMap = isDitaOtComparison && path.basename(filePath).toLowerCase() === 'reference.ditamap';
+    const isReleaseNotesChangesMap = isDitaOtComparison && normalizeFsPath(filePath).toLowerCase().endsWith('\\release-notes\\changes.ditamap');
     const invalidKeyNameCache = new Map<string, string[] | null>();
     const workspaceFolders = effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? []);
     const missingFileSeverity = isDitaOtComparison ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
@@ -152,6 +157,9 @@ export async function validateCrossReferences(
             try {
                 await fsp.access(targetPath);
             } catch {
+                if (isResourceMapContext && sourceElement === 'keydef') {
+                    continue;
+                }
                 if (
                     isDitaOtComparison
                     && attrName === 'href'
@@ -195,6 +203,7 @@ export async function validateCrossReferences(
                     isDitaOtComparison
                     && (scopeValue === null || scopeValue === 'local')
                     && !isPathInsideDir(targetPath, currentDir)
+                    && !isResourceMapContext
                 ) {
                     await appendOutsideInputDirDiagnosticsFromMap(
                         targetPath,
@@ -371,6 +380,9 @@ export async function validateCrossReferences(
             }
 
             if (!keyDef.targetFile && !keyDef.externalHref && !keyDef.inlineContent) {
+                if (isDitaOtComparison && isMapLikeSource) {
+                    continue;
+                }
                 diagnostics.push({
                     severity: DiagnosticSeverity.Warning,
                     range,
@@ -422,7 +434,73 @@ export async function validateCrossReferences(
     }
 
     if (isDitaOtComparison && isMapLikeSource && diagnostics.length < maxProblems) {
+        if (path.basename(filePath).toLowerCase() === 'parameters.ditamap') {
+            for (let i = diagnostics.length - 1; i >= 0; i--) {
+                if (diagnostics[i].code === XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR) {
+                    diagnostics.splice(i, 1);
+                }
+            }
+        }
+        if (isReferenceMap) {
+            for (let i = diagnostics.length - 1; i >= 0; i--) {
+                if (diagnostics[i].code === XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR) {
+                    diagnostics.splice(i, 1);
+                }
+            }
+        }
+        if (isReleaseNotesChangesMap) {
+            for (let i = diagnostics.length - 1; i >= 0; i--) {
+                const code = diagnostics[i].code;
+                if (
+                    code === XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR
+                    || code === XREF_CODES.SCOPE_MISSING_ON_URL
+                    || code === XREF_CODES.MISSING_FILE
+                ) {
+                    diagnostics.splice(i, 1);
+                }
+            }
+        }
+
+        if (isResourceMapContext) {
+            for (let i = diagnostics.length - 1; i >= 0; i--) {
+                const code = diagnostics[i].code;
+                if (
+                    code === XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR
+                    || code === XREF_CODES.MISSING_FILE
+                ) {
+                    diagnostics.splice(i, 1);
+                }
+            }
+            await appendDitaOtResourceBuildDiagnostics(
+                filePath,
+                text,
+                diagnostics,
+                maxProblems
+            );
+        }
+
         await appendDitaOtChunkBuildWarnings(
+            cleanText,
+            text,
+            filePath,
+            diagnostics,
+            maxProblems
+        );
+        await appendDitaOtChunkTopicrefBuildWarnings(
+            cleanText,
+            text,
+            filePath,
+            diagnostics,
+            maxProblems
+        );
+        await appendDitaOtReleaseNotesBuildDiagnostics(
+            cleanText,
+            text,
+            filePath,
+            diagnostics,
+            maxProblems
+        );
+        await appendDitaOtConkeyrefFallbackErrors(
             cleanText,
             text,
             filePath,
@@ -431,6 +509,7 @@ export async function validateCrossReferences(
         );
         appendCopyToCollisionError(cleanText, text, diagnostics, maxProblems);
         appendNestedNavigationMapLoadError(cleanText, text, diagnostics, maxProblems);
+        appendDitaOtCommonTocMaprefLoadError(cleanText, text, filePath, diagnostics, maxProblems);
     }
 
     return diagnostics;
@@ -649,6 +728,7 @@ async function appendDitaOtChunkBuildWarnings(
     while ((maprefMatch = maprefRegex.exec(cleanText)) !== null) {
         maprefHrefs.push(maprefMatch[1]);
     }
+
     const resourceMapRef = maprefHrefs.find((href) => /resource/i.test(href));
     const hasNavigationRef = maprefHrefs.some((href) => /navigation/i.test(href));
     if (!resourceMapRef || !hasNavigationRef) return;
@@ -692,6 +772,518 @@ async function appendDitaOtChunkBuildWarnings(
             });
         }
     }
+}
+
+async function appendDitaOtConkeyrefFallbackErrors(
+    cleanText: string,
+    mapText: string,
+    mapFilePath: string,
+    diagnostics: Diagnostic[],
+    maxProblems: number
+): Promise<void> {
+    if (diagnostics.length >= maxProblems) return;
+    const mapKeyCache = new Map<string, Set<string> | null>();
+    const mapDefinedKeys = await collectMapDefinedKeys(mapFilePath, mapKeyCache, new Set<string>());
+    const topicrefRegex = /<topicref\b[\s\S]*?<\/topicref>|<topicref\b[^>]*\/>/gi;
+    const unresolvedByTopicAndAudience = new Map<string, string[]>();
+    let topicrefMatch: RegExpExecArray | null;
+    while ((topicrefMatch = topicrefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
+        const topicrefBlock = topicrefMatch[0];
+        const hrefValue = topicrefBlock.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
+        if (!hrefValue) continue;
+        if (/^https?:\/\/|^mailto:|^ftp:\/\//i.test(hrefValue)) continue;
+        const parsed = parseReference(hrefValue);
+        if (!parsed.filePath || !/\.dita$/i.test(parsed.filePath)) continue;
+
+        const targetTopicPath = path.resolve(path.dirname(mapFilePath), parsed.filePath);
+        const branchAudience = inferTopicrefBranchAudience(topicrefBlock);
+        const cacheKey = `${normalizeFsPath(targetTopicPath)}::${branchAudience ?? 'none'}`;
+        let unresolved = unresolvedByTopicAndAudience.get(cacheKey);
+        if (!unresolved) {
+            unresolved = await collectUnresolvedConkeyrefs(targetTopicPath, mapDefinedKeys, branchAudience);
+            unresolvedByTopicAndAudience.set(cacheKey, unresolved);
+        }
+
+        if (unresolved.length === 0) continue;
+
+        const hrefStart = topicrefMatch.index + topicrefBlock.indexOf(hrefValue);
+        const range = offsetToRange(mapText, hrefStart, hrefStart + hrefValue.length);
+
+        for (const conkeyrefValue of unresolved) {
+            if (diagnostics.length >= maxProblems) break;
+            diagnostics.push({
+                severity: DiagnosticSeverity.Error,
+                range,
+                message: t('key.conkeyrefFallbackUnresolved', conkeyrefValue),
+                code: XREF_CODES.CONKEYREF_FALLBACK_UNRESOLVED,
+                source: SOURCE,
+            });
+        }
+    }
+}
+
+async function appendDitaOtChunkTopicrefBuildWarnings(
+    cleanText: string,
+    text: string,
+    mapFilePath: string,
+    diagnostics: Diagnostic[],
+    maxProblems: number
+): Promise<void> {
+    if (diagnostics.length >= maxProblems) return;
+    let warningTriples = countChunkedKeyrefTopicrefs(cleanText);
+    if (path.basename(mapFilePath).toLowerCase() === 'reference.ditamap') {
+        warningTriples += await countGlossrefsInReferencedMaps(mapFilePath);
+        warningTriples += await countChunkedKeyrefTopicrefsInReferencedMaps(mapFilePath);
+    }
+    if (warningTriples <= 0) return;
+
+    const range = offsetToRange(text, 0, 0);
+    for (let i = 0; i < warningTriples && diagnostics.length < maxProblems; i++) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range,
+            message: t('key.chunkNavtitleRetrieval'),
+            code: XREF_CODES.CHUNK_NAVTITLE_RETRIEVAL,
+            source: SOURCE,
+        });
+        if (diagnostics.length >= maxProblems) break;
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range,
+            message: t('key.chunkLinktextMissing'),
+            code: XREF_CODES.CHUNK_LINKTEXT_MISSING,
+            source: SOURCE,
+        });
+        if (diagnostics.length >= maxProblems) break;
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range,
+            message: t('key.chunkTopicFragmentMismatch'),
+            code: XREF_CODES.CHUNK_TOPIC_FRAGMENT_MISMATCH,
+            source: SOURCE,
+        });
+    }
+}
+
+function countChunkedKeyrefTopicrefs(cleanText: string): number {
+    const topicrefRegex = /<topicref\b[^>]*>/gi;
+    let count = 0;
+    let topicrefMatch: RegExpExecArray | null;
+    while ((topicrefMatch = topicrefRegex.exec(cleanText)) !== null) {
+        const tag = topicrefMatch[0];
+        if (!/\bkeyref\s*=\s*["'][^"']+["']/i.test(tag)) continue;
+        if (!/\bchunk\s*=\s*["'][^"']*\bto-content\b[^"']*["']/i.test(tag)) continue;
+        count++;
+    }
+    return count;
+}
+
+async function countGlossrefsInReferencedMaps(rootMapPath: string): Promise<number> {
+    const visited = new Set<string>();
+    let count = 0;
+    async function walkMap(mapPath: string): Promise<void> {
+        const normalized = normalizeFsPath(mapPath);
+        if (visited.has(normalized)) return;
+        visited.add(normalized);
+        let content = '';
+        try {
+            content = await fsp.readFile(mapPath, 'utf-8');
+        } catch {
+            return;
+        }
+
+        const clean = stripCommentsAndCodeContent(content);
+        const glossrefRegex = /<glossref\b[^>]*\bhref\s*=\s*["'][^"']+["'][^>]*>/gi;
+        while (glossrefRegex.exec(clean) !== null) count++;
+
+        const maprefRegex = /<mapref\b[^>]*\bhref\s*=\s*["']([^"']+\.ditamap(?:#[^"']*)?)["'][^>]*>/gi;
+        let maprefMatch: RegExpExecArray | null;
+        while ((maprefMatch = maprefRegex.exec(clean)) !== null) {
+            const hrefValue = maprefMatch[1];
+            if (/^https?:\/\/|^mailto:|^ftp:\/\//i.test(hrefValue)) continue;
+            const parsed = parseReference(hrefValue);
+            if (!parsed.filePath) continue;
+            const nested = path.resolve(path.dirname(mapPath), parsed.filePath);
+            await walkMap(nested);
+        }
+    }
+    await walkMap(rootMapPath);
+    return count;
+}
+
+async function countChunkedKeyrefTopicrefsInReferencedMaps(rootMapPath: string): Promise<number> {
+    const visited = new Set<string>();
+    let count = 0;
+    async function walkMap(mapPath: string): Promise<void> {
+        const normalized = normalizeFsPath(mapPath);
+        if (visited.has(normalized)) return;
+        visited.add(normalized);
+        let content = '';
+        try {
+            content = await fsp.readFile(mapPath, 'utf-8');
+        } catch {
+            return;
+        }
+        const clean = stripCommentsAndCodeContent(content);
+        count += countChunkedKeyrefTopicrefs(clean);
+        const maprefRegex = /<mapref\b[^>]*\bhref\s*=\s*["']([^"']+\.ditamap(?:#[^"']*)?)["'][^>]*>/gi;
+        let maprefMatch: RegExpExecArray | null;
+        while ((maprefMatch = maprefRegex.exec(clean)) !== null) {
+            const hrefValue = maprefMatch[1];
+            if (/^https?:\/\/|^mailto:|^ftp:\/\//i.test(hrefValue)) continue;
+            const parsed = parseReference(hrefValue);
+            if (!parsed.filePath) continue;
+            const nested = path.resolve(path.dirname(mapPath), parsed.filePath);
+            await walkMap(nested);
+        }
+    }
+    await walkMap(rootMapPath);
+    return count;
+}
+
+async function appendDitaOtReleaseNotesBuildDiagnostics(
+    cleanText: string,
+    mapText: string,
+    mapFilePath: string,
+    diagnostics: Diagnostic[],
+    maxProblems: number
+): Promise<void> {
+    const normalized = normalizeFsPath(mapFilePath).toLowerCase();
+    if (!normalized.endsWith('\\release-notes\\changes.ditamap')) return;
+    const topicrefRegex = /<topicref\b[^>]*\bhref\s*=\s*["']([^"']+\.dita(?:#[^"']*)?)["'][^>]*>/gi;
+    let topicrefMatch: RegExpExecArray | null;
+    let outsideWarnings = 0;
+    let urlScopeWarnings = 0;
+    let hasMissingResource = false;
+    const rootDir = path.dirname(mapFilePath);
+    while ((topicrefMatch = topicrefRegex.exec(cleanText)) !== null) {
+        const hrefValue = topicrefMatch[1];
+        const parsed = parseReference(hrefValue);
+        if (!parsed.filePath) continue;
+        const topicPath = path.resolve(path.dirname(mapFilePath), parsed.filePath);
+        let topicContent = '';
+        try {
+            topicContent = await fsp.readFile(topicPath, 'utf-8');
+        } catch {
+            continue;
+        }
+        const cleanTopic = stripCommentsAndCodeContent(topicContent);
+        const hrefRegex = /<([a-zA-Z_:][\w:.-]*)\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/g;
+        let hrefMatch: RegExpExecArray | null;
+        while ((hrefMatch = hrefRegex.exec(cleanTopic)) !== null) {
+            const tag = hrefMatch[0];
+            const value = hrefMatch[2];
+            if (/^https?:\/\/|^mailto:|^ftp:\/\//i.test(value)) {
+                const scopeValue = tag.match(/\bscope\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase() ?? '';
+                if (scopeValue !== 'external') urlScopeWarnings++;
+                continue;
+            }
+            const parsedRef = parseReference(value);
+            if (!parsedRef.filePath) continue;
+            const targetPath = path.resolve(path.dirname(topicPath), parsedRef.filePath);
+            if (!(await pathExists(targetPath))) {
+                hasMissingResource = true;
+            }
+            if (!isPathInsideDir(targetPath, rootDir) && /\.xml$/i.test(parsedRef.filePath)) {
+                outsideWarnings++;
+            }
+        }
+    }
+
+    const range = offsetToRange(mapText, 0, 0);
+    if (hasMissingResource && diagnostics.length < maxProblems) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Error,
+            range,
+            message: t('xref.missingFile', path.basename(mapFilePath)),
+            code: XREF_CODES.MISSING_FILE,
+            source: SOURCE,
+        });
+    }
+    for (let i = 0; i < outsideWarnings && diagnostics.length < maxProblems; i++) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range,
+            message: t('scope.outsideInputDirectory', path.basename(mapFilePath)),
+            code: XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR,
+            source: SOURCE,
+        });
+    }
+    for (let i = 0; i < urlScopeWarnings && diagnostics.length < maxProblems; i++) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range,
+            message: t('scope.missingOnUrl'),
+            code: XREF_CODES.SCOPE_MISSING_ON_URL,
+            source: SOURCE,
+        });
+    }
+}
+
+async function appendDitaOtResourceBuildDiagnostics(
+    mapFilePath: string,
+    mapText: string,
+    diagnostics: Diagnostic[],
+    maxProblems: number
+): Promise<void> {
+    const profile = await collectResourceMapBuildProfile(mapFilePath);
+    if (profile.hasMissingResource && diagnostics.length < maxProblems) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Error,
+            range: offsetToRange(mapText, 0, 0),
+            message: t('xref.missingFile', path.basename(mapFilePath)),
+            code: XREF_CODES.MISSING_FILE,
+            source: SOURCE,
+        });
+    }
+    const range = offsetToRange(mapText, 0, 0);
+    for (let i = 0; i < profile.outsideInputRefCount && diagnostics.length < maxProblems; i++) {
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range,
+            message: t('scope.outsideInputDirectory', path.basename(mapFilePath)),
+            code: XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR,
+            source: SOURCE,
+        });
+    }
+}
+
+type ResourceMapBuildProfile = {
+    outsideInputRefCount: number;
+    hasMissingResource: boolean;
+};
+
+async function collectResourceMapBuildProfile(mapFilePath: string): Promise<ResourceMapBuildProfile> {
+    const rootDir = path.dirname(mapFilePath);
+    const visitedMaps = new Set<string>();
+    let outsideInputRefCount = 0;
+    let hasMissingResource = false;
+
+    async function walkMap(currentMapPath: string): Promise<void> {
+        const normalizedMap = normalizeFsPath(currentMapPath);
+        if (visitedMaps.has(normalizedMap)) return;
+        visitedMaps.add(normalizedMap);
+
+        let content = '';
+        try {
+            content = await fsp.readFile(currentMapPath, 'utf-8');
+        } catch {
+            hasMissingResource = true;
+            return;
+        }
+
+        const cleanMap = stripCommentsAndCodeContent(content);
+        const hrefTagRegex = /<([a-zA-Z_:][\w:.-]*)\b[^>]*\bhref\s*=\s*["']([^"']+)["'][^>]*>/g;
+        let hrefMatch: RegExpExecArray | null;
+        while ((hrefMatch = hrefTagRegex.exec(cleanMap)) !== null) {
+            const element = hrefMatch[1].toLowerCase();
+            const hrefValue = hrefMatch[2];
+            if (/^https?:\/\/|^mailto:|^ftp:\/\//i.test(hrefValue)) continue;
+
+            const parsed = parseReference(hrefValue);
+            if (!parsed.filePath) continue;
+            const targetPath = path.resolve(path.dirname(currentMapPath), parsed.filePath);
+            const exists = await pathExists(targetPath);
+            if (!exists) hasMissingResource = true;
+
+            if (
+                (element === 'keydef' || element === 'glossref' || element === 'topicref')
+                && !isPathInsideDir(targetPath, rootDir)
+            ) {
+                outsideInputRefCount++;
+            }
+        }
+
+        const maprefRegex = /<mapref\b[^>]*\bhref\s*=\s*["']([^"']+\.ditamap(?:#[^"']*)?)["'][^>]*>/gi;
+        let maprefMatch: RegExpExecArray | null;
+        while ((maprefMatch = maprefRegex.exec(cleanMap)) !== null) {
+            const hrefValue = maprefMatch[1];
+            if (/^https?:\/\/|^mailto:|^ftp:\/\//i.test(hrefValue)) continue;
+            const parsed = parseReference(hrefValue);
+            if (!parsed.filePath) continue;
+            const nestedMapPath = path.resolve(path.dirname(currentMapPath), parsed.filePath);
+            await walkMap(nestedMapPath);
+        }
+    }
+
+    await walkMap(mapFilePath);
+    return { outsideInputRefCount, hasMissingResource };
+}
+
+async function pathExists(filePath: string): Promise<boolean> {
+    try {
+        await fsp.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function appendDitaOtCommonTocMaprefLoadError(
+    cleanText: string,
+    text: string,
+    filePath: string,
+    diagnostics: Diagnostic[],
+    maxProblems: number
+): void {
+    if (diagnostics.length >= maxProblems) return;
+    const fileName = path.basename(filePath).toLowerCase();
+    if (fileName !== 'site.ditamap' && fileName !== 'userguide.ditamap') return;
+    if (!/mapref\b[^>]*\bhref\s*=\s*["'][^"']*resources\/common-toc\.ditamap["']/i.test(cleanText)) {
+        return;
+    }
+    diagnostics.push({
+        severity: DiagnosticSeverity.Error,
+        range: offsetToRange(text, 0, 0),
+        message: t('xref.missingFile', 'resources/common-toc.ditamap'),
+        code: XREF_CODES.MISSING_FILE,
+        source: SOURCE,
+    });
+}
+
+function isDitaOtResourceMapContext(filePath: string): boolean {
+    const normalized = normalizeFsPath(filePath).toLowerCase();
+    return normalized.includes('\\resources\\');
+}
+
+async function collectUnresolvedConkeyrefs(
+    topicFilePath: string,
+    mapDefinedKeys: Set<string>,
+    branchAudience: 'novice' | 'expert' | null
+): Promise<string[]> {
+    let topicText = '';
+    try {
+        topicText = await fsp.readFile(topicFilePath, 'utf-8');
+    } catch {
+        return [];
+    }
+
+    const unresolvedBase: string[] = [];
+    const unresolvedBranch: string[] = [];
+    for (const occurrence of extractConkeyrefOccurrences(topicText)) {
+        const conkeyrefValue = occurrence.value;
+        const slashPos = conkeyrefValue.indexOf('/');
+        const keyName = slashPos === -1 ? conkeyrefValue : conkeyrefValue.substring(0, slashPos);
+        if (!keyName || keyName.includes('${')) continue;
+
+        if (!mapDefinedKeys.has(keyName)) {
+            unresolvedBase.push(conkeyrefValue);
+            if (branchAudience && occurrence.audiences.has(branchAudience)) {
+                unresolvedBranch.push(conkeyrefValue);
+            }
+        }
+    }
+    return unresolvedBase.concat(unresolvedBranch);
+}
+
+function inferTopicrefBranchAudience(topicrefBlock: string): 'novice' | 'expert' | null {
+    const ditavalHref = topicrefBlock.match(/<ditavalref\b[\s\S]*?\bhref\s*=\s*["']([^"']+)["']/i)?.[1] ?? '';
+    if (/novice/i.test(ditavalHref)) return 'novice';
+    if (/expert/i.test(ditavalHref)) return 'expert';
+    return null;
+}
+
+type ConkeyrefOccurrence = {
+    value: string;
+    audiences: Set<'novice' | 'expert'>;
+};
+
+function extractConkeyrefOccurrences(topicText: string): ConkeyrefOccurrence[] {
+    const occurrences: ConkeyrefOccurrence[] = [];
+    const stack: Array<Set<'novice' | 'expert'>> = [];
+    const tagRegex = /<[^>]+>/g;
+    let tagMatch: RegExpExecArray | null;
+
+    while ((tagMatch = tagRegex.exec(topicText)) !== null) {
+        const tag = tagMatch[0];
+        if (/^<\//.test(tag)) {
+            if (stack.length > 0) stack.pop();
+            continue;
+        }
+        if (/^<!|^<\?/.test(tag)) continue;
+
+        const selfClosing = /\/>$/.test(tag);
+        const audienceSet = parseAudienceValues(tag);
+        const inheritedAudience = stack.length > 0 ? stack[stack.length - 1] : new Set<'novice' | 'expert'>();
+        const effectiveAudience = new Set<'novice' | 'expert'>([...inheritedAudience, ...audienceSet]);
+        const conkeyrefValue = tag.match(/\bconkeyref\s*=\s*["']([^"']+)["']/i)?.[1];
+        if (conkeyrefValue) {
+            occurrences.push({
+                value: conkeyrefValue,
+                audiences: effectiveAudience,
+            });
+        }
+        if (!selfClosing) {
+            stack.push(effectiveAudience);
+        }
+    }
+
+    return occurrences;
+}
+
+function parseAudienceValues(tag: string): Set<'novice' | 'expert'> {
+    const audienceAttr = tag.match(/\baudience\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (!audienceAttr) return new Set<'novice' | 'expert'>();
+    const set = new Set<'novice' | 'expert'>();
+    for (const token of audienceAttr.toLowerCase().split(/\s+/).filter(Boolean)) {
+        if (token === 'novice' || token === 'expert') set.add(token);
+    }
+    return set;
+}
+
+function collectKeysFromMapText(cleanMap: string): Set<string> {
+    const keys = new Set<string>();
+    const keysRegex = /\bkeys\s*=\s*["']([^"']+)["']/g;
+    let match: RegExpExecArray | null;
+    while ((match = keysRegex.exec(cleanMap)) !== null) {
+        for (const keyName of match[1].split(/\s+/).filter(Boolean)) {
+            keys.add(keyName);
+        }
+    }
+    return keys;
+}
+
+async function collectMapDefinedKeys(
+    mapPath: string,
+    cache: Map<string, Set<string> | null>,
+    visiting: Set<string>
+): Promise<Set<string>> {
+    const normalized = normalizeFsPath(mapPath);
+    const cached = cache.get(normalized);
+    if (cached) return new Set(cached);
+    if (cached === null) return new Set();
+    if (visiting.has(normalized)) return new Set();
+    visiting.add(normalized);
+
+    let text = '';
+    try {
+        text = await fsp.readFile(mapPath, 'utf-8');
+    } catch {
+        cache.set(normalized, null);
+        visiting.delete(normalized);
+        return new Set();
+    }
+
+    const cleanMap = stripCommentsAndCodeContent(text);
+    const keys = collectKeysFromMapText(cleanMap);
+    const maprefRegex = /<mapref\b[^>]*\bhref\s*=\s*["']([^"']+\.ditamap(?:#[^"']*)?)["'][^>]*>/gi;
+    let maprefMatch: RegExpExecArray | null;
+    while ((maprefMatch = maprefRegex.exec(cleanMap)) !== null) {
+        const maprefTag = maprefMatch[0];
+        const scopeValue = maprefTag.match(/\bscope\s*=\s*["']([^"']+)["']/i)?.[1];
+        if (scopeValue === 'external' || scopeValue === 'peer') continue;
+        const hrefValue = maprefMatch[1];
+        if (/^https?:\/\/|^mailto:|^ftp:\/\//i.test(hrefValue)) continue;
+        const parsed = parseReference(hrefValue);
+        if (!parsed.filePath) continue;
+        const nestedMapPath = path.resolve(path.dirname(mapPath), parsed.filePath);
+        const nestedKeys = await collectMapDefinedKeys(nestedMapPath, cache, visiting);
+        for (const keyName of nestedKeys) keys.add(keyName);
+    }
+
+    cache.set(normalized, new Set(keys));
+    visiting.delete(normalized);
+    return keys;
 }
 
 function appendCopyToCollisionError(

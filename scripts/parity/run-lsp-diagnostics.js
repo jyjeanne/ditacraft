@@ -119,6 +119,13 @@ function toSummary(items) {
         throw new Error(`Initialize failed: ${init.error.message ?? 'unknown error'}`);
     }
     send({ jsonrpc: '2.0', method: 'initialized', params: {} });
+    if (profileSettings) {
+        send({
+            jsonrpc: '2.0',
+            method: 'workspace/didChangeConfiguration',
+            params: { settings: { ditacraft: profileSettings } },
+        });
+    }
 
     const results = [];
     for (const file of files) {

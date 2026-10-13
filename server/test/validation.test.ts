@@ -230,6 +230,15 @@ suite('validateDITADocument', () => {
             assert.strictEqual(btDiags.length, 1);
         });
 
+        test('missing booktitle is ignored in ditaot comparison profile', () => {
+            const settings = defaultSettings();
+            settings.comparisonProfile = 'ditaot';
+            const doc = createDoc('<bookmap><chapter href="c.dita"/></bookmap>', 'file:///test.bookmap');
+            const diags = validateDITADocument(doc, settings);
+            const btDiags = diags.filter(d => d.code === 'DITA-STRUCT-006');
+            assert.strictEqual(btDiags.length, 0);
+        });
+
         test('booktitle present produces no booktitle warning', () => {
             const diags = validate(
                 '<bookmap><booktitle><mainbooktitle>My Book</mainbooktitle></booktitle></bookmap>',
@@ -246,6 +255,15 @@ suite('validateDITADocument', () => {
             );
             const mbtDiags = diags.filter(d => d.code === 'DITA-STRUCT-007');
             assert.strictEqual(mbtDiags.length, 1);
+        });
+
+        test('missing mainbooktitle is ignored in ditaot comparison profile', () => {
+            const settings = defaultSettings();
+            settings.comparisonProfile = 'ditaot';
+            const doc = createDoc('<bookmap><booktitle></booktitle></bookmap>', 'file:///test.bookmap');
+            const diags = validateDITADocument(doc, settings);
+            const mbtDiags = diags.filter(d => d.code === 'DITA-STRUCT-007');
+            assert.strictEqual(mbtDiags.length, 0);
         });
 
         test('booktitle with mainbooktitle produces no warning', () => {

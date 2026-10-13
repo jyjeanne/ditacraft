@@ -35,6 +35,8 @@
     "key.chunkNavtitleRetrieval": "Unable to retrieve navtitle from generated chunk target during DITA-OT parity checks.",
     "key.chunkLinktextFallback": "Unable to retrieve linktext from generated chunk target; using navigation title as fallback.",
     "key.chunkLinktextMissing": "Unable to retrieve linktext from generated chunk target and no navigation title fallback is available.",
+    "key.chunkTopicFragmentMismatch": "The @href fragment in generated chunk output does not reference a topic element.",
+    "key.conkeyrefFallbackUnresolved": "The @conkeyref value \"{0}\" cannot be resolved because the key is missing or has no target. Using @conref as fallback if present.",
     "xref.copyToCollision": "copy-to targets \"{0}\" and \"{1}\" normalize to the same generated output name",
     "xref.nestedNavigationMapLoadError": "DITA-OT parity check: nested navigation map under title-only topicref may fail to load generated navigation map.",
 

@@ -397,6 +397,35 @@ suite('validateCrossReferences', () => {
             }
         });
 
+        test('ditaot profile in maps ignores key-without-target warnings', async () => {
+            const keys = new Map<string, KeyDefinition>([
+                ['empty-key', {
+                    keyName: 'empty-key',
+                    sourceMap: '/maps/root.ditamap',
+                }],
+            ]);
+            const keySpaceService = createMockKeySpaceService(keys);
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapPath = path.join(tmpDir, 'source.ditamap');
+            const text = '<map><topicref keyref="empty-key"/></map>';
+            fs.writeFileSync(mapPath, text);
+            const mapUri = URI.file(mapPath).toString();
+
+            try {
+                const diags = await validateCrossReferences(
+                    text,
+                    mapUri,
+                    keySpaceService,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const noTarget = diags.filter(d => d.code === XREF_CODES.KEY_NO_TARGET);
+                assert.strictEqual(noTarget.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
         test('references written as examples in the text are not validated (regression)', async () => {
             // The user guide documents keys and links with examples such as
             // <codeph>keyref="key"</codeph>: text, not attributes.
@@ -1086,6 +1115,264 @@ suite('validateCrossReferences', () => {
                 const buildErrors = diags.filter(d => d.code === XREF_CODES.COPY_TO_COLLISION);
                 assert.strictEqual(buildErrors.length, 1);
                 assert.strictEqual(buildErrors[0].severity, 1);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: unresolved conkeyref in referenced topic emits build-time fallback errors', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapPath = path.join(tmpDir, 'root.ditamap');
+            const topicPath = path.join(tmpDir, 'using-dita-command.dita');
+            fs.writeFileSync(
+                topicPath,
+                '<topic id="using-dita-command"><body>'
+                + '<p conkeyref="conref-task/samples-dir" conref="fallback.dita#id1"/>'
+                + '<p conkeyref="conref-task/dita-cmd" conref="fallback.dita#id2"/>'
+                + '</body></topic>'
+            );
+            fs.writeFileSync(mapPath, '<map><topicref href="using-dita-command.dita"/></map>');
+            const mapText = fs.readFileSync(mapPath, 'utf-8');
+            const mapUri = URI.file(mapPath).toString();
+            const keySpaceService = createMockKeySpaceService(new Map());
+
+            try {
+                const diags = await validateCrossReferences(
+                    mapText,
+                    mapUri,
+                    keySpaceService,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const unresolved = diags.filter(d => d.code === XREF_CODES.CONKEYREF_FALLBACK_UNRESOLVED);
+                assert.strictEqual(unresolved.length, 2);
+                assert.ok(unresolved.every(d => d.severity === 1));
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: repeated topicrefs duplicate conkeyref fallback errors', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapPath = path.join(tmpDir, 'root.ditamap');
+            const topicPath = path.join(tmpDir, 'using-dita-command.dita');
+            fs.writeFileSync(
+                topicPath,
+                '<topic id="using-dita-command"><body>'
+                + '<p conkeyref="conref-task/samples-dir" conref="fallback.dita#id1"/>'
+                + '</body></topic>'
+            );
+            fs.writeFileSync(
+                mapPath,
+                '<map><topicref href="using-dita-command.dita"/><topicref href="using-dita-command.dita"/></map>'
+            );
+            const mapText = fs.readFileSync(mapPath, 'utf-8');
+            const mapUri = URI.file(mapPath).toString();
+            const keySpaceService = createMockKeySpaceService(new Map());
+
+            try {
+                const diags = await validateCrossReferences(
+                    mapText,
+                    mapUri,
+                    keySpaceService,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const unresolved = diags.filter(d => d.code === XREF_CODES.CONKEYREF_FALLBACK_UNRESOLVED);
+                assert.strictEqual(unresolved.length, 2);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: ditaval audience branch duplicates matching unresolved conkeyrefs', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapPath = path.join(tmpDir, 'root.ditamap');
+            const topicPath = path.join(tmpDir, 'branching.dita');
+            fs.writeFileSync(
+                topicPath,
+                '<topic id="branching"><body>'
+                + '<p conkeyref="conref-task/base"/>'
+                + '<p audience="novice" conkeyref="conref-task/novice"/>'
+                + '<p audience="expert" conkeyref="conref-task/expert"/>'
+                + '</body></topic>'
+            );
+            fs.writeFileSync(
+                mapPath,
+                '<map><topicref href="branching.dita"><ditavalref href="../resources/novice.ditaval"/></topicref></map>'
+            );
+            const mapText = fs.readFileSync(mapPath, 'utf-8');
+            const mapUri = URI.file(mapPath).toString();
+
+            try {
+                const diags = await validateCrossReferences(
+                    mapText,
+                    mapUri,
+                    undefined,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const unresolved = diags.filter(d => d.code === XREF_CODES.CONKEYREF_FALLBACK_UNRESOLVED);
+                assert.strictEqual(unresolved.length, 4);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: resource maps emit recursive outside-input warnings and single load error', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const docsDir = path.join(tmpDir, 'docs');
+            const resourcesDir = path.join(docsDir, 'resources');
+            const topicsDir = path.join(docsDir, 'topics');
+            fs.mkdirSync(resourcesDir, { recursive: true });
+            fs.mkdirSync(topicsDir, { recursive: true });
+
+            const rootMap = path.join(resourcesDir, 'common-resources.ditamap');
+            const keyDefsMap = path.join(resourcesDir, 'key-definitions.ditamap');
+            const sourceFilesMap = path.join(resourcesDir, 'source-files.ditamap');
+            fs.writeFileSync(rootMap, '<map><mapref href="key-definitions.ditamap"/></map>');
+            fs.writeFileSync(keyDefsMap, '<map><mapref href="source-files.ditamap"/></map>');
+            fs.writeFileSync(
+                sourceFilesMap,
+                '<map>'
+                + '<keydef keys="ok" href="../topics/ok.dita"/>'
+                + '<keydef keys="missing" href="../topics/missing.dita"/>'
+                + '</map>'
+            );
+            fs.writeFileSync(path.join(topicsDir, 'ok.dita'), '<topic id="ok"><title>OK</title></topic>');
+
+            const mapText = fs.readFileSync(rootMap, 'utf-8');
+            const mapUri = URI.file(rootMap).toString();
+
+            try {
+                const diags = await validateCrossReferences(
+                    mapText,
+                    mapUri,
+                    undefined,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const outside = diags.filter(d => d.code === XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR);
+                const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
+                assert.strictEqual(outside.length, 2);
+                assert.strictEqual(missing.length, 1);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: site mapref to resources/common-toc emits build-time load error', async () => {
+            const text = '<map><mapref href="resources/common-toc.ditamap"/></map>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapPath = path.join(tmpDir, 'site.ditamap');
+            fs.writeFileSync(mapPath, text);
+            const mapUri = URI.file(mapPath).toString();
+
+            try {
+                const diags = await validateCrossReferences(
+                    text,
+                    mapUri,
+                    undefined,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
+                assert.strictEqual(missing.length, 1);
+                assert.strictEqual(missing[0].severity, 1);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: chunked keyref topicref emits dotx061-equivalent warnings', async () => {
+            const text = '<map><topicref keyref="glossary" chunk="to-content"/></map>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapUri = URI.file(path.join(tmpDir, 'glossary.ditamap')).toString();
+
+            try {
+                const diags = await validateCrossReferences(
+                    text,
+                    mapUri,
+                    undefined,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const navtitle = diags.filter(d => d.code === XREF_CODES.CHUNK_NAVTITLE_RETRIEVAL);
+                const linkMissing = diags.filter(d => d.code === XREF_CODES.CHUNK_LINKTEXT_MISSING);
+                const fragment = diags.filter(d => d.code === XREF_CODES.CHUNK_TOPIC_FRAGMENT_MISMATCH);
+                assert.strictEqual(navtitle.length, 1);
+                assert.strictEqual(linkMissing.length, 1);
+                assert.strictEqual(fragment.length, 1);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: parameters map suppresses outside-input scope warnings', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const paramsDir = path.join(tmpDir, 'parameters');
+            const topicsDir = path.join(tmpDir, 'topics');
+            fs.mkdirSync(paramsDir, { recursive: true });
+            fs.mkdirSync(topicsDir, { recursive: true });
+            const rootMap = path.join(paramsDir, 'parameters.ditamap');
+            const childMap = path.join(topicsDir, 'child.ditamap');
+            fs.writeFileSync(childMap, '<map><topicref href="../parameters/local.dita"/></map>');
+            fs.writeFileSync(rootMap, '<map><mapref href="../topics/child.ditamap"/></map>');
+            const mapText = fs.readFileSync(rootMap, 'utf-8');
+            const mapUri = URI.file(rootMap).toString();
+
+            try {
+                const diags = await validateCrossReferences(
+                    mapText,
+                    mapUri,
+                    undefined,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const outside = diags.filter(d => d.code === XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR);
+                assert.strictEqual(outside.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('ditaot profile: release-notes map emits build-time scope and load diagnostics', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const relDir = path.join(tmpDir, 'release-notes');
+            const docsDir = path.join(tmpDir, 'docs');
+            fs.mkdirSync(relDir, { recursive: true });
+            fs.mkdirSync(docsDir, { recursive: true });
+            const mapPath = path.join(relDir, 'changes.ditamap');
+            const topicPath = path.join(relDir, 'history.dita');
+            fs.writeFileSync(mapPath, '<map><topicref href="history.dita"/></map>');
+            fs.writeFileSync(
+                topicPath,
+                '<topic id="h"><title>H</title><body>'
+                + '<xref href="http://example.com" scope="local"/>'
+                + '<xref href="../xmlcatalog.xml"/>'
+                + '<xref href="../eclipseconprov.xml"/>'
+                + '<xref href="../legacy-config.xml"/>'
+                + '<xref href="../docs/missing.dita"/>'
+                + '</body></topic>'
+            );
+            fs.writeFileSync(path.join(docsDir, 'existing.dita'), '<topic id="e"><title>E</title></topic>');
+            const mapText = fs.readFileSync(mapPath, 'utf-8');
+            const mapUri = URI.file(mapPath).toString();
+
+            try {
+                const diags = await validateCrossReferences(
+                    mapText,
+                    mapUri,
+                    undefined,
+                    100,
+                    { comparisonProfile: 'ditaot' }
+                );
+                const outside = diags.filter(d => d.code === XREF_CODES.SCOPE_OUTSIDE_INPUT_DIR);
+                const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
+                const scopeUrl = diags.filter(d => d.code === XREF_CODES.SCOPE_MISSING_ON_URL);
+                assert.strictEqual(outside.length, 3);
+                assert.strictEqual(missing.length, 1);
+                assert.strictEqual(scopeUrl.length, 1);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
