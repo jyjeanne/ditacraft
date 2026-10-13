@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-12T00:42:11.915Z",
+  "generatedAt": "2026-10-13T12:09:19.968Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.graphify/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -661,9 +661,10 @@
         "features_validation_validateditavalstructure",
         "features_validation_validatemapstructure",
         "features_validation_validatetopicstructure",
-        "features_validation_getenclosingelement",
+        "features_validation_collectscopedids",
         "features_validation_extractbracketedsubset",
-        "features_validation_checktopicrefswithouthref"
+        "features_validation_checktopicrefswithouthref",
+        "features_validation_findtagend"
       ],
       "qualifiedPath": [
         "features_validation_validateditadocument",
@@ -681,17 +682,18 @@
         "features_validation_validateditavalstructure",
         "features_validation_validatemapstructure",
         "features_validation_validatetopicstructure",
-        "features_validation_getenclosingelement",
+        "features_validation_collectscopedids",
         "features_validation_extractbracketedsubset",
-        "features_validation_checktopicrefswithouthref"
+        "features_validation_checktopicrefswithouthref",
+        "features_validation_findtagend"
       ],
       "depth": 3,
-      "nodeCount": 18,
+      "nodeCount": 19,
       "fileCount": 1,
       "files": [
         "server/src/features/validation.ts"
       ],
-      "criticality": 0.2911,
+      "criticality": 0.2853,
       "warnings": []
     },
     {

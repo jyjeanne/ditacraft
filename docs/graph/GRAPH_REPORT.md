@@ -1,24 +1,24 @@
-# Graph Report - .  (2026-10-12)
+# Graph Report - .  (2026-10-13)
 
 ## Corpus Check
-- Large corpus: 2041 files · ~1,060,512 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 2042 files · ~1,061,605 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
-- 3371 nodes · 8281 edges · 127 communities detected
+- 3376 nodes · 8287 edges · 129 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
-- Edge kinds: contains: 2115 · imports: 1879 · calls: 1877 · imports_from: 1082 · method: 869 · MODIFIES: 358 · re_exports: 72 · implements: 14 · inherits: 14 · ON_BRANCH: 1
+- Edge kinds: contains: 2120 · imports: 1879 · calls: 1878 · imports_from: 1082 · method: 869 · MODIFIES: 358 · re_exports: 72 · implements: 14 · inherits: 14 · ON_BRANCH: 1
 
 
 ## Input Scope
 - Requested: auto
 - Resolved: committed (source: default-auto)
-- Included files: 2041 · Candidates: 2612
+- Included files: 2042 · Candidates: 2613
 - Excluded: 0 untracked · 45847 ignored · 22 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `1b5f889`
+- Built from Git commit: `2fceb7e`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 85 edges
@@ -52,7 +52,7 @@ Nodes (92): commonMarks(), FRESH, ITEM, SPLITTABLE, withoutMarks(), FRESH, linkA
 
 ### Community 1 - "Community 1"
 Cohesion: 0.03
-Nodes (35): main, 1b5f889 chore(release): bump version to 0.10.2, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+27 more)
+Nodes (35): main, 2fceb7e chore(skills): add commit message writing skill, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+27 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.05
@@ -64,23 +64,23 @@ Nodes (64): ATTRIBUTE_VALUES, COMMON_ATTRIBUTES, DITA_ELEMENTS, DITAVAL_ELEMENTS
 
 ### Community 4 - "Community 4"
 Cohesion: 0.05
-Nodes (54): handleDocumentLinkResolve(), detectEOL(), formatXML(), getSimpleTextContent(), handleFormatting(), handleRangeFormatting(), INLINE_ELEMENTS, PREFORMATTED_ELEMENTS (+46 more)
-
-### Community 5 - "Community 5"
-Cohesion: 0.05
-Nodes (42): canonicalizeCycle(), CYCLE_CODES, detectCircularReferences(), dfsDetectAnyCycle(), extractFileReferences(), FileRef, isDitaFile(), normalizePath() (+34 more)
-
-### Community 6 - "Community 6"
-Cohesion: 0.05
 Nodes (58): buildBundledGrammars(), BuildOptions, BuildResult, bundledCatalogFor(), bundledVersionOf(), fingerprint(), listFiles(), attributes() (+50 more)
 
-### Community 7 - "Community 7"
+### Community 5 - "Community 5"
 Cohesion: 0.06
 Nodes (43): DIAGNOSTICS_PARAMETERS, DiagnosticsResourceResult, parseLimit(), parseSeverities(), readDiagnosticsResource(), SEVERITIES, KeyEntry, KEYS_PARAMETERS (+35 more)
 
-### Community 8 - "Community 8"
+### Community 6 - "Community 6"
 Cohesion: 0.07
 Nodes (53): handleDefinition(), locationAtFileStart(), resolveElementInFile(), resolveInDocument(), filterMatchingRefs(), handleReferences(), buildEditsForVerifiedRefs(), collectCrossFileEdits() (+45 more)
+
+### Community 7 - "Community 7"
+Cohesion: 0.05
+Nodes (48): handleDocumentLinkResolve(), FragmentValidationResult, handleValidateFragment(), ValidateFragmentParams, wrapFragment(), validateDITADocument(), defaultMcpSettings(), catalogService (+40 more)
+
+### Community 8 - "Community 8"
+Cohesion: 0.05
+Nodes (41): canonicalizeCycle(), CYCLE_CODES, detectCircularReferences(), dfsDetectAnyCycle(), extractFileReferences(), FileRef, isDitaFile(), normalizePath() (+33 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.06
@@ -211,8 +211,8 @@ Cohesion: 0.10
 Nodes (20): rawTextContent(), findPlaces(), isMapFile(), mapTitle(), navtitle(), NEAREST, NOT_INHERITED, occurrenceAt() (+12 more)
 
 ### Community 41 - "Community 41"
-Cohesion: 0.15
-Nodes (24): checkEmptyElements(), checkEntityExpansion(), checkTopicrefsWithoutHref(), CODES, createRange(), DITA_ROOT_ELEMENTS, entityRange(), extractBracketedSubset() (+16 more)
+Cohesion: 0.14
+Nodes (25): checkEmptyElements(), checkEntityExpansion(), checkTopicrefsWithoutHref(), CODES, CollectedIds, collectScopedIds(), createRange(), DITA_ROOT_ELEMENTS (+17 more)
 
 ### Community 42 - "Community 42"
 Cohesion: 0.18
@@ -435,127 +435,135 @@ Cohesion: 0.23
 Nodes (12): button(), currentElement(), markActive(), markButton(), placeReuseBar(), renderMapToolbar(), renderToolbar(), selectedReuse() (+4 more)
 
 ### Community 97 - "Community 97"
+Cohesion: 0.27
+Nodes (9): detectEOL(), formatXML(), getSimpleTextContent(), handleFormatting(), handleRangeFormatting(), INLINE_ELEMENTS, PREFORMATTED_ELEMENTS, tokenize() (+1 more)
+
+### Community 98 - "Community 98"
 Cohesion: 0.32
 Nodes (3): AIServiceOrchestrator, extractXml(), tokenToSignal()
 
-### Community 98 - "Community 98"
+### Community 99 - "Community 99"
 Cohesion: 0.35
 Nodes (3): GrammarRegistry, labelOf(), versionFor()
 
-### Community 99 - "Community 99"
+### Community 100 - "Community 100"
 Cohesion: 0.20
 Nodes (2): AICallMetric, MetricsCollector
 
-### Community 100 - "Community 100"
+### Community 101 - "Community 101"
 Cohesion: 0.25
 Nodes (8): foreignRule(), generatedHeader(), mergeConrefAttrs(), noteRule(), preRule(), sectionRule(), titleRule(), topicRule()
 
-### Community 101 - "Community 101"
+### Community 102 - "Community 102"
 Cohesion: 0.25
 Nodes (10): findOkfRs(), fs, linkReadmeFromIndex(), main(), OUT_DIR, path, ROOT, run() (+2 more)
 
-### Community 102 - "Community 102"
+### Community 103 - "Community 103"
 Cohesion: 0.33
 Nodes (7): movedPath(), PathMove, pathSettingValue(), resolvePathSetting(), followPathSettings(), PATH_SETTINGS, PathSetting
 
-### Community 103 - "Community 103"
+### Community 104 - "Community 104"
 Cohesion: 0.38
 Nodes (6): buildCalsTableSnippet(), buildSimpleTableSnippet(), insertTableCommand(), isEligibleDocument(), promptForCount(), TableType
 
-### Community 104 - "Community 104"
+### Community 105 - "Community 105"
 Cohesion: 0.33
 Nodes (9): buildSymbolTree(), extractTextContent(), extractWorkspaceSymbols(), handleDocumentSymbol(), handleWorkspaceSymbol(), OUTLINE_ELEMENTS, ParsedTag, parseTags() (+1 more)
 
-### Community 105 - "Community 105"
+### Community 106 - "Community 106"
 Cohesion: 0.24
 Nodes (3): anthropicFailure(), AnthropicLLMProvider, ILLMProvider
 
-### Community 106 - "Community 106"
+### Community 107 - "Community 107"
 Cohesion: 0.24
 Nodes (2): ILLMProvider, OllamaLLMProvider
 
-### Community 107 - "Community 107"
+### Community 108 - "Community 108"
 Cohesion: 0.24
 Nodes (3): ILLMProvider, openaiFailure(), OpenAILLMProvider
 
-### Community 108 - "Community 108"
+### Community 109 - "Community 109"
+Cohesion: 0.31
+Nodes (2): CatalogValidationService, ICatalogValidationService
+
+### Community 110 - "Community 110"
 Cohesion: 0.36
 Nodes (7): pathExists(), substituteWorkspaceFolderVar(), loadTemplateRaw(), renderTemplate(), resolveTemplatesDir(), substitutePlaceholders(), TemplateVariables
 
-### Community 109 - "Community 109"
+### Community 111 - "Community 111"
 Cohesion: 0.25
 Nodes (2): ElementIndex, isInterElementWhitespace()
 
-### Community 110 - "Community 110"
+### Community 112 - "Community 112"
 Cohesion: 0.33
 Nodes (2): CircuitBreaker, State
 
-### Community 111 - "Community 111"
+### Community 113 - "Community 113"
 Cohesion: 0.36
 Nodes (7): createDebounced(), createDebouncedMap(), createDebouncedSet(), Debounced, DebouncedMap, DebouncedSet, Disposable
 
-### Community 112 - "Community 112"
+### Community 114 - "Community 114"
 Cohesion: 0.43
 Nodes (7): escapeRegExp(), findClosingTag(), findOpeningTag(), findTagAtOffset(), handleLinkedEditingRange(), TagAtOffset, TagNameRange
 
-### Community 113 - "Community 113"
+### Community 115 - "Community 115"
 Cohesion: 0.36
 Nodes (1): WorkspaceIndex
 
-### Community 114 - "Community 114"
+### Community 116 - "Community 116"
 Cohesion: 0.32
 Nodes (2): CopilotLLMProvider, ILLMProvider
 
-### Community 115 - "Community 115"
+### Community 117 - "Community 117"
 Cohesion: 0.36
 Nodes (1): DtdResolver
 
-### Community 116 - "Community 116"
+### Community 118 - "Community 118"
 Cohesion: 0.33
 Nodes (5): inlineConrefCommand(), InlineConrefResponse, LspTextEdit, LspWorkspaceEdit, getLanguageClient()
 
-### Community 117 - "Community 117"
+### Community 119 - "Community 119"
 Cohesion: 0.38
 Nodes (1): LinkCommands
 
-### Community 118 - "Community 118"
+### Community 120 - "Community 120"
 Cohesion: 0.43
 Nodes (2): AICompletionProvider, registerAICompletionProvider()
 
-### Community 119 - "Community 119"
+### Community 121 - "Community 121"
 Cohesion: 0.48
 Nodes (5): escapeRegExp(), findElementById(), navigateToElement(), registerElementNavigationCommand(), showDocumentAtLine()
 
-### Community 120 - "Community 120"
+### Community 122 - "Community 122"
 Cohesion: 0.40
 Nodes (1): DitaFileDecorationProvider
 
-### Community 121 - "Community 121"
+### Community 123 - "Community 123"
 Cohesion: 0.40
 Nodes (4): PaneState, SOURCE, state(), waitFor()
 
-### Community 122 - "Community 122"
+### Community 124 - "Community 124"
 Cohesion: 0.33
 Nodes (5): extensionRoot, initializedMsg, initMsg, server, serverScript
 
-### Community 123 - "Community 123"
+### Community 125 - "Community 125"
 Cohesion: 0.50
 Nodes (4): EditorState, open(), SOURCE, waitFor()
 
-### Community 124 - "Community 124"
+### Community 126 - "Community 126"
 Cohesion: 0.50
 Nodes (3): fs, path, vscode
 
-### Community 125 - "Community 125"
+### Community 127 - "Community 127"
 Cohesion: 0.67
 Nodes (3): PreviewState, state(), waitFor()
 
-### Community 126 - "Community 126"
+### Community 128 - "Community 128"
 Cohesion: 0.50
 Nodes (1): vscode
 
 ## Knowledge Gaps
-- **589 isolated node(s):** `esbuild`, `minify`, `sourcemap`, `sharedOptions`, `esbuild` (+584 more)
+- **593 isolated node(s):** `esbuild`, `minify`, `sourcemap`, `sharedOptions`, `esbuild` (+588 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 21`** (1 nodes): `KeySpaceResolver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -581,40 +589,42 @@ Nodes (1): vscode
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 93`** (1 nodes): `ConfigurationManager`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 99`** (2 nodes): `AICallMetric`, `MetricsCollector`
+- **Thin community `Community 100`** (2 nodes): `AICallMetric`, `MetricsCollector`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 106`** (2 nodes): `ILLMProvider`, `OllamaLLMProvider`
+- **Thin community `Community 107`** (2 nodes): `ILLMProvider`, `OllamaLLMProvider`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 109`** (2 nodes): `ElementIndex`, `isInterElementWhitespace()`
+- **Thin community `Community 109`** (2 nodes): `CatalogValidationService`, `ICatalogValidationService`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 110`** (2 nodes): `CircuitBreaker`, `State`
+- **Thin community `Community 111`** (2 nodes): `ElementIndex`, `isInterElementWhitespace()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 113`** (1 nodes): `WorkspaceIndex`
+- **Thin community `Community 112`** (2 nodes): `CircuitBreaker`, `State`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 114`** (2 nodes): `CopilotLLMProvider`, `ILLMProvider`
+- **Thin community `Community 115`** (1 nodes): `WorkspaceIndex`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 115`** (1 nodes): `DtdResolver`
+- **Thin community `Community 116`** (2 nodes): `CopilotLLMProvider`, `ILLMProvider`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 117`** (1 nodes): `LinkCommands`
+- **Thin community `Community 117`** (1 nodes): `DtdResolver`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 118`** (2 nodes): `AICompletionProvider`, `registerAICompletionProvider()`
+- **Thin community `Community 119`** (1 nodes): `LinkCommands`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 120`** (1 nodes): `DitaFileDecorationProvider`
+- **Thin community `Community 120`** (2 nodes): `AICompletionProvider`, `registerAICompletionProvider()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 126`** (1 nodes): `vscode`
+- **Thin community `Community 122`** (1 nodes): `DitaFileDecorationProvider`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 128`** (1 nodes): `vscode`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `KeySpaceService` connect `Community 11` to `Community 20`, `Community 3`, `Community 8`, `Community 1`, `Community 47`, `Community 5`, `Community 4`, `Community 7`, `Community 37`?**
+- **Why does `KeySpaceService` connect `Community 11` to `Community 20`, `Community 3`, `Community 6`, `Community 1`, `Community 47`, `Community 8`, `Community 7`, `Community 5`, `Community 37`?**
   _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Why does `VisualPreviewPanel` connect `Community 14` to `Community 54`, `Community 10`, `Community 38`?**
   _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Why does `EditorSession` connect `Community 9` to `Community 10`?**
   _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **What connects `esbuild`, `minify`, `sourcemap` to the rest of the system?**
-  _589 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _593 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.030416951469583047 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
