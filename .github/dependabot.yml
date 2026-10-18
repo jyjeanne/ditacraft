@@ -15,6 +15,11 @@ updates:
     labels:
       - "dependencies"
       - "npm"
+    ignore:
+      # @types/vscode must not be newer than engines.vscode (vsce refuses to
+      # package otherwise): raise both together, by hand, when the minimum
+      # supported VS Code version changes.
+      - dependency-name: "@types/vscode"
     groups:
       # Group minor and patch updates together
       dev-dependencies:
