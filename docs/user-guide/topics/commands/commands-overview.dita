@@ -7,7 +7,7 @@
     <conbody>
         <section id="accessing-commands">
             <title>Accessing Commands</title>
-            <p>All DITA Craft commands are accessible via the Command Palette:</p>
+            <p>All DITA Craft <ph>commands</ph> are accessible via the Command Palette:</p>
             <ol>
                 <li>Press <uicontrol>Ctrl+Shift+P</uicontrol> (or <uicontrol>Cmd+Shift+P</uicontrol> on Mac)</li>
                 <li>Type <userinput>DITA:</userinput> to see all available commands</li>
