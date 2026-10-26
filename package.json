@@ -1206,7 +1206,7 @@
     "@sentropic/engram": "^0.21.2",
     "@types/mocha": "^10.0.1",
     "@types/node": "^26.6.5",
-    "@types/sinon": "^22.0.0",
+    "@types/sinon": "^22.0.1",
     "@types/vscode": "^1.125.0",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^4.0.0",
@@ -1224,11 +1224,11 @@
     "prosemirror-keymap": "^1.2.3",
     "prosemirror-model": "^1.25.12",
     "prosemirror-state": "^1.4.4",
-    "prosemirror-transform": "^1.12.2",
-    "prosemirror-view": "^1.42.6",
+    "prosemirror-transform": "^1.12.4",
+    "prosemirror-view": "^1.42.7",
     "sinon": "^22.1.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.71.2"
+    "typescript-eslint": "^8.72.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
