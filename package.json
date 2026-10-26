@@ -1232,11 +1232,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
-    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@xmldom/xmldom": "^0.9.11",
     "fast-xml-parser": "^5.11.2",
-    "openai": "^7.35.0",
-    "typesxml": "^2.7.0",
+    "openai": "^7.43.0",
+    "typesxml": "^2.7.3",
     "vscode-languageclient": "^10.1.2",
     "zod": "^4.6.7"
   },
