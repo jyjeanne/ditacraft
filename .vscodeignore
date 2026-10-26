@@ -106,6 +106,7 @@ esbuild-standalone.js
 .graphifyignore
 .engram/**
 .graphify/**
+.opencode/**
 .cspellrc.json
 .c8rc.json
 test-workspace/**
