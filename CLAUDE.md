@@ -56,7 +56,7 @@ ESLint with TypeScript support. Uses `@typescript-eslint/parser` and `.eslintrc.
 ```bash
 npm run graph
 ```
-Generates a queryable knowledge graph of the codebase into `docs/graph/` using [graphify](https://github.com/rhanka/graphify) (`@sentropic/graphify`, local tree-sitter AST extraction — no LLM/API keys). Artifacts: `graph.json`, `GRAPH_REPORT.md`, `graph.svg`, and an interactive `studio/studio.html` viewer. `npm run watch` includes `watch:graph`, so the graph auto-regenerates on code changes during development; the `knowledge-graph` GitHub Actions workflow refreshes it on every push to `main`. Extraction scope is controlled by `.graphifyignore`; working state in `.graphify/` is git-ignored. Query with `npx graphify query "..." --graph docs/graph/graph.json`.
+Generates a queryable knowledge graph of the codebase into `docs/graph/` using [Engram](https://github.com/rhanka/engram), formerly graphify (`@sentropic/engram`; `@sentropic/graphify` is now a deprecated forwarding shim; local tree-sitter AST extraction — no LLM/API keys). Artifacts: `graph.json`, `GRAPH_REPORT.md`, `graph.svg`, and an interactive `studio/studio.html` viewer. `npm run watch` includes `watch:graph`, so the graph auto-regenerates on code changes during development; the `knowledge-graph` GitHub Actions workflow refreshes it on every push to `main`. Extraction scope is controlled by `.graphifyignore` (Engram still reads it); working state in `.engram/` is git-ignored. Query with `npx graphify query "..." --graph docs/graph/graph.json` (Engram installs both the `engram` and `graphify` commands).
 
 ### OKF Knowledge Base (okf-rs)
 ```bash

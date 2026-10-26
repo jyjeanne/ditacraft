@@ -104,6 +104,8 @@ okf.toml
 eslint.config.mjs
 esbuild-standalone.js
 .graphifyignore
+.engram/**
+.graphify/**
 .cspellrc.json
 .c8rc.json
 test-workspace/**

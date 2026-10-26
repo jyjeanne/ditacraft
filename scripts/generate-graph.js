@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Generates the DitaCraft knowledge graph into docs/graph using graphify
- * (@sentropic/graphify). Extraction is pure local tree-sitter AST parsing:
+ * Generates the DitaCraft knowledge graph into docs/graph using Engram
+ * (@sentropic/engram, formerly @sentropic/graphify, which is now a deprecated
+ * forwarding shim). Extraction is pure local tree-sitter AST parsing:
  * no LLM calls, no API keys required.
  *
  * Usage:
@@ -15,7 +16,7 @@
  *   studio/           Self-contained interactive Ontology Studio (open studio.html)
  *   README.md         Folder documentation
  *
- * Working state lives in .graphify/ (git-ignored); docs/graph is the committed output.
+ * Working state lives in .engram/ (git-ignored); docs/graph is the committed output.
  */
 
 const { spawnSync, spawn } = require('child_process');
@@ -23,17 +24,17 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const STATE_DIR = path.join(ROOT, '.graphify');
+const STATE_DIR = path.join(ROOT, '.engram');
 const OUT_DIR = path.join(ROOT, 'docs', 'graph');
-// The package's "exports" map hides its internals from require.resolve,
-// so locate the CLI entry (package.json "bin") directly.
-const GRAPHIFY_CLI = path.join(ROOT, 'node_modules', '@sentropic', 'graphify', 'dist', 'cli.js');
+// The CLI sits next to the package's resolved main entry (dist/), as the
+// graphify shim itself locates it; it accepts the graphify commands used here.
+const ENGRAM_CLI = path.join(path.dirname(require.resolve('@sentropic/engram')), 'cli.js');
 
 const WATCH_MODE = process.argv.includes('--watch');
 const EXPORT_DEBOUNCE_MS = 3000;
 
 function runGraphify(args, options = {}) {
-    const result = spawnSync(process.execPath, [GRAPHIFY_CLI, ...args], {
+    const result = spawnSync(process.execPath, [ENGRAM_CLI, ...args], {
         cwd: ROOT,
         stdio: 'inherit',
         ...options
@@ -105,9 +106,9 @@ npx graphify summary docs/graph/graph.json
 }
 
 function watchAndPublish() {
-    // graphify's own watcher rebuilds .graphify/graph.json on code saves;
+    // Engram's own watcher rebuilds .engram/graph.json on code saves;
     // we mirror every rebuild into docs/graph (debounced).
-    const child = spawn(process.execPath, [GRAPHIFY_CLI, 'watch', '.'], {
+    const child = spawn(process.execPath, [ENGRAM_CLI, 'watch', '.'], {
         cwd: ROOT,
         stdio: 'inherit'
     });

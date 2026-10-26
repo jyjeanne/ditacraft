@@ -61,7 +61,8 @@ yarn.lock
 # Claude AI config (local only)
 .claude/
 
-# Graphify working state (committed output lives in docs/graph)
+# Engram (formerly graphify) working state (committed output lives in docs/graph)
+.engram/
 .graphify/
 
 # okf-rs incremental-index cache (disposable local perf cache, not part of the bundle;

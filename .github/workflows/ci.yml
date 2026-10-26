@@ -41,7 +41,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
 
         # Scoped to production dependencies: devDependencies (e.g. the
-        # @sentropic/graphify knowledge-graph tool) are never bundled into
+        # @sentropic/engram knowledge-graph tool) are never bundled into
         # the shipped .vsix/dist/*.js, so their transitive vulnerabilities
         # are a different risk category and shouldn't block CI.
         if npm audit --omit=dev --audit-level=high 2>&1 | tee audit-output.txt; then
