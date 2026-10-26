@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-14T13:07:51.734Z",
-  "graphPath": "/home/runner/work/ditacraft/ditacraft/.graphify/graph.json",
+  "generatedAt": "2026-10-26T22:41:10.335Z",
+  "graphPath": "/home/runner/work/ditacraft/ditacraft/.engram/graph.json",
   "maxDepth": 15,
   "includeTests": false,
   "warnings": [],
@@ -241,17 +241,63 @@
       "warnings": []
     },
     {
+      "id": "flow:cst_query_findelement",
+      "name": "findElement",
+      "entryPoint": "cst_query_findelement",
+      "entryPointId": "cst_query_findelement",
+      "path": [
+        "cst_query_findelement",
+        "cst_query_walk"
+      ],
+      "qualifiedPath": [
+        "cst_query_findelement",
+        "cst_query_walk"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/shared/cst/query.ts"
+      ],
+      "criticality": 0.41,
+      "warnings": []
+    },
+    {
       "id": "flow:cst_query_findelementbyid",
       "name": "findElementById",
       "entryPoint": "cst_query_findelementbyid",
       "entryPointId": "cst_query_findelementbyid",
       "path": [
         "cst_query_findelementbyid",
-        "cst_query_attr"
+        "cst_query_attr",
+        "cst_query_walk"
       ],
       "qualifiedPath": [
         "cst_query_findelementbyid",
-        "cst_query_attr"
+        "cst_query_attr",
+        "cst_query_walk"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/shared/cst/query.ts"
+      ],
+      "criticality": 0.41,
+      "warnings": []
+    },
+    {
+      "id": "flow:cst_query_findelements",
+      "name": "findElements",
+      "entryPoint": "cst_query_findelements",
+      "entryPointId": "cst_query_findelements",
+      "path": [
+        "cst_query_findelements",
+        "cst_query_walk"
+      ],
+      "qualifiedPath": [
+        "cst_query_findelements",
+        "cst_query_walk"
       ],
       "depth": 1,
       "nodeCount": 2,
@@ -324,6 +370,28 @@
       "fileCount": 1,
       "files": [
         "mcp/src/resources/query.ts"
+      ],
+      "criticality": 0.41,
+      "warnings": []
+    },
+    {
+      "id": "flow:cst_query_rawtextcontent",
+      "name": "rawTextContent",
+      "entryPoint": "cst_query_rawtextcontent",
+      "entryPointId": "cst_query_rawtextcontent",
+      "path": [
+        "cst_query_rawtextcontent",
+        "cst_query_walk"
+      ],
+      "qualifiedPath": [
+        "cst_query_rawtextcontent",
+        "cst_query_walk"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/shared/cst/query.ts"
       ],
       "criticality": 0.41,
       "warnings": []

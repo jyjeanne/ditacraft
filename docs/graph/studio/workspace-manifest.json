@@ -1,18 +1,24 @@
 {
-  "schema": "graphify_workspace_manifest_v1",
+  "schema": "engram_workspace_manifest_v1",
   "schema_version": 1,
   "contract": "workspace-bundle-contract-v1",
-  "generated_at": "2026-10-14T13:07:50.289Z",
+  "generated_at": "2026-10-26T22:41:08.843Z",
   "graph_hash": null,
   "present_count": 4,
+  "counts": {
+    "graph_nodes": 3471,
+    "scene_nodes": 3471,
+    "entities": 3471,
+    "coherent": true
+  },
   "artifacts": [
     {
       "name": "entities",
       "path": "entities.json",
       "schema": null,
       "present": true,
-      "sha256": "45aa7ac22f4acfcbe8c7d4af2127c2a1697da79ec3d5b3324e878372e17e9b3a",
-      "size_bytes": 641431,
+      "sha256": "493cb7f9de64e75643fd8479bf7612b4d6b8126f7438441e79a9acfd3cc07ed8",
+      "size_bytes": 641746,
       "role": "entities"
     },
     {
@@ -20,14 +26,14 @@
       "path": "graph.json",
       "schema": null,
       "present": true,
-      "sha256": "800d9d6e800182ec6d2ad9c1438435266d5d008eb793496eea86e10111daff82",
-      "size_bytes": 5220871,
+      "sha256": "35054ba245694acc960e142472e3e6131ab8a930f7099784fbf9b0908c52b495",
+      "size_bytes": 5225866,
       "role": "graph"
     },
     {
       "name": "reconciliation-candidates",
       "path": "reconciliation-candidates.json",
-      "schema": "graphify_ontology_reconciliation_candidates_v1",
+      "schema": "engram_ontology_reconciliation_candidates_v1",
       "present": true,
       "sha256": "4bf7c8639bc34bbbae5aef4aba3c724f9a425cbdc0416ab6384f7745ae1acb96",
       "size_bytes": 22,
@@ -38,14 +44,14 @@
       "path": "scene.json",
       "schema": null,
       "present": true,
-      "sha256": "d757aca7e73ed430ecde24258f763927cd6c729559cc360c53c6b96054368f18",
-      "size_bytes": 2499600,
+      "sha256": "2c4392ff954160f2b1f607083395e2a02d62687455dc055454478e29cf76dd42",
+      "size_bytes": 2501528,
       "role": "scene"
     },
     {
       "name": "scene-hierarchies",
       "path": "scene-hierarchies.json",
-      "schema": "graphify_scene_hierarchies_v1",
+      "schema": "engram_scene_hierarchies_v1",
       "present": false,
       "sha256": null,
       "size_bytes": null,
