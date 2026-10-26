@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DITA Craft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.10.3)
+## Current Status (v0.10.4)
 
 DITA Craft is a production-ready VS Code extension for DITA editing and publishing with the following complete features. The **visual preview** and the **visual editor** (Milestone 8 below) shipped in v0.10.0.
 
@@ -907,8 +907,9 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.10.0 | Visual preview, visual editor (topics and maps), Properties view, DITA Craft name, 2,900+ Tests | Released |
 | v0.10.1 | Maintenance release: root map discovery keeps the map that references the topic | Released |
 | v0.10.2 | Maintenance release: explicit root map, topics in no map, web address and keytext keys, examples in text, same-topic links | Released |
-| v0.10.3 | Maintenance release: DITA-OT parity checks on every platform | **Current** |
+| v0.10.3 | Maintenance release: DITA-OT parity checks on every platform | Released |
+| v0.10.4 | Maintenance release: subject scheme maps without a DOCTYPE, no known vulnerability in the dependencies | **Current** |
 
 ---
 
-*Last updated: October 2026 (v0.10.3: DITA-OT parity checks on every platform)*
+*Last updated: October 2026 (v0.10.4: subject scheme maps, dependency security fixes)*

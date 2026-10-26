@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-10-26
+
+A maintenance release: subject scheme maps open as maps without a DOCTYPE, and no known vulnerability is left in the dependencies.
+
+### Fixed
+
+- A subject scheme map without a DOCTYPE (root `<subjectScheme>`) got no grammar of its own: the visual preview and the visual editor fell back to the composite DITA grammar, where it is not a map, so its subject definitions were not shown as rows. It now gets the subject scheme grammar, as a subject scheme map with its DOCTYPE already did.
+
+### Security
+
+- Production dependencies: the weekly security audit reported three high and two moderate advisories in packages that the extension and the MCP server ship (`zod`, `undici`, `body-parser`, `fast-uri`, `ip-address`). They are updated to fixed versions. `zod` (4.6.7) is now a direct dependency, since the MCP server imports it.
+- Development dependencies: `npm audit` reported 20 advisories in development tools (one critical) and 2 in the language server's; it now reports none. The knowledge-graph tool moves from `@sentropic/graphify`, now a deprecated shim that pinned a vulnerable release, to `@sentropic/engram`; `csv-parse`, `pdfjs-dist` and `@azure/msal-node` are held at fixed versions; the language server's tests run on Mocha 12.
+
+### Changed
+
+- Dependencies updated: `@anthropic-ai/sdk` 0.135, `openai` 7.35, `@modelcontextprotocol/sdk` 1.32.1 and `typesxml` 2.7.0.
+
+### Development
+
+- The knowledge graph (`npm run graph` and the `knowledge-graph` workflow) had failed since 18 October: graphify 0.19 became a forwarding shim to Engram and no longer ships `dist/cli.js`. The script now runs Engram's CLI; its working state moves to `.engram/`, ignored by git and kept out of the `.vsix`. `npx graphify …` queries keep working.
+- The `.vsix` no longer includes the `.opencode/` agent skills.
+- `@types/vscode` stays at the minimum VS Code version the extension supports (`engines.vscode`), as `vsce` requires; Dependabot no longer proposes it.
+- The maps corpus test reads subject scheme maps with their own grammar, and a tracked subject scheme fixture covers them in CI.
+
 ## [0.10.3] - 2026-10-13
 
 A maintenance release: DITA-OT parity checks work on every platform.
