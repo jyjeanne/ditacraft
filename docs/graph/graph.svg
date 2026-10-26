@@ -6365,6 +6365,7 @@
   <line x1="677.0100979452986" y1="92.944278731505" x2="715.4425258588244" y2="104.45440389171227" stroke="#aaaaaa" stroke-width="0.8" opacity="0.6"/>
   <line x1="677.0100979452986" y1="92.944278731505" x2="719.4315435053098" y2="105.94251096982373" stroke="#aaaaaa" stroke-width="0.8" opacity="0.6"/>
   <line x1="677.0100979452986" y1="92.944278731505" x2="716.5841646399957" y2="104.87441780268875" stroke="#aaaaaa" stroke-width="0.8" opacity="0.6"/>
+  <line x1="677.0100979452986" y1="92.944278731505" x2="716.013535326186" y2="104.66389419998256" stroke="#aaaaaa" stroke-width="0.8" opacity="0.6"/>
   <line x1="682.3279527904856" y1="94.24225536554383" x2="300.9469358617019" y2="266.8227666084318" stroke="#aaaaaa" stroke-width="0.8" opacity="0.6"/>
   <line x1="682.3279527904856" y1="94.24225536554383" x2="308.18276330930246" y2="253.45060681525914" stroke="#aaaaaa" stroke-width="0.8" opacity="0.6"/>
   <line x1="682.3279527904856" y1="94.24225536554383" x2="326.53520563787924" y2="224.77447337890726" stroke="#aaaaaa" stroke-width="0.8" opacity="0.6"/>
@@ -13867,7 +13868,7 @@
   <text x="666.9106388542556" y="104.76270326687177" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">wrap()</text>
   <circle cx="667.5065723058648" cy="90.85130610085503" r="4.033057851239669" fill="#F28E2B" opacity="0.9"/>
   <text x="667.5065723058648" y="104.8843639520947" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">compact()</text>
-  <circle cx="668.1022845517053" cy="90.97404534165008" r="4.462809917355372" fill="#4E79A7" opacity="0.9"/>
+  <circle cx="668.1022845517053" cy="90.97404534165008" r="4.462809917355372" fill="#76B7B2" opacity="0.9"/>
   <text x="668.1022845517053" y="105.43685525900545" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">editorHelpers.ts</text>
   <circle cx="668.6977736397455" cy="91.09786273582489" r="4.330578512396694" fill="#76B7B2" opacity="0.9"/>
   <text x="668.6977736397455" y="105.42844124822159" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">readingSignature()</text>
@@ -13897,8 +13898,8 @@
   <text x="675.8255268655238" y="106.73373191565365" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">at()</text>
   <circle cx="676.4179376086918" cy="92.80541139616304" r="4.033057851239669" fill="#76B7B2" opacity="0.9"/>
   <text x="676.4179376086918" y="106.83846924740271" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">apply()</text>
-  <circle cx="677.0100979452986" cy="92.944278731505" r="6.082644628099174" fill="#4E79A7" opacity="0.9"/>
-  <text x="677.0100979452986" y="109.02692335960417" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">editorMaps.test.ts</text>
+  <circle cx="677.0100979452986" cy="92.944278731505" r="6.115702479338843" fill="#4E79A7" opacity="0.9"/>
+  <text x="677.0100979452986" y="109.05998121084383" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">editorMaps.test.ts</text>
   <circle cx="677.6020059349518" cy="93.08421776415918" r="4.033057851239669" fill="#4E79A7" opacity="0.9"/>
   <text x="677.6020059349518" y="107.11727561539885" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">compile()</text>
   <circle cx="678.1936596380849" cy="93.22522803557291" r="4.033057851239669" fill="#4E79A7" opacity="0.9"/>
@@ -14031,8 +14032,8 @@
   <text x="714.8711381089973" y="118.27900541557631" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">compileBundled()</text>
   <circle cx="715.4425258588244" cy="104.45440389171227" r="5.090909090909091" fill="#F28E2B" opacity="0.9"/>
   <text x="715.4425258588244" y="119.54531298262137" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">helpers.ts</text>
-  <circle cx="716.013535326186" cy="104.66389419998256" r="4.132231404958677" fill="#F28E2B" opacity="0.9"/>
-  <text x="716.013535326186" y="118.79612560494124" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">REPO_ROOT</text>
+  <circle cx="716.013535326186" cy="104.66389419998256" r="4.1652892561983474" fill="#F28E2B" opacity="0.9"/>
+  <text x="716.013535326186" y="118.82918345618091" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">REPO_ROOT</text>
   <circle cx="716.5841646399957" cy="104.87441780268875" r="4.198347107438017" fill="#F28E2B" opacity="0.9"/>
   <text x="716.5841646399957" y="119.07276491012676" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">DTDS_DIR</text>
   <circle cx="717.1544119304136" cy="105.08597400998639" r="4.099173553719008" fill="#F28E2B" opacity="0.9"/>
@@ -15374,11 +15375,11 @@
   <circle cx="935.9950454840232" cy="418.1753328552392" r="4.132231404958677" fill="#E15759" opacity="0.9"/>
   <text x="935.9950454840232" y="432.3075642601979" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">render()</text>
   <circle cx="935.9977979898927" cy="418.7835519151073" r="16" fill="#E15759" opacity="0.9"/>
-  <text x="935.9977979898927" y="444.7835519151073" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">0ac78fd build(deps): resolve npm audit findings in development dependencies</text>
+  <text x="935.9977979898927" y="444.7835519151073" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">eceab89 fix(grammar): read subject scheme maps with their own grammar</text>
   <circle cx="935.9994494970222" cy="419.3917749610367" r="4.033057851239669" fill="#E15759" opacity="0.9"/>
   <text x="935.9994494970222" y="433.42483281227635" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">main</text>
   <circle cx="20" cy="20" r="5" fill="#4E79A7"/>
-  <text x="30" y="24" fill="white" font-size="8" font-family="sans-serif">Community 0 (133)</text>
+  <text x="30" y="24" fill="white" font-size="8" font-family="sans-serif">Community 0 (132)</text>
   <circle cx="20" cy="38" r="5" fill="#F28E2B"/>
   <text x="30" y="42" fill="white" font-size="8" font-family="sans-serif">Community 1 (100)</text>
   <circle cx="20" cy="56" r="5" fill="#E15759"/>
@@ -15404,7 +15405,7 @@
   <circle cx="20" cy="236" r="5" fill="#E15759"/>
   <text x="30" y="240" fill="white" font-size="8" font-family="sans-serif">Community 12 (54)</text>
   <circle cx="20" cy="254" r="5" fill="#76B7B2"/>
-  <text x="30" y="258" fill="white" font-size="8" font-family="sans-serif">Community 13 (52)</text>
+  <text x="30" y="258" fill="white" font-size="8" font-family="sans-serif">Community 13 (53)</text>
   <circle cx="20" cy="272" r="5" fill="#59A14F"/>
   <text x="30" y="276" fill="white" font-size="8" font-family="sans-serif">Community 14 (51)</text>
   <circle cx="20" cy="290" r="5" fill="#EDC948"/>

@@ -1,24 +1,24 @@
 # Graph Report - .  (2026-10-26)
 
 ## Corpus Check
-- Large corpus: 3437 files · ~1,156,834 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 3437 files · ~1,156,951 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
-- 3471 nodes · 8436 edges · 135 communities detected
+- 3471 nodes · 8437 edges · 135 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
-- Edge kinds: contains: 2210 · calls: 1927 · imports: 1886 · imports_from: 1080 · method: 869 · MODIFIES: 362 · re_exports: 72 · implements: 14 · inherits: 14 · cites: 1 · ON_BRANCH: 1
+- Edge kinds: contains: 2210 · calls: 1927 · imports: 1887 · imports_from: 1080 · method: 869 · MODIFIES: 362 · re_exports: 72 · implements: 14 · inherits: 14 · cites: 1 · ON_BRANCH: 1
 
 
 ## Input Scope
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 3437 · Candidates: 4022
-- Excluded: 0 untracked · 39307 ignored · 36 sensitive · 0 missing committed
+- Excluded: 0 untracked · 39306 ignored · 36 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `0ac78fd`
+- Built from Git commit: `eceab89`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 85 edges
@@ -56,7 +56,7 @@ Nodes (77): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (33): main, 0ac78fd build(deps): resolve npm audit findings in development dependencies, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
+Nodes (33): main, eceab89 fix(grammar): read subject scheme maps with their own grammar, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
@@ -648,7 +648,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `esbuild`, `minify`, `sourcemap` to the rest of the system?**
   _632 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.030416951469583047 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.030418690724034237 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.04929292929292929 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
