@@ -37,10 +37,11 @@ import { labelsFor } from '../../shared/render/labels';
 import { mapRowItems } from '../../editor/reusedContent';
 import { ReferenceResolver, type KeyDefinitionLike } from '../../preview/resolver';
 import { readingSignature } from './editorHelpers';
-import { corpusFiles, DTDS_DIR } from './helpers';
+import { corpusFiles, DTDS_DIR, REPO_ROOT } from './helpers';
 
 let mapEs: EditorSchema;
 let bookEs: EditorSchema;
+let schemeEs: EditorSchema;
 
 function compile(shell: string, id: string): EditorSchema {
     const { raw } = readDtdGrammar(path.join(DTDS_DIR, ...shell.split('/')), path.join(DTDS_DIR, 'catalog.xml'));
@@ -48,7 +49,10 @@ function compile(shell: string, id: string): EditorSchema {
 }
 
 function schemaFor(source: string): EditorSchema {
-    return /<bookmap[\s>]/.test(source) ? bookEs : mapEs;
+    if (/<bookmap[\s>]/.test(source)) {
+        return bookEs;
+    }
+    return /<subjectScheme[\s>]/.test(source) ? schemeEs : mapEs;
 }
 
 const MAP = [
@@ -121,6 +125,7 @@ suite('Visual Editor: maps (spec §13.8)', function () {
     suiteSetup(() => {
         mapEs = compile('technicalContent/dtd/map.dtd', 'dita-1.3/map');
         bookEs = compile('bookmap/dtd/bookmap.dtd', 'dita-1.3/bookmap');
+        schemeEs = compile('subjectScheme/dtd/subjectScheme.dtd', 'dita-1.3/subjectScheme');
     });
 
     test('every corpus map and bookmap is written back byte for byte', () => {
@@ -150,6 +155,16 @@ suite('Visual Editor: maps (spec §13.8)', function () {
             const names = rows.map(({ node }) => mapEs.role(node.type)?.element);
             assert.deepStrictEqual(names, ['topichead', 'topicref', 'topicref', 'topicref', 'keydef', 'topicref', 'mapref', 'topicgroup', 'topicref']);
             assert.strictEqual(isMapRow(doc.firstChild!.firstChild!, mapEs), false); // the title
+        });
+
+        test('a subject scheme map is a map: its subject definitions are rows', () => {
+            const source = fs.readFileSync(path.join(REPO_ROOT, 'src', 'test', 'fixtures', 'subject-scheme', 'platforms.ditamap'), 'utf8');
+            const { doc, rows } = rowsOf(source, schemeEs);
+            assert.strictEqual(isMapDocument(doc, schemeEs), true);
+            assert.deepStrictEqual(rows.map(({ node }) => [schemeEs.role(node.type)?.element, mapRowInfo(node, schemeEs).keys]), [
+                ['subjectdef', 'os'], ['subjectdef', 'windows'], ['subjectdef', 'macos'], ['subjectdef', 'linux'],
+                ['enumerationdef', undefined], ['subjectdef', undefined],
+            ]);
         });
 
         test('a row\'s label: navtitle, then @navtitle, then the resolved title, a key\'s text, the target', () => {

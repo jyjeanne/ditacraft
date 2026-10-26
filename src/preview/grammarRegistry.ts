@@ -38,6 +38,7 @@ const FALLBACK_ID = 'dita-1.3/ditabase';
 const ROOT_SHELL: Record<string, string> = {
     topic: 'topic', concept: 'concept', task: 'task', reference: 'reference', glossentry: 'glossentry',
     glossgroup: 'glossgroup', troubleshooting: 'troubleshooting', dita: 'ditabase', map: 'map', bookmap: 'bookmap',
+    subjectScheme: 'subjectScheme',
     learningAssessment: 'learningAssessment', learningContent: 'learningContent', learningOverview: 'learningOverview',
     learningPlan: 'learningPlan', learningSummary: 'learningSummary',
 };

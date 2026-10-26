@@ -397,6 +397,15 @@ suite('Visual Preview: host modules', function () {
             assert.match(g.label, /no DOCTYPE/);
         });
 
+        test('a subject scheme map gets its grammar, with or without a DOCTYPE', () => {
+            const withDoctype = select('<!DOCTYPE subjectScheme PUBLIC "-//OASIS//DTD DITA Subject Scheme Map//EN" "subjectScheme.dtd"><subjectScheme/>');
+            assert.strictEqual(withDoctype.id, 'dita-1.3/subjectScheme');
+            assert.match(withDoctype.classOf('subjectScheme') ?? '', /\bmap\/map\b/);
+            const withoutDoctype = select('<subjectScheme><subjectdef keys="os"/></subjectScheme>');
+            assert.strictEqual(withoutDoctype.id, 'dita-1.3/subjectScheme');
+            assert.strictEqual(withoutDoctype.fallback, false);
+        });
+
         test('an unknown grammar falls back to the composite', () => {
             const g = select('<!DOCTYPE warranty PUBLIC "-//ACME//DTD Warranty//EN" "w.dtd"><warranty/>');
             assert.strictEqual(g.id, 'dita-1.3/ditabase');

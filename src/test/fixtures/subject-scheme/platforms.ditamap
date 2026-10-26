@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE subjectScheme PUBLIC "-//OASIS//DTD DITA Subject Scheme Map//EN" "subjectScheme.dtd">
+<subjectScheme id="platforms">
+  <title>Platforms</title>
+  <!-- Controlled values for @platform -->
+  <subjectdef keys="os">
+    <subjectdef keys="windows"/>
+    <subjectdef keys="macos"/>
+    <subjectdef keys="linux"/>
+  </subjectdef>
+  <enumerationdef>
+    <attributedef name="platform"/>
+    <subjectdef keyref="os"/>
+  </enumerationdef>
+</subjectScheme>
