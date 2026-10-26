@@ -1,7 +1,7 @@
 # Graph Report - .  (2026-10-26)
 
 ## Corpus Check
-- Large corpus: 3437 files · ~1,156,951 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 3437 files · ~1,157,355 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
 - 3471 nodes · 8437 edges · 135 communities detected
@@ -18,7 +18,7 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `eceab89`
+- Built from Git commit: `fdddcd3`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 85 edges
@@ -56,7 +56,7 @@ Nodes (77): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (33): main, eceab89 fix(grammar): read subject scheme maps with their own grammar, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
+Nodes (33): main, fdddcd3 chore(release): bump version to 0.10.4, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
