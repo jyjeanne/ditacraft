@@ -1,4 +1,4 @@
-# Graph Report - .  (2026-10-26)
+# Graph Report - .  (2026-10-27)
 
 ## Corpus Check
 - Large corpus: 3437 files · ~1,157,355 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
@@ -14,11 +14,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 3437 · Candidates: 4022
-- Excluded: 0 untracked · 39306 ignored · 36 sensitive · 0 missing committed
+- Excluded: 0 untracked · 38754 ignored · 36 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `fdddcd3`
+- Built from Git commit: `bf8cc81`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 85 edges
@@ -56,7 +56,7 @@ Nodes (77): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (33): main, fdddcd3 chore(release): bump version to 0.10.4, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
+Nodes (33): main, bf8cc81 [npm]: bump the dev-dependencies group with 4 updates, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
