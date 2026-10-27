@@ -15375,7 +15375,7 @@
   <circle cx="935.9950454840232" cy="418.1753328552392" r="4.132231404958677" fill="#E15759" opacity="0.9"/>
   <text x="935.9950454840232" y="432.3075642601979" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">render()</text>
   <circle cx="935.9977979898927" cy="418.7835519151073" r="16" fill="#E15759" opacity="0.9"/>
-  <text x="935.9977979898927" y="444.7835519151073" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">3221f30 [npm]: bump the production-dependencies group with 3 updates</text>
+  <text x="935.9977979898927" y="444.7835519151073" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">799f471 [npm]: bump vscode-languageclient from 10.1.2 to 11.0.0</text>
   <circle cx="935.9994494970222" cy="419.3917749610367" r="4.033057851239669" fill="#E15759" opacity="0.9"/>
   <text x="935.9994494970222" y="433.42483281227635" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif">main</text>
   <circle cx="20" cy="20" r="5" fill="#4E79A7"/>
