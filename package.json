@@ -1237,7 +1237,7 @@
     "fast-xml-parser": "^5.11.2",
     "openai": "^7.43.0",
     "typesxml": "^2.7.3",
-    "vscode-languageclient": "^10.1.2",
+    "vscode-languageclient": "^11.0.0",
     "zod": "^4.6.7"
   },
   "overrides": {
