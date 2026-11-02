@@ -1235,8 +1235,8 @@
     "@modelcontextprotocol/sdk": "^1.32.2",
     "@xmldom/xmldom": "^0.9.11",
     "fast-xml-parser": "^5.11.2",
-    "openai": "^7.43.0",
-    "typesxml": "^2.7.3",
+    "openai": "^7.45.1",
+    "typesxml": "^2.7.4",
     "vscode-languageclient": "^11.0.0",
     "zod": "^4.6.7"
   },
