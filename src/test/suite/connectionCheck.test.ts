@@ -57,9 +57,10 @@ suite('Connection Check Test Suite', () => {
             }
             const model = /^\/v1\/models\/([^/?]+)/.exec(url)?.[1];
             if (!model) { return json(res, 404, {}); }
-            if (req.headers['x-api-key'] !== undefined) {
-                // Anthropic
-                if (req.headers['x-api-key'] !== ANTHROPIC_KEY) {
+            if (req.headers['anthropic-version'] !== undefined) {
+                // Anthropic: the key in x-api-key (API versions before 2026-10-21, SDK 0.x) or as a bearer token (SDK 1.x)
+                const key = req.headers['x-api-key'] ?? req.headers.authorization?.replace(/^Bearer /, '');
+                if (key !== ANTHROPIC_KEY) {
                     return json(res, 401, { type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' } });
                 }
                 return model === 'claude-test'
