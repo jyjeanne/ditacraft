@@ -1,7 +1,7 @@
-# Graph Report - .  (2026-11-03)
+# Graph Report - .  (2026-11-04)
 
 ## Corpus Check
-- Large corpus: 3437 files · ~1,157,355 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 3437 files · ~1,157,380 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
 - 3471 nodes · 8437 edges · 135 communities detected
@@ -14,11 +14,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 3437 · Candidates: 4022
-- Excluded: 0 untracked · 38969 ignored · 36 sensitive · 0 missing committed
+- Excluded: 0 untracked · 39168 ignored · 36 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `fbc05e2`
+- Built from Git commit: `2e52efb`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 85 edges
@@ -56,7 +56,7 @@ Nodes (77): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (33): main, fbc05e2 [npm]: bump the production-dependencies group with 2 updates, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
+Nodes (33): main, 2e52efb test(ai): accept the bearer api key sent by the anthropic sdk 1.x, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
