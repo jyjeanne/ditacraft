@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-04T19:46:37.588Z",
+  "generatedAt": "2026-11-05T20:08:07.456Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.engram/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -126,6 +126,28 @@
       "fileCount": 1,
       "files": [
         "src/editor/visualEditorProvider.ts"
+      ],
+      "criticality": 0.41,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_keyspaceservice_keyspaceservice_invalidateforfilenow",
+      "name": ".invalidateForFileNow",
+      "entryPoint": "services_keyspaceservice_keyspaceservice_invalidateforfilenow",
+      "entryPointId": "services_keyspaceservice_keyspaceservice_invalidateforfilenow",
+      "path": [
+        "services_keyspaceservice_keyspaceservice_invalidateforfilenow",
+        "services_keyspaceservice_keyspaceservice_doinvalidate"
+      ],
+      "qualifiedPath": [
+        "services_keyspaceservice_keyspaceservice_invalidateforfilenow",
+        "services_keyspaceservice_keyspaceservice_doinvalidate"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/keySpaceService.ts"
       ],
       "criticality": 0.41,
       "warnings": []
@@ -9907,6 +9929,40 @@
       "warnings": []
     },
     {
+      "id": "flow:src_mcpsettings_loadmcpsettings",
+      "name": "loadMcpSettings",
+      "entryPoint": "src_mcpsettings_loadmcpsettings",
+      "entryPointId": "src_mcpsettings_loadmcpsettings",
+      "path": [
+        "src_mcpsettings_loadmcpsettings",
+        "src_mcpsettings_defaultmcpsettings",
+        "src_mcpsettings_isplainobject",
+        "src_mcpsettings_kindof",
+        "src_mcpsettings_resolvesettingpath",
+        "src_mcpsettings_samekind",
+        "src_mcpsettings_stripjsoncomments",
+        "src_mcpsettings_stringend"
+      ],
+      "qualifiedPath": [
+        "src_mcpsettings_loadmcpsettings",
+        "src_mcpsettings_defaultmcpsettings",
+        "src_mcpsettings_isplainobject",
+        "src_mcpsettings_kindof",
+        "src_mcpsettings_resolvesettingpath",
+        "src_mcpsettings_samekind",
+        "src_mcpsettings_stripjsoncomments",
+        "src_mcpsettings_stringend"
+      ],
+      "depth": 2,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/mcpSettings.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
       "id": "flow:scripts_generate_graph_main",
       "name": "main",
       "entryPoint": "scripts_generate_graph_main",
@@ -10839,6 +10895,28 @@
       "warnings": []
     },
     {
+      "id": "flow:src_mapchangetracker_mapchangetracker_constructor",
+      "name": ".constructor",
+      "entryPoint": "src_mapchangetracker_mapchangetracker_constructor",
+      "entryPointId": "src_mapchangetracker_mapchangetracker_constructor",
+      "path": [
+        "src_mapchangetracker_mapchangetracker_constructor",
+        "src_mapchangetracker_mapchangetracker_scan"
+      ],
+      "qualifiedPath": [
+        "src_mapchangetracker_mapchangetracker_constructor",
+        "src_mapchangetracker_mapchangetracker_scan"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/mapChangeTracker.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_dtdresolver_dtdresolver_constructor",
       "name": ".constructor",
       "entryPoint": "utils_dtdresolver_dtdresolver_constructor",
@@ -10880,6 +10958,28 @@
       "fileCount": 1,
       "files": [
         "src/preview/visualPreviewPanel.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:src_mapchangetracker_mapchangetracker_detectchanges",
+      "name": ".detectChanges",
+      "entryPoint": "src_mapchangetracker_mapchangetracker_detectchanges",
+      "entryPointId": "src_mapchangetracker_mapchangetracker_detectchanges",
+      "path": [
+        "src_mapchangetracker_mapchangetracker_detectchanges",
+        "src_mapchangetracker_mapchangetracker_scan"
+      ],
+      "qualifiedPath": [
+        "src_mapchangetracker_mapchangetracker_detectchanges",
+        "src_mapchangetracker_mapchangetracker_scan"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/mapChangeTracker.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -12345,28 +12445,6 @@
       "warnings": []
     },
     {
-      "id": "flow:utils_workspacescanner_findcrossfilereferences",
-      "name": "findCrossFileReferences",
-      "entryPoint": "utils_workspacescanner_findcrossfilereferences",
-      "entryPointId": "utils_workspacescanner_findcrossfilereferences",
-      "path": [
-        "utils_workspacescanner_findcrossfilereferences",
-        "utils_workspacescanner_collectditafiles"
-      ],
-      "qualifiedPath": [
-        "utils_workspacescanner_findcrossfilereferences",
-        "utils_workspacescanner_collectditafiles"
-      ],
-      "depth": 1,
-      "nodeCount": 2,
-      "fileCount": 1,
-      "files": [
-        "server/src/utils/workspaceScanner.ts"
-      ],
-      "criticality": 0.16,
-      "warnings": []
-    },
-    {
       "id": "flow:utils_elementextent_findelementextentbyid",
       "name": "findElementExtentById",
       "entryPoint": "utils_elementextent_findelementextentbyid",
@@ -13429,6 +13507,28 @@
       "warnings": []
     },
     {
+      "id": "flow:src_server_readdiagnostics",
+      "name": "readDiagnostics",
+      "entryPoint": "src_server_readdiagnostics",
+      "entryPointId": "src_server_readdiagnostics",
+      "path": [
+        "src_server_readdiagnostics",
+        "src_server_refreshchangedmaps"
+      ],
+      "qualifiedPath": [
+        "src_server_readdiagnostics",
+        "src_server_refreshchangedmaps"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/server.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:resources_diagnostics_readdiagnosticsresource",
       "name": "readDiagnosticsResource",
       "entryPoint": "resources_diagnostics_readdiagnosticsresource",
@@ -13448,6 +13548,28 @@
       "fileCount": 1,
       "files": [
         "mcp/src/resources/diagnostics.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:src_server_readkeys",
+      "name": "readKeys",
+      "entryPoint": "src_server_readkeys",
+      "entryPointId": "src_server_readkeys",
+      "path": [
+        "src_server_readkeys",
+        "src_server_refreshchangedmaps"
+      ],
+      "qualifiedPath": [
+        "src_server_readkeys",
+        "src_server_refreshchangedmaps"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "mcp/src/server.ts"
       ],
       "criticality": 0.16,
       "warnings": []
