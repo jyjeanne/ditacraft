@@ -74,8 +74,48 @@ suite('SubjectSchemeService', () => {
                 assert.ok(platformValues.has('linux'));
                 assert.ok(platformValues.has('windows'));
                 assert.ok(platformValues.has('macos'));
-                // The parent 'os' key should also be collected
-                assert.ok(platformValues.has('os'));
+                // DITA 1.3 (enumerationdef): "the values within the category are valid,
+                // while the category itself is not a valid value".
+                assert.ok(!platformValues.has('os'), 'the bound category "os" is not a valid value');
+            } finally {
+                cleanup(dir);
+            }
+        });
+
+        test('subjects nested below the bound category are valid, at every level', () => {
+            const scheme = `<subjectScheme>
+  <subjectdef keys="os">
+    <subjectdef keys="linux"><subjectdef keys="redhat"/><subjectdef keys="suse"/></subjectdef>
+    <subjectdef keys="windows"/>
+  </subjectdef>
+  <enumerationdef>
+    <attributedef name="platform"/>
+    <subjectdef keyref="os"/>
+  </enumerationdef>
+</subjectScheme>`;
+            const { dir, filePath } = createTmpScheme(scheme);
+            try {
+                const values = new SubjectSchemeService().parseSubjectScheme(filePath).validValuesMap.get('platform')!.get('*')!;
+                assert.deepStrictEqual([...values].sort(), ['linux', 'redhat', 'suse', 'windows']);
+            } finally {
+                cleanup(dir);
+            }
+        });
+
+        test('a binding to a subject without children keeps that subject as the value', () => {
+            // Not a category of values: the subject itself stays usable rather than
+            // leaving the attribute with no valid value at all.
+            const scheme = `<subjectScheme>
+  <subjectdef keys="internal"/>
+  <enumerationdef>
+    <attributedef name="audience"/>
+    <subjectdef keyref="internal"/>
+  </enumerationdef>
+</subjectScheme>`;
+            const { dir, filePath } = createTmpScheme(scheme);
+            try {
+                const values = new SubjectSchemeService().parseSubjectScheme(filePath).validValuesMap.get('audience')!.get('*')!;
+                assert.deepStrictEqual([...values], ['internal']);
             } finally {
                 cleanup(dir);
             }
@@ -155,8 +195,8 @@ suite('SubjectSchemeService', () => {
                 const data = service.parseSubjectScheme(filePath);
 
                 const values = data.validValuesMap.get('platform')!.get('*')!;
-                assert.ok(values.has('os'));
-                assert.ok(values.has('unix'));
+                assert.ok(!values.has('os'), 'the bound category is not a valid value');
+                assert.ok(values.has('unix'), 'an intermediate subject is a valid value');
                 assert.ok(values.has('linux'));
                 assert.ok(values.has('freebsd'));
                 assert.ok(values.has('windows'));

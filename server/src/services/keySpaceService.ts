@@ -31,6 +31,11 @@ export interface KeyDefinition {
     /** Indirect key reference: when set, resolution follows the chain to this key name. */
     keyref?: string;
     metadata?: KeyMetadata;
+    /**
+     * Defined by a `<subjectdef>` of a subject scheme: a controlled value (a subject
+     * category or value), which has no target by design.
+     */
+    subject?: boolean;
 }
 
 export interface KeyMetadata {
@@ -1257,9 +1262,10 @@ export class KeySpaceService implements IKeySpaceService {
         // Running position for forward-scan provenance lookup.
         let contentSearchPos = 0;
 
-        for (const { attrs, node } of elements) {
+        for (const { tagName, attrs, node } of elements) {
             const keysValue = attrs['keys'];
             if (!keysValue) continue;
+            const isSubject = tagName.toLowerCase() === 'subjectdef';
             if (++matchCount > maxMatches) break;
 
             // Skip keyscoped submap refs — handled by the BFS inlineKeys mechanism.
@@ -1326,6 +1332,7 @@ export class KeySpaceService implements IKeySpaceService {
 
             for (const keyName of keyNames) {
                 const keyDef: KeyDefinition = { keyName, sourceMap: mapPath };
+                if (isSubject) keyDef.subject = true;
                 const keyLine = perKeySourceLine.get(keyName) ?? sourceLine;
                 if (keyLine !== undefined) keyDef.sourceLine = keyLine;
 
@@ -1398,6 +1405,7 @@ export class KeySpaceService implements IKeySpaceService {
                     sourceMap: mapPath,
                     sourceLine,
                 };
+                if (match[1].toLowerCase() === 'subjectdef') keyDef.subject = true;
 
                 // Extract href
                 const hrefMatch = fullElement.match(/\bhref\s*=\s*["']([^"']+)["']/i);

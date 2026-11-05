@@ -16,12 +16,11 @@ function createKeySpaceService(tmpDir: string): KeySpaceService {
 }
 
 // Enumerationdefs reference leaf keys directly (`keyref="internal external"`)
-// rather than a whole group node (`keyref="aud"`) -- SubjectSchemeService's
-// existing, established flattenKeys() includes a referenced group node's
-// own key alongside its children (e.g. "aud" itself, not just "internal"/
-// "external"), which is correct, pre-existing behavior this feature reuses
-// as-is rather than changes. Referencing leaves directly keeps these
-// enumeration-test expectations focused on merge/hierarchy-path behavior.
+// rather than a whole group node (`keyref="aud"`): a subject without children
+// is its own value, while a group node contributes only the subjects below it
+// (DITA 1.3: the category itself is not a valid value; see the last test).
+// Referencing leaves directly keeps these enumeration-test expectations
+// focused on merge/hierarchy-path behavior.
 const AUDIENCE_SCHEME = `<subjectScheme>
   <subjectdef keys="aud">
     <subjectdef keys="internal" navtitle="Internal"/>
@@ -162,7 +161,7 @@ suite('handleGetSubjectSchemeAttributes', () => {
         }
     });
 
-    test('includes a referenced group node\'s own key alongside its children (documents existing SubjectSchemeService behavior, not new for this feature)', async () => {
+    test('a referenced group node contributes its children, not its own key (DITA 1.3)', async () => {
         fs.writeFileSync(path.join(tmpDir, 'scheme.ditamap'), AUDIENCE_SCHEME.replace('keyref="internal external"', 'keyref="aud"'), 'utf-8');
         fs.writeFileSync(
             path.join(tmpDir, 'root.ditamap'),
@@ -183,7 +182,7 @@ suite('handleGetSubjectSchemeAttributes', () => {
 
             const audience = result.attributes.find(a => a.attribute === 'audience');
             assert.ok(audience);
-            assert.deepStrictEqual(audience!.values.map(v => v.value).sort(), ['aud', 'external', 'internal']);
+            assert.deepStrictEqual(audience!.values.map(v => v.value).sort(), ['external', 'internal']);
         } finally {
             keySpaceService.shutdown();
         }
