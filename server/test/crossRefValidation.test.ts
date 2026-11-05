@@ -397,7 +397,7 @@ suite('validateCrossReferences', () => {
             }
         });
 
-        test('a subject key (a controlled value) has no target and gets no warning (regression)', async () => {
+        test('subject keys are exempt for keyref but not conkeyref (regression)', async () => {
             // <subjectdef keys="…"> defines a controlled value, which never has a target:
             // the <subjectdef keyref> of every <enumerationdef> was reported as DITA-KEY-002.
             const keys = new Map<string, KeyDefinition>([
@@ -406,15 +406,16 @@ suite('validateCrossReferences', () => {
             ]);
             const keySpaceService = createMockKeySpaceService(keys);
             const text = '<enumerationdef><attributedef name="season"/><subjectdef keyref="seasons"/></enumerationdef>'
-                + '<xref keyref="empty-key"/>';
+                + '<p conkeyref="seasons/intro"/><xref keyref="empty-key"/>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const testUri = URI.file(path.join(tmpDir, 'scheme.ditamap')).toString();
 
             try {
                 const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
                 const noTarget = diags.filter(d => d.code === XREF_CODES.KEY_NO_TARGET);
-                assert.strictEqual(noTarget.length, 1, 'only the ordinary key without target is reported');
-                assert.ok(noTarget[0].message.includes('empty-key'));
+                assert.strictEqual(noTarget.length, 2, 'the conkeyref and ordinary key without target are reported');
+                assert.ok(noTarget.some(d => d.message.includes('seasons')));
+                assert.ok(noTarget.some(d => d.message.includes('empty-key')));
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }

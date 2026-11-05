@@ -381,9 +381,9 @@ export async function validateCrossReferences(
                 continue;
             }
 
-            // A subject (controlled value) has no target by design: <subjectdef keyref> in
-            // an enumeration, <topicsubject keyref> in a classification map…
-            if (!keyDef.targetFile && !keyDef.externalHref && !keyDef.inlineContent && !keyDef.subject) {
+            // Subject keys have no target by design when referenced via keyref.
+            if (!keyDef.targetFile && !keyDef.externalHref && !keyDef.inlineContent
+                && !(keyDef.subject && match[1] === 'keyref')) {
                 if (isDitaOtComparison && isMapLikeSource) {
                     continue;
                 }
