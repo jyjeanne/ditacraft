@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Reference severities follow DITA-OT, the reference processor:
+  - A missing target file (`DITA-XREF-001`) is an error, as DITA-OT reports it (`DOTX008E`): for a map reference, a link, a content reference or an image. It was a warning unless the internal DITA-OT comparison profile was on.
+  - A content reference whose topic or element cannot be found is an error, as in DITA-OT (`DOTX010E`). That covers `@conref` (`DITA-XREF-002`, `DITA-XREF-003`) and `@conkeyref` (`DITA-KEY-003`).
+  - A link (`@href`, `@keyref`) to a missing element in an existing topic stays a warning: DITA-OT does not report it, but the published link leads nowhere.
+
 ### Fixed
 
+- A key defined twice in the same map was not reported. `DITA-KEY-004` skipped every definition in the map that holds the effective one; the later definitions there are now reported, as DITA-OT does (`DOTJ045I`). The first definition, which takes effect, is still not reported.
 - Subject scheme values were checked (`DITA-PROF-001`) only on a fixed list of attributes: `@audience`, `@platform`, `@product`, `@otherprops`, `@props`, `@deliveryTarget`. An attribute specialized from `@props` and bound by an `<enumerationdef>`, such as `@season`, was never checked. Every attribute the scheme binds is now checked. Element names with a hyphen were also read up to the hyphen (`<steps-unordered>` as `<steps>`), so an `<elementdef name="steps-unordered">` binding did not apply to them; it now does.
 - The category an `<enumerationdef>` binds was itself a valid value. With `<subjectdef keyref="os"/>`, `os` was accepted next to `linux` and `windows`, and offered in completion and in the DITAVAL condition editor. DITA 1.3 says that "the values within the category are valid, while the category itself is not a valid value": only the subjects below it are valid now, at every level. A bound subject without children remains its own value.
 - `DITA-KEY-002` ("key has no target") was reported on the `<subjectdef keyref>` of every `<enumerationdef>`, and on any reference to a subject such as `<topicsubject keyref>`. Keys defined by `<subjectdef>` are controlled values, which have no target by design; the key space now marks them (`KeyDefinition.subject`), and they are no longer reported.

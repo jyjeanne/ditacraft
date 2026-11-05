@@ -75,7 +75,9 @@ export async function validateCrossReferences(
             .endsWith(`${path.sep}release-notes${path.sep}changes.ditamap`);
     const invalidKeyNameCache = new Map<string, string[] | null>();
     const workspaceFolders = effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? []);
-    const missingFileSeverity = isDitaOtComparison ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
+    // A missing target file is an error, as in DITA-OT (DOTX008E): the map entry, link,
+    // content reference or image cannot be resolved in any output.
+    const missingFileSeverity = DiagnosticSeverity.Error;
 
     // Strip comments/CDATA to avoid matching inside them
     const cleanText = stripCommentsAndCodeContent(text);
@@ -238,7 +240,8 @@ export async function validateCrossReferences(
                 }
                 const fragmentValid = validateFragment(
                     parsed.fragment, targetContent, range,
-                    parsed.filePath, /\.(ditamap|bookmap)$/i.test(targetPath), diagnostics
+                    parsed.filePath, /\.(ditamap|bookmap)$/i.test(targetPath), diagnostics,
+                    isConref ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
                 );
 
                 // Conref compatibility: source and target elements must match
@@ -255,7 +258,8 @@ export async function validateCrossReferences(
             // Same-file reference (e.g., "#topicid/elementid")
             const sameFileValid = validateFragment(
                 parsed.fragment, text, range,
-                '(current file)', /\.(ditamap|bookmap)$/i.test(filePath), diagnostics
+                '(current file)', /\.(ditamap|bookmap)$/i.test(filePath), diagnostics,
+                isConref ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
             );
 
             // Conref compatibility for same-file references
@@ -282,10 +286,19 @@ export async function validateCrossReferences(
                 for (const keyName of keyNames) {
                     const dups = duplicateKeys.get(keyName);
                     if (!dups) continue;
-                    // Only warn if this map's definition is NOT the effective one
                     const effective = dups[0];
-                    if (normalizeFsPath(effective.sourceMap) === normalizeFsPath(filePath)) continue;
                     const range = offsetToRange(text, keyMatch.index, keyMatch.index + keyMatch[0].length);
+                    // Only warn on definitions that are NOT the effective one. In the map that
+                    // holds the effective definition, the later definitions of the key are
+                    // duplicates too (DITA-OT: DOTJ045I); they are told apart by their line.
+                    if (normalizeFsPath(effective.sourceMap) === normalizeFsPath(filePath)) {
+                        const line = range.start.line + 1;
+                        const isLaterDefinitionHere = effective.sourceLine !== undefined
+                            && effective.sourceLine !== line
+                            && dups.slice(1).some(d =>
+                                normalizeFsPath(d.sourceMap) === normalizeFsPath(filePath) && d.sourceLine === line);
+                        if (!isLaterDefinitionHere) continue;
+                    }
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
                         range,
@@ -410,7 +423,9 @@ export async function validateCrossReferences(
                     const idRegex = new RegExp(`\\bid\\s*=\\s*["']${escaped}["']`);
                     if (!idRegex.test(targetContent)) {
                         diagnostics.push({
-                            severity: DiagnosticSeverity.Warning,
+                            // Content reused through a key (@conkeyref) that cannot be found fails
+                            // in DITA-OT (DOTX010E); a link through a key (@keyref) does not.
+                            severity: match[1] === 'conkeyref' ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
                             range,
                             message: t('key.missingElement', elementId, keyName),
                             code: XREF_CODES.KEY_MISSING_ELEMENT,
@@ -581,7 +596,12 @@ function validateFragment(
     range: Range,
     fileName: string,
     isMapLikeTarget: boolean,
-    diagnostics: Diagnostic[]
+    diagnostics: Diagnostic[],
+    /**
+     * Error for a content reference (@conref), which DITA-OT fails (DOTX010E);
+     * warning for a link (@href), about which DITA-OT says nothing.
+     */
+    severity: DiagnosticSeverity,
 ): boolean {
     const slashPos = fragment.indexOf('/');
     const topicId = slashPos !== -1 ? fragment.substring(0, slashPos) : fragment;
@@ -594,7 +614,7 @@ function validateFragment(
             const mapTargetRegex = new RegExp(`\\bid\\s*=\\s*["']${escapedTopicId}["']`);
             if (!mapTargetRegex.test(content)) {
                 diagnostics.push({
-                    severity: DiagnosticSeverity.Warning,
+                    severity,
                     range,
                     message: t('xref.missingTopicId', topicId, fileName),
                     code: XREF_CODES.MISSING_TOPIC_ID,
@@ -608,7 +628,7 @@ function validateFragment(
             );
             if (!topicIdRegex.test(content)) {
                 diagnostics.push({
-                    severity: DiagnosticSeverity.Warning,
+                    severity,
                     range,
                     message: t('xref.missingTopicId', topicId, fileName),
                     code: XREF_CODES.MISSING_TOPIC_ID,
@@ -625,7 +645,7 @@ function validateFragment(
         const elemIdRegex = new RegExp(`\\bid\\s*=\\s*["']${escapedElemId}["']`);
         if (!elemIdRegex.test(content)) {
             diagnostics.push({
-                severity: DiagnosticSeverity.Warning,
+                severity,
                 range,
                 message: t('xref.missingElementId', elementId, topicId, fileName),
                 code: XREF_CODES.MISSING_ELEMENT_ID,

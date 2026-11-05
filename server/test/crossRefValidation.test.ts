@@ -5,6 +5,7 @@ import * as os from 'os';
 import { URI } from 'vscode-uri';
 import { validateCrossReferences, XREF_CODES } from '../src/features/crossRefValidation';
 import { KeySpaceService, KeyDefinition } from '../src/services/keySpaceService';
+import { DiagnosticSeverity } from 'vscode-languageserver/node';
 
 function createMockKeySpaceService(
     keys: Map<string, KeyDefinition>,
@@ -35,7 +36,7 @@ function createMockKeySpaceService(
 
 suite('validateCrossReferences', () => {
     suite('href validation', () => {
-        test('missing target file produces warning', async () => {
+        test('missing target file is reported', async () => {
             const text = '<xref href="nonexistent.dita">link</xref>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
@@ -45,6 +46,46 @@ suite('validateCrossReferences', () => {
                 const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
                 assert.strictEqual(missing.length, 1);
                 assert.ok(missing[0].message.includes('nonexistent.dita'));
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('a missing target file is an error, as in DITA-OT (DOTX008E)', async () => {
+            const text = '<xref href="nonexistent.dita">link</xref><image href="missing.png"/>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const missing = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
+                assert.deepStrictEqual(missing.map(d => d.severity), [DiagnosticSeverity.Error, DiagnosticSeverity.Error]);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('reuse of a missing element is an error (DOTX010E); a link to one stays a warning', async () => {
+            // DITA-OT fails a @conref whose target element does not exist, but says
+            // nothing about an @href to a missing element in an existing topic.
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            fs.writeFileSync(path.join(tmpDir, 'target.dita'), '<topic id="t"><title>T</title><body><p id="p1">x</p></body></topic>');
+            const text = [
+                '<p conref="target.dita#t/missing"/>',
+                '<xref href="target.dita#t/missing"/>',
+                '<p conref="target.dita#wrong/p1"/>',
+                '<xref href="target.dita#wrong"/>',
+            ].join('\n');
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, undefined, 100);
+                const bySeverity = (code: string) => diags.filter(d => d.code === code)
+                    .map(d => `${d.range.start.line}:${d.severity}`);
+                assert.deepStrictEqual(bySeverity(XREF_CODES.MISSING_ELEMENT_ID),
+                    [`0:${DiagnosticSeverity.Error}`, `1:${DiagnosticSeverity.Warning}`]);
+                assert.deepStrictEqual(bySeverity(XREF_CODES.MISSING_TOPIC_ID),
+                    [`2:${DiagnosticSeverity.Error}`, `3:${DiagnosticSeverity.Warning}`]);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
@@ -622,7 +663,27 @@ suite('validateCrossReferences', () => {
     });
 
     suite('conkeyref validation', () => {
-        test('conkeyref with missing element ID in target produces warning', async () => {
+        test('reuse through a key of a missing element is an error (DOTX010E); a link through a key stays a warning', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const targetFile = path.join(tmpDir, 'snippet.dita');
+            fs.writeFileSync(targetFile, '<topic id="t1"><body><p id="p1">text</p></body></topic>');
+            const keys = new Map<string, KeyDefinition>([
+                ['snippet', { keyName: 'snippet', sourceMap: '/maps/root.ditamap', targetFile }],
+            ]);
+            const text = '<p conkeyref="snippet/missing"/>\n<xref keyref="snippet/missing"/>';
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, createMockKeySpaceService(keys), 100);
+                assert.deepStrictEqual(
+                    diags.filter(d => d.code === XREF_CODES.KEY_MISSING_ELEMENT).map(d => `${d.range.start.line}:${d.severity}`),
+                    [`0:${DiagnosticSeverity.Error}`, `1:${DiagnosticSeverity.Warning}`]);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('conkeyref with missing element ID in target is reported', async () => {
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const targetFile = path.join(tmpDir, 'snippet.dita');
             fs.writeFileSync(targetFile, '<topic id="t1"><body><p id="p1">text</p></body></topic>');
@@ -833,6 +894,35 @@ suite('validateCrossReferences', () => {
                 const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
                 assert.strictEqual(dupDiags.length, 0);
             } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('DITA-KEY-004: a key defined twice in the same map is reported on the second definition (regression)', async () => {
+            // DITA-OT reports DOTJ045I. Every definition in the map holding the effective one
+            // used to be skipped, so a second definition in that same map was never reported.
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapFile = path.join(tmpDir, 'root.ditamap');
+            fs.writeFileSync(path.join(tmpDir, 'a.dita'), '<topic id="a"><title>A</title></topic>');
+            fs.writeFileSync(path.join(tmpDir, 'b.dita'), '<topic id="b"><title>B</title></topic>');
+            const text = [
+                '<map>',
+                '  <topicref href="a.dita" keys="a"/>',
+                '  <topicref href="b.dita" keys="b a"/>',
+                '</map>',
+            ].join('\n');
+            fs.writeFileSync(mapFile, text);
+            const keySpaceService = new KeySpaceService(
+                [tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {});
+
+            try {
+                const diags = await validateCrossReferences(text, URI.file(mapFile).toString(), keySpaceService, 100);
+                const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
+                assert.strictEqual(dupDiags.length, 1, 'only the second definition is a duplicate');
+                assert.strictEqual(dupDiags[0].range.start.line, 2);
+                assert.ok(dupDiags[0].message.includes('"a"') || dupDiags[0].message.includes(' a '));
+            } finally {
+                keySpaceService.shutdown();
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
         });
