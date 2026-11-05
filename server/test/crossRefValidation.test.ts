@@ -927,6 +927,54 @@ suite('validateCrossReferences', () => {
             }
         });
 
+        test('DITA-KEY-004: same-line definitions identify only the later key token', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapFile = path.join(tmpDir, 'root.ditamap');
+            const text = '<map><topicref keys="a"/><topicref keys="a"/></map>';
+            fs.writeFileSync(mapFile, text);
+            const keySpaceService = new KeySpaceService(
+                [tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {});
+
+            try {
+                const diags = await validateCrossReferences(text, URI.file(mapFile).toString(), keySpaceService, 100);
+                const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
+                const expectedOffset = text.lastIndexOf('keys="a"') + 'keys="'.length;
+                assert.strictEqual(dupDiags.length, 1, 'only the later definition is a duplicate');
+                assert.strictEqual(dupDiags[0].range.start.character, expectedOffset);
+                assert.strictEqual(dupDiags[0].range.end.character, expectedOffset + 1);
+            } finally {
+                keySpaceService.shutdown();
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('DITA-KEY-004: multiline key lists identify the duplicate token line', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapFile = path.join(tmpDir, 'root.ditamap');
+            const text = [
+                '<map>',
+                '  <topicref keys="a"/>',
+                '  <topicref keys="b',
+                '    a"/>',
+                '</map>',
+            ].join('\n');
+            fs.writeFileSync(mapFile, text);
+            const keySpaceService = new KeySpaceService(
+                [tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {});
+
+            try {
+                const diags = await validateCrossReferences(text, URI.file(mapFile).toString(), keySpaceService, 100);
+                const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
+                assert.strictEqual(dupDiags.length, 1, 'only the later definition is a duplicate');
+                assert.strictEqual(dupDiags[0].range.start.line, 3);
+                assert.strictEqual(dupDiags[0].range.start.character, 4);
+                assert.strictEqual(dupDiags[0].range.end.character, 5);
+            } finally {
+                keySpaceService.shutdown();
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
         test('no duplicate key check on .dita files', async () => {
             const keys = new Map<string, KeyDefinition>();
             const dups = new Map<string, KeyDefinition[]>();
