@@ -195,6 +195,35 @@ suite('KeySpaceService', () => {
         });
     });
 
+    suite('subject keys', () => {
+
+        test('keys defined by <subjectdef> are marked as subjects', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <mapref href="scheme.ditamap" format="ditamap"/>
+  <keydef keys="product"><topicmeta><keywords><keyword>Hive</keyword></keywords></topicmeta></keydef>
+</map>`, 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'scheme.ditamap'), `<?xml version="1.0"?>
+<subjectScheme>
+  <subjectdef keys="seasons"><subjectdef keys="spring"/></subjectdef>
+  <enumerationdef><attributedef name="season"/><subjectdef keyref="seasons"/></enumerationdef>
+</subjectScheme>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.strictEqual(keySpace.keys.get('seasons')?.subject, true);
+                assert.strictEqual(keySpace.keys.get('spring')?.subject, true);
+                assert.ok(!keySpace.keys.get('product')?.subject, 'a <keydef> key is not a subject');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
+
     suite('invalidateForFileNow', () => {
 
         test('a key added to a map resolves at once, without the watcher debounce', async () => {

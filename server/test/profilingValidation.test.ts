@@ -167,6 +167,66 @@ suite('validateProfilingAttributes', () => {
         }
     });
 
+    test('any attribute bound by the scheme is validated, not only the built-in ones (regression)', () => {
+        // A specialization of @props (here @season) bound with <enumerationdef> was never
+        // checked: the validator only looked at a fixed list of built-in attributes.
+        const seasonScheme = `<subjectScheme>
+  <subjectdef keys="seasons"><subjectdef keys="spring"/><subjectdef keys="summer"/></subjectdef>
+  <enumerationdef>
+    <attributedef name="season"/>
+    <subjectdef keyref="seasons"/>
+  </enumerationdef>
+</subjectScheme>`;
+        const { service, cleanup } = createSchemeService(seasonScheme);
+        try {
+            const text = '<topicref href="a.dita" season="spring summer"/>\n<p season="monsoon">text</p>';
+            const profDiags = validateProfilingAttributes(text, service, 100)
+                .filter(d => d.code === PROFILING_CODES.INVALID_VALUE);
+            assert.strictEqual(profDiags.length, 1);
+            assert.ok(profDiags[0].message.includes('monsoon'));
+            assert.ok(profDiags[0].message.includes('season'));
+            assert.strictEqual(profDiags[0].range.start.line, 1);
+            assert.strictEqual(profDiags[0].range.start.character, 'p season="'.length + 1);
+        } finally {
+            cleanup();
+        }
+    });
+
+    test('a binding to an element with a hyphen in its name applies to it (regression)', () => {
+        // The element name was read with \w+: <steps-unordered> was taken for <steps>,
+        // so an <elementdef name="steps-unordered"> binding was never applied.
+        const elementScheme = `<subjectScheme>
+  <subjectdef keys="os"><subjectdef keys="linux"/><subjectdef keys="windows"/></subjectdef>
+  <enumerationdef>
+    <elementdef name="steps-unordered"/>
+    <attributedef name="platform"/>
+    <subjectdef keyref="os"/>
+  </enumerationdef>
+</subjectScheme>`;
+        const { service, cleanup } = createSchemeService(elementScheme);
+        try {
+            const text = '<steps-unordered platform="solaris"><step/></steps-unordered>';
+            const profDiags = validateProfilingAttributes(text, service, 100)
+                .filter(d => d.code === PROFILING_CODES.INVALID_VALUE);
+            assert.strictEqual(profDiags.length, 1);
+        } finally {
+            cleanup();
+        }
+    });
+
+    test('the bound category itself is not a valid value (DITA 1.3)', () => {
+        const { service, cleanup } = createSchemeService(PLATFORM_SCHEME);
+        try {
+            const text = '<p platform="os">text</p>';
+            const profDiags = validateProfilingAttributes(text, service, 100)
+                .filter(d => d.code === PROFILING_CODES.INVALID_VALUE);
+            assert.strictEqual(profDiags.length, 1);
+            assert.ok(!/\bos\b/.test(profDiags[0].message.split(':').pop()!), 'the allowed values must not list "os"');
+        } finally {
+            cleanup();
+        }
+    });
+
     test('valid values message lists allowed values', () => {
         const { service, cleanup } = createSchemeService(PLATFORM_SCHEME);
         try {

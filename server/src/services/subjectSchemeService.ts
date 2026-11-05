@@ -457,7 +457,12 @@ export class SubjectSchemeService implements ISubjectSchemeService {
                 const keyValues = subjMatch[1].trim().split(/\s+/);
                 for (const keyValue of keyValues) {
                     const subTree = subjectDefs.get(keyValue);
-                    if (subTree) {
+                    if (subTree && subTree.children.length > 0) {
+                        // DITA 1.3 <enumerationdef>: "the values within the category are
+                        // valid, while the category itself is not a valid value".
+                        for (const child of subTree.children) this.flattenKeys(child, valueSet);
+                    } else if (subTree) {
+                        // A subject without children is not a category: keep it as the value.
                         this.flattenKeys(subTree, valueSet);
                     } else {
                         // Direct reference to a key not in subjectdef tree — add it directly
