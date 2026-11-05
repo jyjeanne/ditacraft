@@ -2,13 +2,13 @@
   "schema": "engram_workspace_manifest_v1",
   "schema_version": 1,
   "contract": "workspace-bundle-contract-v1",
-  "generated_at": "2026-11-05T20:08:05.877Z",
+  "generated_at": "2026-11-05T22:59:24.867Z",
   "graph_hash": null,
   "present_count": 4,
   "counts": {
-    "graph_nodes": 3502,
-    "scene_nodes": 3502,
-    "entities": 3502,
+    "graph_nodes": 3504,
+    "scene_nodes": 3504,
+    "entities": 3504,
     "coherent": true
   },
   "artifacts": [
@@ -17,8 +17,8 @@
       "path": "entities.json",
       "schema": null,
       "present": true,
-      "sha256": "93d5c505c677a28ae2113975089b507d7752ba7409d3dac37b6b976f83e3b06f",
-      "size_bytes": 647180,
+      "sha256": "9848a8fd46862441b75767dfd2bded0e184872c31117965c24ee55ccd442eaf2",
+      "size_bytes": 647506,
       "role": "entities"
     },
     {
@@ -26,8 +26,8 @@
       "path": "graph.json",
       "schema": null,
       "present": true,
-      "sha256": "757e1f3c493dad684d483db50ebc45c5f637bd15fd3f387bcbbfba5a87c1d50c",
-      "size_bytes": 5264526,
+      "sha256": "f95ebe8ad5566b55757151824c356664640acc94dd8568e78462a365f8d39074",
+      "size_bytes": 5265628,
       "role": "graph"
     },
     {
@@ -44,8 +44,8 @@
       "path": "scene.json",
       "schema": null,
       "present": true,
-      "sha256": "c284f47832820b9ceffbd219988a2f7f9b4138271ef52b98630698e9b7f06877",
-      "size_bytes": 2521925,
+      "sha256": "6a1153d2cef57e9d9eccb0ea969b2b6fa00406aa3b6a49d0af945cdbd7fdeeb9",
+      "size_bytes": 2522835,
       "role": "scene"
     },
     {
