@@ -118,14 +118,16 @@ The MCP server is a **self-contained Node.js process**. It bundles `server/src/`
 
 ### 2.2 Startup Sequence
 
-1. Agent spawns `node dist/mcp-server.js` with env vars: `WORKSPACE`, optional `DITACRAFT_LOG_LEVEL`
-2. Server initializes: reads `WORKSPACE` from env, creates services
+1. Agent spawns `node dist/mcp-server.js` with env vars: `WORKSPACE`, optional ones in §2.4
+2. Server initializes: resolves `WORKSPACE` to an absolute folder (a relative path is taken from its working directory), loads its settings (`mcp/src/mcpSettings.ts`, §2.4), creates services, and records the workspace's maps (`mcp/src/mapChangeTracker.ts`)
 3. Server performs **MCP initialize handshake** over stdin/stdout:
    - Receives `InitializeRequest`
    - Responds with `InitializeResult` declaring capabilities, server name (`ditacraft-mcp`), version
    - Registers tools (their schemas) and resources (their URI templates)
 4. Agent calls `tools/list` / `resources/list` to discover capabilities
 5. Agent calls tools / reads resources — server invokes bundled backend modules directly
+
+**Fresh results.** The language server relies on editor events (edits, saves, file watcher) to invalidate its caches; the MCP server gets none. So before each request it compares the workspace's maps (path, modification time, size) with those of the previous request and invalidates the key spaces, subject schemes and map-dependent validation results built from the changed ones (`KeySpaceService.invalidateForFileNow`, `SubjectSchemeService.invalidate`, `ValidationPipeline.invalidateForMapChange`). `dita_validate` also drops the pipeline's cached phases for the file it validates, and each fragment is validated under its own synthetic URI.
 
 ### 2.3 Shutdown
 
@@ -139,11 +141,14 @@ The MCP server is a **self-contained Node.js process**. It bundles `server/src/`
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `WORKSPACE` | Yes | — | Absolute path to the DITA project root |
+| `WORKSPACE` | Yes | — | The DITA project root; a relative path is taken from the server's working directory |
+| `DITACRAFT_SETTINGS_FILE` | No | `<WORKSPACE>/.vscode/settings.json` | Settings file whose `ditacraft.*` settings apply |
+| `DITACRAFT_XML_CATALOG` | No | — | XML catalog; overrides `ditacraft.xmlCatalogPath` |
+| `DITACRAFT_CUSTOM_RULES_FILE` | No | — | Custom rules file; overrides `ditacraft.customRulesFile` |
 | `DITACRAFT_LOG_LEVEL` | No | `warn` | `debug`, `info`, `warn`, `error` |
-| `DITACRAFT_DITA_VERSION` | No | `auto` | Override auto-detected DITA version |
-| `DITACRAFT_KEYSPACE_TTL_MINUTES` | No | `5` | Key space cache TTL |
-| `DITACRAFT_VALIDATION_ENGINE` | No | `typesxml` | `built-in`, `typesxml`, or `xmllint` |
+| `DITACRAFT_KEYSPACE_TTL_MINUTES` | No | `ditacraft.keySpaceCacheTtlMinutes` (5) | Key space cache TTL |
+
+**Settings file.** The validation settings start from `defaultMcpSettings()` and take the `ditacraft.*` entries of the settings file (JSON with comments and trailing commas, as VS Code writes it), then the two overriding variables above. Values of the wrong type are ignored with a warning; editor-only settings (`autoValidate`, `validationDebounceMs`, `logLevel`) are ignored. Path settings (`xmlCatalogPath`, `customRulesFile`, `rngSchemaPath`) may be relative to the workspace or use `${workspaceFolder}`. As in the extension, `xmlCatalogPath` *replaces* the bundled catalog, so it must also resolve the OASIS public identifiers (a DITA-OT `catalog-dita.xml` does). The DITA version and the validation engine are set the same way, with `ditacraft.ditaVersion` and `ditacraft.validationEngine`. The settings are read once, at startup.
 
 **Agent-side** (opencode example):
 

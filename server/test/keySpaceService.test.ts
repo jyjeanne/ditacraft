@@ -195,6 +195,52 @@ suite('KeySpaceService', () => {
         });
     });
 
+    suite('invalidateForFileNow', () => {
+
+        test('a key added to a map resolves at once, without the watcher debounce', async () => {
+            // The MCP server has no file watcher: it detects changed maps itself, right
+            // before a request, and needs the key spaces built from them dropped at once.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, '<?xml version="1.0"?>\n<map>\n  <keydef keys="first" href="a.dita"/>\n</map>', 'utf-8');
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                assert.strictEqual(await service.resolveKey('second', contextFile), null);
+
+                fs.writeFileSync(mapPath, '<?xml version="1.0"?>\n<map>\n  <keydef keys="first" href="a.dita"/>\n  <keydef keys="second" href="b.dita"/>\n</map>', 'utf-8');
+                assert.strictEqual(await service.resolveKey('second', contextFile), null, 'cached key space until invalidated');
+
+                service.invalidateForFileNow(mapPath);
+                const second = await service.resolveKey('second', contextFile);
+                assert.ok(second, 'the new key must resolve right after invalidateForFileNow');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a map created next to the root map is found as a new candidate', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+                assert.strictEqual(await service.resolveKey('late', contextFile), null);
+
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, '<?xml version="1.0"?>\n<map>\n  <keydef keys="late" href="a.dita"/>\n</map>', 'utf-8');
+                service.invalidateForFileNow(mapPath, true);
+                assert.ok(await service.resolveKey('late', contextFile));
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
+
     suite('findRootMap', () => {
 
         test('discovers ditamap in directory', async () => {

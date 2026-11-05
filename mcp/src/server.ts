@@ -3,6 +3,7 @@
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import * as fs from 'fs';
 import * as path from 'path';
 // zod/v4 (in the zod 3.25 package): the MCP SDK takes v4 schemas as they are; v3 ones go through its
 // compatibility types, whose inference made each registerTool cost ~5 million type instantiations
@@ -15,6 +16,8 @@ import { McpContext } from './types';
 import { queryParameters, queryTemplate } from './resources/query';
 import { DIAGNOSTICS_PARAMETERS, DIAGNOSTICS_URI } from './resources/diagnostics';
 import { KEYS_PARAMETERS, KEYS_URI } from './resources/keys';
+import { loadMcpSettings } from './mcpSettings';
+import { MapChangeTracker } from './mapChangeTracker';
 import { version } from '../../package.json';
 
 export type { McpContext };
@@ -27,9 +30,17 @@ import { SubjectSchemeService } from '../../server/src/services/subjectSchemeSer
 
 // ── Environment ────────────────────────────────────────────────────────────
 
-const workspaceRoot = process.env.WORKSPACE;
-if (!workspaceRoot || workspaceRoot.trim() === '') {
+const workspaceSetting = process.env.WORKSPACE;
+if (!workspaceSetting || workspaceSetting.trim() === '') {
     process.stderr.write('[ditacraft-mcp] FATAL: WORKSPACE environment variable is required\n');
+    process.exit(1);
+}
+
+// A relative WORKSPACE is taken from the server's working directory: the tools check
+// every path against this root, which must be absolute for those checks to hold.
+const workspaceRoot = path.resolve(workspaceSetting.trim());
+if (!fs.existsSync(workspaceRoot) || !fs.statSync(workspaceRoot).isDirectory()) {
+    process.stderr.write(`[ditacraft-mcp] FATAL: WORKSPACE is not a folder: ${workspaceRoot}\n`);
     process.exit(1);
 }
 
@@ -38,14 +49,22 @@ setLevel(logLevel);
 
 const extensionRoot = path.resolve(__dirname, '..');
 
+const { settings, settingsFile, warnings: settingsWarnings } = loadMcpSettings(workspaceRoot);
+log('info', settingsFile ? `Settings read from ${settingsFile}` : 'No settings file: default settings');
+for (const warning of settingsWarnings) {
+    log('warn', warning);
+}
+
 // ── Service Initialization ─────────────────────────────────────────────────
 
 const subjectSchemeService = new SubjectSchemeService();
 
 const catalogService = new CatalogValidationService();
-catalogService.initialize(extensionRoot);
+catalogService.initialize(extensionRoot, settings.xmlCatalogPath || undefined);
 if (catalogService.isAvailable) {
-    log('info', 'TypesXML catalog validation initialized (DITA 1.2/1.3/2.0)');
+    log('info', settings.xmlCatalogPath && fs.existsSync(settings.xmlCatalogPath)
+        ? `TypesXML catalog validation initialized with ${settings.xmlCatalogPath}`
+        : 'TypesXML catalog validation initialized (DITA 1.2/1.3/2.0)');
 } else if (catalogService.error) {
     log('warn', `TypesXML not available: ${catalogService.error}`);
 }
@@ -63,8 +82,10 @@ const validationPipeline = new ValidationPipeline(
 const keySpaceService = new KeySpaceService(
     [workspaceRoot],
     async () => ({
-        keySpaceCacheTtlMinutes: parseInt(process.env.DITACRAFT_KEYSPACE_TTL_MINUTES || '5', 10),
-        maxLinkMatches: 10000,
+        keySpaceCacheTtlMinutes: process.env.DITACRAFT_KEYSPACE_TTL_MINUTES
+            ? parseInt(process.env.DITACRAFT_KEYSPACE_TTL_MINUTES, 10)
+            : settings.keySpaceCacheTtlMinutes,
+        maxLinkMatches: settings.maxLinkMatches,
     }),
     (msg) => log('debug', msg),
 );
@@ -74,12 +95,32 @@ const diagnosticsStore = new DiagnosticsStore();
 const ctx: McpContext = {
     workspaceRoot,
     extensionRoot,
+    settings,
     validationPipeline,
     keySpaceService,
     catalogService,
     subjectSchemeService,
     diagnosticsStore,
 };
+
+// ── Workspace changes ──────────────────────────────────────────────────────
+
+// The server has no file watcher: before each request, the maps changed since the
+// previous one invalidate what was built from them (key spaces, subject schemes,
+// map-dependent validation results), as the language server's file events do.
+const mapChanges = new MapChangeTracker(workspaceRoot);
+
+function refreshChangedMaps(): void {
+    const changes = mapChanges.detectChanges();
+    for (const { file, pathChanged } of changes) {
+        keySpaceService.invalidateForFileNow(file, pathChanged);
+        subjectSchemeService.invalidate(file);
+    }
+    if (changes.length > 0) {
+        validationPipeline.invalidateForMapChange();
+        log('debug', `Maps changed since the previous request: ${changes.map((c) => c.file).join(', ')}`);
+    }
+}
 
 // ── MCP Server ─────────────────────────────────────────────────────────────
 
@@ -104,6 +145,7 @@ server.registerTool(
         }),
     },
     async (args) => {
+        refreshChangedMaps();
         const { handleDitaValidate } = await import('./tools/ditaValidate');
         const result = await handleDitaValidate(args, ctx);
         return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
@@ -122,6 +164,7 @@ server.registerTool(
         }),
     },
     async (args) => {
+        refreshChangedMaps();
         const { handleDitaContextSnapshot } = await import('./tools/ditaContextSnapshot');
         const result = await handleDitaContextSnapshot(args, ctx);
         return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
@@ -139,6 +182,7 @@ server.registerTool(
         }),
     },
     async (args) => {
+        refreshChangedMaps();
         const { handleDitaKeySpace } = await import('./tools/ditaKeySpace');
         const result = await handleDitaKeySpace(args, ctx);
         return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
@@ -157,6 +201,7 @@ server.registerTool(
         }),
     },
     async (args) => {
+        refreshChangedMaps();
         const { handleDitaMapStructure } = await import('./tools/ditaMapStructure');
         const result = await handleDitaMapStructure(args, ctx);
         return { content: [{ type: 'text' as const, text: typeof result === 'string' ? result : JSON.stringify(result, null, 2) }] };
@@ -174,6 +219,7 @@ server.registerTool(
         }),
     },
     async (args) => {
+        refreshChangedMaps();
         const { handleDitaResolveReference } = await import('./tools/ditaResolveReference');
         const result = await handleDitaResolveReference(args, ctx);
         return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
@@ -190,6 +236,7 @@ server.registerTool(
         }),
     },
     async (args) => {
+        refreshChangedMaps();
         const { handleDitaExplainKey } = await import('./tools/ditaExplainKey');
         const result = await handleDitaExplainKey(args, ctx);
         return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
@@ -206,6 +253,7 @@ server.registerResource(
         mimeType: 'application/json',
     },
     async () => {
+        refreshChangedMaps();
         const { readMapsResource } = await import('./resources/maps');
         const data = await readMapsResource(ctx);
         return { contents: [{ uri: 'dita://workspace/maps', mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
@@ -217,6 +265,7 @@ server.registerResource(
 // (see resources/query.ts — a query string used to make them "not found").
 
 async function readDiagnostics(uri: URL) {
+    refreshChangedMaps();
     const { readDiagnosticsResource } = await import('./resources/diagnostics');
     const data = await readDiagnosticsResource(queryParameters(uri, DIAGNOSTICS_URI, DIAGNOSTICS_PARAMETERS), ctx);
     return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };
@@ -244,6 +293,7 @@ server.registerResource(
 );
 
 async function readKeys(uri: URL) {
+    refreshChangedMaps();
     const { readKeysResource } = await import('./resources/keys');
     const data = await readKeysResource(queryParameters(uri, KEYS_URI, KEYS_PARAMETERS), ctx);
     return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(data, null, 2) }] };

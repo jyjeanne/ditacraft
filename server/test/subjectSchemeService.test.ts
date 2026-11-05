@@ -16,6 +16,39 @@ function cleanup(dir: string): void {
 }
 
 suite('SubjectSchemeService', () => {
+    suite('invalidate', () => {
+        const scheme = (values: string) => `<subjectScheme>
+  <subjectdef keys="audiences">${values}</subjectdef>
+  <enumerationdef>
+    <attributedef name="audience"/>
+    <subjectdef keyref="audiences"/>
+  </enumerationdef>
+</subjectScheme>`;
+        const audienceValues = (service: SubjectSchemeService, filePath: string) =>
+            service.parseSubjectScheme(filePath).validValuesMap.get('audience')!.get('*')!;
+
+        test('drops the parsed scheme when given the same path in another form (regression)', () => {
+            // The key space records scheme paths from URIs (on Windows: "c:\\…") while
+            // a caller such as the MCP server passes "C:\\…": the cached parse survived.
+            const { dir, filePath } = createTmpScheme(scheme('<subjectdef keys="novice"/>'));
+            try {
+                const service = new SubjectSchemeService();
+                const cachedAs = process.platform === 'win32'
+                    ? filePath.charAt(0).toLowerCase() + filePath.slice(1)
+                    : filePath;
+                assert.ok(!audienceValues(service, cachedAs).has('expert'));
+
+                fs.writeFileSync(filePath, scheme('<subjectdef keys="novice"/><subjectdef keys="expert"/>'), 'utf-8');
+                const otherForm = path.join(dir, 'sub', '..', 'scheme.ditamap');
+                service.invalidate(process.platform === 'win32' ? filePath.charAt(0).toUpperCase() + otherForm.slice(1) : otherForm);
+
+                assert.ok(audienceValues(service, cachedAs).has('expert'), 'the edited scheme must be parsed again');
+            } finally {
+                cleanup(dir);
+            }
+        });
+    });
+
     suite('parseSubjectScheme', () => {
         test('parses basic subject scheme with enumeration', () => {
             const scheme = `<?xml version="1.0"?>

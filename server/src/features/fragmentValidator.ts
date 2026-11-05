@@ -9,7 +9,7 @@
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { ValidationPipeline } from '../services/validationPipeline';
-import { getDocumentSettings } from '../settings';
+import { DitaCraftSettings, getDocumentSettings } from '../settings';
 
 // ── Request / Response types (mirrored on the client) ─────────────────────
 
@@ -55,9 +55,14 @@ function wrapFragment(fragment: string, fragmentType: ValidateFragmentParams['fr
 
 // ── Handler ────────────────────────────────────────────────────────────────
 
+/** Numbers the synthetic URI of each fragment validated (see handleValidateFragment). */
+let fragmentSequence = 0;
+
 export async function handleValidateFragment(
     params: ValidateFragmentParams,
-    pipeline: ValidationPipeline
+    pipeline: ValidationPipeline,
+    /** Settings to validate with. Omitted: the settings of `contextUri` (LSP). The MCP server passes its own. */
+    explicitSettings?: DitaCraftSettings,
 ): Promise<FragmentValidationResult> {
     const wrapped = wrapFragment(params.fragment, params.fragmentType);
 
@@ -65,15 +70,18 @@ export async function handleValidateFragment(
     const ext = params.contextUri.split('.').pop()?.toLowerCase() ?? 'dita';
     const langId = ext === 'ditamap' ? 'ditamap' : ext === 'bookmap' ? 'bookmap' : 'dita';
 
-    // Use a synthetic URI so the server doesn't touch the file system
-    const syntheticUri = `ditacraft-fragment:///fragment.${langId}`;
+    // Use a synthetic URI so the server doesn't touch the file system. Each call gets
+    // its own: the pipeline caches results per URI and version, and a shared URI made
+    // every fragment return the diagnostics of the first one validated (for the cache TTL),
+    // including fragments validated concurrently.
+    const syntheticUri = `ditacraft-fragment:///fragment-${++fragmentSequence}.${langId}`;
     const doc = TextDocument.create(syntheticUri, langId, 0, wrapped);
 
     // Use the real parent document's settings (respects per-scope config from the
     // client) instead of the module-level global, which only gets populated when
     // the client lacks configuration-pull capability and otherwise stays at
     // hardcoded defaults for the whole session.
-    const settings = await getDocumentSettings(params.contextUri);
+    const settings = explicitSettings ?? await getDocumentSettings(params.contextUri);
     // For fragment validation, skip heavy workspace-level phases
     const lightSettings = {
         ...settings,
@@ -95,6 +103,10 @@ export async function handleValidateFragment(
             diagnostics: [],
             suggestions: ['Internal validation error — check that the fragment is well-formed XML.'],
         };
+    } finally {
+        // A fragment is never validated again: drop its cache entries instead of
+        // leaving them to fill the cache until the TTL evicts them.
+        pipeline.invalidateForDocument(syntheticUri);
     }
 
     const errors = diagnostics.filter(d => d.severity === DiagnosticSeverity.Error);

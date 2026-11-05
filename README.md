@@ -674,6 +674,20 @@ Run `npm run build-standalone` then configure your agent:
 | `dita://workspace/diagnostics` | Current validation diagnostics; optional filters `?severity=error,warning&limit=50&filePattern=topics/**` (severity: `error`, `warning`, `information`, `hint`; limit: default 100, `0` for all) |
 | `dita://workspace/keys` | Full key space; optional filters `?search=product&includeScopes=false` |
 
+### Configuring the MCP server
+
+The server validates as the extension does in the same workspace: at startup it reads the `ditacraft.*` settings of `<WORKSPACE>/.vscode/settings.json` (comments and trailing commas allowed). Path settings may be relative to the workspace or use `${workspaceFolder}`. Environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `WORKSPACE` | **Required.** The DITA project folder; a relative path is taken from the server's working directory |
+| `DITACRAFT_SETTINGS_FILE` | A settings file to read instead of `.vscode/settings.json` |
+| `DITACRAFT_XML_CATALOG` | XML catalog for your document type shells; overrides `ditacraft.xmlCatalogPath` |
+| `DITACRAFT_CUSTOM_RULES_FILE` | Custom rules file; overrides `ditacraft.customRulesFile` |
+| `DITACRAFT_LOG_LEVEL` | `debug`, `info`, `warn` (default), `error` — `info` logs the settings file and catalog used |
+
+As in the extension, `ditacraft.xmlCatalogPath` replaces the bundled DITA catalog, so it must also resolve the OASIS public identifiers (a DITA-OT installation's `catalog-dita.xml` does). Results always reflect the files on disk: each request validates the file again, and maps changed since the previous request are re-read.
+
 ### Using DITA Craft with opencode
 
 ```jsonc

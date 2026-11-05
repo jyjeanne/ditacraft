@@ -5,6 +5,7 @@
 
 import * as fs from 'fs';
 import { ISubjectSchemeService } from './interfaces';
+import { normalizeFsPath } from '../utils/textUtils';
 
 // --- Interfaces ---
 
@@ -296,9 +297,18 @@ export class SubjectSchemeService implements ISubjectSchemeService {
         return this.registeredSchemes.length > 0;
     }
 
-    /** Invalidate a specific scheme file's cache. */
+    /**
+     * Invalidate a specific scheme file's cache. The path may come in another form than
+     * the cached one: the key space records scheme paths from URIs (on Windows a lowercase
+     * drive letter, "c:\\…"), while callers such as the MCP server pass "C:\\…".
+     */
     invalidate(filePath: string): void {
-        this.cache.delete(filePath);
+        const target = normalizeFsPath(filePath);
+        for (const cachedPath of [...this.cache.keys()]) {
+            if (normalizeFsPath(cachedPath) === target) {
+                this.cache.delete(cachedPath);
+            }
+        }
         this.mergedData = null;
         this.mergedSnapshot = null;
         this.snapshotCache.clear();

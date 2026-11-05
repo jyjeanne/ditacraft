@@ -103,6 +103,67 @@
 }</codeblock>
         </section>
 
+        <section id="configuration">
+            <title>Configuring the MCP Server</title>
+            <p>The server validates as the extension does in the same workspace: at startup it
+                reads the <codeph>ditacraft.*</codeph> settings of
+                <filepath>.vscode/settings.json</filepath> in the workspace, if the file exists.
+                Comments and trailing commas are allowed, as in VS Code. Path settings
+                (<codeph>ditacraft.xmlCatalogPath</codeph>,
+                <codeph>ditacraft.customRulesFile</codeph>,
+                <codeph>ditacraft.rngSchemaPath</codeph>) may be relative to the workspace or
+                start with <codeph>${workspaceFolder}</codeph>. Settings that only concern the
+                editor, such as <codeph>ditacraft.autoValidate</codeph>, are ignored.</p>
+            <codeblock>// .vscode/settings.json
+{
+  // Project document type shells
+  "ditacraft.xmlCatalogPath": "${workspaceFolder}/dita-ot/catalog-dita.xml",
+  "ditacraft.customRulesFile": "rules/ditacraft-rules.json",
+  "ditacraft.validationSeverityOverrides": { "DITA-SCH-045": "off" },
+}</codeblock>
+            <p>Environment variables, set in the agent's MCP configuration:</p>
+            <simpletable>
+                <sthead>
+                    <stentry>Variable</stentry>
+                    <stentry>Description</stentry>
+                </sthead>
+                <strow>
+                    <stentry><codeph>WORKSPACE</codeph></stentry>
+                    <stentry>Required. The DITA project folder. A relative path is taken from
+                        the server's working directory.</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITACRAFT_SETTINGS_FILE</codeph></stentry>
+                    <stentry>A settings file to read instead of
+                        <filepath>.vscode/settings.json</filepath>.</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITACRAFT_XML_CATALOG</codeph></stentry>
+                    <stentry>The XML catalog, overriding
+                        <codeph>ditacraft.xmlCatalogPath</codeph>.</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITACRAFT_CUSTOM_RULES_FILE</codeph></stentry>
+                    <stentry>The custom rules file, overriding
+                        <codeph>ditacraft.customRulesFile</codeph>.</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITACRAFT_LOG_LEVEL</codeph></stentry>
+                    <stentry><codeph>debug</codeph>, <codeph>info</codeph>,
+                        <codeph>warn</codeph> (default) or <codeph>error</codeph>. At
+                        <codeph>info</codeph>, the log names the settings file and the catalog
+                        used.</stentry>
+                </strow>
+            </simpletable>
+            <note>As in the extension, <codeph>ditacraft.xmlCatalogPath</codeph> replaces the
+                bundled DITA catalog: the catalog must also resolve the OASIS public identifiers
+                that the project shells use, as the catalog of a DITA-OT installation
+                (<filepath>catalog-dita.xml</filepath>) does.</note>
+            <p>Results always reflect the files on disk: a file is validated again on every
+                request, and the maps changed since the previous request are read again, so keys
+                and subject scheme values added to a map are seen at once.</p>
+        </section>
+
         <section id="standalone-lsp">
             <title>Standalone LSP Server</title>
             <p>DITA Craft also ships a standalone LSP server bundle for embedding in other Node.js
@@ -124,7 +185,7 @@ const server = spawn('node', ['lsp-server.js', '--stdio'], {
             <p>The MCP server enforces workspace isolation:</p>
             <ul>
                 <li>All file paths are resolved relative to the <codeph>WORKSPACE</codeph>
-                    environment variable</li>
+                    folder</li>
                 <li>Path traversal attacks (<codeph>../../</codeph> beyond 8 levels) are
                     rejected</li>
                 <li>HTTP URLs, UNC paths, and null bytes are rejected</li>
