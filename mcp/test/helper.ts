@@ -21,12 +21,33 @@ export interface TestWorkspace {
     cleanup(): Promise<void>;
 }
 
-export async function createTestWorkspace(): Promise<TestWorkspace> {
+export interface TestWorkspaceOptions {
+    /** Files written before the server starts (it reads its settings at startup), by relative path. */
+    files?: Record<string, string>;
+    /** Extra environment variables for the server. */
+    env?: Record<string, string>;
+    /** Pass WORKSPACE relative to the server's working directory (the workspace's parent folder). */
+    relativeWorkspace?: boolean;
+}
+
+export async function createTestWorkspace(options: TestWorkspaceOptions = {}): Promise<TestWorkspace> {
     const dir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'ditacraft-mcp-test-'));
+    for (const [name, content] of Object.entries(options.files ?? {})) {
+        const fp = path.join(dir, name);
+        fs.mkdirSync(path.dirname(fp), { recursive: true });
+        fs.writeFileSync(fp, content);
+    }
+    const env = { ...process.env, DITACRAFT_LOG_LEVEL: 'error', ...options.env } as Record<string, string>;
+    // Settings-related variables of the developer's own shell must not leak into tests.
+    for (const name of ['DITACRAFT_SETTINGS_FILE', 'DITACRAFT_XML_CATALOG', 'DITACRAFT_CUSTOM_RULES_FILE']) {
+        if (!options.env || !(name in options.env)) delete env[name];
+    }
+    env.WORKSPACE = options.relativeWorkspace ? path.basename(dir) : dir;
     const transport = new StdioClientTransport({
         command: 'node',
         args: [SERVER_SCRIPT],
-        env: { ...process.env, WORKSPACE: dir, DITACRAFT_LOG_LEVEL: 'error' },
+        env,
+        cwd: options.relativeWorkspace ? path.dirname(dir) : undefined,
     });
 
     const client = new Client({ name: 'mcp-test', version: '1.0' }, { capabilities: {} });

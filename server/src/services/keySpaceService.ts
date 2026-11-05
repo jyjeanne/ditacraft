@@ -844,6 +844,17 @@ export class KeySpaceService implements IKeySpaceService {
         }, FILE_WATCHER_DEBOUNCE_MS);
     }
 
+    /**
+     * Invalidate cache entries for a changed file at once, as invalidateForFile
+     * does after its debounce. For callers that detect changes themselves right
+     * before using the key space (the MCP server, which has no file watcher).
+     */
+    public invalidateForFileNow(changedFile: string, pathChanged = false): void {
+        const pending = this.pendingInvalidations.get(changedFile);
+        this.pendingInvalidations.delete(changedFile);
+        this.doInvalidate(changedFile, pathChanged || pending === true);
+    }
+
     /** Update workspace folders (on workspace change events). */
     public updateWorkspaceFolders(added: string[], removed: string[]): void {
         for (const r of removed) {

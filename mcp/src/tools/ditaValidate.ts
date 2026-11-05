@@ -7,7 +7,6 @@ import type { McpContext } from '../types';
 import { resolvePath, fileExists, fileUriToFsPath } from '../workspace';
 import { handleValidateFragment } from '../../../server/src/features/fragmentValidator';
 import { log } from '../logger';
-import { defaultMcpSettings } from '../mcpSettings';
 
 interface DitaValidateArgs {
     uri?: string;
@@ -64,6 +63,7 @@ export async function handleDitaValidate(
                 fragmentType: fragmentType!,
             },
             ctx.validationPipeline,
+            ctx.settings,
         );
         diagnostics = result.diagnostics;
         filePath = '(fragment)';
@@ -86,10 +86,14 @@ export async function handleDitaValidate(
 
         filePath = uri;
 
-        const settings = defaultMcpSettings();
+        // Each call validates the file as it is on disk now. The pipeline caches results
+        // per URI and version, and relies on editor events (edits, saves) to invalidate
+        // them; the MCP server gets no such events and every document here is version 0,
+        // so without this an edited file kept its previous result for the cache TTL.
+        ctx.validationPipeline.invalidateForDocument(resolvedUri);
 
         diagnostics = await ctx.validationPipeline.validate(
-            document, settings, ctx.keySpaceService,
+            document, ctx.settings, ctx.keySpaceService,
             { rootIdIndex: new Map(), unusedTopicPaths: new Set() },
         );
 

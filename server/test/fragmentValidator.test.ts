@@ -4,7 +4,7 @@ import { ValidationPipeline } from '../src/services/validationPipeline';
 import { CatalogValidationService } from '../src/services/catalogValidationService';
 import { RngValidationService } from '../src/services/rngValidationService';
 import { SubjectSchemeService } from '../src/services/subjectSchemeService';
-import { initSettings, updateGlobalSettings, clearDocumentSettings } from '../src/settings';
+import { initSettings, updateGlobalSettings, clearDocumentSettings, getGlobalSettings } from '../src/settings';
 
 function makeCatalogService(): CatalogValidationService {
     return {
@@ -95,6 +95,62 @@ suite('handleValidateFragment', () => {
             const result = await handleValidateFragment(params, makePipeline());
             const sch011 = result.diagnostics.filter(d => d.code === 'DITA-SCH-011');
             assert.strictEqual(sch011.length, 0, 'rule must be silenced per the real per-document config');
+        });
+    });
+
+    suite('cache isolation (regression)', () => {
+        // Every fragment used to be validated as the same synthetic document
+        // (ditacraft-fragment:///fragment.dita, version 0), so the pipeline's
+        // per-phase cache returned the first fragment's diagnostics for every
+        // later fragment validated within the cache TTL.
+        const withTitle: ValidateFragmentParams = {
+            fragment: '<topic id="a"><title>Title</title><body><p>Text.</p></body></topic>',
+            contextUri: 'file:///workspace/topic.dita',
+            fragmentType: 'topic',
+        };
+        const withoutTitle: ValidateFragmentParams = {
+            fragment: '<topic id="b"><body><p>Text.</p></body></topic>',
+            contextUri: 'file:///workspace/topic.dita',
+            fragmentType: 'topic',
+        };
+        const errorCount = (r: { diagnostics: { severity?: number }[] }) =>
+            r.diagnostics.filter(d => d.severity === 1).length;
+
+        test('a fragment validated after another one gets its own diagnostics', async () => {
+            useConnectionConfig({});
+            const pipeline = makePipeline();
+            const first = await handleValidateFragment(withTitle, pipeline);
+            const second = await handleValidateFragment(withoutTitle, pipeline);
+            const third = await handleValidateFragment(withTitle, pipeline);
+            assert.strictEqual(first.isValid, true, 'a topic with a title is valid');
+            assert.strictEqual(second.isValid, false, 'a topic without a title must not reuse the previous result');
+            assert.ok(errorCount(second) > 0);
+            assert.strictEqual(third.isValid, true, 'the valid fragment must not reuse the invalid result');
+        });
+
+        test('fragments validated concurrently do not share results', async () => {
+            useConnectionConfig({});
+            const pipeline = makePipeline();
+            const [a, b] = await Promise.all([
+                handleValidateFragment(withTitle, pipeline),
+                handleValidateFragment(withoutTitle, pipeline),
+            ]);
+            assert.strictEqual(a.isValid, true);
+            assert.strictEqual(b.isValid, false);
+        });
+    });
+
+    suite('explicit settings', () => {
+        test('settings passed by the caller replace the document settings', async () => {
+            // The MCP server has no client connection: it passes its own settings.
+            useConnectionConfig({ ditaRulesEnabled: true });
+            const params: ValidateFragmentParams = {
+                fragment: '<image href="pic.png" alt="description"/>',
+                contextUri: 'file:///workspace/topic.dita',
+                fragmentType: 'element',
+            };
+            const result = await handleValidateFragment(params, makePipeline(), { ...getGlobalSettings(), ditaRulesEnabled: false });
+            assert.strictEqual(result.diagnostics.filter(d => d.code === 'DITA-SCH-011').length, 0);
         });
     });
 

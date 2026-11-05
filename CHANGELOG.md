@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- MCP server: `dita_validate` returned stale results. A file edited after it was validated kept its previous diagnostics for up to 5 minutes. The validation pipeline caches results per URI and document version, and drops them on editor events the MCP server never gets, while every document it validated had version 0. Each call now validates the file as it is on disk.
+- Fragment validation (MCP `dita_validate` with `fragment`, and the language server's `dita/validateFragment` request) returned the first fragment's diagnostics for every later fragment for 5 minutes, including fragments validated concurrently: all were validated under one synthetic URI. Each fragment now gets its own.
+- MCP server: a key or a subject scheme value added to a map was not seen until the key space cache expired (5 minutes): the key spaces and subject schemes built from a map are dropped on the editor's file events, which the MCP server never gets. Before each request, the server now looks for the maps changed since the previous one and drops what was built from them.
+- `SubjectSchemeService.invalidate` missed the cached scheme when the path came in another form than the cached one (on Windows, `C:\…` against `c:\…` recorded from a URI), so the old controlled values stayed.
+- MCP server: a relative `WORKSPACE` made every tool fail with "Invalid or unsafe path". It is now taken from the server's working directory; a `WORKSPACE` that is not a folder stops the server at startup with a clear message.
+
+### Added
+
+- MCP server configuration: the server reads the `ditacraft.*` settings of `<WORKSPACE>/.vscode/settings.json` (JSON with comments), so it validates as the extension does in that workspace — XML catalog for project document type shells, custom rules, severity overrides, rule categories. `DITACRAFT_SETTINGS_FILE` selects another settings file; `DITACRAFT_XML_CATALOG` and `DITACRAFT_CUSTOM_RULES_FILE` override the catalog and the rules file. Path settings may be relative to the workspace or use `${workspaceFolder}`. Previously the server always ran with fixed default settings.
+
+### Documentation
+
+- The MCP server documentation listed `DITACRAFT_DITA_VERSION` and `DITACRAFT_VALIDATION_ENGINE` environment variables that the server never read; `ditacraft.ditaVersion` and `ditacraft.validationEngine` in the settings file now do that.
+
 ## [0.10.4] - 2026-10-26
 
 A maintenance release: subject scheme maps open as maps without a DOCTYPE, and no known vulnerability is left in the dependencies.
