@@ -214,6 +214,26 @@ suite('validateProfilingAttributes', () => {
         }
     });
 
+    test('non-ASCII XML names do not hide controlled attribute values (regression)', () => {
+        const unicodeScheme = `<subjectScheme>
+  <subjectdef keys="os"><subjectdef keys="linux"/></subjectdef>
+  <subjectdef keys="seasons"><subjectdef keys="spring"/></subjectdef>
+  <enumerationdef><attributedef name="platform"/><subjectdef keyref="os"/></enumerationdef>
+  <enumerationdef><attributedef name="saisonété"/><subjectdef keyref="seasons"/></enumerationdef>
+</subjectScheme>`;
+        const { service, cleanup } = createSchemeService(unicodeScheme);
+        try {
+            const text = '<étape platform="solaris" saisonété="summer"/>';
+            const profDiags = validateProfilingAttributes(text, service, 100)
+                .filter(d => d.code === PROFILING_CODES.INVALID_VALUE);
+            assert.strictEqual(profDiags.length, 2);
+            assert.ok(profDiags.some(d => d.message.includes('platform') && d.message.includes('solaris')));
+            assert.ok(profDiags.some(d => d.message.includes('saisonété') && d.message.includes('summer')));
+        } finally {
+            cleanup();
+        }
+    });
+
     test('the bound category itself is not a valid value (DITA 1.3)', () => {
         const { service, cleanup } = createSchemeService(PLATFORM_SCHEME);
         try {
