@@ -282,23 +282,32 @@ export async function validateCrossReferences(
             const keydefRegex = /\bkeys\s*=\s*["']([^"']+)["']/g;
             let keyMatch: RegExpExecArray | null;
             while ((keyMatch = keydefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
-                const keyNames = keyMatch[1].split(/\s+/);
-                for (const keyName of keyNames) {
+                const keyTokenPattern = /\S+/g;
+                let keyToken: RegExpExecArray | null;
+                const keyValueOffset = keyMatch.index + keyMatch[0].indexOf(keyMatch[1]);
+                while ((keyToken = keyTokenPattern.exec(keyMatch[1])) !== null) {
+                    const keyName = keyToken[0];
                     const dups = duplicateKeys.get(keyName);
                     if (!dups) continue;
                     const effective = dups[0];
-                    const range = offsetToRange(text, keyMatch.index, keyMatch.index + keyMatch[0].length);
-                    // Only warn on definitions that are NOT the effective one. In the map that
-                    // holds the effective definition, the later definitions of the key are
-                    // duplicates too (DITA-OT: DOTJ045I); they are told apart by their line.
-                    if (normalizeFsPath(effective.sourceMap) === normalizeFsPath(filePath)) {
-                        const line = range.start.line + 1;
+                    const sourceOffset = keyValueOffset + keyToken.index;
+                    const isDuplicateHere = dups.slice(1).some(d =>
+                        normalizeFsPath(d.sourceMap) === normalizeFsPath(filePath)
+                        && d.sourceOffset === sourceOffset);
+                    const hasSourceOffsets = dups.some(d => d.sourceOffset !== undefined);
+                    if (hasSourceOffsets) {
+                        if (!isDuplicateHere) continue;
+                    } else if (normalizeFsPath(effective.sourceMap) === normalizeFsPath(filePath)) {
+                        // Keep compatibility with key-space implementations that do not
+                        // expose token offsets.
+                        const line = offsetToRange(text, sourceOffset, sourceOffset).start.line + 1;
                         const isLaterDefinitionHere = effective.sourceLine !== undefined
                             && effective.sourceLine !== line
                             && dups.slice(1).some(d =>
                                 normalizeFsPath(d.sourceMap) === normalizeFsPath(filePath) && d.sourceLine === line);
                         if (!isLaterDefinitionHere) continue;
                     }
+                    const range = offsetToRange(text, sourceOffset, sourceOffset + keyName.length);
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
                         range,

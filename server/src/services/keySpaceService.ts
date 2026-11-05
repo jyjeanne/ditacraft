@@ -26,6 +26,8 @@ export interface KeyDefinition {
     sourceMap: string;
     /** 1-based line number of the key-defining element within sourceMap. */
     sourceLine?: number;
+    /** Zero-based source offset of this key token within sourceMap. */
+    sourceOffset?: number;
     scope?: string;
     processingRole?: string;
     /** Indirect key reference: when set, resolution follows the chain to this key name. */
@@ -1285,8 +1287,7 @@ export class KeySpaceService implements IKeySpaceService {
             // text used for line-counting still has it) — each token gets its own
             // line by locating it within the attribute value's own span, rather than
             // reusing the first token's line for every key in the list.
-            let sourceLine: number | undefined;
-            const perKeySourceLine = new Map<string, number>();
+            const perKeySourceOffset = new Map<string, number[]>();
             const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
             if (mapContent && keyNames.length > 0) {
                 const firstToken = keyNames[0];
@@ -1300,7 +1301,6 @@ export class KeySpaceService implements IKeySpaceService {
                 const anchorMatch = anchorPattern.exec(mapContent);
                 if (anchorMatch && anchorMatch.index >= contentSearchPos) {
                     const foundIdx = anchorMatch.index;
-                    sourceLine = this.computeLineNumber(mapContent, foundIdx);
                     contentSearchPos = foundIdx + 1;
 
                     // Locate the attribute value's own span (between the anchor's
@@ -1314,27 +1314,27 @@ export class KeySpaceService implements IKeySpaceService {
                         const tokenPattern = /\S+/g;
                         let tokenMatch: RegExpExecArray | null;
                         while ((tokenMatch = tokenPattern.exec(rawValue)) !== null) {
-                            // First occurrence wins on a repeated token name
-                            // (e.g. an authoring mistake like `keys="dup dup"`)
-                            // rather than the last, matching the "first
-                            // definition wins" convention used elsewhere in
-                            // this class (e.g. keySpace.keys.has() guards).
-                            if (!perKeySourceLine.has(tokenMatch[0])) {
-                                perKeySourceLine.set(
-                                    tokenMatch[0],
-                                    this.computeLineNumber(mapContent, valueStart + tokenMatch.index)
-                                );
-                            }
+                            // Retain every occurrence so duplicate definitions can
+                            // be matched to their exact source token.
+                            const offsets = perKeySourceOffset.get(tokenMatch[0]) ?? [];
+                            offsets.push(valueStart + tokenMatch.index);
+                            perKeySourceOffset.set(tokenMatch[0], offsets);
                         }
                     }
                 }
             }
 
+            const perKeyOccurrence = new Map<string, number>();
             for (const keyName of keyNames) {
                 const keyDef: KeyDefinition = { keyName, sourceMap: mapPath };
                 if (isSubject) keyDef.subject = true;
-                const keyLine = perKeySourceLine.get(keyName) ?? sourceLine;
-                if (keyLine !== undefined) keyDef.sourceLine = keyLine;
+                const occurrence = perKeyOccurrence.get(keyName) ?? 0;
+                const sourceOffset = perKeySourceOffset.get(keyName)?.[occurrence];
+                perKeyOccurrence.set(keyName, occurrence + 1);
+                if (sourceOffset !== undefined && mapContent) {
+                    keyDef.sourceOffset = sourceOffset;
+                    keyDef.sourceLine = this.computeLineNumber(mapContent, sourceOffset);
+                }
 
                 const href = attrs['href'] ?? '';
                 if (isWebAddress(href)) {
@@ -1397,15 +1397,32 @@ export class KeySpaceService implements IKeySpaceService {
 
             const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
 
-            const sourceLine = this.computeLineNumber(mapContent, match.index);
+            const keysAttribute = /\bkeys\s*=\s*(["'])([^"']+)\1/i.exec(fullElement);
+            const rawValueOffset = keysAttribute
+                ? match.index + keysAttribute.index + keysAttribute[0].indexOf(keysAttribute[2])
+                : undefined;
+            const perKeyOccurrence = new Map<string, number>();
 
             for (const keyName of keyNames) {
                 const keyDef: KeyDefinition = {
                     keyName,
                     sourceMap: mapPath,
-                    sourceLine,
                 };
                 if (match[1].toLowerCase() === 'subjectdef') keyDef.subject = true;
+                const occurrence = perKeyOccurrence.get(keyName) ?? 0;
+                if (rawValueOffset !== undefined) {
+                    const tokenPattern = /\S+/g;
+                    let tokenMatch: RegExpExecArray | null;
+                    let tokenIndex = 0;
+                    while ((tokenMatch = tokenPattern.exec(keysValue)) !== null) {
+                        if (tokenMatch[0] === keyName && tokenIndex++ === occurrence) {
+                            keyDef.sourceOffset = rawValueOffset + tokenMatch.index;
+                            keyDef.sourceLine = this.computeLineNumber(mapContent, keyDef.sourceOffset);
+                            break;
+                        }
+                    }
+                }
+                perKeyOccurrence.set(keyName, occurrence + 1);
 
                 // Extract href
                 const hrefMatch = fullElement.match(/\bhref\s*=\s*["']([^"']+)["']/i);
