@@ -1810,6 +1810,86 @@ suite('KeySpaceService', () => {
         });
     });
 
+    suite('document order and key scopes of definitions (review regressions)', () => {
+        test('the first definition in document order takes effect, among elements of other names', async () => {
+            // The XML parser groups same-name siblings: the keydef came before the topicref
+            // defining the same key, and took effect in its place.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, [
+                    '<map>',
+                    '  <keydef keys="x"/>',
+                    '  <topicref keys="a" href="t1.dita"/>',
+                    '  <keydef keys="a" href="k1.dita"/>',
+                    '</map>',
+                ].join('\n'), 'utf-8');
+                const keySpace = await service.buildKeySpace(mapPath);
+                const effective = keySpace.keys.get('a');
+                assert.strictEqual(path.basename(effective?.targetFile ?? ''), 't1.dita');
+                assert.strictEqual(effective?.sourceLine, 3);
+                assert.deepStrictEqual(keySpace.duplicateKeys.get('a')?.map(d => d.sourceLine), [3, 4]);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('keys in and after an inline key scope get their own lines in the map', async () => {
+            // The block's keys were numbered from the block's start, and masking the block
+            // removed its line breaks for the keys after it.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, [
+                    '<map>',
+                    '  <topicgroup keyscope="s">',
+                    '',
+                    '    <keydef keys="inner"/>',
+                    '  </topicgroup>',
+                    '  <keydef keys="after"/>',
+                    '</map>',
+                ].join('\n'), 'utf-8');
+                const keySpace = await service.buildKeySpace(mapPath);
+                assert.strictEqual(keySpace.keys.get('s.inner')?.sourceLine, 4);
+                assert.strictEqual(keySpace.keys.get('after')?.sourceLine, 6);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('duplicates are keys defined again in the same key scope only', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, [
+                    '<map>',
+                    '  <keydef keys="a" href="root.dita"/>',
+                    '  <topicgroup keyscope="inline">',
+                    '    <keydef keys="a" href="inline.dita"/>',
+                    '  </topicgroup>',
+                    '  <mapref href="sub.ditamap" keyscope="s"/>',
+                    '</map>',
+                ].join('\n'), 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'sub.ditamap'),
+                    '<map>\n  <keydef keys="a" href="s1.dita"/>\n  <keydef keys="a" href="s2.dita"/>\n</map>', 'utf-8');
+                const keySpace = await service.buildKeySpace(rootPath);
+                assert.deepStrictEqual([...keySpace.duplicateKeys.keys()], ['s.a']);
+                assert.deepStrictEqual(
+                    keySpace.duplicateKeys.get('s.a')?.map(d => path.basename(d.targetFile ?? '')), ['s1.dita', 's2.dita']);
+                // The effective definitions are unchanged
+                assert.strictEqual(path.basename(keySpace.keys.get('s.a')?.targetFile ?? ''), 's1.dita');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
+
     suite('scope explosion cap (Gap 7)', () => {
 
         test('multi-token @keyscope on submap registers qualified aliases for each token', async () => {

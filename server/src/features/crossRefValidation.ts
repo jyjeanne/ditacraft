@@ -11,10 +11,11 @@ import { promises as fsp } from 'fs';
 import { KeySpaceService } from '../services/keySpaceService';
 import { parseReference } from '../utils/referenceParser';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
+import { DITA_ELEMENTS } from '../data/ditaSchema';
 import { t } from '../utils/i18n';
 import {
     stripCommentsAndCodeContent, offsetToRange, escapeRegex, normalizeFsPath, uriToPath,
-    isPathWithinWorkspace, effectiveWorkspaceFolders,
+    isPathWithinWorkspace, effectiveWorkspaceFolders, scanKeyDefinitions,
 } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
@@ -44,8 +45,10 @@ export const XREF_CODES = {
     SCOPE_OUTSIDE_INPUT_DIR: 'DITA-SCOPE-004',
 } as const;
 
-/** DITA topic-type element names for topic ID validation (regex alternation). */
-const TOPIC_ELEMENTS_PATTERN = [...TOPIC_TYPE_NAMES].join('|');
+/** The elements DITA defines (its schema: the parents and their children). */
+const DITA_ELEMENT_NAMES: ReadonlySet<string> = new Set(
+    Object.entries(DITA_ELEMENTS).flatMap(([parent, children]) => [parent, ...children])
+);
 const FORBIDDEN_KEY_CHARS = /[{}\[\]\/#?]/;
 const VALID_KEY_NAME_PATTERN = /^[A-Za-z0-9\-._~!$&'()*+,;=:@%]+$/;
 
@@ -75,9 +78,6 @@ export async function validateCrossReferences(
             .endsWith(`${path.sep}release-notes${path.sep}changes.ditamap`);
     const invalidKeyNameCache = new Map<string, string[] | null>();
     const workspaceFolders = effectiveWorkspaceFolders(filePath, keySpaceService?.getWorkspaceFolders() ?? []);
-    // A missing target file is an error, as in DITA-OT (DOTX008E): the map entry, link,
-    // content reference or image cannot be resolved in any output.
-    const missingFileSeverity = DiagnosticSeverity.Error;
 
     // Strip comments/CDATA to avoid matching inside them
     const cleanText = stripCommentsAndCodeContent(text);
@@ -147,12 +147,13 @@ export async function validateCrossReferences(
 
         // Check file existence
         if (parsed.filePath) {
-            const targetPath = path.resolve(currentDir, parsed.filePath);
+            const targetPath = path.resolve(currentDir, decodeHrefPath(parsed.filePath));
             if (!isPathWithinWorkspace(targetPath, workspaceFolders)) {
+                // Not looked up: a reference must not make the server read outside the workspace
                 diagnostics.push({
-                    severity: missingFileSeverity,
+                    severity: DiagnosticSeverity.Warning,
                     range,
-                    message: t('xref.missingFile', parsed.filePath),
+                    message: t('xref.outsideWorkspace', parsed.filePath),
                     code: XREF_CODES.MISSING_FILE,
                     source: SOURCE,
                 });
@@ -173,7 +174,7 @@ export async function validateCrossReferences(
                     continue;
                 }
                 diagnostics.push({
-                    severity: missingFileSeverity,
+                    severity: missingFileSeverity(attrName, sourceElement, scopeValue, formatValue, parsed.filePath),
                     range,
                     message: t('xref.missingFile', parsed.filePath),
                     code: XREF_CODES.MISSING_FILE,
@@ -274,50 +275,42 @@ export async function validateCrossReferences(
         }
     }
 
-    // --- Validate duplicate key definitions in map files ---
-    if (keySpaceService && /\.(ditamap|bookmap)$/i.test(filePath)) {
+    // --- Validate duplicate key definitions in map files (DITA-OT: DOTJ045I) ---
+    // A key defined twice in the same key scope: only the first definition takes effect.
+    // Definitions in this map are read from its text as it is now, in document order; the
+    // key space (built from the saved maps) only tells which keys another map defines first.
+    if (keySpaceService && isMapLikeSource) {
         const duplicateKeys = await keySpaceService.getDuplicateKeys(filePath);
-        if (duplicateKeys.size > 0) {
-            // Find keydefs in THIS map that are duplicates
-            const keydefRegex = /\bkeys\s*=\s*["']([^"']+)["']/g;
-            let keyMatch: RegExpExecArray | null;
-            while ((keyMatch = keydefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
-                const keyTokenPattern = /\S+/g;
-                let keyToken: RegExpExecArray | null;
-                const keyValueOffset = keyMatch.index + keyMatch[0].indexOf(keyMatch[1]);
-                while ((keyToken = keyTokenPattern.exec(keyMatch[1])) !== null) {
-                    const keyName = keyToken[0];
-                    const dups = duplicateKeys.get(keyName);
-                    if (!dups) continue;
-                    const effective = dups[0];
-                    const sourceOffset = keyValueOffset + keyToken.index;
-                    const isDuplicateHere = dups.slice(1).some(d =>
-                        normalizeFsPath(d.sourceMap) === normalizeFsPath(filePath)
-                        && d.sourceOffset === sourceOffset);
-                    const hasSourceOffsets = dups.some(d => d.sourceOffset !== undefined);
-                    if (hasSourceOffsets) {
-                        if (!isDuplicateHere) continue;
-                    } else if (normalizeFsPath(effective.sourceMap) === normalizeFsPath(filePath)) {
-                        // Keep compatibility with key-space implementations that do not
-                        // expose token offsets.
-                        const line = offsetToRange(text, sourceOffset, sourceOffset).start.line + 1;
-                        const isLaterDefinitionHere = effective.sourceLine !== undefined
-                            && effective.sourceLine !== line
-                            && dups.slice(1).some(d =>
-                                normalizeFsPath(d.sourceMap) === normalizeFsPath(filePath) && d.sourceLine === line);
-                        if (!isLaterDefinitionHere) continue;
-                    }
-                    const range = offsetToRange(text, sourceOffset, sourceOffset + keyName.length);
-                    diagnostics.push({
-                        severity: DiagnosticSeverity.Warning,
-                        range,
-                        message: t('key.duplicate', keyName, path.basename(effective.sourceMap)),
-                        code: XREF_CODES.DUPLICATE_KEY,
-                        source: SOURCE,
-                    });
+        const thisMap = normalizeFsPath(filePath);
+        // Keys this map defines again, in the scope of the whole map, after another map
+        // in the same key scope: key name → the map with the effective definition
+        const definedFirstElsewhere = new Map<string, string>();
+        for (const defs of duplicateKeys.values()) {
+            const [effective, ...later] = defs;
+            if (!effective || normalizeFsPath(effective.sourceMap) === thisMap) continue;
+            for (const def of later) {
+                if (normalizeFsPath(def.sourceMap) === thisMap && !definedFirstElsewhere.has(def.keyName)) {
+                    definedFirstElsewhere.set(def.keyName, effective.sourceMap);
                 }
             }
-
+        }
+        const seenInScope = new Set<string>();
+        for (const definition of scanKeyDefinitions(cleanText)) {
+            if (diagnostics.length >= maxProblems) break;
+            const scopedName = `${definition.scopeOffset}\u0000${definition.keyName}`;
+            const isFirstInScope = !seenInScope.has(scopedName);
+            seenInScope.add(scopedName);
+            const effectiveMap = definition.scopeOffset === -1 && definedFirstElsewhere.has(definition.keyName)
+                ? definedFirstElsewhere.get(definition.keyName)!
+                : isFirstInScope ? undefined : filePath;
+            if (!effectiveMap) continue;
+            diagnostics.push({
+                severity: DiagnosticSeverity.Warning,
+                range: offsetToRange(text, definition.offset, definition.offset + definition.keyName.length),
+                message: t('key.duplicate', definition.keyName, path.basename(effectiveMap)),
+                code: XREF_CODES.DUPLICATE_KEY,
+                source: SOURCE,
+            });
         }
     }
 
@@ -394,7 +387,9 @@ export async function validateCrossReferences(
                     continue;
                 }
                 diagnostics.push({
-                    severity: DiagnosticSeverity.Warning,
+                    // Content reused through an undefined key fails in DITA-OT (DOTJ046E);
+                    // a link through one falls back to its @href (DOTJ047I).
+                    severity: match[1] === 'conkeyref' ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
                     range,
                     message: t('key.undefined', keyName),
                     code: XREF_CODES.UNDEFINED_KEY,
@@ -566,6 +561,56 @@ function isInStartTag(text: string, offset: number): boolean {
     return quote === null;
 }
 
+/**
+ * Severity of a missing target file. DITA-OT fails the resources it loads: DITA topics and
+ * maps (DOTX008E), content references (DOTX010E) and images (DOTJ023E). It does not load a
+ * peer resource (another publication, built separately) or a non-DITA file such as a PDF,
+ * which it only links to: a missing one is a warning.
+ */
+function missingFileSeverity(
+    attrName: string,
+    sourceElement: string | null,
+    scopeValue: string | null,
+    formatValue: string | null,
+    targetPath: string,
+): DiagnosticSeverity {
+    if (attrName === 'conref' || sourceElement === 'image') return DiagnosticSeverity.Error;
+    if (scopeValue === 'peer') return DiagnosticSeverity.Warning;
+    // Without @format, DITA-OT takes the format from the file extension
+    const isDita = formatValue
+        ? formatValue === 'dita' || formatValue === 'ditamap'
+        : /\.(dita|ditamap|bookmap|xml)$/i.test(targetPath);
+    return isDita ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
+}
+
+/** The file path of an @href, URI-decoded (`my%20topic.dita` is `my topic.dita`, as DITA-OT reads it). */
+function decodeHrefPath(filePath: string): string {
+    try {
+        return decodeURIComponent(filePath);
+    } catch {
+        return filePath; // Not a valid escape sequence (a bare "%"): taken as written
+    }
+}
+
+/**
+ * Whether a topic of the document has this id. A specialized topic type (`<faq>`) is not
+ * known here, so an id on an element DITA does not define is taken for a topic's, as
+ * DITA-OT would resolve it.
+ */
+function hasTopicId(content: string, topicId: string): boolean {
+    const pattern = new RegExp(`<([A-Za-z_][\\w:.-]*)\\b[^>]*\\bid\\s*=\\s*["']${escapeRegex(topicId)}["']`, 'g');
+    let element: RegExpExecArray | null;
+    while ((element = pattern.exec(content)) !== null) {
+        const name = element[1].replace(/^[\w.-]+:/, '');
+        if (TOPIC_TYPE_NAMES.has(name)
+            || !DITA_ELEMENT_NAMES.has(name)
+            || /\bclass\s*=\s*["'][^"']* topic\/topic /.test(element[0])) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /** Extract the scope attribute value from the containing tag, or null if not present. */
 function getScopeValue(text: string, refOffset: number): string | null {
     const tag = getContainingTag(text, refOffset);
@@ -632,10 +677,7 @@ function validateFragment(
                 return false;
             }
         } else {
-            const topicIdRegex = new RegExp(
-                `<(?:${TOPIC_ELEMENTS_PATTERN})\\b[^>]*\\bid\\s*=\\s*["']${escapedTopicId}["']`
-            );
-            if (!topicIdRegex.test(content)) {
+            if (!hasTopicId(content, topicId)) {
                 diagnostics.push({
                     severity,
                     range,

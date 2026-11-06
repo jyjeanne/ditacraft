@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="subtopic1">
+    <title>Subtopic 1</title>
+    <shortdesc>A topic nested under the first topic of the valid map.</shortdesc>
+    <body>
+        <p>Referenced by valid-map.ditamap, so that the map has no missing targets.</p>
+    </body>
+</topic>

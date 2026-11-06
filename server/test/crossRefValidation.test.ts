@@ -842,17 +842,17 @@ suite('validateCrossReferences', () => {
                 targetFile: '/docs/product.dita',
                 sourceMap: '/docs/root.ditamap',
             });
-            const dups = new Map<string, KeyDefinition[]>();
-            dups.set('product-name', [
-                { keyName: 'product-name', targetFile: '/docs/product.dita', sourceMap: '/docs/root.ditamap' },
-                { keyName: 'product-name', targetFile: '/docs/other.dita', sourceMap: '/docs/sub.ditamap' },
-            ]);
-            const keyService = createMockKeySpaceService(keys, dups);
-
             // Simulate validating sub.ditamap which has the duplicate keydef
             const text = '<map><keydef keys="product-name" href="other.dita"/></map>';
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const mapFile = path.join(tmpDir, 'sub.ditamap');
+            const dups = new Map<string, KeyDefinition[]>();
+            dups.set('product-name', [
+                { keyName: 'product-name', targetFile: '/docs/product.dita', sourceMap: '/docs/root.ditamap' },
+                { keyName: 'product-name', targetFile: '/docs/other.dita', sourceMap: mapFile },
+            ]);
+            const keyService = createMockKeySpaceService(keys, dups);
+
             fs.writeFileSync(mapFile, text);
             const testUri = URI.file(mapFile).toString();
 
@@ -994,6 +994,230 @@ suite('validateCrossReferences', () => {
                 const diags = await validateCrossReferences(text, testUri, keyService, 100);
                 const dupDiags = diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY);
                 assert.strictEqual(dupDiags.length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+    });
+
+    suite('Duplicate key definitions: live text and key scopes', () => {
+        /**
+         * Writes `files` in a new folder, then validates `mapName` with a key space built from
+         * them. `editorText` is the map's text in the editor, when it differs from the saved file.
+         * Returns the DITA-KEY-004 diagnostics as "line:character key-name effective-map".
+         */
+        async function duplicateKeyDiagnostics(
+            files: Record<string, string>, mapName: string, editorText?: string,
+        ): Promise<string[]> {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            for (const [name, content] of Object.entries(files)) {
+                fs.writeFileSync(path.join(tmpDir, name), content);
+            }
+            const keySpaceService = new KeySpaceService(
+                [tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {});
+            try {
+                const text = editorText ?? files[mapName];
+                const diags = await validateCrossReferences(
+                    text, URI.file(path.join(tmpDir, mapName)).toString(), keySpaceService, 100);
+                return diags.filter(d => d.code === XREF_CODES.DUPLICATE_KEY).map(d => {
+                    const name = text.slice(
+                        offsetOf(text, d.range.start.line, d.range.start.character),
+                        offsetOf(text, d.range.end.line, d.range.end.character));
+                    const effectiveMap = /\b(\w+\.ditamap)\b/.exec(d.message)?.[1];
+                    return `${d.range.start.line}:${d.range.start.character} ${name} ${effectiveMap}`;
+                });
+            } finally {
+                keySpaceService.shutdown();
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        }
+
+        function offsetOf(text: string, line: number, character: number): number {
+            const lines = text.split('\n');
+            return lines.slice(0, line).reduce((sum, l) => sum + l.length + 1, 0) + character;
+        }
+
+        const ROOT = [
+            '<map>',
+            '  <keydef keys="a" href="t.dita"/>',
+            '  <mapref href="sub.ditamap"/>',
+            '</map>',
+        ].join('\n');
+
+        test('a key defined first in another map is reported among elements of other names (review: one key position switched the check off)', async () => {
+            // The parser groups same-name siblings: the keydef came after both topicrefs, so it
+            // got no position, and a position on the root map's definition skipped it.
+            const sub = ['<map>', '  <topicref keys="x"/>', '  <keydef keys="a"/>', '  <topicref keys="y"/>', '</map>'].join('\n');
+            assert.deepStrictEqual(
+                await duplicateKeyDiagnostics({ 'root.ditamap': ROOT, 'sub.ditamap': sub }, 'sub.ditamap'),
+                ['2:16 a root.ditamap']);
+        });
+
+        test('a key defined twice in one map, between elements of other names, is reported on the second definition', async () => {
+            const map = [
+                '<map>', '  <topicref keys="x"/>', '  <keydef keys="a"/>', '  <topicref keys="y"/>', '  <keydef keys="a"/>', '</map>',
+            ].join('\n');
+            assert.deepStrictEqual(await duplicateKeyDiagnostics({ 'root.ditamap': map }, 'root.ditamap'),
+                ['4:16 a root.ditamap']);
+        });
+
+        test('a map saved with a byte order mark is checked as the editor shows it (review: positions off by one)', async () => {
+            const sub = '<map>\n  <keydef keys="a"/>\n</map>';
+            assert.deepStrictEqual(
+                await duplicateKeyDiagnostics({ 'root.ditamap': ROOT, 'sub.ditamap': '﻿' + sub }, 'sub.ditamap', sub),
+                ['1:16 a root.ditamap']);
+        });
+
+        test('an unsaved edit above a key keeps its warning (review: positions came from the saved file)', async () => {
+            const saved = '<map>\n  <keydef keys="a"/>\n</map>';
+            const edited = '<map>\n  <!-- a new comment, not saved -->\n  <keydef keys="a"/>\n</map>';
+            assert.deepStrictEqual(
+                await duplicateKeyDiagnostics({ 'root.ditamap': ROOT, 'sub.ditamap': saved }, 'sub.ditamap', edited),
+                ['2:16 a root.ditamap']);
+        });
+
+        test('keys named like the attribute ("key", "s") are located in the value (review: indexOf found the attribute name)', async () => {
+            const map = '<map>\n  <keydef keys="key"/>\n  <keydef keys="key"/>\n</map>';
+            assert.deepStrictEqual(await duplicateKeyDiagnostics({ 'root.ditamap': map }, 'root.ditamap'),
+                ['2:16 key root.ditamap']);
+            const root = '<map>\n  <keydef keys="s"/>\n  <mapref href="sub.ditamap"/>\n</map>';
+            const sub = '<map>\n  <keydef keys="s"/>\n</map>';
+            assert.deepStrictEqual(
+                await duplicateKeyDiagnostics({ 'root.ditamap': root, 'sub.ditamap': sub }, 'sub.ditamap'),
+                ['1:16 s root.ditamap']);
+        });
+
+        test('keys in different key scopes do not collide (review: false warning on the root-level definition)', async () => {
+            // DITA-OT reports a key defined twice in the same scope only (DOTJ045I)
+            const map = [
+                '<map>',
+                '  <topicgroup keyscope="sc">',
+                '    <keydef keys="a" href="x.dita"/>',
+                '  </topicgroup>',
+                '  <keydef keys="a" href="y.dita"/>',
+                '</map>',
+            ].join('\n');
+            assert.deepStrictEqual(await duplicateKeyDiagnostics({ 'root.ditamap': map }, 'root.ditamap'), []);
+            // Nor across maps: an inline scope, or a submap given its own scope
+            const inlineScope = '<map>\n  <topicgroup keyscope="s">\n    <keydef keys="a"/>\n  </topicgroup>\n</map>';
+            assert.deepStrictEqual(
+                await duplicateKeyDiagnostics({ 'root.ditamap': ROOT, 'sub.ditamap': inlineScope }, 'sub.ditamap'), []);
+            const scopedRoot = '<map>\n  <keydef keys="a"/>\n  <mapref href="sub.ditamap" keyscope="s"/>\n</map>';
+            assert.deepStrictEqual(
+                await duplicateKeyDiagnostics({ 'root.ditamap': scopedRoot, 'sub.ditamap': '<map>\n  <keydef keys="a"/>\n</map>' }, 'sub.ditamap'),
+                []);
+        });
+
+        test('a key defined twice in the same key scope is reported', async () => {
+            const map = [
+                '<map>',
+                '  <topicgroup keyscope="sc">',
+                '    <keydef keys="a"/>',
+                '    <keydef keys="a"/>',
+                '  </topicgroup>',
+                '</map>',
+            ].join('\n');
+            assert.deepStrictEqual(await duplicateKeyDiagnostics({ 'root.ditamap': map }, 'root.ditamap'),
+                ['3:18 a root.ditamap']);
+        });
+
+        test('keys="…" written in another attribute is not a key definition (review: the warning landed in a navtitle)', async () => {
+            const map = [
+                '<map>',
+                '  <keydef keys="a"/>',
+                '  <topicref navtitle=\'keys="a"\' keys="b"/>',
+                '  <keydef keys="a"/>',
+                '</map>',
+            ].join('\n');
+            assert.deepStrictEqual(await duplicateKeyDiagnostics({ 'root.ditamap': map }, 'root.ditamap'),
+                ['3:16 a root.ditamap']);
+        });
+    });
+
+    suite('Missing target severities (as DITA-OT)', () => {
+        async function missingFiles(text: string, files: Record<string, string> = {}): Promise<string[]> {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            for (const [name, content] of Object.entries(files)) {
+                fs.writeFileSync(path.join(tmpDir, name), content);
+            }
+            try {
+                const diags = await validateCrossReferences(
+                    text, URI.file(path.join(tmpDir, 'source.ditamap')).toString(), undefined, 100);
+                return diags.filter(d => d.code === XREF_CODES.MISSING_FILE)
+                    .map(d => `${d.range.start.line}:${d.severity === DiagnosticSeverity.Error ? 'error' : 'warning'}`);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        }
+
+        test('a missing DITA topic, map, content reference or image is an error; a peer or non-DITA resource is a warning (review)', async () => {
+            // DITA-OT loads the first ones (DOTX008E, DOTX010E, DOTJ023E); it does not load a peer
+            // publication or a PDF, and reports nothing about them.
+            const text = [
+                '<topicref href="missing.dita"/>',
+                '<mapref href="missing.ditamap" format="ditamap"/>',
+                '<p conref="missing-reuse.dita#t/p"/>',
+                '<image href="missing.png"/>',
+                '<xref href="../other-guide/missing.dita" scope="peer"/>',
+                '<xref href="missing.pdf" format="pdf"/>',
+                '<topicref href="missing.html"/>',
+            ].join('\n');
+            assert.deepStrictEqual(await missingFiles(text), [
+                '0:error', '1:error', '2:error', '3:error', '4:warning', '5:warning', '6:warning',
+            ]);
+        });
+
+        test('a URI-encoded href is decoded (review: "my%20topic.dita" was not found)', async () => {
+            const topic = '<topic id="t"><title>T</title></topic>';
+            assert.deepStrictEqual(
+                await missingFiles('<topicref href="my%20topic.dita"/>', { 'my topic.dita': topic }), []);
+            // A "%" that starts no escape sequence is taken as written
+            assert.deepStrictEqual(await missingFiles('<topicref href="100%.dita"/>', { '100%.dita': topic }), []);
+        });
+
+        test('a target outside the workspace is not said to be missing (review: it may exist)', async () => {
+            const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-ws-'));
+            const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-shared-'));
+            fs.writeFileSync(path.join(outside, 's.dita'), '<topic id="s"><title>S</title></topic>');
+            try {
+                const href = path.relative(workspaceRoot, path.join(outside, 's.dita')).replace(/\\/g, '/');
+                const diags = await validateCrossReferences(`<xref href="${href}"/>`,
+                    URI.file(path.join(workspaceRoot, 'source.dita')).toString(),
+                    createMockKeySpaceService(new Map(), undefined, [workspaceRoot]), 100);
+                const outsideDiags = diags.filter(d => d.code === XREF_CODES.MISSING_FILE);
+                assert.strictEqual(outsideDiags.length, 1);
+                assert.strictEqual(outsideDiags[0].severity, DiagnosticSeverity.Warning);
+                assert.ok(outsideDiags[0].message.includes('outside the workspace'), outsideDiags[0].message);
+            } finally {
+                fs.rmSync(workspaceRoot, { recursive: true, force: true });
+                fs.rmSync(outside, { recursive: true, force: true });
+            }
+        });
+
+        test('a content reference into a specialized topic type finds the topic (review: <faq> was not a topic)', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            fs.writeFileSync(path.join(tmpDir, 'faq.dita'), '<faq id="f1"><title>FAQ</title><faqbody><p id="p1">x</p></faqbody></faq>');
+            fs.writeFileSync(path.join(tmpDir, 'other.dita'), '<topic id="t"><title>T</title><body><p id="p1">x</p></body></topic>');
+            try {
+                const diags = await validateCrossReferences(
+                    '<p conref="faq.dita#f1/p1"/>\n<p conref="other.dita#p1/p1"/>',
+                    URI.file(path.join(tmpDir, 'source.dita')).toString(), undefined, 100);
+                // An id on an element DITA defines (<p>) is still not a topic's
+                assert.deepStrictEqual(diags.filter(d => d.code === XREF_CODES.MISSING_TOPIC_ID).map(d => d.range.start.line), [1]);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('reuse through an undefined key is an error (DOTJ046E); a link through one stays a warning (review)', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            try {
+                const diags = await validateCrossReferences(
+                    '<p conkeyref="nokey/p1"/>\n<xref keyref="nokey"/>',
+                    URI.file(path.join(tmpDir, 'source.dita')).toString(), createMockKeySpaceService(new Map()), 100);
+                assert.deepStrictEqual(
+                    diags.filter(d => d.code === XREF_CODES.UNDEFINED_KEY).map(d => `${d.range.start.line}:${d.severity}`),
+                    [`0:${DiagnosticSeverity.Error}`, `1:${DiagnosticSeverity.Warning}`]);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }

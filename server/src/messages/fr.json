@@ -22,6 +22,7 @@
     "id.invalidNmtoken": "L'identifiant \"{0}\" ne doit contenir que des lettres, chiffres, tirets, tirets bas et points",
 
     "xref.missingFile": "Fichier cible introuvable : {0}",
+    "xref.outsideWorkspace": "Fichier cible en dehors de l'espace de travail, non vérifié : {0}",
     "xref.missingTopicId": "Identifiant de topic \"{0}\" introuvable dans {1}",
     "xref.missingElementId": "Identifiant d'élément \"{0}\" introuvable dans le topic \"{1}\" de {2}",
     "xref.incompatibleConref": "L'élément source <{0}> du conref n'est pas compatible avec l'élément cible <{1}>. Les éléments source et cible doivent être du même type ou du même groupe de spécialisation.",

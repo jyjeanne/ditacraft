@@ -22,6 +22,7 @@
     "id.invalidNmtoken": "ID \"{0}\" should contain only letters, digits, hyphens, underscores, and periods",
 
     "xref.missingFile": "Target file not found: {0}",
+    "xref.outsideWorkspace": "Target file is outside the workspace, not checked: {0}",
     "xref.missingTopicId": "Topic ID \"{0}\" not found in {1}",
     "xref.missingElementId": "Element ID \"{0}\" not found in topic \"{1}\" of {2}",
     "xref.incompatibleConref": "Conref source <{0}> is not compatible with target <{1}>. Source and target elements must be the same type or in the same specialization group.",

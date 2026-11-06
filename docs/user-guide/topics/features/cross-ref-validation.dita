@@ -44,9 +44,10 @@
                 </sthead>
                 <strow>
                     <stentry><codeph>DITA-XREF-001</codeph></stentry>
-                    <stentry>Error</stentry>
-                    <stentry>Target file not found (map reference, link, content reference or
-                        image), as DITA-OT reports it</stentry>
+                    <stentry>Error for a DITA topic or map, a content reference or an image, as
+                        DITA-OT reports them; Warning for a peer or non-DITA resource, which DITA-OT
+                        only links to, or a file outside the workspace, which is not looked up</stentry>
+                    <stentry>Target file not found</stentry>
                 </strow>
                 <strow>
                     <stentry><codeph>DITA-XREF-002</codeph></stentry>
@@ -62,7 +63,8 @@
                 </strow>
                 <strow>
                     <stentry><codeph>DITA-KEY-001</codeph></stentry>
-                    <stentry>Warning</stentry>
+                    <stentry>Error for <codeph>@conkeyref</codeph>, Warning for
+                        <codeph>@keyref</codeph></stentry>
                     <stentry>Undefined key (not in key space)</stentry>
                 </strow>
                 <strow>
@@ -79,8 +81,8 @@
                 <strow>
                     <stentry><codeph>DITA-KEY-004</codeph></stentry>
                     <stentry>Warning</stentry>
-                    <stentry>Key defined more than once: only the first definition takes
-                        effect</stentry>
+                    <stentry>Key defined more than once in the same key scope: only the first
+                        definition takes effect</stentry>
                 </strow>
             </simpletable>
             <p>Missing targets of content references are errors because DITA-OT fails them. Missing
