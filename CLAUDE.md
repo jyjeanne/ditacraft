@@ -104,6 +104,8 @@ npm test -- --grep "test suite name"
 ```
 Example: `npm test -- --grep "validateDITADocument"`
 
+The integration suites of `server/test/docsDataset.test.ts` run against the DITA-OT documentation sources, and only when asked: set `DITACRAFT_DOCS_DATASET` to the folder holding `userguide.ditamap` (a docs-develop checkout, or the `docsrc` folder of a DITA-OT distribution). Otherwise they are skipped.
+
 ### Code Coverage
 
 **Client:**

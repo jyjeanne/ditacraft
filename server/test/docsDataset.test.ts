@@ -6,8 +6,12 @@
  * than synthetic inline fixtures, catching false positives / false negatives
  * that unit tests with hand-crafted XML cannot reveal.
  *
- * Dataset: /home/jeremy/Documents/Project/docs-develop/
- * Skipped automatically when the dataset path is not available (e.g. CI).
+ * Opt-in: set DITACRAFT_DOCS_DATASET to the folder of the DITA-OT documentation
+ * sources (the folder holding userguide.ditamap: a docs-develop checkout, or the
+ * docsrc folder of a DITA-OT distribution), e.g.
+ *   DITACRAFT_DOCS_DATASET=/path/to/dita-ot-4.3.5/docsrc npm test
+ * Without it, the suites are skipped: the default run stays independent of any
+ * local checkout.
  */
 
 import * as assert from 'assert';
@@ -28,7 +32,7 @@ import { createDoc } from './helper';
 // Constants
 // ---------------------------------------------------------------------------
 
-const DOCS_ROOT = '/home/jeremy/Documents/Project/docs-develop';
+const DOCS_ROOT = process.env.DITACRAFT_DOCS_DATASET ? path.resolve(process.env.DITACRAFT_DOCS_DATASET) : '';
 const ROOT_MAP  = path.join(DOCS_ROOT, 'userguide.ditamap');
 const SUBJECT_SCHEME = path.join(DOCS_ROOT, 'resources', 'subjectscheme.ditamap');
 
@@ -98,8 +102,12 @@ const DITA_RULES_SETTINGS: DitaRulesSettings = {
 // Dataset availability guard
 // ---------------------------------------------------------------------------
 
-// Skip gracefully on CI or machines without the dataset checked out.
-const DATASET_AVAILABLE = fs.existsSync(DOCS_ROOT) && fs.existsSync(ROOT_MAP);
+// Opt-in: only when DITACRAFT_DOCS_DATASET names a folder holding userguide.ditamap.
+const DATASET_AVAILABLE = DOCS_ROOT !== '' && fs.existsSync(ROOT_MAP);
+if (DOCS_ROOT !== '' && !DATASET_AVAILABLE) {
+    // Asked for, but not found: say so rather than skip silently
+    throw new Error(`DITACRAFT_DOCS_DATASET: no userguide.ditamap in ${DOCS_ROOT}`);
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function suiteIfDataset(title: string, fn: (this: any) => void): void {
@@ -107,7 +115,7 @@ function suiteIfDataset(title: string, fn: (this: any) => void): void {
         suite(title, fn);
     } else {
         suite(title, function () {
-            test('skipped — docs-develop dataset not present on this machine', function () {
+            test('skipped — set DITACRAFT_DOCS_DATASET to run it', function () {
                 this.skip();
             });
         });
