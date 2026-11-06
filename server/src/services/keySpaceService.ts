@@ -420,13 +420,14 @@ export class KeySpaceService implements IKeySpaceService {
             if (peerMapPath) {
                 try {
                     const peerKeySpace = await this.buildKeySpace(peerMapPath);
-                    const peerDef = peerKeySpace.keys.get(peerKey) ?? null;
+                    const peerName = KeySpaceService.peerKeyName(peerKeySpace, peerMapPath, peerKey);
+                    const peerDef = peerKeySpace.keys.get(peerName) ?? null;
                     if (peerDef) {
-                        // Derive the scope prefix from peerKey so that keyref chains
+                        // Derive the scope prefix from the name so that keyref chains
                         // within a named scope of the peer map resolve correctly.
-                        // e.g. peerKey="inner.realKey" → peerKeyScope="inner"
-                        const lastDot = peerKey.lastIndexOf('.');
-                        const peerKeyScope = lastDot > 0 ? peerKey.slice(0, lastDot) : '';
+                        // e.g. peerName="inner.realKey" → peerKeyScope="inner"
+                        const lastDot = peerName.lastIndexOf('.');
+                        const peerKeyScope = lastDot > 0 ? peerName.slice(0, lastDot) : '';
                         return { def: peerDef, keys: peerKeySpace.keys, scopePrefix: peerKeyScope };
                     }
                 } catch {
@@ -473,6 +474,35 @@ export class KeySpaceService implements IKeySpaceService {
             if (def) return { def, scopePrefix: prefix };
         }
         return null;
+    }
+
+    /**
+     * The peer map that a scope-qualified key name points into, when its first segment
+     * is the key scope of a peer map of the context's key space, or null. DITA 1.3
+     * §2.3.4.5: "Processors that resolve key references to peer maps should provide
+     * appropriate messages when a reference to a peer map cannot be resolved."
+     */
+    public async findPeerMapOfKey(keyName: string, contextFilePath: string): Promise<string | null> {
+        const dotIdx = keyName.indexOf('.');
+        if (dotIdx <= 0) return null;
+        const rootMap = await this.findRootMap(contextFilePath);
+        if (!rootMap) return null;
+        const keySpace = await this.buildKeySpace(rootMap);
+        return keySpace.deferredPeerMaps.get(keyName.slice(0, dotIdx)) ?? null;
+    }
+
+    /**
+     * The name, in the key space of a peer map, of a key that the referencing map
+     * writes "peerScope.key". DITA 1.3 §2.3.4.5: "the @keyscope on the peer map is
+     * ignored for the purpose of resolving scoped key references from the referencing
+     * map". The peer key space is built with that @keyscope as the name of its root
+     * scope, which qualifies the names of its child scopes: a scope-qualified key is
+     * qualified the same way. Keys of the root scope are unqualified there.
+     */
+    private static peerKeyName(peerKeySpace: KeySpace, peerMapPath: string, peerKey: string): string {
+        if (!peerKey.includes('.')) return peerKey;
+        const rootScope = peerKeySpace.mapToScope?.get(normalizeFsPath(peerMapPath)) ?? '';
+        return rootScope ? `${rootScope}.${peerKey}` : peerKey;
     }
 
     /**
@@ -562,13 +592,14 @@ export class KeySpaceService implements IKeySpaceService {
             if (peerMapPath) {
                 try {
                     const peerKeySpace = await this.buildKeySpace(peerMapPath);
-                    const peerDef = peerKeySpace.keys.get(peerKey) ?? null;
+                    const peerName = KeySpaceService.peerKeyName(peerKeySpace, peerMapPath, peerKey);
+                    const peerDef = peerKeySpace.keys.get(peerName) ?? null;
                     if (peerDef) {
                         peerStep.found = true;
                         peerStep.definition = peerDef;
                         peerStep.note = `Found "${peerKey}" in peer map "${path.basename(peerMapPath)}"`;
-                        const lastDot = peerKey.lastIndexOf('.');
-                        const peerKeyScope = lastDot > 0 ? peerKey.slice(0, lastDot) : '';
+                        const lastDot = peerName.lastIndexOf('.');
+                        const peerKeyScope = lastDot > 0 ? peerName.slice(0, lastDot) : '';
                         const { def: resolved, chain } = this.followKeyrefChainWithTrace(peerDef, peerKeySpace.keys, peerKeyScope);
                         this.appendKeyrefSteps(report.steps, chain, peerKeySpace.keys);
                         report.keyrefChain = chain;

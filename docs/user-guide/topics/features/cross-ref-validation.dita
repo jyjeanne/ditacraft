@@ -62,10 +62,24 @@
                     <stentry>Element ID not found in target file</stentry>
                 </strow>
                 <strow>
+                    <stentry><codeph>DITA-XREF-006</codeph></stentry>
+                    <stentry>Error</stentry>
+                    <stentry>The end of a <codeph>@conrefend</codeph> range is missing, is not a
+                        sibling of the range start, comes before it, or is in another document:
+                        DITA-OT reuses the start element alone</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-XREF-007</codeph></stentry>
+                    <stentry>Warning</stentry>
+                    <stentry><codeph>@conrefend</codeph> without <codeph>@conref</codeph> or
+                            <codeph>@conkeyref</codeph>: it is ignored</stentry>
+                </strow>
+                <strow>
                     <stentry><codeph>DITA-KEY-001</codeph></stentry>
                     <stentry>Error for <codeph>@conkeyref</codeph>, Warning for
                         <codeph>@keyref</codeph></stentry>
-                    <stentry>Undefined key (not in key space)</stentry>
+                    <stentry>Undefined key (not in key space). For a key of a peer map
+                        (<codeph>ext.key</codeph>), the message names the peer map.</stentry>
                 </strow>
                 <strow>
                     <stentry><codeph>DITA-KEY-002</codeph></stentry>
@@ -84,6 +98,13 @@
                     <stentry>Warning</stentry>
                     <stentry>Key defined more than once in the same key scope: only the first
                         definition takes effect</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-KEY-005</codeph></stentry>
+                    <stentry>Error</stentry>
+                    <stentry>Invalid key name (<codeph>@keys</codeph>) or key scope name
+                        (<codeph>@keyscope</codeph>) in a map: whitespace or one of
+                        <codeph>{ } [ ] / # ?</codeph></stentry>
                 </strow>
             </simpletable>
             <p>Missing targets of content references are errors because DITA-OT fails them. Missing

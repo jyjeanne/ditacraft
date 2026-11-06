@@ -609,6 +609,23 @@ suite('Key Space Resolver Test Suite', () => {
         });
     });
 
+    suite('peer maps (DITA 1.3 §2.3.4.5)', () => {
+        test('Should ignore the @keyscope on the root of a peer map', async () => {
+            // peer-keyscope/: root.ditamap references other-guide.ditamap as a peer map with
+            // keyscope="ext"; the peer map has its own keyscope="inner", defines "install", and
+            // defines "options" in its child scope "admin".
+            const dir = path.join(fixturesPath, 'peer-keyscope');
+            const mapPath = path.join(dir, 'root.ditamap');
+            const guide = path.join(dir, 'guide.dita');
+            // "the @keyscope on the peer map is ignored for the purpose of resolving scoped key
+            // references from the referencing map"
+            assert.ok((await resolver.resolveKeyInMap('ext.install', mapPath, guide))?.targetFile?.endsWith('install.dita'));
+            assert.ok((await resolver.resolveKeyInMap('ext.admin.options', mapPath, guide))?.targetFile?.endsWith('options.dita'));
+            assert.strictEqual(await resolver.resolveKeyInMap('ext.inner.install', mapPath, guide), null);
+            assert.strictEqual(await resolver.resolveKeyInMap('ext.inner.admin.options', mapPath, guide), null);
+        });
+    });
+
     suite('Workspace Boundary Path Normalization', () => {
         // normalizePathForComparison is the private helper isPathWithinWorkspace uses to
         // compare an absolute path against configured workspace folders. It must case-fold

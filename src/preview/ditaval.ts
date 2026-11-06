@@ -22,7 +22,12 @@ import type { ElementNode } from '../shared/cst/types';
 import { isElement } from '../shared/cst/types';
 import { decodeXmlText } from '../shared/render/html';
 import type { FilterDecision, FlagStyle } from '../shared/render/types';
-import { FILTERING_ATTRIBUTES, governingRule, isExcludedByRules, isFilteringAttribute, parseDitavalRules, type DitavalRule } from '../utils/ditavalParser';
+import {
+    FILTERING_ATTRIBUTES, GROUPED_ATTRIBUTES, conditionGroups, governingRule, isExcludedByRules, isFilteringAttribute, parseDitavalRules,
+    type DitavalRule,
+} from '../utils/ditavalParser';
+
+const isGroupedAttribute = (lowerCaseName: string): boolean => (GROUPED_ATTRIBUTES as readonly string[]).includes(lowerCaseName);
 
 /** The key of a `<prop>` rule: its attribute (lower case) and value, "" for none. */
 function ruleKey(att: string | undefined, val: string | undefined): string {
@@ -83,10 +88,13 @@ export function buildDitavalFilter(text: string, ditavalPath: string, imageSrc: 
         ...(revFlags.length > 0 ? ['rev'] : []),
     ]);
     const filterWide = rules.some((r) => r.att === undefined && r.val === undefined);
+    // A rule on a name that is not a filtering attribute may be on a group name (`appserver` in
+    // `product="appserver(mySERVER)"`, DITA 1.3 §2.4.3.2): the attributes that hold groups count.
+    const groupRules = [...attNames].some((name) => name !== 'rev' && !isFilteringAttribute(name));
 
     return {
         label: path.basename(ditavalPath),
-        attributes: new Set([...attNames, ...(filterWide ? FILTERING_ATTRIBUTES : [])]),
+        attributes: new Set([...attNames, ...(filterWide ? FILTERING_ATTRIBUTES : []), ...(groupRules ? GROUPED_ATTRIBUTES : [])]),
         evaluate(el: ElementNode): FilterDecision | undefined {
             const specializations = filterWide ? propsSpecializations(el) : undefined;
             const filtering = (name: string): boolean => isFilteringAttribute(name) || (specializations?.has(name) ?? false);
@@ -110,7 +118,7 @@ export function buildDitavalFilter(text: string, ditavalPath: string, imageSrc: 
         let values: Record<string, string> | undefined;
         for (const [rawName, value] of attrs) {
             const name = rawName.toLowerCase();
-            if (attNames.has(name) || (filterWide && filtering(name))) {
+            if (attNames.has(name) || (filterWide && filtering(name)) || (groupRules && isGroupedAttribute(name))) {
                 (values ??= {})[name] = decode(value);
             }
         }
@@ -126,13 +134,15 @@ export function buildDitavalFilter(text: string, ditavalPath: string, imageSrc: 
             }
         };
         for (const [name, value] of Object.entries(values)) {
-            for (const token of value.split(/\s+/).filter((t) => t.length > 0)) {
-                const rule = governingRule(name, token, rules, filtering);
-                if (rule?.action === 'flag') {
-                    add(propFlags.get(ruleKey(rule.att, rule.val)));
-                }
-                if (name === 'rev') {
-                    add((revFlags.find((r) => r.val === token) ?? revFlags.find((r) => r.val === undefined))?.style);
+            for (const group of conditionGroups(name, value)) {
+                for (const token of group.tokens) {
+                    const rule = governingRule(name, token, rules, filtering, group.name);
+                    if (rule?.action === 'flag') {
+                        add(propFlags.get(ruleKey(rule.att, rule.val)));
+                    }
+                    if (name === 'rev') {
+                        add((revFlags.find((r) => r.val === token) ?? revFlags.find((r) => r.val === undefined))?.style);
+                    }
                 }
             }
         }

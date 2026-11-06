@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A name qualified relative to an enclosing scope (`A-1.c` from a topic of scope `A.A-2`) now resolves, as it does in DITA-OT.
   - A scope-qualified name names the keys the scope defines itself: `lib.logo` no longer resolves when `logo` is only inherited from the root scope (DITA-OT leaves it undefined).
   - A key reference written in a submap that has its own key scope resolves in that scope.
+- A key of a peer map is named by the `@keyscope` of the map reference only, as DITA 1.3 requires (§2.3.4.5): "the `@keyscope` on the peer map is ignored for the purpose of resolving scoped key references from the referencing map". With `<mapref scope="peer" keyscope="ext">` to a map whose root has `keyscope="inner"`, a key of the peer map's child scope `admin` is `ext.admin.options`. It was reachable only as `ext.inner.admin.options`, and names in `ext.inner.…` no longer resolve. This applies in the language server and in the extension's key resolution.
+- `DITA-KEY-001` names the peer map and its key scope when a key is not defined in the peer map, such as `Key "ext.missing" is not defined in the peer map "other-guide.ditamap" (key scope "ext")`. DITA 1.3 asks processors to "provide appropriate messages when a reference to a peer map cannot be resolved" (§2.3.4.5).
+- `DITA-KEY-005` also checks key scope names (`@keyscope`), with its own message: "The legal characters for a key scope name are the same as those for keys" (DITA 1.3 §2.3.4.2). A `keys="…"` written in the text of a map, as an example, is no longer checked.
 - Three DITA rule messages now say what DITA 1.3 and DITA-OT 4.3.5 actually do:
   - `DITA-SCH-003` (`<indextermref>`) is a Warning in the recommendation category, no longer a mandatory Error, and no longer calls the element deprecated. DITA 1.3 says it "is not completely defined; it is reserved for future use", and DITA-OT drops it without a message. The quick fix that removes it is unchanged.
   - `DITA-SCH-014` (the `@navtitle` attribute) is an Information, no longer a Warning. It says that the `<navtitle>` element is preferred, not that the attribute is deprecated (DITA 1.3 §3.2.1.5); DITA-OT accepts both.
@@ -33,6 +36,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When a map defined the same key with elements of different names, such as a `<topicref>` then a `<keydef>`, the key space could take the later definition for the effective one: the XML parser groups the elements by name. The key space now reads the definitions in document order. The line numbers of key definitions in or after a `@keyscope` block are also right now.
 - A content reference into a specialized topic type, such as `<faq id="f1">`, was reported as a missing topic (`DITA-XREF-002`): only the standard topic types were recognized.
 - A URI-encoded `@href`, such as `my%20topic.dita`, was reported as a missing file: it is now decoded, as DITA-OT reads it.
+- A topic referenced by a URI-encoded `@href`, such as `my%20topic.dita`, was reported as unused (`DITA-ORPHAN-001`).
+- The visual preview and condition highlighting read grouped values, such as `product="appserver(mySERVER) database(dbA dbB)"`, as plain values (`appserver(mySERVER)`), so no rule matched them. They now filter and flag them as DITA 1.3 says (§2.4.3.1, §2.4.3.2):
+  - A group is excluded only when all its values are excluded.
+  - A rule on the group name (`appserver="mySERVER"`) takes precedence over the same rule on the attribute.
+  - `product="database"` is the default of the `database()` group.
+  - Groups of the same name are merged, and empty groups are ignored.
+
+  DITA-OT 4.3.5 ignores the group default and gives an exclusion on the attribute precedence over a flag on the group name. The docs (`docs/VISUAL_PREVIEW.md`) list these differences.
 - Subject scheme values were checked (`DITA-PROF-001`) only on a fixed list of attributes: `@audience`, `@platform`, `@product`, `@otherprops`, `@props`, `@deliveryTarget`. An attribute specialized from `@props` and bound by an `<enumerationdef>`, such as `@season`, was never checked. Every attribute the scheme binds is now checked. Element names with a hyphen were also read up to the hyphen (`<steps-unordered>` as `<steps>`), so an `<elementdef name="steps-unordered">` binding did not apply to them; it now does.
 - The category an `<enumerationdef>` binds was itself a valid value. With `<subjectdef keyref="os"/>`, `os` was accepted next to `linux` and `windows`, and offered in completion and in the DITAVAL condition editor. DITA 1.3 says that "the values within the category are valid, while the category itself is not a valid value": only the subjects below it are valid now, at every level. A bound subject without children remains its own value.
 - An `<enumerationdef>` bound to a nested subject category, such as `<subjectdef keyref="linux"/>` with `linux` under `os`, accepted only the category name: only top-level subject definitions were looked up. The valid values are now the subjects below that category.
@@ -50,12 +61,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `@conrefend` ranges are checked (DITA 1.3 §3.12.13.7):
+  - The end of a range that is missing, is not a sibling of the range start, comes before it, or is in another document is an error (`DITA-XREF-006`), as in DITA-OT (`DOTX071E`), which then reuses the start element alone.
+  - An end element whose type is not the referencing element's, nor a specialization of it, is a warning (`DITA-XREF-004`): DITA-OT resolves such a range without a message.
+  - A `@conrefend` without `@conref` or `@conkeyref` is a warning (`DITA-XREF-007`): it is ignored.
+  - With `@conkeyref`, the range ends in the topic that the key addresses, as DITA 1.3 says.
 - MCP server configuration: the server reads the `ditacraft.*` settings of `<WORKSPACE>/.vscode/settings.json` (JSON with comments), so it validates as the extension does in that workspace — XML catalog for project document type shells, custom rules, severity overrides, rule categories. `DITACRAFT_SETTINGS_FILE` selects another settings file; `DITACRAFT_XML_CATALOG` and `DITACRAFT_CUSTOM_RULES_FILE` override the catalog and the rules file. Path settings may be relative to the workspace or use `${workspaceFolder}`. Previously the server always ran with fixed default settings.
 
 ### Development
 
 - Removed `server/src/utils/xmlTokenizer.ts` and its 57 tests: nothing used the tokenizer. Its tests were counted as coverage of malformed-markup handling (manual test plan §12.4), which they never exercised. New tests now cover it: completion, hover, go-to-definition, folding, outline and formatting on documents with unclosed tags, unquoted or malformed attributes, or cut short (`server/test/malformedMarkup.test.ts`).
 - The DITA-OT documentation integration tests (`server/test/docsDataset.test.ts`) are opt-in: set `DITACRAFT_DOCS_DATASET` to the folder holding `userguide.ditamap`. They read a path hard-coded to one machine, so they never ran anywhere else.
+- Tests for requirements of the DITA 1.3 conformance test book that had none (phase 4 of the action plan). They cover duplicate ids in maps, references to a duplicated id, a key defined in two sibling submaps, the values the key check skips, key scope names, peer maps and unused topics. Branch filtering (`<ditavalref>`, FLT-08) is declared out of scope (decision D4).
 
 ### Documentation
 

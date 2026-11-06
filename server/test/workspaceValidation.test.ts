@@ -5,9 +5,12 @@ import * as os from 'os';
 import {
     detectCrossFileDuplicateIds,
     createUnusedTopicDiagnostic,
+    detectUnusedTopics,
     WorkspaceIndex,
     WORKSPACE_CODES,
 } from '../src/features/workspaceValidation';
+import { KeySpaceService } from '../src/services/keySpaceService';
+import { normalizeFsPath } from '../src/utils/textUtils';
 
 function makeTmpDir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-wsval-'));
@@ -327,6 +330,77 @@ suite('workspaceValidation', () => {
             assert.strictEqual(diag.code, WORKSPACE_CODES.UNUSED_TOPIC);
             assert.strictEqual(diag.severity, 3); // DiagnosticSeverity.Information
             assert.strictEqual(diag.range.start.line, 0);
+        });
+    });
+
+    suite('detectUnusedTopics', () => {
+
+        /** Writes `files` in a new folder; returns the topics reported unused, as paths relative to it. */
+        async function unusedTopics(files: Record<string, string>): Promise<string[]> {
+            const tmpDir = makeTmpDir();
+            const service = new KeySpaceService([tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {});
+            try {
+                for (const [name, content] of Object.entries(files)) {
+                    fs.mkdirSync(path.dirname(path.join(tmpDir, name)), { recursive: true });
+                    fs.writeFileSync(path.join(tmpDir, name), content);
+                }
+                const unused = await detectUnusedTopics([tmpDir], service);
+                const base = normalizeFsPath(tmpDir);
+                return [...unused].map(p => path.relative(base, p).split(path.sep).join('/')).sort();
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        }
+
+        const TOPIC = '<topic id="t"><title>T</title></topic>';
+
+        test('reports the topics no map references, by @href, @conref or a key', async () => {
+            const unused = await unusedTopics({
+                'root.ditamap': [
+                    '<map>',
+                    '  <topicref href="by-href.dita#t"/>',
+                    '  <topicref href="sub/nested.dita"/>',
+                    '  <topicref keyref="install"/>',
+                    '  <keydef keys="install" href="by-key.dita"/>',
+                    '  <topicref conref="by-conref.dita#t/x"/>',
+                    '  <!-- <topicref href="commented.dita"/> -->',
+                    '</map>',
+                ].join('\n'),
+                'by-href.dita': '<topic id="t"><title>T</title><body><p><xref href="from-topic.dita"/></p></body></topic>',
+                'sub/nested.dita': TOPIC,
+                'by-key.dita': TOPIC,
+                'by-conref.dita': TOPIC,
+                'commented.dita': TOPIC,
+                'from-topic.dita': TOPIC,
+                'orphan.dita': TOPIC,
+            });
+            assert.deepStrictEqual(unused, ['commented.dita', 'from-topic.dita', 'orphan.dita'],
+                'a reference in a comment does not count, nor a link from a topic: only maps reference topics');
+        });
+
+        test('a topic referenced from a submap or a key scope is used', async () => {
+            const unused = await unusedTopics({
+                'root.ditamap': '<map><mapref href="maps/sub.ditamap"/><topicgroup keyscope="v2"><keydef keys="intro" href="scoped.dita"/></topicgroup></map>',
+                'maps/sub.ditamap': '<map><topicref href="../in-submap.dita"/></map>',
+                'in-submap.dita': TOPIC,
+                'scoped.dita': TOPIC,
+                'orphan.dita': TOPIC,
+            });
+            assert.deepStrictEqual(unused, ['orphan.dita']);
+        });
+
+        test('nothing is reported when every topic is referenced, or when there is no topic', async () => {
+            assert.deepStrictEqual(await unusedTopics({ 'a.dita': TOPIC, 'root.ditamap': '<map><topicref href="a.dita"/></map>' }), []);
+            assert.deepStrictEqual(await unusedTopics({ 'root.ditamap': '<map/>' }), []);
+        });
+
+        test('a percent-encoded @href references the decoded file name', async () => {
+            const unused = await unusedTopics({
+                'root.ditamap': '<map><topicref href="my%20topic.dita"/></map>',
+                'my topic.dita': TOPIC,
+            });
+            assert.deepStrictEqual(unused, []);
         });
     });
 });

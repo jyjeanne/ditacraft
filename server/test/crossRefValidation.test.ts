@@ -345,6 +345,52 @@ suite('validateCrossReferences', () => {
             }
         });
 
+        test('a ${variable} or a DITA file name is not checked as a key', async () => {
+            // Neither is a key name: a variable of a template, or a file name written in
+            // @keyref. They are skipped; the undefined key next to them shows the check ran.
+            const keySpaceService = createMockKeySpaceService(new Map());
+            const text = '<topic id="t"><title>T</title><body><p>'
+                + '<ph keyref="${product}"/><xref keyref="install.dita"/><xref keyref="guide.ditamap"/>'
+                + '<ph keyref="${product}/name"/><ph keyref="real-undefined"/></p></body></topic>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const testUri = URI.file(path.join(tmpDir, 'source.dita')).toString();
+
+            try {
+                const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
+                assert.deepStrictEqual(
+                    diags.filter(d => d.code === XREF_CODES.UNDEFINED_KEY).map(d => d.message),
+                    ['Key "real-undefined" is not defined in any map']);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('an undefined key of a peer map names the peer map (DITA 1.3 §2.3.4.5)', async () => {
+            // "Processors that resolve key references to peer maps should provide appropriate
+            // messages when a reference to a peer map cannot be resolved."
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            fs.writeFileSync(path.join(tmpDir, 'root.ditamap'),
+                '<map><mapref href="other-guide.ditamap" scope="peer" keyscope="ext"/><topicref href="t.dita"/></map>');
+            fs.writeFileSync(path.join(tmpDir, 'other-guide.ditamap'), '<map><keydef keys="install" href="install.dita"/></map>');
+            const topic = path.join(tmpDir, 't.dita');
+            const text = '<topic id="t"><title>T</title><body><p>'
+                + '<xref keyref="ext.install"/><xref keyref="ext.missing"/><xref keyref="missing"/></p></body></topic>';
+            fs.writeFileSync(topic, text);
+            const keySpaceService = new KeySpaceService(
+                [tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {});
+
+            try {
+                const diags = await validateCrossReferences(text, URI.file(topic).toString(), keySpaceService, 100);
+                assert.deepStrictEqual(diags.filter(d => d.code === XREF_CODES.UNDEFINED_KEY).map(d => d.message), [
+                    'Key "ext.missing" is not defined in the peer map "other-guide.ditamap" (key scope "ext")',
+                    'Key "missing" is not defined in any map',
+                ]);
+            } finally {
+                keySpaceService.shutdown();
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
         test('ditaot profile ignores undefined key warnings in maps', async () => {
             const keys = new Map<string, KeyDefinition>();
             const keySpaceService = createMockKeySpaceService(keys);
@@ -1277,6 +1323,27 @@ suite('validateCrossReferences', () => {
             }
         });
 
+        test('DITA-KEY-005: an invalid key scope name is an error; a period is legal (DITA 1.3 §2.3.4.2)', async () => {
+            // "The legal characters for a key scope name are the same as those for keys."
+            // A keys="…" written in the text of the map is an example, not an attribute.
+            const text = '<map><topicmeta><shortdesc>Write keys="a/b" to see the error.</shortdesc></topicmeta>'
+                + '<topicgroup keyscope="v1.2 bad/name"><keydef keys="k" href="k.dita"/></topicgroup></map>';
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const mapFile = path.join(tmpDir, 'test.ditamap');
+            fs.writeFileSync(mapFile, text);
+
+            try {
+                const diags = await validateCrossReferences(text, URI.file(mapFile).toString(), undefined, 100);
+                const invalid = diags.filter(d => d.code === XREF_CODES.INVALID_KEY_NAME);
+                assert.deepStrictEqual(invalid.map(d => d.message), [
+                    'Invalid key scope name "bad/name". Like key names, key scope names may not contain whitespace or any of: { } [ ] / # ?',
+                ]);
+                assert.strictEqual(invalid[0].severity, DiagnosticSeverity.Error);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
         test('topicsetref fragment to map element id does not raise missing topic warning', async () => {
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const mapA = path.join(tmpDir, 'map-a.ditamap');
@@ -1797,6 +1864,109 @@ suite('validateCrossReferences', () => {
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
+        });
+    });
+
+    suite('Conref ranges (@conrefend, DITA 1.3 §3.12.13.7, checked with DITA-OT 4.3.5)', () => {
+        const SOURCE_TOPIC = [
+            '<topic id="x"><title>Source</title><body>',
+            '<p id="p1">First para</p>',
+            '<ol id="mylist"><li id="apple">A</li><li id="bear">B</li><li id="cat">C</li><li id="dog">D</li><li id="eel">E</li></ol>',
+            '<ol id="other"><li id="fox">F</li></ol>',
+            '<ul id="u1"><li>U</li></ul>',
+            '<steps id="s"><step id="s1"><cmd>1</cmd></step><step id="s2"><cmd>2</cmd></step></steps>',
+            '<p id="p2">Second para</p>',
+            '</body></topic>',
+        ].join('\n');
+        const RANGE_CODES = new Set<unknown>([XREF_CODES.CONREF_RANGE, XREF_CODES.CONREFEND_WITHOUT_CONREF, XREF_CODES.INCOMPATIBLE_CONREF]);
+
+        /**
+         * Validates a topic of `body`, next to source.dita and `files`, with a key space when the
+         * files have a map. Returns the range diagnostics as "the text they cover → code severity: message".
+         */
+        async function rangeDiagnostics(body: string, files: Record<string, string> = {}): Promise<string[]> {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            for (const [name, content] of Object.entries({ 'source.dita': SOURCE_TOPIC, ...files })) {
+                fs.writeFileSync(path.join(tmpDir, name), content);
+            }
+            const topic = path.join(tmpDir, 'ref.dita');
+            const text = `<topic id="y"><title>Reuse</title><body>${body}</body></topic>`;
+            fs.writeFileSync(topic, text);
+            const keySpaceService = Object.keys(files).some(name => name.endsWith('.ditamap'))
+                ? new KeySpaceService([tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {})
+                : undefined;
+            try {
+                const diags = await validateCrossReferences(text, URI.file(topic).toString(), keySpaceService, 100);
+                return diags.filter(d => RANGE_CODES.has(d.code)).map(d => {
+                    const covered = text.slice(d.range.start.character, d.range.end.character); // one line
+                    return `${covered} → ${d.code} ${d.severity === DiagnosticSeverity.Error ? 'Error' : 'Warning'}: ${d.message}`;
+                });
+            } finally {
+                keySpaceService?.shutdown();
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        }
+
+        test('the examples of the standard resolve: list items, blocks, a specialization of the referencing element, the same document', async () => {
+            // "@conref and @conrefend attributes on an <li> element might reference other <li> elements,
+            // or they might reference specializations of <li> such as <step>."
+            assert.deepStrictEqual(await rangeDiagnostics(
+                '<ol><li>My own first item</li><li conref="source.dita#x/bear" conrefend="source.dita#x/dog"/></ol>'
+                + '<p conref="source.dita#x/p1" conrefend="source.dita#x/p2"/>'
+                + '<ol><li conref="source.dita#x/s1" conrefend="source.dita#x/s2"/></ol>'
+                + '<ol><li id="a">a</li><li id="b">b</li></ol><ol><li conref="#y/a" conrefend="#y/b"/></ol>'), []);
+        });
+
+        test('a range end that is missing, not a sibling, before the start or in another document is an error, as DITA-OT says (DOTX071E)', async () => {
+            // "The start and end elements in a range MUST share the same parent, and the start element
+            // MUST precede the end element in document order."
+            assert.deepStrictEqual(await rangeDiagnostics('<ol>'
+                + '<li conref="source.dita#x/bear" conrefend="source.dita#x/nosuch"/>'
+                + '<li conref="source.dita#x/bear" conrefend="source.dita#x/fox"/>'
+                + '<li conref="source.dita#x/dog" conrefend="source.dita#x/bear"/>'
+                + '<li conref="source.dita#x/bear" conrefend="other.dita#z/zz"/>'
+                + '</ol>', { 'other.dita': '<topic id="z"><title>Other</title><body><ol><li id="zz">Z</li></ol></body></topic>' }), [
+                'source.dita#x/nosuch → DITA-XREF-006 Error: Range end "nosuch" not found in source.dita: the range cannot be resolved, and only its start element is reused',
+                'source.dita#x/fox → DITA-XREF-006 Error: Range end "fox" is not a sibling of the range start "bear": the start and end elements of a range must share the same parent, so only the start element is reused',
+                'source.dita#x/bear → DITA-XREF-006 Error: Range end "bear" comes before the range start "dog": the start element must precede the end element, so only the start element is reused',
+                'other.dita#z/zz → DITA-XREF-006 Error: Range end "zz" is not in source.dita, the document of the range start: the start and end elements of a range must share the same parent, so only the start element is reused',
+            ]);
+        });
+
+        test('a range end of another type than the referencing element is a warning: DITA-OT resolves the range without a message', async () => {
+            // "The start and end elements of a range MUST be of the same type as the referencing element
+            // or generalizable to the referencing element."
+            assert.deepStrictEqual(await rangeDiagnostics('<p conref="source.dita#x/p1" conrefend="source.dita#x/u1"/>'), [
+                'source.dita#x/u1 → DITA-XREF-004 Warning: Range end <ul> is not compatible with the referencing element <p>: the start and end elements of a range must be of the same type as the referencing element, or specializations of it',
+            ]);
+        });
+
+        test('a @conrefend without @conref or @conkeyref is ignored, with a warning ("No result")', async () => {
+            assert.deepStrictEqual(await rangeDiagnostics(
+                '<ol><li conrefend="source.dita#x/dog">Own text</li></ol><p>Write conrefend="a.dita#t/e" next to a conref.</p>'), [
+                'source.dita#x/dog → DITA-XREF-007 Warning: @conrefend without @conref or @conkeyref is ignored: it ends a range that has no start',
+            ]);
+        });
+
+        test('with @conkeyref, the range ends in the topic the key addresses; without the key, in the @conref fallback', async () => {
+            // "the map or topic element addressed by the key name component of the @conkeyref is used in
+            // place of whatever map or topic element is addressed by the @conrefend attribute"; "When
+            // @conref, @conkeyref, and @conrefend are all specified, the key value takes priority."
+            const files = {
+                'root.ditamap': '<map><keydef keys="xmp" href="examples.dita"/><topicref href="ref.dita"/></map>',
+                'examples.dita': '<topic id="examples"><title>These are examples</title><body><ul>'
+                    + '<li id="first">A first example</li><li>Another trivial example</li><li id="last">Final example</li></ul></body></topic>',
+            };
+            assert.deepStrictEqual(await rangeDiagnostics('<ul>'
+                + '<li conkeyref="xmp/first" conrefend="default.dita#default/last"/>'
+                + '<li conkeyref="xmp/first" conrefend="default.dita#default/nosuch"/>'
+                + '<li conkeyref="xmp/first" conref="source.dita#x/bear" conrefend="source.dita#x/last"/>'
+                + '<li conkeyref="nokey/first" conref="source.dita#x/bear" conrefend="source.dita#x/last"/>'
+                + '</ul>', files), [
+                // The @conref fallback of the undefined key "nokey" (the third range takes the key's topic)
+                'source.dita#x/last → DITA-XREF-006 Error: Range end "last" not found in source.dita: the range cannot be resolved, and only its start element is reused',
+                'default.dita#default/nosuch → DITA-XREF-006 Error: Range end "nosuch" not found in examples.dita: the range cannot be resolved, and only its start element is reused',
+            ]);
         });
     });
 });

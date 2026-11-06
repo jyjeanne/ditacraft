@@ -107,6 +107,20 @@ are excluded, and an element is excluded when any attribute excludes it. The fil
 applies to `@audience`, `@platform`, `@product`, `@otherprops`, `@props` and the `@props`
 specializations the document declares (`@deliveryTarget`…), not to `@rev` (flagged by `<revprop>`).
 
+Grouped values (`product="appserver(mySERVER) database(dbA dbB)"`) follow DITA 1.3 §2.4.3.2. A
+group excludes only when all its values are excluded, and the values outside any group form a
+group of their own. An attribute excludes the element when any of its groups does. A value of
+the `database()` group is decided, in this order, by:
+1. `database="dbA"`;
+2. a `database` rule without a value, which DITA 1.3 does not mention: it is read as DITA-OT reads it;
+3. `product="dbA"`;
+4. `product="database"`, the group's default;
+5. the `product` default;
+6. the filter-wide default.
+
+DITA-OT 4.3.5 differs in two cases: it ignores step 4, and a flag rule at step 1 does not keep a
+value that step 3 excludes.
+
 The text editor shows the same decisions on the source (condition highlighting,
 `ditacraft.conditionHighlightingEnabled`): excluded elements are dimmed and struck through; flagged
 ones get a background tinted with the flag's colour, its style, its start and end flags (their

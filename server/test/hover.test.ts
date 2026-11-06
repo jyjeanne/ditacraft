@@ -320,6 +320,28 @@ suite('handleHover', () => {
                 assert.ok(mc.value.includes('<p id="intro">Hello world.</p>'), 'should show the resolved element\'s full content');
             });
 
+            test('previews the first element when the id is duplicated (DITA 1.3 §2.3.1)', async () => {
+                // "processors MUST resolve references to that ID to the first element with the
+                // given ID value in document order."
+                const targetPath = path.join(tmpDir, 'snippets.dita');
+                fs.writeFileSync(targetPath,
+                    '<topic id="t"><body><p id="intro">First.</p><p id="intro">Second.</p></body></topic>');
+
+                const keys = new Map<string, KeyDefinition>([
+                    ['snippet', { keyName: 'snippet', sourceMap: path.join(tmpDir, 'root.ditamap'), targetFile: targetPath }],
+                ]);
+                const content = '<p conkeyref="snippet/intro">fallback</p>';
+                const result = await handleHover(
+                    { textDocument: { uri: TEST_URI }, position: { line: 0, character: 20 } },
+                    createDocs(createDoc(content)),
+                    createMockKeySpaceService(keys)
+                );
+
+                const mc = result?.contents as { kind: string; value: string };
+                assert.ok(mc.value.includes('<p id="intro">First.</p>'), 'the first element in document order');
+                assert.ok(!mc.value.includes('Second.'));
+            });
+
             test('omits the preview (does not show unrelated content) when the target element is self-closing (regression)', async () => {
                 // Previously: getConrefPreview had no self-closing check and
                 // never stripped comments before scanning for a closing tag,

@@ -9,13 +9,14 @@ import * as path from 'path';
 import { promises as fsp } from 'fs';
 
 import { KeySpaceService } from '../services/keySpaceService';
-import { parseReference } from '../utils/referenceParser';
+import { getTargetId, parseReference } from '../utils/referenceParser';
+import { findElementExtentById } from '../utils/elementExtent';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { DITA_ELEMENTS } from '../data/ditaSchema';
 import { t } from '../utils/i18n';
 import {
-    stripCommentsAndCodeContent, offsetToRange, escapeRegex, normalizeFsPath, uriToPath,
-    isPathWithinWorkspace, effectiveWorkspaceFolders, scanKeyDefinitions,
+    stripCommentsAndCodeContent, stripCommentsAndCDATA, offsetToRange, escapeRegex, normalizeFsPath, uriToPath,
+    isPathWithinWorkspace, effectiveWorkspaceFolders, scanKeyDefinitions, decodeHrefPath,
 } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
@@ -27,6 +28,8 @@ export const XREF_CODES = {
     MISSING_ELEMENT_ID: 'DITA-XREF-003',
     INCOMPATIBLE_CONREF: 'DITA-XREF-004',
     COPY_TO_COLLISION: 'DITA-XREF-005',
+    CONREF_RANGE: 'DITA-XREF-006',
+    CONREFEND_WITHOUT_CONREF: 'DITA-XREF-007',
     UNDEFINED_KEY: 'DITA-KEY-001',
     KEY_NO_TARGET: 'DITA-KEY-002',
     KEY_MISSING_ELEMENT: 'DITA-KEY-003',
@@ -256,6 +259,7 @@ export async function validateCrossReferences(
                             range, diagnostics
                         );
                     }
+                    await checkRangeOfConref(match.index, targetPath, targetContent, parsed.fragment);
                 }
             }
         } else if (parsed.fragment) {
@@ -274,8 +278,44 @@ export async function validateCrossReferences(
                         range, diagnostics
                     );
                 }
+                await checkRangeOfConref(match.index, filePath, text, parsed.fragment);
             }
         }
+    }
+
+    /**
+     * The @conrefend of the element whose @conref, at `refOffset`, starts a range in `startContent`
+     * (the file `startPath`). Not when the element's @conkeyref resolves: the key then addresses
+     * the range (DITA 1.3 §3.12.13.7: "When @conref, @conkeyref, and @conrefend are all
+     * specified, the key value takes priority").
+     */
+    async function checkRangeOfConref(refOffset: number, startPath: string, startContent: string, fragment: string): Promise<void> {
+        const conrefend = attributeOfTag(cleanText, refOffset, 'conrefend');
+        if (!conrefend) return;
+        const conkeyref = attributeOfTag(cleanText, refOffset, 'conkeyref');
+        if (conkeyref && keySpaceService && await keySpaceService.resolveKey(conkeyref.value.split('/')[0], filePath)) return;
+        const end = parseReference(conrefend.value);
+        const endId = getTargetId(end.fragment);
+        if (!endId) return;
+        const endPath = end.filePath ? path.resolve(currentDir, decodeHrefPath(end.filePath)) : filePath;
+        validateConrefRange(text, conrefend, { path: startPath, content: startContent, id: getTargetId(fragment) },
+            endPath, endId, getContainingElementName(cleanText, refOffset), diagnostics);
+    }
+
+    // --- A @conrefend without @conref or @conkeyref: "No result" (DITA 1.3 §3.12.13.7) ---
+    const conrefendRegex = /\bconrefend\s*=/g;
+    while ((match = conrefendRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
+        if (!isInStartTag(cleanText, match.index)) continue;
+        if (attributeOfTag(cleanText, match.index, 'conref') || attributeOfTag(cleanText, match.index, 'conkeyref')) continue;
+        const conrefend = attributeOfTag(cleanText, match.index, 'conrefend');
+        if (!conrefend) continue;
+        diagnostics.push({
+            severity: DiagnosticSeverity.Warning,
+            range: offsetToRange(text, conrefend.offset, conrefend.offset + conrefend.value.length),
+            message: t('xref.conrefendWithoutConref'),
+            code: XREF_CODES.CONREFEND_WITHOUT_CONREF,
+            source: SOURCE,
+        });
     }
 
     // --- Validate duplicate key definitions in map files (DITA-OT: DOTJ045I) ---
@@ -317,12 +357,15 @@ export async function validateCrossReferences(
         }
     }
 
-    // --- Validate key names in map key definitions ---
+    // --- Validate key names and key scope names in maps ---
+    // DITA 1.3 §2.3.4.2: "The legal characters for a key scope name are the same as
+    // those for keys" (§3.12.13.2); both attributes hold space-separated names.
     if (isMapLikeSource) {
-        const keydefRegex = /\bkeys\s*=\s*["']([^"']+)["']/g;
+        const keydefRegex = /\b(keys|keyscope)\s*=\s*["']([^"']+)["']/g;
         let keyMatch: RegExpExecArray | null;
         while ((keyMatch = keydefRegex.exec(cleanText)) !== null && diagnostics.length < maxProblems) {
-            const value = keyMatch[1];
+            if (!isInStartTag(cleanText, keyMatch.index)) continue;
+            const value = keyMatch[2];
             const keyNames = value.split(/\s+/).filter(Boolean);
             for (const keyName of keyNames) {
                 if (isInvalidKeyName(keyName)) {
@@ -330,7 +373,7 @@ export async function validateCrossReferences(
                     diagnostics.push({
                         severity: DiagnosticSeverity.Error,
                         range,
-                        message: t('key.invalidName', keyName),
+                        message: t(keyMatch[1] === 'keys' ? 'key.invalidName' : 'key.invalidScopeName', keyName),
                         code: XREF_CODES.INVALID_KEY_NAME,
                         source: SOURCE,
                     });
@@ -389,12 +432,16 @@ export async function validateCrossReferences(
                 if (isDitaOtComparison && isMapLikeSource) {
                     continue;
                 }
+                // A key of a peer map: the message names the map (DITA 1.3 §2.3.4.5)
+                const peerMap = await keySpaceService.findPeerMapOfKey?.(keyName, filePath);
                 diagnostics.push({
                     // Content reused through an undefined key fails in DITA-OT (DOTJ046E);
                     // a link through one falls back to its @href (DOTJ047I).
                     severity: match[1] === 'conkeyref' ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
                     range,
-                    message: t('key.undefined', keyName),
+                    message: peerMap
+                        ? t('key.undefinedInPeerMap', keyName, path.basename(peerMap), keyName.slice(0, keyName.indexOf('.')))
+                        : t('key.undefined', keyName),
                     code: XREF_CODES.UNDEFINED_KEY,
                     source: SOURCE,
                 });
@@ -452,6 +499,15 @@ export async function validateCrossReferences(
                                     source: SOURCE,
                                 });
                             }
+                        }
+                        // A range: "the map or topic element addressed by the key name component of
+                        // the @conkeyref is used in place of whatever map or topic element is addressed
+                        // by the @conrefend attribute" (DITA 1.3 §3.12.13.7)
+                        const conrefend = attributeOfTag(cleanText, match.index, 'conrefend');
+                        const endId = conrefend && getTargetId(parseReference(conrefend.value).fragment);
+                        if (conrefend && endId) {
+                            validateConrefRange(text, conrefend, { path: keyDef.targetFile, content: targetContent, id: elementId },
+                                keyDef.targetFile, endId, sourceElement, diagnostics);
                         }
                     }
                 }
@@ -584,15 +640,6 @@ function missingFileSeverity(
         ? formatValue === 'dita' || formatValue === 'ditamap'
         : /\.(dita|ditamap|bookmap|xml)$/i.test(targetPath);
     return isDita ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning;
-}
-
-/** The file path of an @href, URI-decoded (`my%20topic.dita` is `my topic.dita`, as DITA-OT reads it). */
-function decodeHrefPath(filePath: string): string {
-    try {
-        return decodeURIComponent(filePath);
-    } catch {
-        return filePath; // Not a valid escape sequence (a bare "%"): taken as written
-    }
 }
 
 /**
@@ -1565,4 +1612,106 @@ function validateConrefCompatibility(
             source: SOURCE,
         });
     }
+}
+
+/**
+ * An attribute of the start tag that holds `refOffset`, with the offset of its value, or null.
+ * Attributes are read one after the other, so a name written in another attribute's value is
+ * not taken for one.
+ */
+function attributeOfTag(text: string, refOffset: number, name: string): { value: string; offset: number } | null {
+    const tagStart = text.lastIndexOf('<', refOffset);
+    if (tagStart === -1) return null;
+    const tagPattern = /<[^\s/>]+((?:"[^"]*"|'[^']*'|[^>"'])*)/y;
+    tagPattern.lastIndex = tagStart;
+    const tag = tagPattern.exec(text);
+    if (!tag) return null;
+    const attributesStart = tagStart + tag[0].length - tag[1].length;
+    const attributePattern = /([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+    let attribute: RegExpExecArray | null;
+    while ((attribute = attributePattern.exec(tag[1])) !== null) {
+        if (attribute[1] !== name) continue;
+        const value = attribute[2] ?? attribute[3];
+        // The value ends just before the closing quote
+        return { value, offset: attributesStart + attribute.index + attribute[0].length - 1 - value.length };
+    }
+    return null;
+}
+
+/**
+ * Check a @conref range (DITA 1.3 §3.12.13.7). "The start and end elements in a range MUST share
+ * the same parent, and the start element MUST precede the end element in document order": DITA-OT
+ * 4.3.5 fails a range whose end it does not find among the siblings after the start element
+ * (DOTX071E), in another document too, and reuses the start element alone. The end element "MUST
+ * be of the same type as the referencing element or generalizable to the referencing element":
+ * DITA-OT resolves such a range without a message, so it is a warning.
+ *
+ * `start` is the document that holds the range and the id of its start element; `endPath` is the
+ * document @conrefend addresses, and `endId` the id of its end element.
+ */
+function validateConrefRange(
+    text: string,
+    conrefend: { value: string; offset: number },
+    start: { path: string; content: string; id: string },
+    endPath: string,
+    endId: string,
+    referencingElement: string | null,
+    diagnostics: Diagnostic[],
+): void {
+    const report = (severity: DiagnosticSeverity, message: string, code: string = XREF_CODES.CONREF_RANGE): void => {
+        diagnostics.push({
+            severity,
+            range: offsetToRange(text, conrefend.offset, conrefend.offset + conrefend.value.length),
+            message,
+            code,
+            source: SOURCE,
+        });
+    };
+    if (normalizeFsPath(endPath) !== normalizeFsPath(start.path)) {
+        report(DiagnosticSeverity.Error, t('xref.conrefendOtherDocument', endId, path.basename(start.path)));
+        return;
+    }
+    const startElement = findElementExtentById(start.content, start.id);
+    if (!startElement) return; // The @conref check reports it
+    const endElement = findElementExtentById(start.content, endId);
+    if (!endElement) {
+        report(DiagnosticSeverity.Error, t('xref.conrefendNotFound', endId, path.basename(start.path)));
+        return;
+    }
+    if (endElement.start !== startElement.start) {
+        const after = endElement.start >= startElement.end;
+        const before = endElement.end <= startElement.start;
+        const siblings = after ? isSiblingRun(start.content, startElement.end, endElement.start)
+            : before && isSiblingRun(start.content, endElement.end, startElement.start);
+        if (!siblings) {
+            report(DiagnosticSeverity.Error, t('xref.conrefendNotSibling', endId, start.id));
+            return;
+        }
+        if (before) {
+            report(DiagnosticSeverity.Error, t('xref.conrefendBeforeStart', endId, start.id));
+            return;
+        }
+    }
+    if (referencingElement && !areConrefCompatible(referencingElement, endElement.tagName)) {
+        report(DiagnosticSeverity.Warning, t('xref.incompatibleConrefend', referencingElement, endElement.tagName),
+            XREF_CODES.INCOMPATIBLE_CONREF);
+    }
+}
+
+/**
+ * Whether the markup between two offsets is a run of siblings: it closes no element opened
+ * before it, and every element it opens is closed in it. The element that ends at `from` and
+ * the one that starts at `to` then share the same parent.
+ */
+function isSiblingRun(content: string, from: number, to: number): boolean {
+    const markup = stripCommentsAndCDATA(content).slice(from, to);
+    let depth = 0;
+    for (const tag of markup.matchAll(/<(\/?)[A-Za-z_][\w.:-]*(?:"[^"]*"|'[^']*'|[^>"'])*?(\/?)>/g)) {
+        if (tag[1]) {
+            if (--depth < 0) return false;
+        } else if (!tag[2]) {
+            depth++;
+        }
+    }
+    return depth === 0;
 }

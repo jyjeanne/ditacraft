@@ -343,6 +343,23 @@ suite('Visual Preview: host modules', function () {
             const d = parse(declared.replace(/<!DOCTYPE[^\]]*\]>\n/, ''));
             assert.deepStrictEqual(filter.evaluate(findElements(d, 'p')[0])?.flags, conditionMarks(declared, filter).flagged.map((f) => f.style), 'the preview agrees');
         });
+
+        test('grouped values: a rule on a group name, its flags and the condition highlighting (DITA 1.3 §2.4.3.2)', () => {
+            // A rule on a group name reaches the attributes that hold groups.
+            const grouped = buildDitavalFilter('<val>'
+                + '<prop action="exclude" att="appserver" val="mySERVER"/>'
+                + '<prop action="flag" att="database" val="ABC" color="red"/>'
+                + '</val>', p('filters', 'groups.ditaval'));
+            assert.ok(grouped.attributes.has('product'));
+            const groupedText = '<topic><p product="appserver(mySERVER) database(ABC)">a</p><p product="database(ABC dbB)">b</p><p product="ABC">c</p></topic>';
+            const [server, database, plain] = findElements(parse(groupedText), 'p');
+            assert.strictEqual(grouped.evaluate(server)?.excluded, true, 'the appserver() group excludes it');
+            assert.deepStrictEqual(grouped.evaluate(database)?.flags.map((f) => f.color), ['red'], 'the flag of a value of the database() group');
+            assert.strictEqual(grouped.evaluate(plain), undefined, 'not in the group');
+            const groupedMarks = conditionMarks(groupedText, grouped);
+            assert.deepStrictEqual(groupedMarks.excluded.map((s) => groupedText.slice(s.start, s.end)), ['<p product="appserver(mySERVER) database(ABC)">a</p>']);
+            assert.deepStrictEqual(groupedMarks.flagged.flatMap((f) => f.spans.map((s) => groupedText.slice(s.start, s.end))), ['<p product="database(ABC dbB)">b</p>']);
+        });
     });
 
     suite('problems (spec §11.1)', () => {

@@ -17,8 +17,8 @@ Effort: **S** = up to half a day, **M** = up to two days, **L** = more.
 | D1 | Key precedence between scopes changes which definition some key references resolve to. Release it as a breaking change, with a CHANGELOG "Changed" entry? | KSC-02 | Yes: it is what DITA 1.3 and DITA-OT do, and the editor currently shows a different target than the published output. |
 | D2 | `<indextermref>` is valid DITA 1.3 ("reserved for future use"). Keep `DITA-SCH-003` as an Error, or make it a Warning that says DITA-OT does not process the element? | SCH-003 | Warning, with a message that does not say "deprecated". **Decided (phase 3)**: DITA-OT 4.3.5 drops the element without a message. |
 | D3 | A key definition without a target or text is valid DITA 1.3. Keep `DITA-KEY-002` as a Warning (the link leads nowhere), or lower it to Information? | KEY-07 | Keep the Warning, documented in the test book as an intended best-practice check (accepted deviation). **Decided (phase 3)**: DITA-OT 4.3.5 renders such a reference as an empty element, without a message. |
-| D4 | Branch filtering (`<ditavalref>`) is not supported. Implement it, or declare it out of scope? | FLT-08 | Declare it out of scope in the conformance statement for now. |
-| D5 | Grouped values in conditional attributes (`product="database(myDB)"`) are not supported by the DITAVAL filtering of the editor. Implement? | FLT-04 | Yes, in phase 4 (they are part of DITA 1.3 filtering). |
+| D4 | Branch filtering (`<ditavalref>`) is not supported. Implement it, or declare it out of scope? | FLT-08 | Declare it out of scope in the conformance statement for now. **Decided (phase 4)**: out of scope; FLT-08 is marked "Out of scope" in the test book and the proposed conformance statement names it. |
+| D5 | Grouped values in conditional attributes (`product="database(myDB)"`) are not supported by the DITAVAL filtering of the editor. Implement? | FLT-04 | Yes, in phase 4 (they are part of DITA 1.3 filtering). **Decided (phase 4)**: implemented. Where DITA-OT 4.3.5 departs from the standard (two cases, listed in the test book), the standard is followed. |
 
 ## 2. Phase 1 — Key resolution between scopes (KSC-02)
 
@@ -116,10 +116,22 @@ Effort: **S** = up to half a day, **M** = up to two days, **L** = more.
 | CON-05 | `@conrefend` ranges (§3.12.13.7) | New check: the end element exists, has the same type as the start element (or is generalizable to it), shares its parent and follows it in document order. Report like the other conref targets (Error, DOTX010E). Tests for each error row of §3.12.13.7. | M |
 | FLT-08 | Branch filtering (`<ditavalref>`, §2.4.4) | Decision D4: declare it out of scope in the conformance statement, and mark the row accordingly. | S |
 
+Findings of phase 4:
+- PEER-02 was a deviation. The root `@keyscope` of a peer map was applied: a key of a child scope of the peer map was reachable only with that scope name in it (`ext.inner.c.x`), and the name was accepted for every key. Fixed in the language server and in the extension's key space resolver.
+- PEER-03: `DITA-KEY-001` now names the peer map and its key scope.
+- KSC-05: `DITA-KEY-005` now checks `@keyscope`, with its own message, and no longer reports a `keys="…"` written in the text of a map.
+- MAP-04: a percent-encoded `@href` (`my%20topic.dita`) did not match its file, which was reported unused. Fixed.
+- KEY-11: a value with a folder (`keyref="topics/install.dita"`) is read as a key and an element, as the syntax of `@keyref` says, and is checked.
+- CON-05: `@conrefend` is checked.
+  - `DITA-XREF-006` (Error, as DITA-OT `DOTX071E`): an end that is missing, is not a sibling of the start, comes before it, or is in another document.
+  - `DITA-XREF-004` (Warning): an end of another type, which DITA-OT accepts without a message.
+  - `DITA-XREF-007` (Warning): a `@conrefend` without `@conref` or `@conkeyref`.
+- FLT-04: grouped values are filtered as §2.4.3.2 says. On 22 cases, DITA-OT 4.3.5 gave the same result on 19. It ignores the default of a group (`product="database"`), and it lets an exclusion on the attribute win over a flag on the group name. The standard is followed in both cases.
+
 Also in this phase, the partial requirements that only need stronger tests, from the test book:
 - DOC-02, real DTD validation in the language server tests;
 - DOC-03, a real RELAX NG validation;
-- KEY-04, the same key in two sibling submaps;
+- KEY-04, the same key in two sibling submaps (done in the first part);
 - SUB-05, completion of controlled values and of the default.
 
 ## 6. Phase 5 — Close-out
@@ -133,7 +145,7 @@ Also in this phase, the partial requirements that only need stronger tests, from
 
 | Item | Phase | Effort | Status |
 |---|---|---|---|
-| D1–D5 decisions | 1 | — | D1, D2, D3 decided; D4, D5 open |
+| D1–D5 decisions | 1 | — | Decided |
 | KSC-02 key precedence between scopes | 1 | M | Done |
 | ID-01 Unicode ids | 2 | S | Done |
 | SUB-03 empty enumeration | 2 | S | Done |
@@ -142,8 +154,8 @@ Also in this phase, the partial requirements that only need stronger tests, from
 | SCH-003 `<indextermref>` message and severity | 3 | S | Done |
 | SCH-014 `@navtitle` message | 3 | S | Done |
 | KEY-07 key without target | 3 | S | Done (accepted deviation) |
-| ID-03, ID-05, KEY-11, KSC-05, PEER-02, PEER-03, MAP-04 tests | 4 | S each | Open |
-| FLT-04 grouped values | 4 | M | Open |
-| CON-05 `@conrefend` | 4 | M | Open |
-| FLT-08 branch filtering (decision) | 4 | S | Open |
+| ID-03, ID-05, KEY-04, KEY-11, KSC-05, PEER-02, PEER-03, MAP-04 tests | 4 | S each | Done (fixes for PEER-02 and MAP-04) |
+| FLT-04 grouped values | 4 | M | Done |
+| CON-05 `@conrefend` | 4 | M | Done |
+| FLT-08 branch filtering (decision) | 4 | S | Done (out of scope, D4) |
 | Conformance statement, documentation, release | 5 | S | Open |
