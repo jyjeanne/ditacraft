@@ -9,7 +9,7 @@
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver/node';
 import { SubjectSchemeQueries } from '../services/subjectSchemeService';
 import { t } from '../utils/i18n';
-import { stripCommentsAndCodeContent, offsetToRange } from '../utils/textUtils';
+import { stripCommentsAndCodeContent, offsetToRange, XML_NAME_START, XML_NAME_CHAR } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -19,8 +19,6 @@ export const PROFILING_CODES = {
 } as const;
 
 /** A start tag (or empty-element tag) with its attributes. Element names may hold `-`, `.` and `:`. */
-const XML_NAME_START = String.raw`:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}`;
-const XML_NAME_CHAR = `${XML_NAME_START}\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040`;
 const START_TAG = new RegExp(
     `<([${XML_NAME_START}][${XML_NAME_CHAR}]*)((?:\\s+[${XML_NAME_START}][${XML_NAME_CHAR}]*\\s*=\\s*(?:"[^"]*"|'[^']*'))*)\\s*\\/?>`,
     'gu'
@@ -76,7 +74,10 @@ export function validateProfilingAttributes(
                 diagnostics.push({
                     severity: DiagnosticSeverity.Warning,
                     range: offsetToRange(text, tokenStart, tokenStart + token[0].length),
-                    message: t('prof.invalidValue', token[0], attrName, [...validValues].sort().join(', ')),
+                    // An empty enumeration allows no value at all (DITA 1.3 §3.6.1.8)
+                    message: validValues.size === 0
+                        ? t('prof.noValidValue', token[0], attrName)
+                        : t('prof.invalidValue', token[0], attrName, [...validValues].sort().join(', ')),
                     code: PROFILING_CODES.INVALID_VALUE,
                     source: SOURCE,
                 });

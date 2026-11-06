@@ -143,6 +143,34 @@ suite('SubjectSchemeService', () => {
             }
         });
 
+        test('an empty enumeration controls the attribute and allows no value (regression)', () => {
+            // DITA 1.3 §3.6.1.8: "When the <enumerationdef> element is empty, no value is valid for
+            // the attribute." The attribute used to be left uncontrolled.
+            const scheme = `<subjectScheme>
+  <subjectdef keys="os"><subjectdef keys="linux"/></subjectdef>
+  <enumerationdef>
+    <attributedef name="platform"/>
+  </enumerationdef>
+</subjectScheme>`;
+            const { dir, filePath } = createTmpScheme(scheme);
+            const other = path.join(dir, 'other.ditamap');
+            fs.writeFileSync(other, `<subjectScheme>
+  <subjectdef keys="os"><subjectdef keys="windows"/></subjectdef>
+  <enumerationdef><attributedef name="platform"/><subjectdef keyref="os"/></enumerationdef>
+</subjectScheme>`, 'utf-8');
+            try {
+                const service = new SubjectSchemeService();
+                service.registerSchemes([filePath]);
+                assert.strictEqual(service.isControlledAttribute('platform'), true);
+                assert.deepStrictEqual([...(service.getValidValues('platform') ?? ['uncontrolled'])], []);
+                // Merged with a scheme that has values, the values are the union
+                service.registerSchemes([filePath, other]);
+                assert.deepStrictEqual([...(service.getValidValues('platform') ?? [])], ['windows']);
+            } finally {
+                cleanup(dir);
+            }
+        });
+
         test('a binding to a subject without children keeps that subject as the value', () => {
             // Not a category of values: the subject itself stays usable rather than
             // leaving the attribute with no valid value at all.

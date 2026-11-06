@@ -14,7 +14,13 @@ import { DitaCraftSettings } from '../settings';
 import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
 import { DIAGNOSTIC_CODES } from '../utils/diagnosticCodes';
 import { t } from '../utils/i18n';
-import { stripCommentsAndCodeContent, offsetToRange, offsetToPosition, uriToPath } from '../utils/textUtils';
+import {
+    stripCommentsAndCodeContent, offsetToRange, offsetToPosition, uriToPath, XML_NAME_START, XML_NAME_CHAR,
+} from '../utils/textUtils';
+
+/** "All values for the @id attribute must be XML name tokens" (DITA 1.3 §2.3.1); topic and map ids are XML IDs. */
+const XML_NAME = new RegExp(`^[${XML_NAME_START}][${XML_NAME_CHAR}]*$`, 'u');
+const XML_NMTOKEN = new RegExp(`^[${XML_NAME_CHAR}]+$`, 'u');
 
 const SOURCE = 'dita-lsp';
 
@@ -370,8 +376,10 @@ function validateDITAStructure(
         return;
     }
 
-    // Missing DOCTYPE (check raw text — DOCTYPE is not inside comments)
-    if (!text.includes('<!DOCTYPE')) {
+    // Missing DOCTYPE (check raw text — DOCTYPE is not inside comments). A document associated
+    // with its RELAX NG grammar by an <?xml-model?> processing instruction has a grammar too
+    // (DITA 1.3 §2.6.2).
+    if (!text.includes('<!DOCTYPE') && !/<\?xml-model\s/.test(text)) {
         diagnostics.push({
             severity: DiagnosticSeverity.Warning,
             range: createRange(0, 0),
@@ -882,8 +890,8 @@ function validateIDs(
         if (idValue) {
             const isRootElement = DITA_ROOT_ELEMENTS.has(locations[0].element);
             if (isRootElement) {
-                // XML ID type: must start with letter or underscore
-                if (!/^[a-zA-Z_][\w.-]*$/.test(idValue)) {
+                // XML ID type: an XML name, which starts with a letter (of any script) or an underscore
+                if (!XML_NAME.test(idValue)) {
                     const pos = locations[0];
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,
@@ -894,8 +902,8 @@ function validateIDs(
                     });
                 }
             } else {
-                // NMTOKEN type: can start with digit but must contain only valid characters
-                if (!/^[\w.-]+$/.test(idValue)) {
+                // NMTOKEN type: XML name characters only, so it may start with a digit
+                if (!XML_NMTOKEN.test(idValue)) {
                     const pos = locations[0];
                     diagnostics.push({
                         severity: DiagnosticSeverity.Warning,

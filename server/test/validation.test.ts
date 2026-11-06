@@ -63,6 +63,17 @@ suite('validateDITADocument', () => {
             assert.strictEqual(dtDiags.length, 1);
         });
 
+        test('a document associated with its RELAX NG grammar by <?xml-model?> needs no DOCTYPE (regression)', () => {
+            // DITA 1.3 §2.6.2: RELAX NG is a normative grammar format. Seen on reference/books.dita
+            // of the DITA-OT 4.3.5 documentation.
+            const rngTopic = '<?xml version="1.0" encoding="UTF-8"?>\n'
+                + '<?xml-model href="urn:oasis:names:tc:dita:rng:topic.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>\n'
+                + '<topic id="t1"><title>T</title></topic>';
+            assert.deepStrictEqual(validate(rngTopic).filter(d => d.code === 'DITA-STRUCT-001'), []);
+            const rngMap = '<?xml-model href="urn:oasis:names:tc:dita:rng:map.rng"?>\n<map><title>M</title></map>';
+            assert.deepStrictEqual(validate(rngMap, 'file:///m.ditamap').filter(d => d.code === 'DITA-STRUCT-001'), []);
+        });
+
         test('present DOCTYPE produces no warning', () => {
             const diags = validate(
                 '<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">\n<topic id="t1"><title>T</title></topic>'
@@ -349,6 +360,21 @@ suite('validateDITADocument', () => {
             );
             const fmtDiags = diags.filter(d => d.code === 'DITA-ID-002');
             assert.strictEqual(fmtDiags.length, 0, 'NMTOKEN allows digit-starting IDs');
+        });
+
+        test('ids in any script are XML names, as DITA 1.3 requires (regression: only ASCII was accepted)', () => {
+            // DITA 1.3 §2.3.1: "All values for the @id attribute must be XML name tokens"; topic and
+            // map ids are XML IDs (an XML name: no digit first).
+            const formatErrors = (rootId: string, childId: string) =>
+                validate(`<topic id="${rootId}"><title>T</title><body><p id="${childId}">x</p></body></topic>`)
+                    .filter(d => d.code === 'DITA-ID-002').length;
+            assert.strictEqual(formatErrors('主题_1', 'été-2024'), 0, 'CJK and accented letters');
+            assert.strictEqual(formatErrors('موضوع', 'Ωμέγα.1'), 0, 'Arabic and Greek letters');
+            assert.strictEqual(formatErrors('t1', '١٢'), 0, 'a non-root id is a name token: it may start with a digit');
+            assert.strictEqual(formatErrors('٣abc', 'p1'), 0, 'XML 1.0 name start characters include U+037F to U+1FFF, Arabic-Indic digits too');
+            assert.strictEqual(formatErrors('1bad', 'p1'), 1, 'a topic id cannot start with a digit');
+            assert.strictEqual(formatErrors('t1', 'has space'), 1, 'a space is not a name character');
+            assert.strictEqual(formatErrors('t1', 'a#b'), 1, '# is not a name character');
         });
 
         test('invalid characters in non-root ID produce warning', () => {

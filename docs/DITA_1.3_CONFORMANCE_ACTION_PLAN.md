@@ -135,10 +135,10 @@ Also in this phase, the partial requirements that only need stronger tests, from
 |---|---|---|---|
 | D1–D5 decisions | 1 | — | Open |
 | KSC-02 key precedence between scopes | 1 | M | Open |
-| ID-01 Unicode ids | 2 | S | Open |
-| SUB-03 empty enumeration | 2 | S | Open |
-| DOC-06 `<?xml-model?>` without DOCTYPE | 2 | S | Open |
-| ADR-06 `@scope` cascade | 2 | M | Open |
+| ID-01 Unicode ids | 2 | S | Done |
+| SUB-03 empty enumeration | 2 | S | Done |
+| DOC-06 `<?xml-model?>` without DOCTYPE | 2 | S | Done |
+| ADR-06 `@scope` cascade | 2 | M | Done |
 | SCH-003 `<indextermref>` message and severity | 3 | S | Open |
 | SCH-014 `@navtitle` message | 3 | S | Open |
 | KEY-07 key without target | 3 | S | Open |

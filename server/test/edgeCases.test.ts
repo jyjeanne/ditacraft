@@ -95,10 +95,10 @@ suite('Edge cases (Manual Plan §12)', () => {
         test('CJK characters in element IDs are accepted', () => {
             const xml = '<topic id="主题_1"><title>中文标题</title><body><p>内容</p></body></topic>';
             const diags = validate(xml);
-            // CJK in IDs may trigger DITA-ID-002 (invalid XML Name) — that's expected.
-            // Key point: no crash, no uncaught exception, and no XML parse errors.
             const xmlParseErrors = diags.filter(d => typeof d.code === 'string' && d.code.startsWith('DITA-XML'));
             assert.strictEqual(xmlParseErrors.length, 0, 'no XML parse errors for CJK content');
+            // A CJK id is an XML name (DITA 1.3 §2.3.1); it used to get DITA-ID-002
+            assert.deepStrictEqual(diags.filter(d => d.code === 'DITA-ID-002'), []);
         });
 
         test('Arabic text content validates without crash', () => {

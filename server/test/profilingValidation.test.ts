@@ -247,6 +247,21 @@ suite('validateProfilingAttributes', () => {
         }
     });
 
+    test('an empty enumeration rejects every value, with a message that says why (regression)', () => {
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-prof-empty-'));
+        const schemePath = path.join(tmp, 'scheme.ditamap');
+        fs.writeFileSync(schemePath, '<subjectScheme><enumerationdef><attributedef name="audience"/></enumerationdef></subjectScheme>');
+        try {
+            const service = new SubjectSchemeService();
+            service.registerSchemes([schemePath]);
+            const diags = validateProfilingAttributes('<topic id="t" audience="expert novice"><title>T</title></topic>', service, 100);
+            assert.deepStrictEqual(diags.map(d => d.code), ['DITA-PROF-001', 'DITA-PROF-001']);
+            assert.ok(diags[0].message.includes('empty enumeration'), diags[0].message);
+        } finally {
+            fs.rmSync(tmp, { recursive: true, force: true });
+        }
+    });
+
     test('valid values message lists allowed values', () => {
         const { service, cleanup } = createSchemeService(PLATFORM_SCHEME);
         try {

@@ -81,6 +81,7 @@ export async function validateCrossReferences(
 
     // Strip comments/CDATA to avoid matching inside them
     const cleanText = stripCommentsAndCodeContent(text);
+    const scopeExtents = cascadingScopes(cleanText, isMapLikeSource);
 
     // --- Validate href and conref attributes ---
     const hrefRegex = /\b(href|conref)\s*=\s*["']([^"']+)["']/g;
@@ -98,7 +99,9 @@ export async function validateCrossReferences(
         const range = offsetToRange(text, valueStart, valueStart + value.length);
 
         const isAbsoluteUrl = /^https?:\/\/|^mailto:|^ftp:\/\//.test(value);
-        const scopeValue = getScopeValue(cleanText, match.index);
+        // The element's own @scope, else the closest ancestor's (in a map, or in <related-links>)
+        const scopeValue = getScopeValue(cleanText, match.index)
+            ?? (attrName === 'href' ? inheritedScope(scopeExtents, cleanText.lastIndexOf('<', match.index)) : null);
         const formatValue = getAttributeValue(cleanText, match.index, 'format');
 
         // Scope validation (DITA-SCOPE-001/002/003)
@@ -609,6 +612,52 @@ function hasTopicId(content: string, topicId: string): boolean {
         }
     }
     return false;
+}
+
+/**
+ * The elements whose @scope cascades to the references they contain, with their extent in the
+ * text. DITA 1.3 §3.12.13.11: "If no value is specified, but the attribute is specified on an
+ * ancestor within a map or within the related-links section, the value will cascade from the
+ * closest ancestor."
+ */
+function cascadingScopes(text: string, isMap: boolean): Array<{ start: number; end: number; scope: string }> {
+    const extents: Array<{ start: number; end: number; scope: string }> = [];
+    const open: Array<{ name: string; start: number; scope: string | null; cascades: boolean }> = [];
+    const close = (element: typeof open[number], end: number) => {
+        if (element.scope && element.cascades) extents.push({ start: element.start, end, scope: element.scope });
+    };
+    const tagPattern = /<(\/?)([A-Za-z_][\w:.-]*)((?:[^>"']|"[^"]*"|'[^']*')*?)(\/?)>/g;
+    let tag: RegExpExecArray | null;
+    while ((tag = tagPattern.exec(text)) !== null) {
+        const [, closing, name, attributes, selfClosing] = tag;
+        if (closing) {
+            const index = open.map(e => e.name).lastIndexOf(name);
+            // Closes the element, and any element left open inside it
+            if (index !== -1) for (const element of open.splice(index)) close(element, tag.index);
+            continue;
+        }
+        if (selfClosing) continue;
+        const parent = open[open.length - 1];
+        open.push({
+            name,
+            start: tag.index,
+            scope: /(?:^|\s)scope\s*=\s*["'](local|peer|external)["']/.exec(attributes)?.[1] ?? null,
+            cascades: isMap || name === 'related-links' || (parent?.cascades ?? false),
+        });
+    }
+    for (const element of open) close(element, text.length);
+    return extents;
+}
+
+/** The @scope inherited by the element whose start tag begins at tagStart: the closest ancestor's. */
+function inheritedScope(extents: Array<{ start: number; end: number; scope: string }>, tagStart: number): string | null {
+    let closest: { start: number; scope: string } | null = null;
+    for (const extent of extents) {
+        if (extent.start < tagStart && tagStart < extent.end && (!closest || extent.start > closest.start)) {
+            closest = extent;
+        }
+    }
+    return closest?.scope ?? null;
 }
 
 /** Extract the scope attribute value from the containing tag, or null if not present. */
