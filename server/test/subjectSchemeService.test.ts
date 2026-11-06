@@ -102,6 +102,47 @@ suite('SubjectSchemeService', () => {
             }
         });
 
+        test('a binding to a nested category gives the subjects below it, not the category (regression)', () => {
+            // Only top-level subject definitions were indexed: "linux", nested under "os",
+            // was not found and was taken literally as the only valid value.
+            const scheme = `<subjectScheme>
+  <subjectdef keys="os" navtitle="OS">
+    <subjectdef keys="linux" navtitle="Linux">
+      <subjectdef keys="redhat" navtitle="Red Hat"/>
+      <subjectdef keys="suse" navtitle="SUSE"/>
+    </subjectdef>
+    <subjectdef keys="windows" navtitle="Windows"/>
+  </subjectdef>
+  <enumerationdef>
+    <attributedef name="platform"/>
+    <subjectdef keyref="linux"/>
+  </enumerationdef>
+  <enumerationdef>
+    <attributedef name="otherprops"/>
+    <subjectdef keyref="windows"/>
+  </enumerationdef>
+  <enumerationdef>
+    <attributedef name="product"/>
+    <subjectdef keyref="os"/>
+  </enumerationdef>
+</subjectScheme>`;
+            const { dir, filePath } = createTmpScheme(scheme);
+            try {
+                const data = new SubjectSchemeService().parseSubjectScheme(filePath);
+                const values = (attribute: string) => [...data.validValuesMap.get(attribute)!.get('*')!].sort();
+                assert.deepStrictEqual(values('platform'), ['redhat', 'suse'], 'the nested category itself is not a value');
+                // A nested subject without children is its own value
+                assert.deepStrictEqual(values('otherprops'), ['windows']);
+                // A top-level category is unchanged
+                assert.deepStrictEqual(values('product'), ['linux', 'redhat', 'suse', 'windows']);
+                // Hierarchy paths still run from the top of the tree
+                assert.strictEqual(data.hierarchyPaths.get('redhat'), 'OS > Linux > Red Hat');
+                assert.strictEqual(data.hierarchyPaths.get('linux'), 'OS > Linux');
+            } finally {
+                cleanup(dir);
+            }
+        });
+
         test('a binding to a subject without children keeps that subject as the value', () => {
             // Not a category of values: the subject itself stays usable rather than
             // leaving the attribute with no valid value at all.

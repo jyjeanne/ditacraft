@@ -138,20 +138,17 @@ export class SubjectSchemeService implements ISubjectSchemeService {
             return empty;
         }
 
-        const subjectDefs = this.extractSubjectDefinitions(content);
+        const subjectTrees = this.parseSubjectDefs(content);
+        const subjectDefs = this.indexSubjectDefinitions(subjectTrees);
         const data: SubjectSchemeData = {
             validValuesMap: new Map(),
             defaultValueMap: new Map(),
             hierarchyPaths: new Map(),
         };
 
-        // Build hierarchy paths for all subject definitions (deduplicate shared defs)
-        const visited = new Set<SubjectDefinition>();
-        for (const def of subjectDefs.values()) {
-            if (!visited.has(def)) {
-                visited.add(def);
-                this.buildHierarchyPaths(def, [], data.hierarchyPaths);
-            }
+        // Hierarchy paths run from the top of each subject tree ("OS > Linux > Red Hat")
+        for (const tree of subjectTrees) {
+            this.buildHierarchyPaths(tree, [], data.hierarchyPaths);
         }
 
         this.processEnumerationDefs(content, subjectDefs, data);
@@ -325,18 +322,25 @@ export class SubjectSchemeService implements ISubjectSchemeService {
 
     // --- Internal: Parsing ---
 
-    private extractSubjectDefinitions(
-        content: string
+    /**
+     * Every subject definition, at any depth, by each of its keys: an <enumerationdef> can
+     * bind a nested category (`<subjectdef keyref="linux"/>` with linux under os), whose
+     * valid values are the subjects below it. The first definition of a key in document
+     * order wins.
+     */
+    private indexSubjectDefinitions(
+        trees: SubjectDefinition[]
     ): Map<string, SubjectDefinition> {
         const defs = new Map<string, SubjectDefinition>();
-        const children = this.parseSubjectDefs(content);
-        for (const def of children) {
+        const index = (def: SubjectDefinition): void => {
             for (const key of def.keys) {
                 if (!defs.has(key)) {
                     defs.set(key, def);
                 }
             }
-        }
+            for (const child of def.children) index(child);
+        };
+        for (const tree of trees) index(tree);
         return defs;
     }
 
