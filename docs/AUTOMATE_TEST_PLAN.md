@@ -105,7 +105,7 @@ Client tests use `@vscode/test-electron` to launch a real VS Code instance. Requ
 | 12.1 Performance | 5 | ✅ 80% | `edgeCases.test.ts`, `validationPipeline.test.ts` |
 | 12.2 Specialization | 2 | ⚠️ | Partial via ditaRulesValidator.test.ts |
 | 12.3 Stale diagnostics | 3 | ❌ | Requires VS Code E2E |
-| 12.4 Error-tolerant tokenizer | 3 | ✅ 100% | `xmlTokenizer.test.ts` |
+| 12.4 Malformed markup | 3 | ❌ | Not automated: no test runs completion, hover, folding, symbols or formatting on malformed files |
 | 12.5 Edge cases | 8 | ✅ 100% | `edgeCases.test.ts` |
 | 12.6 Security | 3 | ⚠️ | XXE neutralized in tokenizer |
 

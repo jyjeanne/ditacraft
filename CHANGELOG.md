@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - MCP server configuration: the server reads the `ditacraft.*` settings of `<WORKSPACE>/.vscode/settings.json` (JSON with comments), so it validates as the extension does in that workspace — XML catalog for project document type shells, custom rules, severity overrides, rule categories. `DITACRAFT_SETTINGS_FILE` selects another settings file; `DITACRAFT_XML_CATALOG` and `DITACRAFT_CUSTOM_RULES_FILE` override the catalog and the rules file. Path settings may be relative to the workspace or use `${workspaceFolder}`. Previously the server always ran with fixed default settings.
 
+### Development
+
+- Removed `server/src/utils/xmlTokenizer.ts` and its 57 tests: nothing used the tokenizer. The automated test plan no longer counts them as coverage of malformed-markup handling.
+
 ### Documentation
 
 - The MCP server documentation listed `DITACRAFT_DITA_VERSION` and `DITACRAFT_VALIDATION_ENGINE` environment variables that the server never read; `ditacraft.ditaVersion` and `ditacraft.validationEngine` in the settings file now do that.

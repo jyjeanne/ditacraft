@@ -227,12 +227,6 @@ package "LSP Server" <<Node>> {
     }
 
     package "Server Utils" {
-        class XmlTokenizer <<generator>> {
-            +tokenize(input): Generator<Token>
-            +findAttributeAtOffset(input, offset): AttributeInfo
-            +findContextAtOffset(input, offset): ContextInfo
-        }
-
         class ReferenceParser {
             +parseReference(ref): ParsedReference
             +findReferenceAtOffset(text, offset): RefInfo
