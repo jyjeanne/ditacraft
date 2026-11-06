@@ -562,13 +562,18 @@ suite('Key Space Resolver Test Suite', () => {
             assert.ok(qualifiedB?.targetFile?.includes('overview-b.dita'));
         });
 
-        test('Should inherit an ancestor scope\'s key into a nested child scope\'s fully-qualified name (PushDown)', async () => {
+        test('Should resolve an ancestor scope\'s key from a nested child scope, without a qualified copy of it', async () => {
+            // DITA 1.3 §2.3.4.1: a key inherited from a parent scope is effective in the child
+            // scope. A scope-qualified name names the scope's own keys: DITA-OT 4.3.5 leaves
+            // "lib.version" undefined when lib only inherits "version".
             const mapPath = path.join(fixturesPath, 'keyscope-nested', 'root.ditamap');
             const keySpace = await resolver.buildKeySpace(mapPath);
+            assert.strictEqual(keySpace.keys.get('product.lib.version'), undefined, 'no qualified copy of an inherited key');
 
-            const inherited = keySpace.keys.get('product.lib.version');
-            assert.ok(inherited, 'ancestor scope key should be inherited into the nested child scope\'s namespace');
-            assert.ok(inherited!.targetFile?.includes('product-version.dita'));
+            const libTopic = path.join(fixturesPath, 'keyscope-nested', 'lib-topic.dita');
+            const resolved = await resolver.resolveKeyInMap('version', mapPath, libTopic);
+            assert.ok(resolved?.targetFile?.includes('product-version.dita'),
+                `"version" should resolve from the nested scope to the ancestor's key, got ${resolved?.targetFile}`);
         });
 
         test('Should record a nested scope\'s topic under its own fully-qualified scope prefix', async () => {
@@ -579,12 +584,28 @@ suite('Key Space Resolver Test Suite', () => {
             const scope = keySpace.topicToScope.get(scopeKey(libTopic));
             assert.strictEqual(scope, 'product.lib', 'a topic inside the nested "lib" scope should be recorded under "product.lib"');
 
-            // The PushDown-inherited entry (already verified above) is what
-            // resolveKey()'s context-aware branch would look up as
-            // `${scope}.version` for a bare "version" keyref authored here.
-            const resolved = keySpace.keys.get(`${scope}.version`);
+            // A bare "version" keyref authored here resolves through the enclosing scopes
+            const resolved = await resolver.resolveKeyInMap('version', mapPath, libTopic);
             assert.ok(resolved?.targetFile?.includes('product-version.dita'),
-                `"${scope}.version" should resolve via the inherited ancestor key, got ${resolved?.targetFile}`);
+                `"version" should resolve via the enclosing scope's key, got ${resolved?.targetFile}`);
+        });
+    });
+
+    suite('@keyscope precedence (DITA 1.3 §2.3.4.1)', () => {
+        test('Should take the parent scope\'s definition for a key the child scope redefines', async () => {
+            // keyscope-precedence/: root.ditamap defines "version" (v1) and references
+            // product.ditamap with keyscope="product", which redefines "version" (v2), defines
+            // "edition", and references guide.dita.
+            const dir = path.join(fixturesPath, 'keyscope-precedence');
+            const mapPath = path.join(dir, 'root.ditamap');
+            const guide = path.join(dir, 'guide.dita');
+            // "a key definition in a parent scope overrides all definitions for the same key name
+            // in all descendant scopes" (§2.3.4.4); checked with DITA-OT 4.3.5
+            assert.ok((await resolver.resolveKeyInMap('version', mapPath, guide))?.targetFile?.endsWith('v1.dita'));
+            assert.ok((await resolver.resolveKeyInMap('edition', mapPath, guide))?.targetFile?.endsWith('edition.dita'));
+            // A key of the child scope is reachable from the root scope by its qualified name only
+            assert.strictEqual(await resolver.resolveKeyInMap('edition', mapPath, mapPath), null);
+            assert.ok((await resolver.resolveKeyInMap('product.edition', mapPath, mapPath))?.targetFile?.endsWith('edition.dita'));
         });
     });
 

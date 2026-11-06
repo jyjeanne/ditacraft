@@ -73,11 +73,16 @@ export interface KeySpace {
     mapHierarchy: string[];             // All maps in hierarchy (in traversal order)
     /**
      * Maps each topic file path (normalized) to its primary `@keyscope`
-     * prefix, e.g. "product.lib". Used by `resolveKey()` for context-aware
-     * lookup: a keyref authored inside a scoped branch resolves against
-     * that branch's own keys before falling back to the flat/global ones.
+     * prefix, e.g. "product.lib". Used by `resolveKey()` to resolve a key
+     * reference in the key scope of the topic that makes it.
      */
     topicToScope: Map<string, string>;
+    /**
+     * Maps each map of the key space (normalized path) to the key scope its
+     * content belongs to, so that key references written in a submap resolve
+     * in its scope. Kept apart from topicToScope.
+     */
+    mapToScope?: Map<string, string>;
     /**
      * Peer maps (`@scope="peer"` + `@keyscope`) encountered during BFS.
      * Not inlined into the main key space — DITA's peer scope means "not
@@ -461,6 +466,7 @@ export class KeySpaceResolver implements vscode.Disposable {
             buildTime: Date.now(),
             mapHierarchy: [],
             topicToScope: new Map(),
+            mapToScope: new Map(),
             deferredPeerMaps: new Map(),
         };
 
@@ -469,11 +475,9 @@ export class KeySpaceResolver implements vscode.Disposable {
             { mapPath: absoluteRootPath, scopePrefixes: [] },
         ];
 
-        // Tracks the highest-priority key definition per key name per scope
-        // prefix. The PushDown pass (after the BFS below) uses this to
-        // propagate ancestor-scope keys into descendant scope namespaces
-        // (e.g. "product.lib.version" inherits from "product.version").
-        const scopeDirectKeys = new Map<string, KeyDefinition[]>();
+        // The scope of the root map (named by its own @keyscope, if any), set by
+        // the first map of the traversal: its keys are the unqualified key names.
+        let rootScopeSignature: string | undefined;
 
         // Breadth-first traversal of map hierarchy
         while (queue.length > 0) {
@@ -514,40 +518,31 @@ export class KeySpaceResolver implements vscode.Disposable {
                 const rootScopes = this.extractRootKeyscope(mapContent);
                 const effectivePrefixes = this.combineScopePrefixes(scopePrefixes, rootScopes);
                 // The primary prefix is the first (canonical) scope path for
-                // this map, used for topic-to-scope tracking. All prefixes
-                // (multi-name keyscope) are used for scopeDirectKeys so the
-                // PushDown pass inherits correctly for every alias.
+                // this map, used for topic-to-scope tracking.
                 const primaryPrefix = effectivePrefixes[0] ?? '';
-                const allScopePrefixes = effectivePrefixes.length > 0 ? effectivePrefixes : [''];
-
-                for (const prefix of allScopePrefixes) {
-                    if (!scopeDirectKeys.has(prefix)) {
-                        scopeDirectKeys.set(prefix, []);
-                    }
-                }
+                const signature = [...effectivePrefixes].sort().join('\u0000');
+                rootScopeSignature ??= signature;
+                const inRootScope = signature === rootScopeSignature;
+                // Key references written in this map resolve in its scope
+                const mapKey = this.normalizePathForComparison(currentMap);
+                if (!keySpace.mapToScope!.has(mapKey)) keySpace.mapToScope!.set(mapKey, primaryPrefix);
 
                 // Handle inline scope branches (topicrefs with @keyscope that
                 // don't reference an external map). Returns mapContent with
                 // those blocks blanked out so child-scope keys aren't
                 // double-processed by the extraction calls below.
                 const maskedContent = this.processInlineScopeBlocks(
-                    mapContent, currentMap, effectivePrefixes, keySpace, scopeDirectKeys, queue
+                    mapContent, currentMap, effectivePrefixes, keySpace, queue
                 );
 
                 // Extract key definitions
                 const keys = this.extractKeyDefinitions(maskedContent, currentMap);
 
                 for (const keyDef of keys) {
-                    // Record as a direct key of every scope alias.
-                    for (const prefix of allScopePrefixes) {
-                        const directKeys = scopeDirectKeys.get(prefix)!;
-                        if (!directKeys.some(k => k.keyName === keyDef.keyName)) {
-                            directKeys.push(keyDef);
-                        }
-                    }
-
-                    // Unqualified entry — first definition across the whole key space wins.
-                    if (!keySpace.keys.has(keyDef.keyName)) {
+                    // Unqualified entry: the keys of the root scope only (first definition
+                    // wins). Keys of child scopes are reachable by their scope-qualified
+                    // names (DITA 1.3 §2.3.4.1).
+                    if (inRootScope && !keySpace.keys.has(keyDef.keyName)) {
                         keySpace.keys.set(keyDef.keyName, keyDef);
                         logger.debug('Added key definition', {
                             key: keyDef.keyName,
@@ -585,7 +580,7 @@ export class KeySpaceResolver implements vscode.Disposable {
                     // @keys on the mapref element itself belong to the child
                     // scope it creates (DITA spec §2.4.4.1).
                     this.registerInlineMaprefKeys(
-                        keySpace, scopeDirectKeys, submap.inlineKeys, currentMap, submap.path, childPrefixes
+                        keySpace, submap.inlineKeys, currentMap, submap.path, childPrefixes
                     );
 
                     queue.push({ mapPath: submap.path, scopePrefixes: childPrefixes });
@@ -593,23 +588,6 @@ export class KeySpaceResolver implements vscode.Disposable {
 
             } catch (error) {
                 logger.error('Error parsing map file', { map: currentMap, error });
-            }
-        }
-
-        // PushDown pass: for every child scope, inherit ancestor-scope key
-        // definitions at lower priority, so a key defined in an ancestor scope
-        // (e.g. "product.version") is resolvable via its fully-qualified
-        // child-scope name (e.g. "product.lib.version") when authoring within
-        // the "lib" child scope. Keys already in the child scope aren't overwritten.
-        for (const [childPrefix] of scopeDirectKeys) {
-            if (childPrefix === '') continue;
-            const parts = childPrefix.split('.');
-            for (let depth = 0; depth < parts.length; depth++) {
-                const ancestorPrefix = parts.slice(0, depth).join('.');
-                for (const ancestorKey of scopeDirectKeys.get(ancestorPrefix) ?? []) {
-                    const inheritedName = `${childPrefix}.${ancestorKey.keyName}`;
-                    this.addScopedKeyEntry(keySpace, inheritedName, { ...ancestorKey, keyName: inheritedName });
-                }
             }
         }
 
@@ -966,7 +944,6 @@ export class KeySpaceResolver implements vscode.Disposable {
     /** Register @keys defined directly on a mapref element under the child scope it creates. */
     private registerInlineMaprefKeys(
         keySpace: KeySpace,
-        scopeDirectKeys: Map<string, KeyDefinition[]>,
         inlineKeys: string[],
         sourceMap: string,
         targetFile: string,
@@ -976,19 +953,10 @@ export class KeySpaceResolver implements vscode.Disposable {
 
         for (const inlineKeyName of inlineKeys) {
             const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap, targetFile };
+            // In the child scope only: reachable by scope-qualified names
             for (const prefix of childPrefixes) {
-                if (!scopeDirectKeys.has(prefix)) {
-                    scopeDirectKeys.set(prefix, []);
-                }
-                const directKeys = scopeDirectKeys.get(prefix)!;
-                if (!directKeys.some(k => k.keyName === inlineKeyName)) {
-                    directKeys.push(inlineDef);
-                }
                 const qualifiedName = `${prefix}.${inlineKeyName}`;
                 this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
-            }
-            if (!keySpace.keys.has(inlineKeyName)) {
-                keySpace.keys.set(inlineKeyName, inlineDef);
             }
         }
     }
@@ -1180,7 +1148,6 @@ export class KeySpaceResolver implements vscode.Disposable {
         mapPath: string,
         parentEffectivePrefixes: string[],
         keySpace: KeySpace,
-        scopeDirectKeys: Map<string, KeyDefinition[]>,
         bfsQueue: Array<{ mapPath: string; scopePrefixes: string[] }>,
         depth = 0
     ): string {
@@ -1195,38 +1162,27 @@ export class KeySpaceResolver implements vscode.Disposable {
             const childPrefixes = this.combineScopePrefixes(parentEffectivePrefixes, block.keyscopes);
             if (childPrefixes.length === 0) continue;
 
-            for (const prefix of childPrefixes) {
-                if (!scopeDirectKeys.has(prefix)) scopeDirectKeys.set(prefix, []);
-            }
-
             // @keys on the scope-creating element itself belong to the child scope (DITA §2.4.4.1).
             for (const inlineKeyName of block.inlineKeys) {
                 const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap: mapPath };
                 for (const prefix of childPrefixes) {
-                    const directKeys = scopeDirectKeys.get(prefix)!;
-                    if (!directKeys.some(k => k.keyName === inlineKeyName)) directKeys.push(inlineDef);
                     const qualifiedName = `${prefix}.${inlineKeyName}`;
                     this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
                 }
-                if (!keySpace.keys.has(inlineKeyName)) keySpace.keys.set(inlineKeyName, inlineDef);
             }
 
             // Recurse into nested inline scopes.
             const maskedBlockContent = this.processInlineScopeBlocks(
-                block.innerContent, mapPath, childPrefixes, keySpace, scopeDirectKeys, bfsQueue, depth + 1
+                block.innerContent, mapPath, childPrefixes, keySpace, bfsQueue, depth + 1
             );
 
-            // Register key definitions from the (masked) block content under child scope.
+            // Register key definitions from the (masked) block content under the child
+            // scope: reachable by scope-qualified names only.
             const blockKeys = this.extractKeyDefinitions(maskedBlockContent, mapPath);
             for (const keyDef of blockKeys) {
                 for (const prefix of childPrefixes) {
-                    const directKeys = scopeDirectKeys.get(prefix)!;
-                    if (!directKeys.some(k => k.keyName === keyDef.keyName)) directKeys.push(keyDef);
                     const qualifiedName = `${prefix}.${keyDef.keyName}`;
                     this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
-                }
-                if (!keySpace.keys.has(keyDef.keyName)) {
-                    keySpace.keys.set(keyDef.keyName, keyDef);
                 }
             }
 
@@ -1246,7 +1202,7 @@ export class KeySpaceResolver implements vscode.Disposable {
                 }
                 const grandchildPrefixes = this.combineScopePrefixes(childPrefixes, submap.keyscopes);
                 this.registerInlineMaprefKeys(
-                    keySpace, scopeDirectKeys, submap.inlineKeys, mapPath, submap.path, grandchildPrefixes
+                    keySpace, submap.inlineKeys, mapPath, submap.path, grandchildPrefixes
                 );
                 bfsQueue.push({ mapPath: submap.path, scopePrefixes: grandchildPrefixes });
             }
@@ -1323,33 +1279,17 @@ export class KeySpaceResolver implements vscode.Disposable {
     ): Promise<KeyDefinition | null> {
         const keySpace = await this.buildKeySpace(rootMap);
 
-        // Context-aware resolution: when the authoring file lives inside a
-        // named @keyscope, prefer the scope-qualified key (e.g.
-        // "product.lib.version") over the root-level unqualified key
-        // ("version"). The PushDown pass already added inherited ancestor
-        // keys under the child scope namespace, so a child-scope override
-        // always beats an ancestor definition at this lookup point.
-        const scopePrefix = scope ?? keySpace.topicToScope.get(this.normalizePathForComparison(contextFilePath));
-        if (scopePrefix) {
-            const qualifiedName = `${scopePrefix}.${keyName}`;
-            const scopedDef = keySpace.keys.get(qualifiedName);
-            if (scopedDef) {
-                const resolved = this.followKeyrefChain(scopedDef, keySpace.keys, scopePrefix);
-                logger.debug('Key resolved (scope-qualified)', {
-                    keyName, scopePrefix, targetFile: resolved.targetFile
-                });
-                return resolved;
-            }
-        }
-
-        // Fall back to the context-free (root-scope) entry, then follow any
-        // @keyref chain to the final definition.
-        const keyDef = keySpace.keys.get(keyName);
-
-        if (keyDef) {
-            const resolved = this.followKeyrefChain(keyDef, keySpace.keys, '');
+        // Resolved in the key scope of the file that makes the reference: the
+        // enclosing scopes take precedence (see lookupKey), then any @keyref
+        // chain is followed to the final definition.
+        const contextKey = this.normalizePathForComparison(contextFilePath);
+        const scopePrefix = scope ?? keySpace.topicToScope.get(contextKey) ?? keySpace.mapToScope?.get(contextKey) ?? '';
+        const found = KeySpaceResolver.lookupKey(keySpace.keys, keyName, scopePrefix);
+        if (found) {
+            const resolved = this.followKeyrefChain(found.def, keySpace.keys, found.scopePrefix);
             logger.debug('Key resolved', {
                 keyName,
+                scopePrefix: found.scopePrefix,
                 targetFile: resolved.targetFile,
                 sourceMap: path.basename(resolved.sourceMap)
             });
@@ -1646,6 +1586,30 @@ export class KeySpaceResolver implements vscode.Disposable {
     }
 
     /**
+     * The effective definition of a key referenced from a key scope, and the
+     * scope it was found in. The name is looked up in the root scope first, then
+     * in each scope down to the referencing one: DITA 1.3 §2.3.4.1, "When a key
+     * has a definition in the key space that is inherited from a parent scope,
+     * that definition is effective." A name qualified relative to an enclosing
+     * scope ("A-1.c" from scope "A.A-2") is found the same way; keys of child
+     * scopes are reachable only by their scope-qualified names. Same rule as the
+     * language server's KeySpaceService.
+     */
+    private static lookupKey(
+        keys: Map<string, KeyDefinition>,
+        keyName: string,
+        scopePrefix: string
+    ): { def: KeyDefinition; scopePrefix: string } | null {
+        const segments = scopePrefix ? scopePrefix.split('.') : [];
+        for (let depth = 0; depth <= segments.length; depth++) {
+            const prefix = segments.slice(0, depth).join('.');
+            const def = keys.get(prefix ? `${prefix}.${keyName}` : keyName);
+            if (def) return { def, scopePrefix: prefix };
+        }
+        return null;
+    }
+
+    /**
      * Follow @keyref chains up to hopsRemaining hops.
      * Returns the original definition if no chain exists, the target is missing,
      * the hop limit is reached, or a cycle is detected.
@@ -1661,12 +1625,10 @@ export class KeySpaceResolver implements vscode.Disposable {
             return keyDef;
         }
         visited.add(keyDef.keyName);
-        // Prefer the scope-qualified target so a keyref chain within a named
-        // scope resolves to the scope's own override rather than the root definition.
-        const next = (scopePrefix ? keys.get(`${scopePrefix}.${keyDef.keyref}`) : undefined)
-            ?? keys.get(keyDef.keyref);
+        // The @keyref of a key definition is a key reference made in the scope of that definition
+        const next = KeySpaceResolver.lookupKey(keys, keyDef.keyref, scopePrefix);
         if (!next) return keyDef;
-        return this.followKeyrefChain(next, keys, scopePrefix, hopsRemaining - 1, visited);
+        return this.followKeyrefChain(next.def, keys, next.scopePrefix, hopsRemaining - 1, visited);
     }
 
     /**

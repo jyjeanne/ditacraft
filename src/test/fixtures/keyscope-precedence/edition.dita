@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="edition">
+    <title>Edition</title>
+    <shortdesc>Target of the edition key, defined only in the product key scope.</shortdesc>
+</topic>

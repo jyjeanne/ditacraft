@@ -1,5 +1,7 @@
 # Keyspace Algorithm Improvement Plan
 
+> **Update (November 2026).** The precedence between key scopes described below ("child-scope wins", the PushDown phase) did not follow DITA 1.3. It has been replaced: a key reference made in a key scope looks the name up in the root scope first, then in each scope down to its own, and takes the first definition found ("When a key has a definition in the key space that is inherited from a parent scope, that definition is effective", DITA 1.3 §2.3.4.1). Keys of child scopes are no longer unqualified key names, and the PushDown copies are gone: a scope-qualified name names the keys the scope defines itself. The behaviour was checked against DITA-OT 4.3.5 on the example of §2.3.4.10.8 (see the suite "key scope precedence" in `server/test/keySpaceService.test.ts`). pydita's "ancestor wins" policy, described in §1.2, was the right one. The rest of this document is kept as the record of the original design.
+
 ---
 
 ## Executive Summary
