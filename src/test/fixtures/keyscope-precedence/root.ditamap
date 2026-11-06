@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Key Scope Precedence</title>
+    <keydef keys="version" href="v1.dita"/>
+    <mapref href="product.ditamap" keyscope="product"/>
+</map>

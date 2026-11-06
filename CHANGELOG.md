@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Key references now resolve across key scopes as DITA 1.3 requires (§2.3.4.1, §2.3.4.4), in the language server and in the extension's own key resolution. Some key references now resolve to a different definition; the results were checked against DITA-OT 4.3.5 on the example of §2.3.4.10.8.
+  - When a key scope and its parent both define a key, a reference from inside the child scope takes the parent's definition: "a key definition in a parent scope overrides all definitions for the same key name in all descendant scopes". It used to take the child's.
+  - A key defined only in a child scope is reachable from outside it by its scope-qualified name only (`product.version`). It used to be found by its bare name from anywhere, so a key of a scoped submap could hide a root key of the same name, and `DITA-KEY-001` missed references to keys that the publication does not define in their scope.
+  - A name qualified relative to an enclosing scope (`A-1.c` from a topic of scope `A.A-2`) now resolves, as it does in DITA-OT.
+  - A scope-qualified name names the keys the scope defines itself: `lib.logo` no longer resolves when `logo` is only inherited from the root scope (DITA-OT leaves it undefined).
+  - A key reference written in a submap that has its own key scope resolves in that scope.
+
 - Reference severities follow DITA-OT, the reference processor:
   - A missing target file (`DITA-XREF-001`) is an error when DITA-OT fails to load it: a DITA topic or map (`DOTX008E`), a content reference (`DOTX010E`) or an image (`DOTJ023E`). It was a warning unless the internal DITA-OT comparison profile was on. A missing peer resource (`scope="peer"`, another publication) or non-DITA file (a PDF, an HTML page), which DITA-OT only links to, stays a warning.
   - A content reference whose topic or element cannot be found is an error, as in DITA-OT (`DOTX010E`). That covers `@conref` (`DITA-XREF-002`, `DITA-XREF-003`) and `@conkeyref` (`DITA-KEY-003`).

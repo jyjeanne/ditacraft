@@ -184,7 +184,7 @@ The page follows your theme — light, dark or VS Code's:
   - Automatically discovers root maps in your workspace
   - Builds and caches key space from map hierarchies (DITA 1.3 spec-compliant BFS)
   - Resolves `@keyref`, `@conkeyref`, and key-based references including multi-hop keyref chains
-  - Full `@keyscope` support: PushDown inheritance, inline scope branches, qualified alias explosion cap (50,000 keys)
+  - Full `@keyscope` support as in DITA 1.3: enclosing scopes take precedence, scope-qualified names, inline scope branches, qualified alias explosion cap (50,000 keys)
   - Provenance tracking: each key definition records its source line for diagnostics
   - `explainKey()` API returns a full `KeyResolutionReport` with lookup trace and keyref chain steps
   - Tiered caching (1-minute root map discovery, 5-minute key space TTL) with intelligent invalidation

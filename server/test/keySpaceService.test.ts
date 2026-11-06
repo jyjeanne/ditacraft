@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { KeySpaceService, formatResolutionReport, reportKeySpace } from '../src/services/keySpaceService';
+import { KeySpaceService, KeyDefinition, formatResolutionReport, reportKeySpace } from '../src/services/keySpaceService';
 import { normalizeFsPath } from '../src/utils/textUtils';
 
 function makeTmpDir(): string {
@@ -625,7 +625,7 @@ suite('KeySpaceService', () => {
 </map>`, 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                assert.ok(keySpace.keys.has('api'), 'unqualified key should exist');
+                assert.ok(!keySpace.keys.has('api'), 'a key of a child scope is not an unqualified key name (DITA 1.3 §2.3.4.1)');
                 assert.ok(keySpace.keys.has('lib.api'), 'scope-qualified key should exist');
             } finally {
                 service.shutdown();
@@ -650,7 +650,7 @@ suite('KeySpaceService', () => {
 </map>`, 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                assert.ok(keySpace.keys.has('config'), 'unqualified key should exist');
+                assert.ok(!keySpace.keys.has('config'), 'a key of a child scope is not an unqualified key name (DITA 1.3 §2.3.4.1)');
                 assert.ok(keySpace.keys.has('product.module.config'),
                     'nested scope-qualified key should exist');
             } finally {
@@ -697,7 +697,7 @@ suite('KeySpaceService', () => {
 </map>`, 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                assert.ok(keySpace.keys.has('widget'), 'unqualified key should exist');
+                assert.ok(!keySpace.keys.has('widget'), 'a key of a child scope is not an unqualified key name (DITA 1.3 §2.3.4.1)');
                 assert.ok(keySpace.keys.has('prodA.widget'),
                     'key should resolve under the first keyscope that reaches the shared submap');
                 assert.ok(keySpace.keys.has('prodB.widget'),
@@ -739,7 +739,7 @@ suite('KeySpaceService', () => {
 </map>`, 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                assert.ok(keySpace.keys.has('gadget'), 'unqualified nested key should exist');
+                assert.ok(!keySpace.keys.has('gadget'), 'a key of a child scope is not an unqualified key name (DITA 1.3 §2.3.4.1)');
                 assert.ok(keySpace.keys.has('prodA.gadget'),
                     'nested submap key should resolve under the first keyscope');
                 assert.ok(keySpace.keys.has('prodB.gadget'),
@@ -767,7 +767,7 @@ suite('KeySpaceService', () => {
 </map>`, 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                assert.ok(keySpace.keys.has('detail'), 'unqualified key should exist');
+                assert.ok(!keySpace.keys.has('detail'), 'a key of a child scope is not an unqualified key name (DITA 1.3 §2.3.4.1)');
                 assert.ok(keySpace.keys.has('inner.detail'),
                     'root-level keyscope on submap should produce qualified key');
             } finally {
@@ -942,7 +942,10 @@ suite('KeySpaceService', () => {
 
     suite('PushDown scope inheritance', () => {
 
-        test('ancestor key is accessible via child-scope qualified name', async () => {
+        test('a key of an ancestor scope resolves from the child scope, but is not a qualified name of it', async () => {
+            // DITA 1.3 §2.3.4.4: "The key space that is associated with a key scope also includes
+            // all key definitions from its parent key scope." A scope-qualified name names the
+            // child's own keys: DITA-OT 4.3.5 leaves "lib.logo" undefined from the root scope.
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -952,22 +955,19 @@ suite('KeySpaceService', () => {
   <keydef keys="logo" href="logo.dita"/>
   <mapref href="lib.ditamap" keyscope="lib"/>
 </map>`, 'utf-8');
-
-                const subPath = path.join(tmpDir, 'lib.ditamap');
-                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+                fs.writeFileSync(path.join(tmpDir, 'lib.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="api" href="api.dita"/>
+  <topicref href="lib-topic.dita"/>
 </map>`, 'utf-8');
+                const libTopic = path.join(tmpDir, 'lib-topic.dita');
+                fs.writeFileSync(libTopic, '', 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                assert.ok(keySpace.keys.has('logo'), 'unqualified ancestor key should exist');
                 assert.ok(keySpace.keys.has('lib.api'), 'child scope key should exist');
-                assert.ok(keySpace.keys.has('lib.logo'),
-                    'PushDown should make ancestor key available as lib.logo');
-                assert.ok(
-                    keySpace.keys.get('lib.logo')!.targetFile?.endsWith('logo.dita'),
-                    'inherited lib.logo should point to logo.dita'
-                );
+                assert.ok(!keySpace.keys.has('lib.logo'), 'no qualified name for an inherited key');
+                const fromLib = await service.resolveKey('logo', libTopic);
+                assert.ok(fromLib?.targetFile?.endsWith('logo.dita'), 'the inherited key resolves in the child scope');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -1015,39 +1015,34 @@ suite('KeySpaceService', () => {
   <keydef keys="brand" href="brand.dita"/>
   <mapref href="product.ditamap" keyscope="product"/>
 </map>`, 'utf-8');
-
-                const midPath = path.join(tmpDir, 'product.ditamap');
-                fs.writeFileSync(midPath, `<?xml version="1.0"?>
+                fs.writeFileSync(path.join(tmpDir, 'product.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="version" href="v1.dita"/>
   <mapref href="module.ditamap" keyscope="module"/>
 </map>`, 'utf-8');
-
-                const leafPath = path.join(tmpDir, 'module.ditamap');
-                fs.writeFileSync(leafPath, `<?xml version="1.0"?>
+                fs.writeFileSync(path.join(tmpDir, 'module.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="api" href="api.dita"/>
+  <topicref href="module-topic.dita"/>
 </map>`, 'utf-8');
+                const moduleTopic = path.join(tmpDir, 'module-topic.dita');
+                fs.writeFileSync(moduleTopic, '', 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                // product.module.api — direct key
                 assert.ok(keySpace.keys.has('product.module.api'), 'direct leaf key should exist');
-                // product.module.version — inherited from product scope via PushDown
-                assert.ok(keySpace.keys.has('product.module.version'),
-                    'PushDown should inherit product.version into product.module namespace');
-                // product.module.brand — inherited from root scope via PushDown
-                assert.ok(keySpace.keys.has('product.module.brand'),
-                    'PushDown should inherit root brand into product.module namespace');
+                assert.ok(!keySpace.keys.has('product.module.version'), 'no qualified name for an inherited key');
+                assert.ok(!keySpace.keys.has('product.module.brand'), 'no qualified name for an inherited key');
+                // From the innermost scope, keys of every ancestor scope resolve
+                assert.ok((await service.resolveKey('api', moduleTopic))?.targetFile?.endsWith('api.dita'));
+                assert.ok((await service.resolveKey('version', moduleTopic))?.targetFile?.endsWith('v1.dita'));
+                assert.ok((await service.resolveKey('brand', moduleTopic))?.targetFile?.endsWith('brand.dita'));
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
             }
         });
 
-        test('multi-name keyscope: PushDown works for every scope alias', async () => {
-            // Regression for Bug 1: when keyscope="a b", scopeDirectKeys must be
-            // initialised for both 'a' and 'b' so that child scopes of either alias
-            // inherit ancestor keys correctly.
+        test('multi-name keyscope: own keys under every alias, ancestor keys resolve inside', async () => {
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -1057,33 +1052,29 @@ suite('KeySpaceService', () => {
   <keydef keys="logo" href="logo.dita"/>
   <mapref href="lib.ditamap" keyscope="libA libB"/>
 </map>`, 'utf-8');
-
-                const subPath = path.join(tmpDir, 'lib.ditamap');
-                fs.writeFileSync(subPath, `<?xml version="1.0"?>
+                fs.writeFileSync(path.join(tmpDir, 'lib.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="api" href="api.dita"/>
   <mapref href="deep.ditamap" keyscope="core"/>
 </map>`, 'utf-8');
-
-                const deepPath = path.join(tmpDir, 'deep.ditamap');
-                fs.writeFileSync(deepPath, `<?xml version="1.0"?>
+                fs.writeFileSync(path.join(tmpDir, 'deep.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="util" href="util.dita"/>
+  <topicref href="deep-topic.dita"/>
 </map>`, 'utf-8');
+                const deepTopic = path.join(tmpDir, 'deep-topic.dita');
+                fs.writeFileSync(deepTopic, '', 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-
-                // Both scope aliases should get PushDown-inherited ancestor keys
-                assert.ok(keySpace.keys.has('libA.logo'),
-                    'PushDown: root logo should appear under libA alias');
-                assert.ok(keySpace.keys.has('libB.logo'),
-                    'PushDown: root logo should appear under libB alias');
-
-                // Deep child under libA must also inherit logo from root
-                assert.ok(keySpace.keys.has('libA.core.logo'),
-                    'PushDown: root logo should propagate into libA.core namespace');
-                assert.ok(keySpace.keys.has('libB.core.logo'),
-                    'PushDown: root logo should propagate into libB.core namespace');
+                // DITA 1.3 §2.3.4.1: "If a child scope has multiple names, the keys in that scope
+                // are addressable from the parent scope using any of the scope names as a prefix."
+                for (const name of ['libA.api', 'libB.api', 'libA.core.util', 'libB.core.util']) {
+                    assert.ok(keySpace.keys.has(name), name);
+                }
+                assert.ok(!keySpace.keys.has('libA.logo') && !keySpace.keys.has('libB.core.logo'),
+                    'no qualified name for an inherited key');
+                assert.ok((await service.resolveKey('logo', deepTopic))?.targetFile?.endsWith('logo.dita'));
+                assert.ok((await service.resolveKey('api', deepTopic))?.targetFile?.endsWith('api.dita'));
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -1093,7 +1084,9 @@ suite('KeySpaceService', () => {
 
     suite('context-aware key resolution', () => {
 
-        test('resolveKey uses child-scope definition when context is in that scope', async () => {
+        test('a key reference from a child scope takes the parent scope definition (DITA 1.3 §2.3.4.1)', async () => {
+            // "When a key has a definition in the key space that is inherited from a parent scope,
+            // that definition is effective." Checked with DITA-OT 4.3.5.
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -1108,6 +1101,7 @@ suite('KeySpaceService', () => {
                 fs.writeFileSync(subPath, `<?xml version="1.0"?>
 <map>
   <keydef keys="version" href="v2.dita"/>
+  <keydef keys="edition" href="edition.dita"/>
   <topicref href="product-guide.dita"/>
 </map>`, 'utf-8');
 
@@ -1119,13 +1113,14 @@ suite('KeySpaceService', () => {
                 const rootTopic = path.join(tmpDir, 'root-topic.dita');
                 fs.writeFileSync(rootTopic, '', 'utf-8');
 
-                // From product-guide (product scope) → should get v2
+                // From product-guide (product scope): the root definition overrides the submap's
                 const fromProduct = await service.resolveKey('version', productGuide);
-                assert.ok(fromProduct, 'version should resolve from product-guide context');
-                assert.ok(
-                    fromProduct!.targetFile?.endsWith('v2.dita'),
-                    'context-aware resolution should return product scope version (v2)'
-                );
+                assert.ok(fromProduct?.targetFile?.endsWith('v1.dita'),
+                    'the parent scope definition (v1) is effective in the product scope');
+                // A key the root does not define resolves to the product scope's own definition,
+                // and is not reachable unqualified from the root scope
+                assert.ok((await service.resolveKey('edition', productGuide))?.targetFile?.endsWith('edition.dita'));
+                assert.strictEqual(await service.resolveKey('edition', rootTopic), null);
 
                 // From root-topic (no named scope) → should get v1
                 const fromRoot = await service.resolveKey('version', rootTopic);
@@ -1182,7 +1177,6 @@ suite('KeySpaceService', () => {
                 const rootPath = path.join(tmpDir, 'root.ditamap');
                 fs.writeFileSync(rootPath, `<?xml version="1.0"?>
 <map>
-  <keydef keys="version" href="v1.dita"/>
   <mapref href="product.ditamap" keyscope="product"/>
 </map>`, 'utf-8');
 
@@ -1463,8 +1457,7 @@ suite('KeySpaceService', () => {
                 const keySpace = await service.buildKeySpace(rootPath);
                 // product-map is defined on the mapref itself, which carries @keyscope="product"
                 // Per DITA spec, it belongs to the product scope.
-                assert.ok(keySpace.keys.has('product-map'),
-                    'inline key from keyscoped mapref should exist (unqualified fallback)');
+                assert.ok(!keySpace.keys.has('product-map'), 'a key of a child scope is not an unqualified key name (DITA 1.3 §2.3.4.1)');
                 assert.ok(keySpace.keys.has('product.product-map'),
                     'inline key must be registered under child scope qualified name');
                 assert.ok(
@@ -1527,7 +1520,7 @@ suite('KeySpaceService', () => {
 
                 const keySpace = await service.buildKeySpace(mapPath);
                 assert.ok(keySpace.keys.has('global'), 'root-scope key should exist');
-                assert.ok(keySpace.keys.has('local'), 'unqualified child key should still exist');
+                assert.ok(!keySpace.keys.has('local'), 'a key of a child scope is not an unqualified key name (DITA 1.3 §2.3.4.1)');
                 assert.ok(keySpace.keys.has('branch.local'),
                     'child-scope qualified key branch.local should exist');
                 assert.ok(
@@ -1647,7 +1640,7 @@ suite('KeySpaceService', () => {
             }
         });
 
-        test('inline scope PushDown: root key inherited by inline scope', async () => {
+        test('inline scope: a root key resolves inside it, but is not a qualified name of it', async () => {
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -1657,17 +1650,17 @@ suite('KeySpaceService', () => {
   <keydef keys="brand" href="brand.dita"/>
   <topicref keyscope="product">
     <keydef keys="widget" href="widget.dita"/>
+    <topicref href="product-topic.dita"/>
   </topicref>
 </map>`, 'utf-8');
+                const productTopic = path.join(tmpDir, 'product-topic.dita');
+                fs.writeFileSync(productTopic, '', 'utf-8');
 
                 const keySpace = await service.buildKeySpace(mapPath);
-                // PushDown should inherit root "brand" into the "product" inline scope
-                assert.ok(keySpace.keys.has('product.brand'),
-                    'PushDown should make root brand accessible as product.brand');
-                assert.ok(
-                    keySpace.keys.get('product.brand')!.targetFile?.endsWith('brand.dita'),
-                    'product.brand should point to brand.dita'
-                );
+                assert.ok(keySpace.keys.has('product.widget'), 'own key of the inline scope');
+                assert.ok(!keySpace.keys.has('product.brand'), 'no qualified name for an inherited key');
+                assert.ok((await service.resolveKey('brand', productTopic))?.targetFile?.endsWith('brand.dita'));
+                assert.ok((await service.resolveKey('widget', productTopic))?.targetFile?.endsWith('widget.dita'));
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -1797,12 +1790,10 @@ suite('KeySpaceService', () => {
 </map>`, 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                const unqualified = keySpace.keys.get('version');
-                const qualified = keySpace.keys.get('product.version');
-                assert.ok(unqualified?.sourceLine, 'unqualified key should have sourceLine');
-                assert.ok(qualified?.sourceLine, 'qualified alias should have sourceLine');
-                assert.strictEqual(qualified!.sourceLine, unqualified!.sourceLine,
-                    'qualified alias sourceLine must equal original definition line');
+                // A key of the product scope: only its qualified name exists, with the line
+                // of the definition in product.ditamap
+                assert.strictEqual(keySpace.keys.get('version'), undefined);
+                assert.strictEqual(keySpace.keys.get('product.version')?.sourceLine, 3);
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -1883,6 +1874,111 @@ suite('KeySpaceService', () => {
                     keySpace.duplicateKeys.get('s.a')?.map(d => path.basename(d.targetFile ?? '')), ['s1.dita', 's2.dita']);
                 // The effective definitions are unchanged
                 assert.strictEqual(path.basename(keySpace.keys.get('s.a')?.targetFile ?? ''), 's1.dita');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+    });
+
+    suite('key scope precedence (DITA 1.3 §2.3.4.10.8, checked with DITA-OT 4.3.5)', () => {
+        const keydef = (key: string, text: string) =>
+            `<keydef keys="${key}"><topicmeta><keywords><keyword>${text}</keyword></keywords></topicmeta></keydef>`;
+
+        test('key references resolve in each scope as in the example of the standard', async () => {
+            // The maps of §2.3.4.10.8, plus a submap with its own scope that redefines a root key.
+            // Expected values: the text DITA-OT 4.3.5 renders for <ph keyref="…"/> in each topic
+            // ('' = undefined key).
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), `<map>
+  ${keydef('a', 'a-root')}
+  ${keydef('version', 'version-root')}
+  <topicref href="t-root.dita"/>
+  <topicgroup keyscope="A">
+    ${keydef('b', 'b-A')}
+    <topicgroup keyscope="A-1">${keydef('c', 'c-A1')}</topicgroup>
+    <topicgroup keyscope="A-2">${keydef('d', 'd-A2')}<topicref href="t-A2.dita"/></topicgroup>
+  </topicgroup>
+  <topicgroup keyscope="B">
+    ${keydef('a', 'a-B')}
+    ${keydef('e', 'e-B')}
+    <topicref href="t-B.dita"/>
+    <topicgroup keyscope="B-2">${keydef('g', 'g-B2')}</topicgroup>
+  </topicgroup>
+  <mapref href="product.ditamap" keyscope="product"/>
+</map>`, 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'product.ditamap'),
+                    `<map>${keydef('version', 'version-product')}<topicref href="t-product.dita"/></map>`, 'utf-8');
+                const expected: Record<string, Record<string, string>> = {
+                    't-root': { a: 'a-root', b: '', c: '', 'A.b': 'b-A', 'A.A-1.c': 'c-A1', 'B.a': 'a-B', g: '',
+                        version: 'version-root', 'product.version': 'version-product', 'A.a': '', 'B.version': '' },
+                    't-A2': { a: 'a-root', d: 'd-A2', 'A-2.d': 'd-A2', c: '', 'A-1.c': 'c-A1', 'A.A-1.c': 'c-A1' },
+                    't-B': { e: 'e-B', a: 'a-root', 'B.a': 'a-B', g: '', 'B-2.g': 'g-B2' },
+                    't-product': { version: 'version-root', 'product.version': 'version-product' },
+                };
+                const actual: typeof expected = {};
+                for (const [topic, keys] of Object.entries(expected)) {
+                    const topicPath = path.join(tmpDir, `${topic}.dita`);
+                    fs.writeFileSync(topicPath, '', 'utf-8');
+                    actual[topic] = {};
+                    for (const key of Object.keys(keys)) {
+                        const def = await service.resolveKey(key, topicPath);
+                        actual[topic][key] = def?.inlineContent ?? '';
+                    }
+                }
+                assert.deepStrictEqual(actual, expected);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('getAllKeys offers the key names usable from the scope of the file', async () => {
+            // Completion: from a topic of the product scope, the scope's own keys are offered by
+            // their bare names, and a key the root scope also defines keeps the root definition.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'),
+                    '<map><keydef keys="version" href="v1.dita"/><mapref href="product.ditamap" keyscope="product"/>'
+                    + '<topicref href="root-topic.dita"/></map>', 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'product.ditamap'),
+                    '<map><keydef keys="version" href="v2.dita"/><keydef keys="edition" href="edition.dita"/>'
+                    + '<topicref href="guide.dita"/></map>', 'utf-8');
+                const guide = path.join(tmpDir, 'guide.dita');
+                const rootTopic = path.join(tmpDir, 'root-topic.dita');
+                fs.writeFileSync(guide, '', 'utf-8');
+                fs.writeFileSync(rootTopic, '', 'utf-8');
+                const target = (keys: Map<string, KeyDefinition>, name: string) => path.basename(keys.get(name)?.targetFile ?? '');
+
+                const fromProduct = await service.getAllKeys(guide);
+                assert.strictEqual(target(fromProduct, 'edition'), 'edition.dita');
+                assert.strictEqual(target(fromProduct, 'version'), 'v1.dita', 'the root definition is effective');
+                assert.strictEqual(target(fromProduct, 'product.edition'), 'edition.dita');
+
+                const fromRoot = await service.getAllKeys(rootTopic);
+                assert.ok(!fromRoot.has('edition'), 'a key of a child scope is offered by its qualified name only');
+                assert.strictEqual(target(fromRoot, 'product.edition'), 'edition.dita');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a key reference written in a scoped submap resolves in the scope of the submap', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, '<map><mapref href="product.ditamap" keyscope="product"/></map>', 'utf-8');
+                const productMap = path.join(tmpDir, 'product.ditamap');
+                fs.writeFileSync(productMap, '<map><keydef keys="api" href="api.dita"/><topicref keyref="api"/></map>', 'utf-8');
+
+                assert.ok((await service.resolveKey('api', productMap))?.targetFile?.endsWith('api.dita'));
+                assert.strictEqual(await service.resolveKey('api', rootPath), null,
+                    'not reachable unqualified from the root scope');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -2405,9 +2501,8 @@ suite('KeySpaceService', () => {
             }
         });
 
-        test('push-down: inherited key in child scope has same source file as root key', async () => {
+        test('push-down: an inherited key resolves in the child scope to the root definition', async () => {
             // pydita: keydef2.getKeyDefiner() is keydef3.getKeyDefiner()
-            // After push-down, topic-02 resolves in submap01 context with same targetFile as root
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -2417,26 +2512,20 @@ suite('KeySpaceService', () => {
   <keydef keys="topic-02" href="root-topic-02.dita"/>
   <mapref keyscope="submap01" href="submap01.ditamap"/>
 </map>`, 'utf-8');
-
                 fs.writeFileSync(path.join(tmpDir, 'submap01.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="topic-03" href="sub-topic-03.dita"/>
+  <topicref href="sub-topic.dita"/>
 </map>`, 'utf-8');
+                const subTopic = path.join(tmpDir, 'sub-topic.dita');
+                fs.writeFileSync(subTopic, '', 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-
-                const rootDef = keySpace.keys.get('topic-02');
-                assert.ok(rootDef?.targetFile?.endsWith('root-topic-02.dita'),
-                    'root topic-02 should resolve to root-topic-02.dita');
-
-                // PushDown should inject topic-02 into submap01 namespace
-                const inheritedDef = keySpace.keys.get('submap01.topic-02');
-                assert.ok(inheritedDef?.targetFile?.endsWith('root-topic-02.dita'),
-                    'inherited submap01.topic-02 should point to same root-topic-02.dita');
-
-                // Child scope's own key is unaffected
-                const ownDef = keySpace.keys.get('submap01.topic-03');
-                assert.ok(ownDef?.targetFile?.endsWith('sub-topic-03.dita'),
+                const inherited = await service.resolveKey('topic-02', subTopic);
+                assert.ok(inherited?.targetFile?.endsWith('root-topic-02.dita'),
+                    'topic-02 resolves in submap01 to the root definition');
+                assert.ok(!keySpace.keys.has('submap01.topic-02'), 'no qualified name for an inherited key');
+                assert.ok(keySpace.keys.get('submap01.topic-03')?.targetFile?.endsWith('sub-topic-03.dita'),
                     'submap01.topic-03 should point to sub-topic-03.dita');
             } finally {
                 service.shutdown();
@@ -2611,7 +2700,7 @@ suite('KeySpaceService', () => {
                 const unqualStep = report.steps.find(s => s.type === 'unqualified-lookup');
                 assert.ok(unqualStep, 'unqualified-lookup step should exist');
                 assert.ok(unqualStep!.found, 'step should be found');
-                assert.ok(unqualStep!.note.includes('first-BFS-encounter wins'),
+                assert.ok(unqualStep!.note.includes('root key scope'),
                     'note should explain why this definition won');
             } finally {
                 service.shutdown();
@@ -2619,7 +2708,7 @@ suite('KeySpaceService', () => {
             }
         });
 
-        test('explainKey — context-scope match reports context-scope-lookup step first', async () => {
+        test('explainKey — the root scope is looked up first, then the context scope', async () => {
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -2632,22 +2721,24 @@ suite('KeySpaceService', () => {
                 fs.writeFileSync(path.join(tmpDir, 'product.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="version" href="product-version.dita"/>
+  <keydef keys="edition" href="edition.dita"/>
   <topicref href="guide.dita"/>
 </map>`, 'utf-8');
                 const guidePath = path.join(tmpDir, 'guide.dita');
                 fs.writeFileSync(guidePath, '', 'utf-8');
+                const steps = (report: { steps: Array<{ type: string; attempted: string; found: boolean }> }) =>
+                    report.steps.map(s => `${s.type}:${s.attempted}:${s.found}`);
 
-                const report = await service.explainKey('version', guidePath);
+                const inherited = await service.explainKey('version', guidePath);
+                assert.strictEqual(inherited.contextScope, 'product', 'contextScope should be "product"');
+                assert.deepStrictEqual(steps(inherited), ['unqualified-lookup:version:true']);
+                assert.ok(inherited.resolvedDefinition?.targetFile?.endsWith('root-version.dita'),
+                    'the parent scope definition is effective');
 
-                assert.strictEqual(report.contextScope, 'product',
-                    'contextScope should be "product"');
-                const ctxStep = report.steps.find(s => s.type === 'context-scope-lookup');
-                assert.ok(ctxStep, 'context-scope-lookup step should be present');
-                assert.ok(ctxStep!.found, 'step should be found');
-                assert.ok(ctxStep!.note.includes('product'),
-                    'note should mention the winning scope');
-                assert.ok(report.resolvedDefinition?.targetFile?.endsWith('product-version.dita'),
-                    'should resolve to child-scope override');
+                const own = await service.explainKey('edition', guidePath);
+                assert.deepStrictEqual(steps(own), ['unqualified-lookup:edition:false', 'context-scope-lookup:product.edition:true']);
+                assert.ok(own.steps[1].note.includes('product'), 'note should mention the scope');
+                assert.ok(own.resolvedDefinition?.targetFile?.endsWith('edition.dita'));
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
