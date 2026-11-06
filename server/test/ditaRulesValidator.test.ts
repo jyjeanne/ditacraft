@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import { DiagnosticSeverity } from 'vscode-languageserver/node';
 import {
     validateDitaRules,
     DitaRulesSettings,
@@ -23,15 +24,15 @@ suite('validateDitaRules', () => {
         });
 
         test('category filtering excludes rules', () => {
-            const text = '<indextermref/>';
-            // Only run recommendation — should skip mandatory DITA-SCH-003
-            const diags = validate(text, { categories: ['recommendation'] });
-            const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
-            assert.strictEqual(sch003.length, 0);
+            // A mandatory rule (SCH-002) and a recommendation (SCH-003) both fire on this text
+            const text = '<note type="other">x</note><indextermref keyref="k"/>';
+            const codes = (categories: DitaRulesSettings['categories']) => validate(text, { categories }).map(d => d.code).sort();
+            assert.deepStrictEqual(codes(['mandatory', 'recommendation']), ['DITA-SCH-002', 'DITA-SCH-003']);
+            assert.deepStrictEqual(codes(['recommendation']), ['DITA-SCH-003'], 'only the recommendation is kept');
         });
 
         test('version filtering excludes rules', () => {
-            // SCH-014 applies to DITA 1.2-1.3 (deprecated), removed in 2.0 (SCH-058)
+            // SCH-014 applies to DITA 1.2-1.3 (<navtitle> preferred), removed in 2.0 (SCH-058)
             const text = '<topicref navtitle="Test" href="test.dita"/>';
             const diags12 = validate(text, { ditaVersion: '1.2' });
             const diags13 = validate(text, { ditaVersion: '1.3' });
@@ -41,6 +42,9 @@ suite('validateDitaRules', () => {
             const sch014_11 = diags11.filter(d => d.code === 'DITA-SCH-014');
             assert.strictEqual(sch014_12.length, 1, 'should fire on DITA 1.2');
             assert.strictEqual(sch014_13.length, 1, 'should fire on DITA 1.3');
+            // Not deprecated in DITA 1.3: the element "is preferred" (§3.2.1.5), so information only
+            assert.strictEqual(sch014_13[0].severity, DiagnosticSeverity.Information);
+            assert.ok(sch014_13[0].message.startsWith('Prefer a <navtitle> element'), sch014_13[0].message);
             assert.strictEqual(sch014_11.length, 0, 'should NOT fire on DITA 1.1');
         });
     });
@@ -76,12 +80,16 @@ suite('validateDitaRules', () => {
             assert.strictEqual(matches.length, 0);
         });
 
-        test('DITA-SCH-003: deprecated <indextermref>', () => {
+        test('DITA-SCH-003: <indextermref> is reserved for future use (warning, not deprecated)', () => {
+            // DITA 1.3 §3.4.2.2: "not completely defined; it is reserved for future use". DITA-OT
+            // 4.3.5 drops it without a message. It used to be an Error saying "deprecated".
             const text = '<topic id="t1"><body><indextermref keyref="k1"/></body></topic>';
             const diags = validate(text);
             const matches = diags.filter(d => d.code === 'DITA-SCH-003');
             assert.strictEqual(matches.length, 1);
-            assert.ok(matches[0].message.includes('deprecated'));
+            assert.strictEqual(matches[0].severity, DiagnosticSeverity.Warning);
+            assert.ok(matches[0].message.includes('reserved for future use'), matches[0].message);
+            assert.ok(!matches[0].message.includes('deprecated'));
         });
 
         test('DITA-SCH-004: collection-type on reltable', () => {
@@ -746,7 +754,7 @@ suite('validateDitaRules', () => {
             assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-058').length, 1);
         });
 
-        test('DITA-SCH-058: @navtitle OK in DITA 1.3 (produces SCH-014 deprecation instead)', () => {
+        test('DITA-SCH-058: @navtitle OK in DITA 1.3 (produces SCH-014 instead)', () => {
             const text = '<topicref href="t.dita" navtitle="Title"/>';
             const diags = validate(text, v13);
             assert.strictEqual(diags.filter(d => d.code === 'DITA-SCH-058').length, 0);

@@ -691,8 +691,8 @@ suite('ValidationPipeline', () => {
             const diags = await pipeline.validate(doc, settings, undefined, emptyWorkspace);
             const sch003 = diags.filter(d => d.code === 'DITA-SCH-003');
             assert.ok(sch003.length > 0, 'should still have DITA-SCH-003');
-            // Original severity (Error = 1)
-            assert.strictEqual(sch003[0].severity, 1, 'severity should remain Error');
+            // Original severity (Warning = 2)
+            assert.strictEqual(sch003[0].severity, 2, 'severity should remain Warning');
         });
     });
 

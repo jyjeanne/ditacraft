@@ -345,7 +345,7 @@ Optional RelaxNG schema validation via salve-annos + saxes. Grammar cache (max 2
 | DITA-XREF-002 | Topic ID not found in target |
 | DITA-XREF-003 | Element ID not found in target |
 | DITA-KEY-001 | Key not defined in any map |
-| DITA-KEY-002 | Key has no target (no href on keydef) |
+| DITA-KEY-002 | Key has no target and no text: the reference renders nothing |
 | DITA-KEY-003 | Element ID not found in key's target |
 
 ### Profiling Rules (profilingValidation.ts)
@@ -379,7 +379,7 @@ Optional RelaxNG schema validation via salve-annos + saxes. Grammar cache (max 2
 | DITA-STRUCT-005 | Remove empty element and surrounding whitespace |
 | DITA-ID-001 | Rename duplicate ID with random suffix |
 | DITA-SCH-001 | Add `otherrole=""` attribute |
-| DITA-SCH-003 | Remove deprecated `<indextermref>` element |
+| DITA-SCH-003 | Remove the `<indextermref>` element (not processed by DITA-OT) |
 | DITA-SCH-011 | Convert `alt` attribute to `<alt>` child element |
 | DITA-SCH-030 | Add empty `<alt></alt>` to `<image>` |
 

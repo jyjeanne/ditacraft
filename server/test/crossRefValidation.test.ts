@@ -433,6 +433,8 @@ suite('validateCrossReferences', () => {
                 const diags = await validateCrossReferences(text, testUri, keySpaceService, 100);
                 const noTarget = diags.filter(d => d.code === XREF_CODES.KEY_NO_TARGET);
                 assert.strictEqual(noTarget.length, 1);
+                // The key definition is valid DITA; the reference renders nothing (DITA-OT 4.3.5: no message)
+                assert.ok(noTarget[0].message.includes('produces no link and no text'), noTarget[0].message);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }
