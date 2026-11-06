@@ -1,7 +1,7 @@
 # Graph Report - .  (2026-11-06)
 
 ## Corpus Check
-- Large corpus: 3444 files · ~1,182,915 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 3444 files · ~1,183,432 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
 - 3526 nodes · 8565 edges · 132 communities detected
@@ -18,7 +18,7 @@
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `72a2d04`
+- Built from Git commit: `c9af6ea`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 89 edges
@@ -56,7 +56,7 @@ Nodes (86): RFC-6570, BuildContextSnapshotParams, ContextSnapshotResult, Fragmen
 
 ### Community 2 - "Community 2"
 Cohesion: 0.03
-Nodes (39): main, 72a2d04 fix(validation): apply dita 1.3 to ids, empty enumerations, xml-model and scope, fs, path, vscode, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult (+31 more)
+Nodes (39): main, c9af6ea fix(rules): align three rule messages with dita 1.3 and dita-ot, fs, path, vscode, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult (+31 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
