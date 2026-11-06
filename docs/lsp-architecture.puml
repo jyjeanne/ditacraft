@@ -433,32 +433,6 @@ package "Utilities" <<Rectangle>> #F8F8F8 {
         + uriToPath(uri) : string
     }
 
-    class "<<module>> xmlTokenizer" as XmlTokenizerMod << <&code> >> {
-        + tokenize(input) : Generator<Token>
-        + findAttributeAtOffset(input, offset) : AttributeContext | null
-        + findContextAtOffset(input, offset) : EditContext
-    }
-
-    enum TokenType {
-        StartTag
-        EndTag
-        SelfClosingTag
-        AttributeName
-        AttributeValue
-        Text
-        Comment
-        CDATA
-        ProcessingInstruction
-        Doctype
-    }
-
-    interface Token {
-        + type : TokenType
-        + value : string
-        + offset : number
-        + length : number
-    }
-
     class "<<module>> i18n" as I18nMod << <&code> >> {
         + setLocale(locale) : void
         + t(key, ...args) : string
@@ -593,7 +567,6 @@ Server --> ServerHandlers : init helpers
 CompletionMod --> KeySpaceService
 CompletionMod --> SubjectSchemeService
 CompletionMod --> DitaSchemaMod
-CompletionMod --> XmlTokenizerMod
 HoverMod --> KeySpaceService
 HoverMod --> DitaSchemaMod
 DefinitionMod --> KeySpaceService

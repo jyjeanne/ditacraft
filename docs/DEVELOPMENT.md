@@ -199,7 +199,6 @@ ditacraft/
 │   │   │   ├── types.ts                    # Shared types (DitaVersion, RuleCategory)
 │   │   │   ├── diagnosticCodes.ts          # Central diagnostic code registry (78 codes)
 │   │   │   ├── textUtils.ts               # Comment stripping, offsetToRange, offsetToPosition
-│   │   │   ├── xmlTokenizer.ts            # Error-tolerant state-machine tokenizer
 │   │   │   ├── i18n.ts                    # Localization (80+ messages EN+FR)
 │   │   │   └── ...
 │   │   ├── messages/            # Localization bundles (en.json, fr.json — 80+ message keys)

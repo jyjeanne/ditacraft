@@ -49,7 +49,6 @@ server/
 │   │   └── interfaces.ts               #   Shared service interfaces
 │   │
 │   ├── utils/                           # Shared utilities
-│   │   ├── xmlTokenizer.ts              #   Error-tolerant state-machine XML tokenizer
 │   │   ├── referenceParser.ts           #   Parse and locate href/conref/keyref values
 │   │   ├── workspaceScanner.ts          #   Collect DITA files, cross-file search
 │   │   ├── ditaVersionDetector.ts       #   Detect DITA version from content
@@ -88,7 +87,6 @@ server/
     ├── ditaSpecialization.test.ts
     ├── ditaVersionDetector.test.ts
     ├── workspaceScanner.test.ts
-    ├── xmlTokenizer.test.ts
     ├── contentModelValidation.test.ts
     ├── customRulesValidator.test.ts
     ├── i18n.test.ts
@@ -255,28 +253,6 @@ Most features operate on raw document text via regex rather than building a full
 ```
 /\b(href|conref)\s*=\s*["']([^"']+)["']/g
 ```
-
-### State Machine Tokenizer
-
-`xmlTokenizer.ts` implements a full error-tolerant XML tokenizer using a state machine with 8 states:
-
-```
-CONTENT → START_ELEM → ATTRS → ATTR_VALUE
-                     → END_ELEM
-        → COMMENT
-        → DOCTYPE
-        → PI (Processing Instruction)
-```
-
-The tokenizer is a **generator function** (`function* tokenize()`) that yields typed `Token` objects with 0-based line/column tracking. It recovers from:
-- Missing closing quotes on attributes
-- Missing `>` at end of tags
-- `<` inside attribute values
-- Unclosed comments and processing instructions
-
-Two helper functions build on the tokenizer:
-- `findAttributeAtOffset()` — returns the attribute name/value at a cursor position
-- `findContextAtOffset()` — returns the syntactic context (element-name, attribute-name, attribute-value, content, comment, cdata, pi)
 
 ### Stack-Based Tag Matching
 
@@ -485,7 +461,6 @@ server.ts
 │   └── rngValidationService.ts ──── salve-annos, saxes (external)
 │
 ├── utils/
-│   ├── xmlTokenizer.ts ───────── (no dependencies)
 │   ├── referenceParser.ts ────── (no dependencies)
 │   ├── workspaceScanner.ts ───── referenceParser
 │   ├── ditaVersionDetector.ts ── (no dependencies)
@@ -502,7 +477,7 @@ server.ts
     └── ditaSpecialization.ts ─── (no dependencies)
 ```
 
-Leaf modules (`formatting`, `folding`, `linkedEditing`, `codeActions`, `xmlTokenizer`, `referenceParser`, `ditaVersionDetector`, `textUtils`, `patterns`, and both `data/` files) have zero internal dependencies, making them independently testable.
+Leaf modules (`formatting`, `folding`, `linkedEditing`, `codeActions`, `referenceParser`, `ditaVersionDetector`, `textUtils`, `patterns`, and both `data/` files) have zero internal dependencies, making them independently testable.
 
 ---
 

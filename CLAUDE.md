@@ -210,7 +210,7 @@ server/
     settings.ts               # Per-document config caching
     features/                 # LSP handlers (validation, completion, hover, etc.)
     services/                 # Domain services (ValidationPipeline, KeySpaceService, etc.)
-    utils/                    # Shared utilities (xmlTokenizer, referenceParser, workspaceScanner)
+    utils/                    # Shared utilities (referenceParser, workspaceScanner, textUtils)
     messages/                 # Localization (en.json, fr.json)
     data/                     # Static schema data (ditaSchema.ts, ditaSpecialization.ts)
   test/                       # 1,167 server tests (standalone Mocha)
@@ -400,7 +400,7 @@ suite('My Feature', () => {
 **Core Validation:** `server/src/services/validationPipeline.ts`, `server/src/features/validation.ts`, `server/src/features/ditaRulesValidator.ts`
 **Key Services:** `server/src/services/keySpaceService.ts`, `server/src/services/catalogValidationService.ts`, `server/src/services/subjectSchemeService.ts`, `server/src/services/suppressionEngine.ts`
 **Service Interfaces:** `server/src/services/interfaces.ts` — contracts for `IKeySpaceService`, `ISubjectSchemeService`, `ICatalogValidationService`; use these for mocking in tests
-**Config & Utils:** `src/utils/configurationManager.ts`, `server/src/utils/xmlTokenizer.ts`, `server/src/utils/diagnosticCodes.ts`
+**Config & Utils:** `src/utils/configurationManager.ts`, `server/src/utils/textUtils.ts`, `server/src/utils/diagnosticCodes.ts`
 
 ---
 

@@ -83,8 +83,8 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
                     │  references    │  rngValidation          │
                     │  rename        │                         │
                     │  formatting    │  Utils:                 │
-                    │  codeActions   │  xmlTokenizer           │
-                    │  folding       │  referenceParser        │
+                    │  codeActions   │  referenceParser        │
+                    │  folding       │                         │
                     │  linkedEditing │  workspaceScanner       │
                     │  documentLinks │  ditaVersionDetector    │
                     │  symbols       │  textUtils              │
@@ -208,7 +208,6 @@ DitaCraft is a VS Code extension providing comprehensive DITA authoring support 
 | `services/suppressionEngine.ts` | Parses inline `ditacraft-disable/enable` suppression comments |
 | `features/contextGraph.ts` | `dita/getContextGraph` LSP request: map hierarchy as graph with path traversal guard |
 | `features/contextSnapshot.ts` | 3-level context compression for LLM prompts (Level 1: titles, Level 2: full, Level 3: sliding window) |
-| `utils/xmlTokenizer.ts` | Error-tolerant state-machine XML tokenizer |
 | `utils/textUtils.ts` | Shared text utilities (comment stripping, offsetToRange, escapeRegex) |
 | `utils/patterns.ts` | Shared regex patterns (TAG_ATTRS) |
 | `utils/i18n.ts` | Localization with 80+ messages in EN+FR |
@@ -722,7 +721,6 @@ ditacraft/
 │   │   │   ├── keySpaceService.ts
 │   │   │   └── subjectSchemeService.ts
 │   │   ├── utils/                 # Server utilities
-│   │   │   ├── xmlTokenizer.ts
 │   │   │   ├── textUtils.ts
 │   │   │   ├── patterns.ts
 │   │   │   ├── i18n.ts

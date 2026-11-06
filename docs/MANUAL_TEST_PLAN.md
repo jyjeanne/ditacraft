@@ -674,12 +674,12 @@ For each test: trigger the diagnostic, then press `Ctrl+.` (lightbulb) to apply 
 | 12.3.2 | Source deduplication | Check Problems panel after validation | No duplicate entries from `dita` and `dita-lsp` sources for same issue | [ ] |
 | 12.3.3 | Diagnostics view dedup | Check Activity Bar Diagnostics view | Identical diagnostics from multiple sources merged by file:line:col:severity:message | [ ] |
 
-### 12.4 Error-Tolerant Tokenizer
+### 12.4 Malformed Markup
 
 | # | Test | Steps | Expected | Pass |
 |---|------|-------|----------|------|
 | 12.4.1 | Unclosed tag recovery | File with `<p>text` (no closing tag) | Completion and hover still work for valid parts of the file | [ ] |
-| 12.4.2 | Unquoted attribute | File with `<p class=foo>` | Tokenizer recovers, IntelliSense available | [ ] |
+| 12.4.2 | Unquoted attribute | File with `<p class=foo>` | IntelliSense still available | [ ] |
 | 12.4.3 | Malformed attribute | File with `<p attr=>text</p>` | Folding, symbols, and formatting still work on valid portions | [ ] |
 
 ### 12.5 Edge Cases
