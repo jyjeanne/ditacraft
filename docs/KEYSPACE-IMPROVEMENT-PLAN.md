@@ -162,6 +162,8 @@ key spaces are never constructed, even on demand.
 - `@keyscope` must exist and have at least one token
 - `@href` must resolve to a readable target (on lazy load)
 
+> **Update (November 2026).** The `@keyscope` on the root of a peer map is no longer part of the names: "the `@keyscope` on the peer map is ignored for the purpose of resolving scoped key references from the referencing map" (DITA 1.3 §2.3.4.5). `ext.admin.options` names the key `options` of the child scope `admin` of the peer map, whatever the peer map's own scope name. An undefined key of a peer map gets a `DITA-KEY-001` that names the peer map.
+
 ---
 
 ### Gap 5 — Regex XML parsing ★ — **FIXED**

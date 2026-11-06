@@ -1307,10 +1307,11 @@ export class KeySpaceResolver implements vscode.Disposable {
             if (peerMapPath) {
                 try {
                     const peerKeySpace = await this.buildKeySpace(peerMapPath);
-                    const peerDef = peerKeySpace.keys.get(peerKey);
+                    const peerName = this.peerKeyName(peerKeySpace, peerMapPath, peerKey);
+                    const peerDef = peerKeySpace.keys.get(peerName);
                     if (peerDef) {
-                        const lastDot = peerKey.lastIndexOf('.');
-                        const peerKeyScope = lastDot > 0 ? peerKey.slice(0, lastDot) : '';
+                        const lastDot = peerName.lastIndexOf('.');
+                        const peerKeyScope = lastDot > 0 ? peerName.slice(0, lastDot) : '';
                         const resolved = this.followKeyrefChain(peerDef, peerKeySpace.keys, peerKeyScope);
                         logger.debug('Key resolved (peer map)', { keyName, peerMapPath, targetFile: resolved.targetFile });
                         return resolved;
@@ -1323,6 +1324,20 @@ export class KeySpaceResolver implements vscode.Disposable {
 
         logger.debug('Key not found in key space', { keyName });
         return null;
+    }
+
+    /**
+     * The name, in the key space of a peer map, of a key that the referencing map
+     * writes "peerScope.key". DITA 1.3 §2.3.4.5: "the @keyscope on the peer map is
+     * ignored for the purpose of resolving scoped key references from the referencing
+     * map". The peer key space is built with that @keyscope as the name of its root
+     * scope, which qualifies the names of its child scopes: a scope-qualified key is
+     * qualified the same way. Keys of the root scope are unqualified there.
+     */
+    private peerKeyName(peerKeySpace: KeySpace, peerMapPath: string, peerKey: string): string {
+        if (!peerKey.includes('.')) return peerKey;
+        const rootScope = peerKeySpace.mapToScope?.get(this.normalizePathForComparison(peerMapPath)) ?? '';
+        return rootScope ? `${rootScope}.${peerKey}` : peerKey;
     }
 
     /**

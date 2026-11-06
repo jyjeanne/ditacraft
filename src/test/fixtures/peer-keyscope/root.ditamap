@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Peer Map Key Scope</title>
+    <mapref href="other-guide/other-guide.ditamap" scope="peer" keyscope="ext"/>
+    <topicref href="guide.dita"/>
+</map>

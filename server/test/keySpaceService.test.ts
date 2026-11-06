@@ -147,6 +147,38 @@ suite('KeySpaceService', () => {
                 cleanup(tmpDir);
             }
         });
+
+        test('a key defined in two sibling submaps takes the definition of the first map reference (DITA 1.3 §2.3.4.10.5)', async () => {
+            // "The effective key definition depends upon the document order of the direct URI
+            // references to the maps." The map referenced first is named last, so the order of
+            // the references decides, not the names of the files.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const rootPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(rootPath, `<?xml version="1.0"?>
+<map>
+  <mapref href="submap-02.ditamap"/>
+  <mapref href="submap-01.ditamap"/>
+</map>`, 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'submap-01.ditamap'), `<?xml version="1.0"?>
+<map>
+  <keydef keys="toner-specs" href="toner-type-a-specs.dita"/>
+</map>`, 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'submap-02.ditamap'), `<?xml version="1.0"?>
+<map>
+  <keydef keys="toner-specs" href="toner-type-b-specs.dita"/>
+</map>`, 'utf-8');
+
+                const keySpace = await service.buildKeySpace(rootPath);
+                const effective = keySpace.keys.get('toner-specs');
+                assert.strictEqual(path.basename(effective?.targetFile ?? ''), 'toner-type-b-specs.dita');
+                assert.strictEqual(path.basename(effective?.sourceMap ?? ''), 'submap-02.ditamap');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
     });
 
     suite('resolveKey', () => {
@@ -814,6 +846,35 @@ suite('KeySpaceService', () => {
                 const allKeys = Array.from(keySpace.keys.keys());
                 const dotKeys = allKeys.filter(k => k.includes('.'));
                 assert.strictEqual(dotKeys.length, 0, 'no dot-qualified keys without keyscope');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a key scope name that contains a period resolves (DITA 1.3 §2.3.4.2)', async () => {
+            // "The legal characters for a key scope name are the same as those for keys": a
+            // period is one of them, and the qualified name is then "v1.2.key".
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const mapPath = path.join(tmpDir, 'root.ditamap');
+                fs.writeFileSync(mapPath, `<?xml version="1.0"?>
+<map>
+  <topicgroup keyscope="v1.2">
+    <keydef keys="release" href="release-1-2.dita"/>
+    <topicref href="notes.dita"/>
+  </topicgroup>
+</map>`, 'utf-8');
+                const notes = path.join(tmpDir, 'notes.dita');
+                fs.writeFileSync(notes, '', 'utf-8');
+                const context = path.join(tmpDir, 'context.dita');
+                fs.writeFileSync(context, '', 'utf-8');
+
+                const fromRoot = await service.resolveKey('v1.2.release', context);
+                assert.ok(fromRoot?.targetFile?.endsWith('release-1-2.dita'), 'the qualified name resolves from the root scope');
+                const fromScope = await service.resolveKey('release', notes);
+                assert.ok(fromScope?.targetFile?.endsWith('release-1-2.dita'), 'the unqualified name resolves inside the scope');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -2222,6 +2283,63 @@ suite('KeySpaceService', () => {
                 cleanup(tmpDir);
             }
         });
+
+        test('the @keyscope on the root of a peer map is ignored by the referencing map (DITA 1.3 §2.3.4.5)', async () => {
+            // "the @keyscope on the peer map is ignored for the purpose of resolving scoped key
+            // references from the referencing map": the keys of the peer map are named by the
+            // @keyscope of the mapref alone, and its child scopes are named under it.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), `<?xml version="1.0"?>
+<map>
+  <mapref href="peer.ditamap" scope="peer" keyscope="ext"/>
+</map>`, 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'peer.ditamap'), `<?xml version="1.0"?>
+<map keyscope="inner">
+  <keydef keys="k" href="k.dita"/>
+  <topicgroup keyscope="c">
+    <keydef keys="x" href="x.dita"/>
+  </topicgroup>
+</map>`, 'utf-8');
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                const target = async (name: string) => path.basename((await service.resolveKey(name, contextFile))?.targetFile ?? '') || null;
+                assert.strictEqual(await target('ext.k'), 'k.dita');
+                assert.strictEqual(await target('ext.c.x'), 'x.dita', 'a child scope of the peer map is named under the mapref scope');
+                assert.strictEqual(await target('ext.inner.k'), null, 'the peer map\'s own scope name is not part of the name');
+                assert.strictEqual(await target('ext.inner.c.x'), null);
+                const report = await service.explainKey('ext.c.x', contextFile);
+                assert.ok(report.resolvedDefinition?.targetFile?.endsWith('x.dita'), 'the explanation resolves it the same way');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('findPeerMapOfKey names the peer map a scope-qualified key points into (DITA 1.3 §2.3.4.5)', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), `<?xml version="1.0"?>
+<map>
+  <keydef keys="local" href="local.dita"/>
+  <mapref href="peer.ditamap" scope="peer" keyscope="ext"/>
+</map>`, 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'peer.ditamap'), '<map><keydef keys="k" href="k.dita"/></map>', 'utf-8');
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                const peerMap = await service.findPeerMapOfKey('ext.missing', contextFile);
+                assert.strictEqual(peerMap && path.basename(peerMap), 'peer.ditamap');
+                assert.strictEqual(await service.findPeerMapOfKey('local', contextFile), null, 'not scope-qualified');
+                assert.strictEqual(await service.findPeerMapOfKey('other.k', contextFile), null, 'not the scope of a peer map');
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
     });
 
     suite('XML-parser key extraction (Gap 5)', () => {
@@ -2639,9 +2757,9 @@ suite('KeySpaceService', () => {
 
         test('keyref chain within scoped peer map resolves via correct scope prefix', async () => {
             // Bug: followKeyrefChain was called with scopePrefix='' for all peer keys.
-            // A keyref defined within a named scope of the peer map (e.g. "inner.alias"
-            // → keyref="inner.real") would fail to find "inner.real" and instead return
-            // the alias definition unchanged.
+            // A keyref defined within a named scope of the peer map (alias → keyref="real",
+            // both in the scope "sub") would fail to find "real" and instead return the
+            // alias definition unchanged.
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -2654,18 +2772,21 @@ suite('KeySpaceService', () => {
                 const peerPath = path.join(tmpDir, 'peer.ditamap');
                 fs.writeFileSync(peerPath, `<?xml version="1.0"?>
 <map keyscope="inner">
-  <keydef keys="alias" keyref="real"/>
-  <keydef keys="real" href="real.dita"/>
+  <topicgroup keyscope="sub">
+    <keydef keys="alias" keyref="real"/>
+    <keydef keys="real" href="real.dita"/>
+  </topicgroup>
 </map>`, 'utf-8');
 
                 const contextFile = path.join(tmpDir, 'topic.dita');
                 fs.writeFileSync(contextFile, '', 'utf-8');
 
-                // resolveKey("companion.inner.alias") should follow:
-                //   companion → peer map, peerKey = "inner.alias"
-                //   inner.alias keyref → "real", peerKeyScope = "inner"
-                //   chain follows "inner.real" (scope-qualified) → real.dita
-                const result = await service.resolveKey('companion.inner.alias', contextFile);
+                // resolveKey("companion.sub.alias") should follow:
+                //   companion → peer map, peerKey = "sub.alias"
+                //   alias keyref → "real", resolved in the scope "sub" of the peer map
+                //   chain follows "sub.real" → real.dita
+                // The peer map's own @keyscope "inner" is not part of the name (DITA 1.3 §2.3.4.5).
+                const result = await service.resolveKey('companion.sub.alias', contextFile);
                 assert.ok(result, 'peer key with keyref chain should resolve');
                 assert.ok(result!.targetFile?.endsWith('real.dita'),
                     'keyref chain within scoped peer map should resolve to real.dita, not alias');

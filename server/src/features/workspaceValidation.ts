@@ -10,7 +10,7 @@ import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver/nod
 import { t } from '../utils/i18n';
 import { collectDitaFilesAsync } from '../utils/workspaceScanner';
 import { KeySpaceService } from '../services/keySpaceService';
-import { normalizeFsPath, offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
+import { decodeHrefPath, normalizeFsPath, offsetToRange, stripCommentsAndCDATA } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
 
@@ -149,7 +149,7 @@ export async function detectUnusedTopics(
         while ((match = hrefRegex.exec(cleanContent)) !== null) {
             const refValue = match[1];
             if (/^https?:\/\/|^mailto:/.test(refValue)) continue;
-            const resolved = normalizeFsPath(path.resolve(mapDir, refValue));
+            const resolved = normalizeFsPath(path.resolve(mapDir, decodeHrefPath(refValue)));
             referencedPaths.add(resolved);
         }
     });

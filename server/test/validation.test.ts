@@ -314,6 +314,17 @@ suite('validateDITADocument', () => {
             assert.ok(dupDiags.length >= 2);
         });
 
+        test('duplicate ids in a map are reported (DITA 1.3 §2.3.1)', () => {
+            // "Within a map document, the values of the @id attributes for all elements
+            // SHOULD be unique."
+            const text = '<map id="m"><title>M</title><topicref id="r" href="a.dita"/><topicref id="r" href="b.dita"/><topicref id="s" href="c.dita"/></map>';
+            const diags = validateDITADocument(createDoc(text, 'file:///test.ditamap'), defaultSettings())
+                .filter(d => d.code === 'DITA-ID-001');
+            assert.deepStrictEqual(diags.map(d => d.range.start.character),
+                [text.indexOf('id="r"'), text.lastIndexOf('id="r"')],
+                'both elements named "r", and only them');
+        });
+
         test('same element id reused in sibling nested topics does not produce duplicate error', () => {
             const diags = validate(
                 '<reference id="parameters"><title>Parameters</title>'

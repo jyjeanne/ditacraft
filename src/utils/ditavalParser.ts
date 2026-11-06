@@ -59,6 +59,54 @@ export function isFilteringAttribute(lowerCaseName: string): boolean {
     return (FILTERING_ATTRIBUTES as readonly string[]).includes(lowerCaseName);
 }
 
+/**
+ * The attributes whose values may hold groups, such as `product="database(dbA dbB) appserver(mySERVER)"`.
+ * These are the conditional processing attributes of DITA 1.3 §2.4.3.1, plus `@props`, whose
+ * generalized values (`props="jobrole(programmer)"`) use the same syntax.
+ */
+export const GROUPED_ATTRIBUTES = ['audience', 'platform', 'product', 'otherprops', 'props'] as const;
+
+/** A group of the values of a conditional processing attribute; no `name` for the values outside any group. */
+export interface ConditionGroup {
+    name?: string;
+    tokens: string[];
+}
+
+/**
+ * The groups of an attribute's value (lower-case name), following DITA 1.3 §2.4.3.1:
+ * - A group is "a name immediately followed by a parenthetical group of zero or more space-delimited
+ *   string values".
+ * - The values outside any group, and those of a group named after the attribute, form its implicit
+ *   group (no `name`).
+ * - Groups of the same name are merged.
+ * - Empty groups are left out: `product="database()"` is no attribute at all.
+ * An attribute that cannot hold groups is one group of its values.
+ */
+export function conditionGroups(lowerCaseName: string, value: string): ConditionGroup[] {
+    if (!(GROUPED_ATTRIBUTES as readonly string[]).includes(lowerCaseName)) {
+        const tokens = value.split(/\s+/).filter(t => t.length > 0);
+        return tokens.length > 0 ? [{ tokens }] : [];
+    }
+    const groups = new Map<string, ConditionGroup>();
+    const add = (name: string | undefined, tokens: string[]): void => {
+        const key = name === undefined || name.toLowerCase() === lowerCaseName ? '' : name.toLowerCase();
+        let group = groups.get(key);
+        if (!group) {
+            group = key ? { name, tokens: [] } : { tokens: [] };
+            groups.set(key, group);
+        }
+        group.tokens.push(...tokens);
+    };
+    for (const m of value.matchAll(/([^\s()]+)\(([^()]*)\)|\S+/g)) {
+        if (m[1] !== undefined) {
+            add(m[1], m[2].split(/\s+/).filter(t => t.length > 0));
+        } else {
+            add(undefined, [m[0]]);
+        }
+    }
+    return [...groups.values()].filter(g => g.tokens.length > 0);
+}
+
 const PROP_TAG_PATTERN =/<prop\b((?:[^>"']|"[^"]*"|'[^']*')*)\/?>/gi;
 const ATTR_PATTERN = /([\w-]+)\s*=\s*"([^"]*)"|([\w-]+)\s*=\s*'([^']*)'/g;
 
@@ -156,6 +204,12 @@ function escapeDitavalAttr(value: string): string {
  * element's every attribute); a rule naming another attribute still applies to
  * it. Attribute names compare case-insensitively (`parseDitavalRules` lowers a
  * rule's `att`; elements carry `deliveryTarget`).
+ *
+ * Grouped values (`product="appserver(mySERVER) database(dbA dbB)"`, see
+ * `conditionGroups`) follow DITA 1.3 §2.4.3.2: "a group evaluates to "exclude"
+ * only when every token in that group evaluates to "exclude"", and "if any group
+ * within an attribute evaluates to "exclude", that attribute evaluates to
+ * "exclude"". The values outside any group form a group of their own.
  */
 export function isExcludedByRules(attrs: Record<string, string | undefined>, rules: readonly DitavalRule[],
     isFiltering: (lowerCaseName: string) => boolean = isFilteringAttribute): boolean {
@@ -164,8 +218,8 @@ export function isExcludedByRules(attrs: Record<string, string | undefined>, rul
             continue;
         }
         const name = attName.toLowerCase();
-        const tokens = rawValue.split(/\s+/).filter(t => t.length > 0);
-        if (tokens.length > 0 && tokens.every(token => governingRule(name, token, rules, isFiltering)?.action === 'exclude')) {
+        if (conditionGroups(name, rawValue).some(group =>
+            group.tokens.every(token => governingRule(name, token, rules, isFiltering, group.name)?.action === 'exclude'))) {
             return true;
         }
     }
@@ -179,11 +233,25 @@ export function isExcludedByRules(attrs: Record<string, string | undefined>, rul
  * default rule (the first `<prop>` without `att` and `val`); undefined when
  * none does (the value is included, unflagged). Shared by exclusion and the
  * preview's flags, so both read a `.ditaval` file the same way.
+ *
+ * A value of a group (`group`, its name as written) is decided in the order of
+ * DITA 1.3 §2.4.3.2 for "myDB" in the `database()` group of `@product`:
+ * `database="myDB"`, `product="myDB"`, `product="database"` ("default for the
+ * database group"), `product`, the filter-wide default. A rule on the group name
+ * without a value (`<prop att="database" action="exclude"/>`), which the standard
+ * does not mention, is read as DITA-OT 4.3.5 reads it: as the group's default,
+ * right after `database="myDB"`.
  */
 export function governingRule(lowerCaseName: string, token: string, rules: readonly DitavalRule[],
-    isFiltering: (lowerCaseName: string) => boolean = isFilteringAttribute): DitavalRule | undefined {
+    isFiltering: (lowerCaseName: string) => boolean = isFilteringAttribute, group?: string): DitavalRule | undefined {
+    // A named group, not the implicit group of the attribute's own values
+    const named = group !== undefined && group.toLowerCase() !== lowerCaseName;
+    const groupRules = named ? rules.filter(r => r.att === group.toLowerCase()) : [];
     const attRules = rules.filter(r => r.att === lowerCaseName);
-    return attRules.find(r => r.val === token)
+    return groupRules.find(r => r.val === token)
+        ?? groupRules.find(r => r.val === undefined)
+        ?? attRules.find(r => r.val === token)
+        ?? (named ? attRules.find(r => r.val === group) : undefined)
         ?? attRules.find(r => r.val === undefined)
         ?? (isFiltering(lowerCaseName) ? rules.find(r => r.att === undefined && r.val === undefined) : undefined);
 }

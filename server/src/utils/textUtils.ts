@@ -114,6 +114,15 @@ export function normalizeFsPath(filePath: string): string {
     return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }
 
+/** The file path of an @href, URI-decoded (`my%20topic.dita` is `my topic.dita`, as DITA-OT reads it). */
+export function decodeHrefPath(filePath: string): string {
+    try {
+        return decodeURIComponent(filePath);
+    } catch {
+        return filePath; // Not a valid escape sequence (a bare "%"): taken as written
+    }
+}
+
 /**
  * Check whether an absolute path resolves inside one of the given workspace
  * folders. Use this after every `path.resolve()` of a user-authored `href`,

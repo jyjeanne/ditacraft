@@ -77,6 +77,20 @@ suite('handleDefinition', () => {
         assert.strictEqual(result.range.start.character, elemOffset);
     });
 
+    test('resolves a reference to a duplicated id to the first element (DITA 1.3 §2.3.1)', async () => {
+        // "processors MUST resolve references to that ID to the first element with the given
+        // ID value in document order."
+        const content = '<topic id="t"><body><p id="dup">first</p><p id="dup">second</p><p><xref href="#t/dup"/></p></body></topic>';
+        const { documents } = createDocsFromContent(content);
+
+        const result = await handleDefinition(
+            { textDocument: { uri: TEST_URI }, position: { line: 0, character: content.indexOf('#t/dup') + 2 } },
+            documents
+        );
+
+        assert.strictEqual(result?.range.start.character, content.indexOf('<p id="dup">first'));
+    });
+
     test('resolves keyref when keySpaceService has the key', async () => {
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-def-test-'));
         const targetFile = path.join(tmpDir, 'target.dita');

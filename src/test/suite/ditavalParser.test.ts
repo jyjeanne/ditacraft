@@ -5,7 +5,7 @@
  */
 
 import * as assert from 'assert';
-import { parseDitavalRules, isExcludedByRules, buildDitavalDocument, governingRule, PROFILING_ATTRIBUTES } from '../../utils/ditavalParser';
+import { parseDitavalRules, isExcludedByRules, buildDitavalDocument, governingRule, conditionGroups, PROFILING_ATTRIBUTES } from '../../utils/ditavalParser';
 
 suite('DITAVAL Rule Parsing Test Suite', () => {
     suite('parseDitavalRules', () => {
@@ -216,6 +216,92 @@ suite('DITAVAL Rule Parsing Test Suite', () => {
             assert.strictEqual(governingRule('audience', 'admin', rules)?.action, 'flag');
             assert.strictEqual(governingRule('rev', '2', rules), undefined);
             assert.strictEqual(governingRule('outputclass', 'x', rules), undefined);
+        });
+    });
+
+    suite('grouped values (DITA 1.3 §2.4.3.1, §2.4.3.2)', () => {
+        const groups = (name: string, value: string): string[] =>
+            conditionGroups(name, value).map(g => `${g.name ?? ''}(${g.tokens.join(' ')})`);
+        const excluded = (attrs: Record<string, string>, ditaval: string): boolean =>
+            isExcludedByRules(attrs, parseDitavalRules(`<val>${ditaval}</val>`));
+
+        test('Should read groups as DITA 1.3 §2.4.3.1 defines them', () => {
+            // "The following values for the @otherprops attribute are equivalent"
+            assert.deepStrictEqual(groups('otherprops', 'groupA(a b) groupA(c) groupZ(APPNAME)'), ['groupA(a b c)', 'groupZ(APPNAME)']);
+            assert.deepStrictEqual(groups('otherprops', 'groupA(a b c) groupZ(APPNAME)'), ['groupA(a b c)', 'groupZ(APPNAME)']);
+            // "the ungrouped values belong to an implicit group; the name of that group matches the name of the attribute"
+            assert.deepStrictEqual(groups('product', 'a database(dbA dbB) b appserver(mySERVER) c'), ['(a b c)', 'database(dbA dbB)', 'appserver(mySERVER)']);
+            assert.deepStrictEqual(groups('product', 'product(a b c) database(dbA dbB) appserver(mySERVER)'), ['(a b c)', 'database(dbA dbB)', 'appserver(mySERVER)']);
+            // "<ph product="database() A"> is equivalent to <ph product="A">"; "<ph product="operatingSystem()"> is equivalent to <ph>"
+            assert.deepStrictEqual(groups('product', 'database() A'), ['(A)']);
+            assert.deepStrictEqual(groups('product', 'operatingSystem()'), []);
+            assert.deepStrictEqual(groups('rev', 'a(b) c'), ['(a(b) c)'], 'an attribute without groups');
+        });
+
+        test('Should exclude the step of the standard\'s example by its appserver() or database() group', () => {
+            // DITA 1.3 §2.4.3.2: a step "might apply to one application server and two database applications"
+            const step = { product: 'appserver(mySERVER) database(ABC dbOtherName)' };
+            assert.strictEqual(excluded(step, '<prop att="product" val="mySERVER" action="exclude"/>'), true,
+                '"This can be done by setting product="mySERVER" to exclude"');
+            assert.strictEqual(excluded(step, '<prop att="appserver" val="mySERVER" action="exclude"/>'), true,
+                '"or by setting appserver="mySERVER" to exclude"');
+            assert.strictEqual(excluded(step, '<prop att="appserver" val="mySERVER" action="include"/><prop att="product" val="mySERVER" action="exclude"/>'), false,
+                '"the rule for the more specific group name "appserver" takes precedence"');
+            assert.strictEqual(excluded(step, '<prop att="product" val="mySERVER" action="include"/><prop att="appserver" val="mySERVER" action="exclude"/>'), true);
+            assert.strictEqual(excluded(step, '<prop att="product" val="ABC" action="exclude"/><prop att="product" val="dbOtherName" action="exclude"/>'), true,
+                '"if both "ABC" and "dbOtherName" evaluate to exclude, then the database() group evaluates to exclude"');
+            assert.strictEqual(excluded(step, '<prop att="product" val="ABC" action="exclude"/>'), false, 'dbOtherName is still included');
+        });
+
+        test('Should decide a value of a group in the order of DITA 1.3 §2.4.3.2, whatever the order of the rules', () => {
+            // "the full precedence for determining whether to include or exclude the value", for "myDB"
+            // in a database() group within @product
+            const steps = [
+                '<prop att="database" val="myDB" action="include"/>',
+                '<prop att="product" val="myDB" action="exclude"/>',
+                '<prop att="product" val="database" action="include"/>',
+                '<prop att="product" action="exclude"/>',
+                '<prop action="include"/>',
+            ];
+            for (let step = 0; step < steps.length; step++) {
+                const rules = parseDitavalRules(`<val>${steps.slice(step).reverse().join('')}</val>`);
+                assert.deepStrictEqual(governingRule('product', 'myDB', rules, undefined, 'database'),
+                    parseDitavalRules(`<val>${steps[step]}</val>`)[0], `step ${step + 1}`);
+            }
+            assert.strictEqual(governingRule('product', 'myDB', [], undefined, 'database'), undefined, '"Otherwise, evaluate to "include""');
+            // product="database" "also excludes the more common usage of "database" as a single value"
+            assert.strictEqual(excluded({ product: 'database' }, '<prop att="product" val="database" action="exclude"/>'), true);
+            assert.strictEqual(excluded({ product: 'database(myDB)' }, '<prop att="product" val="database" action="exclude"/>'), true);
+        });
+
+        test('Should take the values outside any group as a group of their own, and merge groups of the same name', () => {
+            const rule = '<prop att="product" val="dbA" action="exclude"/>';
+            assert.strictEqual(excluded({ product: 'dbA dbB' }, rule), false, 'no group: dbB is still included');
+            assert.strictEqual(excluded({ product: 'dbA database(dbB)' }, rule), true, 'the group of the ungrouped values excludes');
+            assert.strictEqual(excluded({ product: 'database(dbA) database(dbB)' }, rule), false, 'one database() group');
+        });
+
+        test('Should take an empty group as no value', () => {
+            const rule = '<prop att="audience" action="exclude"/>';
+            assert.strictEqual(excluded({ audience: 'novice()' }, rule), false, '"the attribute is treated as "include""');
+            assert.strictEqual(excluded({ audience: 'novice() expert' }, rule), true);
+        });
+
+        test('Should apply a rule on a group name in every attribute with that group', () => {
+            // "a DITAVAL rule for sampleGroup="value" will evaluate the same in each attribute"
+            const rule = '<prop att="sampleGroup" val="value" action="exclude"/>';
+            assert.strictEqual(excluded({ platform: 'sampleGroup(value)' }, rule), true);
+            assert.strictEqual(excluded({ otherprops: 'sampleGroup(value)' }, rule), true);
+            assert.strictEqual(excluded({ platform: 'value' }, rule), false, 'not in the group');
+        });
+
+        test('Should read a rule on a group name without a value as the group\'s default, as DITA-OT does', () => {
+            // Not in the standard; DITA-OT 4.3.5 applies it right after the rule on the group's value.
+            const rules = '<prop att="vendor" action="exclude"/><prop att="product" val="v2" action="include"/><prop att="vendor" val="v3" action="include"/>';
+            assert.strictEqual(excluded({ product: 'vendor(v1)' }, rules), true);
+            assert.strictEqual(excluded({ product: 'vendor(v2)' }, rules), true, 'before the rule on the attribute\'s value');
+            assert.strictEqual(excluded({ product: 'vendor(v3)' }, rules), false, 'after the rule on the group\'s value');
+            assert.strictEqual(excluded({ product: 'v1' }, rules), false, 'not in the group');
         });
     });
 
