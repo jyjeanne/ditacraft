@@ -77,17 +77,18 @@ const DITA_RULES: DitaRule[] = [
     },
     {
         id: 'DITA-SCH-003',
-        category: 'mandatory',
+        category: 'recommendation',
         versions: ['1.0', '1.1', '1.2', '1.3'],
-        severity: DiagnosticSeverity.Error,
+        severity: DiagnosticSeverity.Warning,
         check(text, diagnostics) {
-            // Deprecated <indextermref> element
+            // <indextermref>: valid, but "not completely defined; it is reserved for future use"
+            // (DITA 1.3 §3.4.2.2). DITA-OT ignores it and produces nothing, without a message.
             const regex = /<indextermref\b/g;
             let match;
             while ((match = regex.exec(text)) !== null) {
                 diagnostics.push(makeDiag(text, match.index, match[0].length,
-                    t('sch003.deprecatedIndextermref'),
-                    DiagnosticSeverity.Error, 'DITA-SCH-003'));
+                    t('sch003.reservedIndextermref'),
+                    DiagnosticSeverity.Warning, 'DITA-SCH-003'));
             }
         },
     },
@@ -198,9 +199,10 @@ const DITA_RULES: DitaRule[] = [
         id: 'DITA-SCH-014',
         category: 'recommendation',
         versions: ['1.2', '1.3'],
-        severity: DiagnosticSeverity.Warning,
+        severity: DiagnosticSeverity.Information,
         check(text, diagnostics) {
-            // Deprecated @navtitle attribute on topicref-like elements
+            // @navtitle on topicref-like elements: not deprecated, but the <navtitle> element "is
+            // preferred" (DITA 1.3 §3.2.1.5). DITA-OT accepts both without a message.
             const regex = new RegExp(`<(\\w+)\\b(${TAG_ATTRS}\\bnavtitle\\s*=\\s*["'][^"']*["']${TAG_ATTRS})`, 'g');
             let match;
             while ((match = regex.exec(text)) !== null) {
@@ -209,8 +211,8 @@ const DITA_RULES: DitaRule[] = [
                     const offset = attr ? match.index + attr.offset : match.index;
                     const length = attr ? attr.length : match[0].length;
                     diagnostics.push(makeDiag(text, offset, length,
-                        t('sch014.deprecatedNavtitle'),
-                        DiagnosticSeverity.Warning, 'DITA-SCH-014'));
+                        t('sch014.preferNavtitleElement'),
+                        DiagnosticSeverity.Information, 'DITA-SCH-014'));
                 }
             }
         },

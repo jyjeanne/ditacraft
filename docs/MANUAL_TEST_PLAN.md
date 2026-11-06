@@ -201,7 +201,7 @@ Open Command Palette (`Ctrl+Shift+P`) and test each command.
 |---|------|------|-------|------|
 | 4.5.1 | role="other" missing otherrole | `DITA-SCH-001` | Add `<link role="other">` without `otherrole` | [ ] |
 | 4.5.2 | type="other" missing othertype | `DITA-SCH-002` | Add `<note type="other">` without `othertype` | [ ] |
-| 4.5.3 | Deprecated indextermref | `DITA-SCH-003` | Add `<indextermref>` element | [ ] |
+| 4.5.3 | `<indextermref>` (not processed) | `DITA-SCH-003` | Add `<indextermref>` element | [ ] |
 | 4.5.4 | collection-type on reltable | `DITA-SCH-004` | Add `collection-type` attr on `<reltable>` | [ ] |
 
 #### Recommendation Rules
@@ -212,7 +212,7 @@ Open Command Palette (`Ctrl+Shift+P`) and test each command.
 | 4.5.6 | Deprecated alt attribute | `DITA-SCH-011` | Use `<image alt="text">` instead of `<alt>` | [ ] |
 | 4.5.7 | Deprecated longdescref attr | `DITA-SCH-012` | Use `longdescref` attribute on element | [ ] |
 | 4.5.8 | Deprecated query attribute | `DITA-SCH-013` | Use `query` attribute on element | [ ] |
-| 4.5.9 | Deprecated navtitle attribute | `DITA-SCH-014` | Use `navtitle` attribute instead of `<navtitle>` | [ ] |
+| 4.5.9 | `navtitle` attribute (`<navtitle>` preferred) | `DITA-SCH-014` | Use `navtitle` attribute instead of `<navtitle>` | [ ] |
 | 4.5.10 | Deprecated title on map | `DITA-SCH-015` | Use `title` attribute on `<map>` | [ ] |
 | 4.5.11 | Long shortdesc | `DITA-SCH-016` | Add `<shortdesc>` with >50 words | [ ] |
 | 4.5.12 | topichead missing navtitle | `DITA-SCH-017` | Add `<topichead>` without `navtitle` | [ ] |

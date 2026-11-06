@@ -94,7 +94,7 @@ const FIXES: Record<string, (text: string) => TextEdit[]> = {
         return [{ start: end, end, text: ' otherrole=""' }];
     },
     // DITA-SCH-003: the element and the spaces before it.
-    'Remove deprecated <indextermref>': (text) => {
+    'Remove <indextermref> (not processed)': (text) => {
         const start = at(text, '<indextermref');
         return [{ start: start - 1, end: start + '<indextermref keyref="k"/>'.length, text: '' }];
     },

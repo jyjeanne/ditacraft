@@ -15,8 +15,8 @@ Effort: **S** = up to half a day, **M** = up to two days, **L** = more.
 | # | Question | Items | Recommendation |
 |---|---|---|---|
 | D1 | Key precedence between scopes changes which definition some key references resolve to. Release it as a breaking change, with a CHANGELOG "Changed" entry? | KSC-02 | Yes: it is what DITA 1.3 and DITA-OT do, and the editor currently shows a different target than the published output. |
-| D2 | `<indextermref>` is valid DITA 1.3 ("reserved for future use"). Keep `DITA-SCH-003` as an Error, or make it a Warning that says DITA-OT does not process the element? | SCH-003 | Warning, with a message that does not say "deprecated". |
-| D3 | A key definition without a target or text is valid DITA 1.3. Keep `DITA-KEY-002` as a Warning (the link leads nowhere), or lower it to Information? | KEY-07 | Keep the Warning, documented in the test book as an intended best-practice check (accepted deviation). |
+| D2 | `<indextermref>` is valid DITA 1.3 ("reserved for future use"). Keep `DITA-SCH-003` as an Error, or make it a Warning that says DITA-OT does not process the element? | SCH-003 | Warning, with a message that does not say "deprecated". **Decided (phase 3)**: DITA-OT 4.3.5 drops the element without a message. |
+| D3 | A key definition without a target or text is valid DITA 1.3. Keep `DITA-KEY-002` as a Warning (the link leads nowhere), or lower it to Information? | KEY-07 | Keep the Warning, documented in the test book as an intended best-practice check (accepted deviation). **Decided (phase 3)**: DITA-OT 4.3.5 renders such a reference as an empty element, without a message. |
 | D4 | Branch filtering (`<ditavalref>`) is not supported. Implement it, or declare it out of scope? | FLT-08 | Declare it out of scope in the conformance statement for now. |
 | D5 | Grouped values in conditional attributes (`product="database(myDB)"`) are not supported by the DITAVAL filtering of the editor. Implement? | FLT-04 | Yes, in phase 4 (they are part of DITA 1.3 filtering). |
 
@@ -95,7 +95,7 @@ Effort: **S** = up to half a day, **M** = up to two days, **L** = more.
 
 **Problem.** The message says the `@navtitle` attribute is deprecated. DITA 1.3 §3.2.1.5 says the `<navtitle>` element "is preferred", and "SHOULD be used" when both are present.
 
-**Steps.** Reword in English and French, for example "Prefer a `<navtitle>` element in `<topicmeta>` to the `@navtitle` attribute." Keep the severity at Warning, as a recommendation.
+**Steps.** Reword in English and French, for example "Prefer a `<navtitle>` element in `<topicmeta>` to the `@navtitle` attribute." Decided in phase 3: Information rather than Warning, because DITA-OT 4.3.5 accepts the attribute without a message and DITA 1.3 only calls the element preferred.
 
 ### 4.3 KEY-07 — Key definition without a target (S, decision D3)
 
@@ -133,15 +133,15 @@ Also in this phase, the partial requirements that only need stronger tests, from
 
 | Item | Phase | Effort | Status |
 |---|---|---|---|
-| D1–D5 decisions | 1 | — | Open |
-| KSC-02 key precedence between scopes | 1 | M | Open |
+| D1–D5 decisions | 1 | — | D1, D2, D3 decided; D4, D5 open |
+| KSC-02 key precedence between scopes | 1 | M | Done |
 | ID-01 Unicode ids | 2 | S | Done |
 | SUB-03 empty enumeration | 2 | S | Done |
 | DOC-06 `<?xml-model?>` without DOCTYPE | 2 | S | Done |
 | ADR-06 `@scope` cascade | 2 | M | Done |
-| SCH-003 `<indextermref>` message and severity | 3 | S | Open |
-| SCH-014 `@navtitle` message | 3 | S | Open |
-| KEY-07 key without target | 3 | S | Open |
+| SCH-003 `<indextermref>` message and severity | 3 | S | Done |
+| SCH-014 `@navtitle` message | 3 | S | Done |
+| KEY-07 key without target | 3 | S | Done (accepted deviation) |
 | ID-03, ID-05, KEY-11, KSC-05, PEER-02, PEER-03, MAP-04 tests | 4 | S each | Open |
 | FLT-04 grouped values | 4 | M | Open |
 | CON-05 `@conrefend` | 4 | M | Open |

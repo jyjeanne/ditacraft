@@ -190,7 +190,7 @@ suite('handleCodeActions', () => {
     });
 
     suite('DITA-SCH-003: Remove indextermref fix', () => {
-        test('offers fix to remove deprecated indextermref', () => {
+        test('offers fix to remove indextermref', () => {
             const content = '<body><indextermref keyref="k1"/></body>';
             const doc = createDoc(content);
             const idx = content.indexOf('<indextermref');

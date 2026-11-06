@@ -25,7 +25,7 @@ const CODES = {
 // Diagnostic codes from ditaRulesValidator.ts (Phase 6)
 const RULE_CODES = {
     ROLE_OTHER_MISSING_OTHERROLE: 'DITA-SCH-001',
-    DEPRECATED_INDEXTERMREF: 'DITA-SCH-003',
+    INDEXTERMREF: 'DITA-SCH-003',
     DEPRECATED_ALT_ATTR: 'DITA-SCH-011',
     IMAGE_MISSING_ALT: 'DITA-SCH-030',
 };
@@ -88,8 +88,8 @@ function getFixesForDiagnostic(
             return fixInvalidIdFormat(diagnostic, text, document);
         case RULE_CODES.ROLE_OTHER_MISSING_OTHERROLE:
             return fixMissingOtherrole(diagnostic, text, document);
-        case RULE_CODES.DEPRECATED_INDEXTERMREF:
-            return fixDeprecatedIndextermref(diagnostic, text, document);
+        case RULE_CODES.INDEXTERMREF:
+            return fixIndextermref(diagnostic, text, document);
         case RULE_CODES.DEPRECATED_ALT_ATTR:
             return fixDeprecatedAltAttr(diagnostic, text, document);
         case RULE_CODES.IMAGE_MISSING_ALT:
@@ -333,9 +333,9 @@ function fixMissingOtherrole(
 }
 
 /**
- * Fix DITA-SCH-003: Delete the deprecated <indextermref> element.
+ * Fix DITA-SCH-003: Delete the <indextermref> element, which DITA-OT does not process.
  */
-function fixDeprecatedIndextermref(
+function fixIndextermref(
     diagnostic: Diagnostic,
     text: string,
     document: TextDocument
@@ -358,7 +358,7 @@ function fixDeprecatedIndextermref(
     if (deleteEnd < text.length && text[deleteEnd] === '\n') deleteEnd++;
 
     return [{
-        title: 'Remove deprecated <indextermref>',
+        title: 'Remove <indextermref> (not processed)',
         kind: CodeActionKind.QuickFix,
         edit: {
             changes: {

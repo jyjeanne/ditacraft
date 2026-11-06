@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A name qualified relative to an enclosing scope (`A-1.c` from a topic of scope `A.A-2`) now resolves, as it does in DITA-OT.
   - A scope-qualified name names the keys the scope defines itself: `lib.logo` no longer resolves when `logo` is only inherited from the root scope (DITA-OT leaves it undefined).
   - A key reference written in a submap that has its own key scope resolves in that scope.
+- Three DITA rule messages now say what DITA 1.3 and DITA-OT 4.3.5 actually do:
+  - `DITA-SCH-003` (`<indextermref>`) is a Warning in the recommendation category, no longer a mandatory Error, and no longer calls the element deprecated. DITA 1.3 says it "is not completely defined; it is reserved for future use", and DITA-OT drops it without a message. The quick fix that removes it is unchanged.
+  - `DITA-SCH-014` (the `@navtitle` attribute) is an Information, no longer a Warning. It says that the `<navtitle>` element is preferred, not that the attribute is deprecated (DITA 1.3 §3.2.1.5); DITA-OT accepts both.
+  - `DITA-KEY-002` says that the reference produces no link and no text, and that the key definition itself is valid DITA. Such a reference renders as an empty element in DITA-OT, without a message.
 
 - Reference severities follow DITA-OT, the reference processor:
   - A missing target file (`DITA-XREF-001`) is an error when DITA-OT fails to load it: a DITA topic or map (`DOTX008E`), a content reference (`DOTX010E`) or an image (`DOTJ023E`). It was a warning unless the internal DITA-OT comparison profile was on. A missing peer resource (`scope="peer"`, another publication) or non-DITA file (a PDF, an HTML page), which DITA-OT only links to, stays a warning.

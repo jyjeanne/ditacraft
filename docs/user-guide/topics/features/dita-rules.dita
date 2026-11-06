@@ -54,8 +54,9 @@
                 </strow>
                 <strow>
                     <stentry><codeph>DITA-SCH-003</codeph></stentry>
-                    <stentry>Mandatory</stentry>
-                    <stentry><codeph>&lt;indextermref&gt;</codeph> is deprecated</stentry>
+                    <stentry>Recommendation</stentry>
+                    <stentry><codeph>&lt;indextermref&gt;</codeph> is reserved for future use: DITA-OT
+                        produces nothing for it</stentry>
                 </strow>
                 <strow>
                     <stentry><codeph>DITA-SCH-004</codeph></stentry>
@@ -100,7 +101,7 @@
                 <li><b>Remove empty element:</b> Removes elements with no content</li>
                 <li><b>Rename duplicate ID:</b> Makes duplicate IDs unique</li>
                 <li><b>Add <codeph>@otherrole</codeph>:</b> Inserts the missing attribute when <codeph>role="other"</codeph> is detected</li>
-                <li><b>Remove deprecated <codeph>&lt;indextermref&gt;</codeph>:</b> Removes the deprecated element</li>
+                <li><b>Remove <codeph>&lt;indextermref&gt;</codeph>:</b> Removes the element, which DITA-OT does not process</li>
                 <li><b>Convert <codeph>alt</codeph> attribute to <codeph>&lt;alt&gt;</codeph> element:</b> Migrates the deprecated attribute syntax to the modern element form</li>
                 <li><b>Add missing <codeph>&lt;alt&gt;</codeph> to <codeph>&lt;image&gt;</codeph>:</b> Inserts an empty <codeph>&lt;alt&gt;</codeph> child element for accessibility</li>
                 <li><b>Sanitize invalid ID:</b> Fixes invalid ID format by replacing illegal characters and ensuring a valid starting character</li>

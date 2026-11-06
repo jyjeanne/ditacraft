@@ -70,7 +70,8 @@
                 <strow>
                     <stentry><codeph>DITA-KEY-002</codeph></stentry>
                     <stentry>Warning</stentry>
-                    <stentry>Key is defined but has no href target</stentry>
+                    <stentry>Key has no target and no text: the reference renders nothing (the
+                        key definition itself is valid DITA)</stentry>
                 </strow>
                 <strow>
                     <stentry><codeph>DITA-KEY-003</codeph></stentry>

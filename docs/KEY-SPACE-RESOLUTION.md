@@ -270,7 +270,7 @@ Hovering over a keyref value shows:
 | Code | Severity | Description |
 |------|----------|-------------|
 | `DITA-KEY-001` | Error | Undefined key — not found in any key space |
-| `DITA-KEY-002` | Warning | Key has no target file (may be inline-only) |
+| `DITA-KEY-002` | Warning | Key has no target and no text: the reference renders nothing |
 | `DITA-KEY-003` | Warning | Element ID not found in key's target file |
 | `DITA-XREF-001` | Error | Referenced file does not exist |
 | `DITA-XREF-002` | Warning | Topic ID not found in target file |

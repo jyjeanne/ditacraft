@@ -343,7 +343,7 @@ Validates targets of `href`, `conref`, `keyref`, and `conkeyref` attributes:
 | DITA-XREF-002 | Topic ID not found in target |
 | DITA-XREF-003 | Element ID not found in target |
 | DITA-KEY-001 | Key not defined in any map |
-| DITA-KEY-002 | Key has no target (no href on keydef) |
+| DITA-KEY-002 | Key has no target and no text: the reference renders nothing |
 | DITA-KEY-003 | Element ID not found in key's target |
 
 #### Phase 8: Profiling Validation (`profilingValidation.ts`)
@@ -474,7 +474,7 @@ Files exceeding `ditacraft.largeFileThresholdKB` (default 500 KB, 0 = disabled) 
 | DITA-XREF-001 | 6 | Error for a DITA topic or map (as DITA-OT, `DOTX008E`), a `@conref` (`DOTX010E`) or an image (`DOTJ023E`); Warning for a peer or non-DITA resource, or a file outside the workspace (not looked up) | Target file not found |
 | DITA-XREF-002..003 | 6 | Error for `@conref` (as DITA-OT, `DOTX010E`), Warning for `@href` | Topic or element ID not found in target |
 | DITA-KEY-001 | 6 | Error for `@conkeyref` (as DITA-OT, `DOTJ046E`), Warning for `@keyref` | Key not defined |
-| DITA-KEY-002 | 6 | Warning | Key has no target |
+| DITA-KEY-002 | 6 | Warning | Key has no target and no text |
 | DITA-KEY-003 | 6 | Error for `@conkeyref` (as DITA-OT, `DOTX010E`), Warning for `@keyref` | Element ID not found in key's target |
 | DITA-KEY-004 | 6 | Warning | Key defined more than once in the same key scope, including twice in the same map (DITA-OT: `DOTJ045I`) |
 | DITA-PROF-001 | 8 | Warning | Profiling value not allowed |
