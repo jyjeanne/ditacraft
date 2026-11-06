@@ -471,11 +471,12 @@ Files exceeding `ditacraft.largeFileThresholdKB` (default 500 KB, 0 = disabled) 
 | DITA-CM-001 | 4 | Warning | Disallowed child element |
 | DITA-CM-002 | 4 | Warning | Missing required child element |
 | DITA-DTD-001 | 5 | Error | DTD validation error |
-| DITA-XREF-001 | 6 | Error | Target file not found (as DITA-OT, `DOTX008E`) |
+| DITA-XREF-001 | 6 | Error for a DITA topic or map (as DITA-OT, `DOTX008E`), a `@conref` (`DOTX010E`) or an image (`DOTJ023E`); Warning for a peer or non-DITA resource, or a file outside the workspace (not looked up) | Target file not found |
 | DITA-XREF-002..003 | 6 | Error for `@conref` (as DITA-OT, `DOTX010E`), Warning for `@href` | Topic or element ID not found in target |
-| DITA-KEY-001..002 | 6 | Warning | Key resolution issues |
+| DITA-KEY-001 | 6 | Error for `@conkeyref` (as DITA-OT, `DOTJ046E`), Warning for `@keyref` | Key not defined |
+| DITA-KEY-002 | 6 | Warning | Key has no target |
 | DITA-KEY-003 | 6 | Error for `@conkeyref` (as DITA-OT, `DOTX010E`), Warning for `@keyref` | Element ID not found in key's target |
-| DITA-KEY-004 | 6 | Warning | Key defined more than once, including twice in the same map (DITA-OT: `DOTJ045I`) |
+| DITA-KEY-004 | 6 | Warning | Key defined more than once in the same key scope, including twice in the same map (DITA-OT: `DOTJ045I`) |
 | DITA-PROF-001 | 8 | Warning | Profiling value not allowed |
 | DITA-SCH-001..046 | 9 | Various | DITA rules (43 codes) |
 | DITA-SCH-050..059 | 9 | Various | DITA 2.0 removal rules (10 codes) |

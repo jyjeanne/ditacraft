@@ -11,7 +11,9 @@ import { promises as fsPromises } from 'fs';
 
 import { XMLParser } from 'fast-xml-parser';
 import { TAG_ATTRS } from '../utils/patterns';
-import { stripCommentsAndCDATA, isPathWithinWorkspace, findContainingWorkspaceFolder, normalizeFsPath } from '../utils/textUtils';
+import {
+    stripCommentsAndCDATA, isPathWithinWorkspace, findContainingWorkspaceFolder, normalizeFsPath, scanKeyDefinitions,
+} from '../utils/textUtils';
 import { IKeySpaceService } from './interfaces';
 
 // --- Interfaces ---
@@ -24,10 +26,8 @@ export interface KeyDefinition {
     elementId?: string;
     inlineContent?: string;
     sourceMap: string;
-    /** 1-based line number of the key-defining element within sourceMap. */
+    /** 1-based line number of the key name within sourceMap. */
     sourceLine?: number;
-    /** Zero-based source offset of this key token within sourceMap. */
-    sourceOffset?: number;
     scope?: string;
     processingRole?: string;
     /** Indirect key reference: when set, resolution follows the chain to this key name. */
@@ -171,6 +171,40 @@ function nodeText(node: unknown): string {
 }
 
 /** A key's href that names a web resource rather than a file. */
+/** A start tag with @keys: element name (without prefix), offset, key names and their offsets. */
+interface KeyDefinitionTag {
+    elementName: string;
+    elementOffset: number;
+    keyNames: string[];
+    offsets: number[];
+}
+
+/** `content` with everything outside [start, end) blanked, line breaks kept. */
+function blankOutside(content: string, start: number, end: number): string {
+    const blank = (text: string) => text.replace(/[^\r\n]/g, ' ');
+    return blank(content.slice(0, start)) + content.slice(start, end) + blank(content.slice(end));
+}
+
+/** The start tags with @keys of a map's text, in document order. */
+function keyDefinitionTags(content: string): KeyDefinitionTag[] {
+    const tags: KeyDefinitionTag[] = [];
+    for (const token of scanKeyDefinitions(content)) {
+        const last = tags[tags.length - 1];
+        if (last && last.elementOffset === token.elementOffset) {
+            last.keyNames.push(token.keyName);
+            last.offsets.push(token.offset);
+        } else {
+            tags.push({
+                elementName: token.elementName.replace(/^\w+:/, ''),
+                elementOffset: token.elementOffset,
+                keyNames: [token.keyName],
+                offsets: [token.offset],
+            });
+        }
+    }
+    return tags;
+}
+
 function isWebAddress(href: string): boolean {
     return href.startsWith('http://') || href.startsWith('https://');
 }
@@ -198,6 +232,15 @@ export class KeySpaceService implements IKeySpaceService {
         parseAttributeValue: false,
         parseTagValue: false,
         allowBooleanAttributes: true,
+    });
+    /** The same, keeping the elements in document order (the shared parser groups same-name siblings). */
+    private readonly orderedXmlParser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '@_',
+        parseAttributeValue: false,
+        parseTagValue: false,
+        allowBooleanAttributes: true,
+        preserveOrder: true,
     });
 
     private keySpaceCache: Map<string, KeySpace> = new Map();
@@ -957,6 +1000,9 @@ export class KeySpaceService implements IKeySpaceService {
         const registeredScopeSignatures = new Map<string, Set<string>>();
         const scopeSignature = (prefixes: readonly string[]): string =>
             [...prefixes].sort().join('\u0000');
+        // The first definition of each key in each key scope (qualified name: "scope.key", or
+        // the key name in the root scope), to find the keys defined again in the same scope
+        const firstDefinitionInScope = new Map<string, KeyDefinition>();
 
         while (queue.length > 0) {
             const { mapPath: currentMap, scopePrefixes } = queue.shift()!;
@@ -1001,7 +1047,8 @@ export class KeySpaceService implements IKeySpaceService {
             keySpace.mapHierarchy.push(currentMap);
 
             try {
-                const rawContent = await fsPromises.readFile(currentMap, 'utf-8');
+                // Without the byte order mark, as in the editor's text
+                const rawContent = (await fsPromises.readFile(currentMap, 'utf-8')).replace(/^\uFEFF/, '');
                 // Strip comments/CDATA first, then reltable blocks.
                 // reltable hrefs are relationship-table links — not key-space content (spec §2.4.4).
                 const mapContent = this.stripReltables(stripCommentsAndCDATA(rawContent));
@@ -1047,11 +1094,20 @@ export class KeySpaceService implements IKeySpaceService {
                     // Unqualified entry — first definition across the whole key space wins.
                     if (!keySpace.keys.has(keyDef.keyName)) {
                         keySpace.keys.set(keyDef.keyName, keyDef);
+                    }
+
+                    // A key defined again in the same key scope: only the first definition takes
+                    // effect (DITA-OT: DOTJ045I). Definitions in different scopes do not collide,
+                    // even when they share the unqualified entry above.
+                    const scopedName = primaryPrefix ? `${primaryPrefix}.${keyDef.keyName}` : keyDef.keyName;
+                    const firstInScope = firstDefinitionInScope.get(scopedName);
+                    if (!firstInScope) {
+                        firstDefinitionInScope.set(scopedName, keyDef);
                     } else {
-                        let dups = keySpace.duplicateKeys.get(keyDef.keyName);
+                        let dups = keySpace.duplicateKeys.get(scopedName);
                         if (!dups) {
-                            dups = [keySpace.keys.get(keyDef.keyName)!];
-                            keySpace.duplicateKeys.set(keyDef.keyName, dups);
+                            dups = [firstInScope];
+                            keySpace.duplicateKeys.set(scopedName, dups);
                         }
                         dups.push(keyDef);
                     }
@@ -1144,8 +1200,9 @@ export class KeySpaceService implements IKeySpaceService {
         );
         try {
             const parsed = this.xmlParser.parse(stripped) as Record<string, unknown>;
+            const ordered = this.orderedXmlParser.parse(stripped) as unknown[];
             const results: Array<{ tagName: string; attrs: Record<string, string>; node: Record<string, unknown> }> = [];
-            this.collectXmlElements(parsed, results);
+            this.collectXmlElements(ordered, parsed, results);
             return results;
         } catch {
             return null;
@@ -1153,37 +1210,45 @@ export class KeySpaceService implements IKeySpaceService {
     }
 
     /**
-     * Recursive element collector for the fast-xml-parser tree.
+     * Collects the elements of a fast-xml-parser tree in document order.
+     *
+     * The grouped tree (`grouped`) gathers same-name siblings in one array, which loses
+     * their order among other siblings: `<topicref keys="x"/><keydef keys="a"/><topicref
+     * keys="y"/>` gives both topicrefs before the keydef, and the first definition of a key
+     * is the one that takes effect. Its nodes are what key extraction reads (attributes,
+     * topicmeta), so the walk follows the ordered tree (`ordered`, from `preserveOrder`)
+     * and takes each element's node from the grouped one: the n-th `<keydef>` child of an
+     * element is the n-th entry of its `keydef` group.
      * Strips namespace prefixes from both element names and attribute names.
      */
     private collectXmlElements(
-        obj: unknown,
-        out: Array<{ tagName: string; attrs: Record<string, string>; node: Record<string, unknown> }>,
-        tagName = ''
+        ordered: unknown[],
+        grouped: Record<string, unknown>,
+        out: Array<{ tagName: string; attrs: Record<string, string>; node: Record<string, unknown> }>
     ): void {
-        if (typeof obj !== 'object' || obj === null) return;
-        if (Array.isArray(obj)) {
-            for (const item of obj) this.collectXmlElements(item, out, tagName);
-            return;
-        }
-        const node = obj as Record<string, unknown>;
-        if (tagName) {
+        const seen = new Map<string, number>();
+        for (const entry of ordered) {
+            if (typeof entry !== 'object' || entry === null) continue;
+            const rawName = Object.keys(entry).find(key => key !== ':@');
+            // Text, and processing instructions (?xml, ?pi-name), are not elements
+            if (!rawName || rawName === '#text' || rawName.startsWith('?')) continue;
+            const index = seen.get(rawName) ?? 0;
+            seen.set(rawName, index + 1);
+            const group = grouped[rawName];
+            const node = Array.isArray(group) ? group[index] : index === 0 ? group : undefined;
+            // An element without attributes or children is a string in the grouped tree: nothing to read
+            if (typeof node !== 'object' || node === null) continue;
+            const element = node as Record<string, unknown>;
             const attrs: Record<string, string> = {};
-            for (const [key, val] of Object.entries(node)) {
+            for (const [key, val] of Object.entries(element)) {
                 if (!key.startsWith('@_')) continue;
                 // Strip @_ prefix and optional namespace prefix (ns:name → name)
                 const attrName = key.slice(2).replace(/^\w+:/, '');
                 attrs[attrName] = String(val ?? '');
             }
-            out.push({ tagName, attrs, node });
-        }
-        for (const [key, val] of Object.entries(node)) {
-            if (key.startsWith('@_') || key === '#text') continue;
-            // Skip XML processing instructions (?xml, ?pi-name) — not elements
-            if (key.startsWith('?')) continue;
-            // Strip element namespace prefix
-            const childName = key.replace(/^\w+:/, '');
-            this.collectXmlElements(val, out, childName);
+            out.push({ tagName: rawName.replace(/^\w+:/, ''), attrs, node: element });
+            const children = (entry as Record<string, unknown>)[rawName];
+            if (Array.isArray(children)) this.collectXmlElements(children, element, out);
         }
     }
 
@@ -1261,8 +1326,9 @@ export class KeySpaceService implements IKeySpaceService {
         const keys: KeyDefinition[] = [];
         const mapDir = path.dirname(mapPath);
         let matchCount = 0;
-        // Running position for forward-scan provenance lookup.
-        let contentSearchPos = 0;
+        // The start tags with @keys, in document order, each key name with its offset
+        const keyTags = mapContent ? keyDefinitionTags(mapContent) : [];
+        let nextKeyTag = 0;
 
         for (const { tagName, attrs, node } of elements) {
             const keysValue = attrs['keys'];
@@ -1275,65 +1341,26 @@ export class KeySpaceService implements IKeySpaceService {
 
             const isSelfClosing = !Object.keys(node).some(k => !k.startsWith('@_') && k !== '#text');
 
-            // Compute each key token's own source line by scanning forward from the
-            // last match position. Anchor on `keys` [ws] `=` [ws] quote + first token
-            // (whitespace-tolerant, so `keys = "token"` anchors correctly too, not
-            // just the exact-substring `keys="token`) to avoid matching the bare
-            // token inside hrefs, text content, or other attribute values. Elements
-            // are emitted in document order so the scan is monotone O(n) total.
-            //
-            // A multi-key attribute (`keys="a b c"`) can legally contain an embedded
-            // line break (XML normalizes it away in the parsed value, but the raw
-            // text used for line-counting still has it) — each token gets its own
-            // line by locating it within the attribute value's own span, rather than
-            // reusing the first token's line for every key in the list.
-            const perKeySourceOffset = new Map<string, number[]>();
+            // Each key name's own line: the element's start tag is the next one, in document
+            // order, with the same name and key names (a multi-key attribute can span lines)
             const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
-            if (mapContent && keyNames.length > 0) {
-                const firstToken = keyNames[0];
-                const escapedFirst = firstToken.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                // Lookahead requires the character right after the token to be either
-                // whitespace (another token follows) or the same quote that opened the
-                // value (\1) — not a `\b` word-boundary check, which would misbehave for
-                // NMTOKEN key names ending in a non-word character like `.` or `-`.
-                const anchorPattern = new RegExp(`keys\\s*=\\s*(["'])${escapedFirst}(?=\\s|\\1)`, 'g');
-                anchorPattern.lastIndex = contentSearchPos;
-                const anchorMatch = anchorPattern.exec(mapContent);
-                if (anchorMatch && anchorMatch.index >= contentSearchPos) {
-                    const foundIdx = anchorMatch.index;
-                    contentSearchPos = foundIdx + 1;
-
-                    // Locate the attribute value's own span (between the anchor's
-                    // quote and its matching closing quote) so each token's offset
-                    // — and therefore its own line — can be computed individually.
-                    const quoteChar = anchorMatch[1];
-                    const valueStart = foundIdx + anchorMatch[0].length - firstToken.length;
-                    const valueEnd = mapContent.indexOf(quoteChar, valueStart);
-                    if (valueEnd > valueStart) {
-                        const rawValue = mapContent.slice(valueStart, valueEnd);
-                        const tokenPattern = /\S+/g;
-                        let tokenMatch: RegExpExecArray | null;
-                        while ((tokenMatch = tokenPattern.exec(rawValue)) !== null) {
-                            // Retain every occurrence so duplicate definitions can
-                            // be matched to their exact source token.
-                            const offsets = perKeySourceOffset.get(tokenMatch[0]) ?? [];
-                            offsets.push(valueStart + tokenMatch.index);
-                            perKeySourceOffset.set(tokenMatch[0], offsets);
-                        }
-                    }
+            let keyOffsets: number[] | undefined;
+            for (let i = nextKeyTag; i < keyTags.length; i++) {
+                const tag = keyTags[i];
+                if (tag.elementName === tagName && tag.keyNames.join(' ') === keyNames.join(' ')) {
+                    keyOffsets = tag.offsets;
+                    nextKeyTag = i + 1;
+                    break;
                 }
             }
 
-            const perKeyOccurrence = new Map<string, number>();
-            for (const keyName of keyNames) {
+            for (let index = 0; index < keyNames.length; index++) {
+                const keyName = keyNames[index];
                 const keyDef: KeyDefinition = { keyName, sourceMap: mapPath };
                 if (isSubject) keyDef.subject = true;
-                const occurrence = perKeyOccurrence.get(keyName) ?? 0;
-                const sourceOffset = perKeySourceOffset.get(keyName)?.[occurrence];
-                perKeyOccurrence.set(keyName, occurrence + 1);
-                if (sourceOffset !== undefined && mapContent) {
-                    keyDef.sourceOffset = sourceOffset;
-                    keyDef.sourceLine = this.computeLineNumber(mapContent, sourceOffset);
+                const keyOffset = keyOffsets?.[index];
+                if (keyOffset !== undefined && mapContent) {
+                    keyDef.sourceLine = this.computeLineNumber(mapContent, keyOffset);
                 }
 
                 const href = attrs['href'] ?? '';
@@ -1381,6 +1408,8 @@ export class KeySpaceService implements IKeySpaceService {
         const keydefRegex = new RegExp(`<(\\w+)\\b${TAG_ATTRS}\\bkeys\\s*=\\s*["']([^"']+)["']${TAG_ATTRS}>`, 'gi');
         let match: RegExpExecArray | null;
         let matchCount = 0;
+        // Each start tag's key names with their offsets, by the offset of the tag
+        const keyTags = new Map(keyDefinitionTags(mapContent).map(tag => [tag.elementOffset, tag]));
 
         while ((match = keydefRegex.exec(mapContent)) !== null) {
             if (++matchCount > maxMatches) break;
@@ -1397,32 +1426,19 @@ export class KeySpaceService implements IKeySpaceService {
 
             const keyNames = keysValue.split(/\s+/).filter(k => k.length > 0);
 
-            const keysAttribute = /\bkeys\s*=\s*(["'])([^"']+)\1/i.exec(fullElement);
-            const rawValueOffset = keysAttribute
-                ? match.index + keysAttribute.index + keysAttribute[0].indexOf(keysAttribute[2])
-                : undefined;
-            const perKeyOccurrence = new Map<string, number>();
+            // The key names' own offsets, when the scanner read the same key names in this tag
+            const keyTag = keyTags.get(match.index);
+            const keyOffsets = keyTag && keyTag.keyNames.join(' ') === keyNames.join(' ') ? keyTag.offsets : undefined;
 
-            for (const keyName of keyNames) {
+            for (let index = 0; index < keyNames.length; index++) {
+                const keyName = keyNames[index];
                 const keyDef: KeyDefinition = {
                     keyName,
                     sourceMap: mapPath,
                 };
                 if (match[1].toLowerCase() === 'subjectdef') keyDef.subject = true;
-                const occurrence = perKeyOccurrence.get(keyName) ?? 0;
-                if (rawValueOffset !== undefined) {
-                    const tokenPattern = /\S+/g;
-                    let tokenMatch: RegExpExecArray | null;
-                    let tokenIndex = 0;
-                    while ((tokenMatch = tokenPattern.exec(keysValue)) !== null) {
-                        if (tokenMatch[0] === keyName && tokenIndex++ === occurrence) {
-                            keyDef.sourceOffset = rawValueOffset + tokenMatch.index;
-                            keyDef.sourceLine = this.computeLineNumber(mapContent, keyDef.sourceOffset);
-                            break;
-                        }
-                    }
-                }
-                perKeyOccurrence.set(keyName, occurrence + 1);
+                const keyOffset = keyOffsets?.[index];
+                if (keyOffset !== undefined) keyDef.sourceLine = this.computeLineNumber(mapContent, keyOffset);
 
                 // Extract href
                 const hrefMatch = fullElement.match(/\bhref\s*=\s*["']([^"']+)["']/i);
@@ -2014,7 +2030,8 @@ export class KeySpaceService implements IKeySpaceService {
             blocks.push({
                 keyscopes,
                 inlineKeys,
-                innerContent: inner.content,
+                // At its place in the map, the rest blanked: offsets and lines are the map's
+                innerContent: blankOutside(content, openTagEnd, openTagEnd + inner.content.length),
                 outerStart: match.index,
                 outerEnd: inner.end,
             });
@@ -2109,8 +2126,10 @@ export class KeySpaceService implements IKeySpaceService {
         let pos = 0;
         for (const { start, end } of sorted) {
             if (start > pos) result += content.substring(pos, start);
-            result += ' '.repeat(Math.max(0, end - start));
-            pos = end;
+            // Blank, keeping line breaks: the lines after the range keep their numbers
+            const from = Math.max(start, pos);
+            if (end > from) result += content.substring(from, end).replace(/[^\r\n]/g, ' ');
+            pos = Math.max(pos, end);
         }
         result += content.substring(pos);
         return result;
@@ -2187,16 +2206,11 @@ export class KeySpaceService implements IKeySpaceService {
                     const qualifiedName = `${prefix}.${keyDef.keyName}`;
                     this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
                 }
+                // Not a duplicate of a key outside the block: the block is a key scope of its own.
+                // (Keys defined twice inside the block are found in the map's text by the
+                // cross-reference validation.)
                 if (!keySpace.keys.has(keyDef.keyName)) {
                     keySpace.keys.set(keyDef.keyName, keyDef);
-                } else {
-                    let dups = keySpace.duplicateKeys.get(keyDef.keyName);
-                    if (!dups) {
-                        dups = [keySpace.keys.get(keyDef.keyName)!, keyDef];
-                        keySpace.duplicateKeys.set(keyDef.keyName, dups);
-                    } else {
-                        dups.push(keyDef);
-                    }
                 }
             }
 

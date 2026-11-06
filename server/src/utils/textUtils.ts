@@ -195,3 +195,78 @@ export function escapeRegex(str: string): string {
 export function uriToPath(uri: string): string {
     return URI.parse(uri).fsPath.replace(/\\/g, '/');
 }
+
+/** A key name of a `@keys` attribute, found by {@link scanKeyDefinitions}. */
+export interface KeyDefinitionToken {
+    keyName: string;
+    /** Offset of the key name in the text. */
+    offset: number;
+    /** Name of the element that defines the key. */
+    elementName: string;
+    /** Offset of that element's start tag. */
+    elementOffset: number;
+    /**
+     * The key scope the key is defined in, within this text: the offset of the start tag of
+     * the innermost element with `@keyscope` around the key (its own element included, as
+     * the keys of a scope-defining element belong to that scope), or -1 for the scope of the
+     * whole map. A `@keyscope` on the root element names the map's own scope, so it is -1.
+     */
+    scopeOffset: number;
+}
+
+const TAG_PATTERN = /<(\/?)([A-Za-z_][\w:.-]*)((?:[^>"']|"[^"]*"|'[^']*')*?)(\/?)>/g;
+const ATTRIBUTE_PATTERN = /(^|\s)([A-Za-z_][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+
+/**
+ * The key definitions of a map in document order: every name of every `@keys` attribute,
+ * with its offset and key scope. Only start tags are read, quote-aware, so `keys="…"`
+ * written in another attribute's value or in text is not taken for one. Pass the text
+ * with comments and CDATA blanked out (offsets preserved), as stripCommentsAndCDATA does.
+ */
+export function scanKeyDefinitions(text: string): KeyDefinitionToken[] {
+    const tokens: KeyDefinitionToken[] = [];
+    // Open elements: name and the key scope their content is in
+    const open: Array<{ name: string; scopeOffset: number }> = [];
+    let rootSeen = false;
+    TAG_PATTERN.lastIndex = 0;
+    let tag: RegExpExecArray | null;
+    while ((tag = TAG_PATTERN.exec(text)) !== null) {
+        const [, closing, name, attributeText, selfClosing] = tag;
+        if (closing) {
+            const index = open.map(e => e.name).lastIndexOf(name);
+            if (index !== -1) open.length = index;
+            continue;
+        }
+        const isRoot = !rootSeen;
+        rootSeen = true;
+        const attributesStart = tag.index + 1 + name.length;
+        let keys: { value: string; offset: number } | undefined;
+        let hasKeyscope = false;
+        ATTRIBUTE_PATTERN.lastIndex = 0;
+        let attribute: RegExpExecArray | null;
+        while ((attribute = ATTRIBUTE_PATTERN.exec(attributeText)) !== null) {
+            const value = attribute[3] ?? attribute[4];
+            if (attribute[2] === 'keys') {
+                // The value ends before the closing quote, the last character of the match
+                const valueEnd = attributesStart + attribute.index + attribute[0].length - 1;
+                keys = { value, offset: valueEnd - value.length };
+            } else if (attribute[2] === 'keyscope' && value.trim()) {
+                hasKeyscope = true;
+            }
+        }
+        const parentScope = open.length > 0 ? open[open.length - 1].scopeOffset : -1;
+        const scopeOffset = hasKeyscope && !isRoot ? tag.index : parentScope;
+        if (keys) {
+            const tokenPattern = /\S+/g;
+            let token: RegExpExecArray | null;
+            while ((token = tokenPattern.exec(keys.value)) !== null) {
+                tokens.push({
+                    keyName: token[0], offset: keys.offset + token.index,
+                    elementName: name, elementOffset: tag.index, scopeOffset,
+                });
+            }
+        }
+        if (!selfClosing) open.push({ name, scopeOffset });
+    }
+    return tokens;
+}
