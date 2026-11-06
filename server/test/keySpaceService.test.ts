@@ -1982,7 +1982,9 @@ suite('KeySpaceService', () => {
             }
         });
 
-        test('peer mapref without @keyscope is ignored (no deferred registration)', async () => {
+        test('a peer map without @keyscope adds no keys to the key space (regression: it was inlined)', async () => {
+            // A peer map belongs to another publication. Without @keyscope, its keys cannot be
+            // referenced from this one at all; they used to be merged into the main key space.
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -1990,17 +1992,21 @@ suite('KeySpaceService', () => {
                 fs.writeFileSync(rootPath, `<?xml version="1.0"?>
 <map>
   <mapref href="peer.ditamap" scope="peer"/>
+  <mapref href="local.ditamap"/>
 </map>`, 'utf-8');
-
-                const peerPath = path.join(tmpDir, 'peer.ditamap');
-                fs.writeFileSync(peerPath, `<?xml version="1.0"?>
+                fs.writeFileSync(path.join(tmpDir, 'peer.ditamap'), `<?xml version="1.0"?>
 <map>
   <keydef keys="orphan" href="orphan.dita"/>
 </map>`, 'utf-8');
+                fs.writeFileSync(path.join(tmpDir, 'local.ditamap'), `<?xml version="1.0"?>
+<map>
+  <keydef keys="local" href="local.dita"/>
+</map>`, 'utf-8');
 
                 const keySpace = await service.buildKeySpace(rootPath);
-                assert.strictEqual(keySpace.deferredPeerMaps.size, 0,
-                    'peer mapref without @keyscope must not register a deferred map');
+                assert.deepStrictEqual([...keySpace.keys.keys()], ['local'], 'only the local submap contributes keys');
+                assert.deepStrictEqual(keySpace.mapHierarchy.map(p => path.basename(p)), ['root.ditamap', 'local.ditamap']);
+                assert.strictEqual(keySpace.deferredPeerMaps.size, 0, 'no scope name to reach it by');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);

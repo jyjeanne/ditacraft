@@ -1703,10 +1703,12 @@ export class KeySpaceService implements IKeySpaceService {
                 const inlineKeys = keysMatch
                     ? keysMatch[1].split(/\s+/).filter(k => k.length > 0)
                     : [];
-                // Peer maps with @keyscope are deferred: their key space is not inlined
-                // into the current map but is accessible via "scopeName.keyName" notation.
+                // A peer map belongs to another publication: its keys are never inlined into
+                // this key space. With @keyscope they stay reachable as "scopeName.keyName"
+                // (the map is loaded on demand); without one, nothing here can refer to them.
                 const scopeMatch = match[0].match(/\bscope\s*=\s*["']([^"']+)["']/i);
-                const isPeer = scopeMatch?.[1] === 'peer' && keyscopes.length > 0;
+                const isPeer = scopeMatch?.[1] === 'peer';
+                if (isPeer && keyscopes.length === 0) continue;
                 submaps.push({ path: absolutePath, keyscopes, inlineKeys, isPeer });
             }
         }
