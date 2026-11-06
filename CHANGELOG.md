@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Development
 
 - Removed `server/src/utils/xmlTokenizer.ts` and its 57 tests: nothing used the tokenizer. The automated test plan no longer counts them as coverage of malformed-markup handling.
+- The DITA-OT documentation integration tests (`server/test/docsDataset.test.ts`) are opt-in: set `DITACRAFT_DOCS_DATASET` to the folder holding `userguide.ditamap`. They read a path hard-coded to one machine, so they never ran anywhere else.
 
 ### Documentation
 
