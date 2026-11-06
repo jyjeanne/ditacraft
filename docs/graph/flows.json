@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T01:22:20.300Z",
+  "generatedAt": "2026-11-06T01:53:42.012Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.engram/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -1925,174 +1925,6 @@
       "warnings": []
     },
     {
-      "id": "flow:services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
-      "name": ".getDefaultValue",
-      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
-      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
-      "path": [
-        "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "qualifiedPath": [
-        "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "depth": 7,
-      "nodeCount": 12,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/subjectSchemeService.ts"
-      ],
-      "criticality": 0.22,
-      "warnings": []
-    },
-    {
-      "id": "flow:services_subjectschemeservice_subjectschemeservice_gethierarchypath",
-      "name": ".getHierarchyPath",
-      "entryPoint": "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
-      "entryPointId": "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
-      "path": [
-        "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "qualifiedPath": [
-        "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "depth": 7,
-      "nodeCount": 12,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/subjectSchemeService.ts"
-      ],
-      "criticality": 0.22,
-      "warnings": []
-    },
-    {
-      "id": "flow:services_subjectschemeservice_subjectschemeservice_getvalidvalues",
-      "name": ".getValidValues",
-      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
-      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
-      "path": [
-        "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "qualifiedPath": [
-        "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "depth": 7,
-      "nodeCount": 12,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/subjectSchemeService.ts"
-      ],
-      "criticality": 0.22,
-      "warnings": []
-    },
-    {
-      "id": "flow:services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
-      "name": ".isControlledAttribute",
-      "entryPoint": "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
-      "entryPointId": "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
-      "path": [
-        "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "qualifiedPath": [
-        "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
-        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
-        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "depth": 7,
-      "nodeCount": 12,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/subjectSchemeService.ts"
-      ],
-      "criticality": 0.22,
-      "warnings": []
-    },
-    {
       "id": "flow:services_keyspaceservice_keyspaceservice_resolvekey",
       "name": ".resolveKey",
       "entryPoint": "services_keyspaceservice_keyspaceservice_resolvekey",
@@ -2917,6 +2749,48 @@
       "warnings": []
     },
     {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+      "name": ".getDefaultValue",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_getdefaultvalue",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "depth": 6,
+      "nodeCount": 12,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.21,
+      "warnings": []
+    },
+    {
       "id": "flow:services_keyspaceservice_keyspaceservice_getduplicatekeys",
       "name": ".getDuplicateKeys",
       "entryPoint": "services_keyspaceservice_keyspaceservice_getduplicatekeys",
@@ -3011,6 +2885,48 @@
       "warnings": []
     },
     {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+      "name": ".getHierarchyPath",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_gethierarchypath",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "depth": 6,
+      "nodeCount": 12,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.21,
+      "warnings": []
+    },
+    {
       "id": "flow:services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
       "name": ".getSubjectSchemePaths",
       "entryPoint": "services_keyspaceservice_keyspaceservice_getsubjectschemepaths",
@@ -3100,6 +3016,90 @@
       "fileCount": 1,
       "files": [
         "server/src/services/keySpaceService.ts"
+      ],
+      "criticality": 0.21,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+      "name": ".getValidValues",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_getvalidvalues",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "depth": 6,
+      "nodeCount": 12,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.21,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+      "name": ".isControlledAttribute",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_iscontrolledattribute",
+        "services_subjectschemeservice_subjectschemeservice_getmergedsnapshot",
+        "services_subjectschemeservice_subjectschemeservice_getmergedschemedata",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "depth": 6,
+      "nodeCount": 12,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
       ],
       "criticality": 0.21,
       "warnings": []
@@ -3939,42 +3939,6 @@
       "warnings": []
     },
     {
-      "id": "flow:services_subjectschemeservice_subjectschemeservice_getschemedata",
-      "name": ".getSchemeData",
-      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getschemedata",
-      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getschemedata",
-      "path": [
-        "services_subjectschemeservice_subjectschemeservice_getschemedata",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "qualifiedPath": [
-        "services_subjectschemeservice_subjectschemeservice_getschemedata",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "depth": 5,
-      "nodeCount": 9,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/subjectSchemeService.ts"
-      ],
-      "criticality": 0.2,
-      "warnings": []
-    },
-    {
       "id": "flow:editor_tosource_writer_placed",
       "name": ".placed",
       "entryPoint": "editor_tosource_writer_placed",
@@ -4112,44 +4076,6 @@
       "fileCount": 1,
       "files": [
         "src/preview/resolver.ts"
-      ],
-      "criticality": 0.2,
-      "warnings": []
-    },
-    {
-      "id": "flow:services_subjectschemeservice_subjectschemeservice_snapshotfor",
-      "name": ".snapshotFor",
-      "entryPoint": "services_subjectschemeservice_subjectschemeservice_snapshotfor",
-      "entryPointId": "services_subjectschemeservice_subjectschemeservice_snapshotfor",
-      "path": [
-        "services_subjectschemeservice_subjectschemeservice_snapshotfor",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "qualifiedPath": [
-        "services_subjectschemeservice_subjectschemeservice_snapshotfor",
-        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
-        "services_subjectschemeservice_subjectschemesnapshot",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
-        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
-        "services_subjectschemeservice_subjectschemeservice_extractsubjectdefinitions",
-        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
-        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
-        "services_subjectschemeservice_subjectschemeservice_flattenkeys",
-        "services_subjectschemeservice_subjectschemeservice_findclosingtag"
-      ],
-      "depth": 5,
-      "nodeCount": 10,
-      "fileCount": 1,
-      "files": [
-        "server/src/services/subjectSchemeService.ts"
       ],
       "criticality": 0.2,
       "warnings": []
@@ -5241,6 +5167,42 @@
       "warnings": []
     },
     {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_getschemedata",
+      "name": ".getSchemeData",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_getschemedata",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_getschemedata",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_getschemedata",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_getschemedata",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "depth": 4,
+      "nodeCount": 9,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
+      ],
+      "criticality": 0.19,
+      "warnings": []
+    },
+    {
       "id": "flow:properties_propertiesview_propertiesviewprovider_handle",
       "name": ".handle",
       "entryPoint": "properties_propertiesview_propertiesviewprovider_handle",
@@ -5272,6 +5234,44 @@
       "fileCount": 1,
       "files": [
         "src/properties/propertiesView.ts"
+      ],
+      "criticality": 0.19,
+      "warnings": []
+    },
+    {
+      "id": "flow:services_subjectschemeservice_subjectschemeservice_snapshotfor",
+      "name": ".snapshotFor",
+      "entryPoint": "services_subjectschemeservice_subjectschemeservice_snapshotfor",
+      "entryPointId": "services_subjectschemeservice_subjectschemeservice_snapshotfor",
+      "path": [
+        "services_subjectschemeservice_subjectschemeservice_snapshotfor",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "qualifiedPath": [
+        "services_subjectschemeservice_subjectschemeservice_snapshotfor",
+        "services_subjectschemeservice_subjectschemeservice_mergeschemes",
+        "services_subjectschemeservice_subjectschemesnapshot",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectscheme",
+        "services_subjectschemeservice_subjectschemeservice_buildhierarchypaths",
+        "services_subjectschemeservice_subjectschemeservice_indexsubjectdefinitions",
+        "services_subjectschemeservice_subjectschemeservice_parsesubjectdefs",
+        "services_subjectschemeservice_subjectschemeservice_processenumerationdefs",
+        "services_subjectschemeservice_subjectschemeservice_findclosingtag",
+        "services_subjectschemeservice_subjectschemeservice_flattenkeys"
+      ],
+      "depth": 4,
+      "nodeCount": 10,
+      "fileCount": 1,
+      "files": [
+        "server/src/services/subjectSchemeService.ts"
       ],
       "criticality": 0.19,
       "warnings": []
