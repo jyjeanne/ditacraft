@@ -79,6 +79,7 @@
     "sch059.removedQuery": "L'attribut query sur <{0}> a été supprimé dans DITA 2.0.",
 
     "prof.invalidValue": "La valeur \"{0}\" n'est pas autorisée pour @{1}. Valeurs valides : {2}",
+    "prof.noValidValue": "La valeur \"{0}\" n'est pas autorisée pour @{1} : le schéma de sujets lie cet attribut à une énumération vide, qui n'autorise aucune valeur",
 
     "scope.externalRelativeHref": "scope=\"external\" mais href est un chemin relatif. Les références externes doivent utiliser des URI absolues.",
     "scope.localAbsoluteHref": "scope=\"local\" mais href est une URI absolue. Les références locales doivent utiliser des chemins relatifs.",

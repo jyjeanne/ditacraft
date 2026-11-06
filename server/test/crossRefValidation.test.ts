@@ -1167,6 +1167,39 @@ suite('validateCrossReferences', () => {
             ]);
         });
 
+        test('@scope cascades from the closest ancestor in a map or in related links (regression)', async () => {
+            // DITA 1.3 §3.12.13.11: "If no value is specified, but the attribute is specified on an
+            // ancestor within a map or within the related-links section, the value will cascade
+            // from the closest ancestor." It was read on the referencing element only.
+            const map = [
+                '<topicgroup scope="peer">',
+                '  <topicref href="missing.dita"/>',
+                '  <topicref href="missing-local.dita" scope="local"/>',
+                '</topicgroup>',
+                '<topicref href="missing-own.dita"/>',
+            ].join('\n');
+            assert.deepStrictEqual(await missingFiles(map), ['1:warning', '2:error', '4:error'],
+                'the peer group makes a missing target a warning; an inner scope="local" and a topicref outside the group are errors');
+
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            try {
+                const topic = [
+                    '<topic id="t"><title>T</title><body><p><xref href="missing-body.dita"/></p></body>',
+                    '<related-links><linkpool scope="peer"><link href="missing-peer.dita"/></linkpool></related-links></topic>',
+                ].join('\n');
+                const diags = await validateCrossReferences(topic, URI.file(path.join(tmpDir, 'source.dita')).toString(), undefined, 100);
+                assert.deepStrictEqual(
+                    diags.filter(d => d.code === XREF_CODES.MISSING_FILE).map(d => `${d.range.start.line}:${d.severity}`),
+                    [`0:${DiagnosticSeverity.Error}`, `1:${DiagnosticSeverity.Warning}`]);
+                // A URL in an external group has its scope: no "missing @scope" suggestion
+                const urls = await validateCrossReferences('<topicgroup scope="external"><topicref href="https://example.com/"/></topicgroup>',
+                    URI.file(path.join(tmpDir, 'source.ditamap')).toString(), undefined, 100);
+                assert.deepStrictEqual(urls.filter(d => d.code === XREF_CODES.SCOPE_MISSING_ON_URL), []);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
         test('a URI-encoded href is decoded (review: "my%20topic.dita" was not found)', async () => {
             const topic = '<topic id="t"><title>T</title></topic>';
             assert.deepStrictEqual(

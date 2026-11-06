@@ -475,12 +475,12 @@ export class SubjectSchemeService implements ISubjectSchemeService {
                 }
             }
 
-            if (valueSet.size > 0) {
-                if (!data.validValuesMap.has(attributeName)) {
-                    data.validValuesMap.set(attributeName, new Map());
-                }
-                data.validValuesMap.get(attributeName)!.set(elementName, valueSet);
+            // Recorded even when empty: "When the <enumerationdef> element is empty, no value
+            // is valid for the attribute" (DITA 1.3 §3.6.1.8).
+            if (!data.validValuesMap.has(attributeName)) {
+                data.validValuesMap.set(attributeName, new Map());
             }
+            data.validValuesMap.get(attributeName)!.set(elementName, valueSet);
         }
     }
 
