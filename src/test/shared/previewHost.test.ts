@@ -91,6 +91,35 @@ suite('Visual Preview: host modules', function () {
             assert.deepStrictEqual(at('p', 1)?.conrefRange?.map((e) => e.attrs.find((a) => a.name === 'id')?.value), ['p1', 'p2']);
         });
 
+        test('conrefend ranges through a key, and only in the document of the start (DITA 1.3 §3.12.13.7)', async () => {
+            // "the map or topic element addressed by the key name component of the @conkeyref is used in
+            // place of whatever map or topic element is addressed by the @conrefend attribute" (Figures 7
+            // and 8). The start and end share a parent, so an end in another document is no range:
+            // DITA-OT 4.3.5 reports DOTX071E and reuses the start element alone.
+            const rangeFiles: Record<string, string> = {
+                [p('examples.dita')]: '<topic id="examples"><title>Examples</title><body><ul>'
+                    + '<li id="first">A first example</li><li id="middle">Another</li><li id="last">Final example</li></ul></body></topic>',
+                [p('source.dita')]: '<topic id="x"><title>S</title><body><ol><li id="bear">B</li><li id="cat">C</li><li id="dog">D</li></ol></body></topic>',
+                [p('other.dita')]: '<topic id="x"><title>O</title><body><ol><li id="dog">Other D</li></ol></body></topic>',
+            };
+            const rangeDoc = parse('<topic id="t"><title>T</title><body><ul>'
+                + '<li conkeyref="xmp/first" conrefend="default.dita#default/last"/>'
+                + '<li conkeyref="xmp/first" conref="source.dita#x/bear" conrefend="source.dita#x/last"/>'
+                + '<li conref="source.dita#x/bear" conrefend="other.dita#x/dog"/>'
+                + '<li conref="source.dita#x/bear" conrefend="source.dita#x/dog"/>'
+                + '</ul></body></topic>');
+            const { resolutions: ranges } = await resolverFor(rangeFiles, { xmp: { keyName: 'xmp', targetFile: p('examples.dita') } })
+                .resolve(rangeDoc, p('topic.dita'));
+            const reused = (i: number): string[] => {
+                const res = ranges.get(findElements(rangeDoc, 'li')[i]);
+                return (res?.conrefRange ?? (res?.conrefTarget ? [res.conrefTarget] : [])).map((e) => e.attrs.find((a) => a.name === 'id')?.value ?? '');
+            };
+            assert.deepStrictEqual(reused(0), ['first', 'middle', 'last'], 'Figure 7: the key\'s topic, not default.dita#default');
+            assert.deepStrictEqual(reused(1), ['first', 'middle', 'last'], 'Figure 8: the key takes priority over @conref');
+            assert.deepStrictEqual(reused(2), ['bear'], 'an end in another document: the start alone');
+            assert.deepStrictEqual(reused(3), ['bear', 'cat', 'dog']);
+        });
+
         test('references inside reused content resolve too', () => {
             const libPh = [...resolutions.keys()].find((el) => el.name === 'ph' && el.attrs.some((a) => a.value === 'product') && !findElements(doc, 'ph').includes(el));
             assert.ok(libPh, 'the keyref inside lib.dita\'s note has its own resolution');
