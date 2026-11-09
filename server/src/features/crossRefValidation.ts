@@ -10,14 +10,14 @@ import { promises as fsp } from 'fs';
 
 import { KeySpaceService } from '../services/keySpaceService';
 import { getTargetId, parseReference } from '../utils/referenceParser';
-import { findElementExtentById } from '../utils/elementExtent';
-import { ClassContext, documentClassContext, elementClass, isReuseCompatible } from '../utils/ditaClass';
+import { ElementExtent, findElementExtentById } from '../utils/elementExtent';
+import { ClassContext, ClassedElement, documentClassContext, elementClass, isReuseCompatible } from '../utils/ditaClass';
 import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
 import { DITA_ELEMENTS } from '../data/ditaSchema';
 import { t } from '../utils/i18n';
 import {
     stripCommentsAndCodeContent, stripCommentsAndCDATA, offsetToRange, escapeRegex, normalizeFsPath, uriToPath,
-    isPathWithinWorkspace, effectiveWorkspaceFolders, scanKeyDefinitions, decodeHrefPath,
+    isPathWithinWorkspace, effectiveWorkspaceFolders, scanKeyDefinitions, decodeHrefPath, readAttribute, readAttributes,
 } from '../utils/textUtils';
 
 const SOURCE = 'dita-lsp';
@@ -88,6 +88,8 @@ export async function validateCrossReferences(
     const scopeExtents = cascadingScopes(cleanText, isMapLikeSource);
     // The DITA version and document type that decide the default @class of its elements
     let classContext: ClassContext | undefined;
+    // The documents content references point into, read once per validation pass
+    const reuseDocuments = new Map<string, ReuseDocument>();
 
     // --- Validate href and conref attributes ---
     const hrefRegex = /\b(href|conref)\s*=\s*["']([^"']+)["']/g;
@@ -254,13 +256,12 @@ export async function validateCrossReferences(
                     isConref ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
                 );
 
-                // Conref compatibility: the target is the referencing element or a specialization of it
-                if (fragmentValid && isConref) {
-                    validateConrefCompatibility(
-                        referencingElementAt(match.index), getTargetId(parsed.fragment), targetContent,
-                        range, diagnostics
-                    );
-                    await checkRangeOfConref(match.index, targetPath, targetContent, parsed.fragment);
+                // Conref compatibility and range, unless a resolved @conkeyref takes priority
+                if (fragmentValid && isConref && !(await keyTakesPriority(match.index))) {
+                    const doc = reuseDocument(targetPath, targetContent);
+                    const { topicId, elementId } = fragmentParts(parsed.fragment);
+                    validateConrefCompatibility(referencingElementAt(match.index), doc, topicId, elementId, range, diagnostics);
+                    checkRangeOfConref(match.index, doc, parsed.fragment);
                 }
             }
         } else if (parsed.fragment) {
@@ -272,12 +273,11 @@ export async function validateCrossReferences(
             );
 
             // Conref compatibility for same-file references
-            if (sameFileValid && isConref) {
-                validateConrefCompatibility(
-                    referencingElementAt(match.index), getTargetId(parsed.fragment), text,
-                    range, diagnostics
-                );
-                await checkRangeOfConref(match.index, filePath, text, parsed.fragment);
+            if (sameFileValid && isConref && !(await keyTakesPriority(match.index))) {
+                const doc = reuseDocument(filePath, text);
+                const { topicId, elementId } = fragmentParts(parsed.fragment);
+                validateConrefCompatibility(referencingElementAt(match.index), doc, topicId, elementId, range, diagnostics);
+                checkRangeOfConref(match.index, doc, parsed.fragment);
             }
         }
     }
@@ -290,26 +290,49 @@ export async function validateCrossReferences(
         const name = getContainingElementName(cleanText, refOffset);
         if (!name) return null;
         classContext ??= documentClassContext(text);
-        return { name, cls: elementClass(name, attributeOfTag(cleanText, refOffset, 'class')?.value, classContext) };
+        const conaction = attributeOfTag(cleanText, refOffset, 'conaction')?.value;
+        return {
+            name,
+            cls: elementClass(name, attributeOfTag(cleanText, refOffset, 'class')?.value, classContext),
+            context: classContext,
+            push: conaction === 'pushreplace' || conaction === 'mark',
+        };
+    }
+
+    /** A document that content references point into, read once per validation pass (see ReuseDocument). */
+    function reuseDocument(docPath: string, content: string): ReuseDocument {
+        const key = normalizeFsPath(docPath);
+        const known = reuseDocuments.get(key);
+        if (known && known.content === content) return known;
+        const doc: ReuseDocument = { path: docPath, content, searchable: stripCommentsAndCDATA(content), context: documentClassContext(content) };
+        reuseDocuments.set(key, doc);
+        return doc;
     }
 
     /**
-     * The @conrefend of the element whose @conref, at `refOffset`, starts a range in `startContent`
-     * (the file `startPath`). Not when the element's @conkeyref resolves: the key then addresses
-     * the range (DITA 1.3 §3.12.13.7: "When @conref, @conkeyref, and @conrefend are all
-     * specified, the key value takes priority").
+     * Whether the element at `refOffset` has a @conkeyref whose key resolves: the key then takes
+     * priority over its @conref, which is not used (DITA 1.3 §3.12.13.7: "When @conref, @conkeyref,
+     * and @conrefend are all specified, the key value takes priority").
      */
-    async function checkRangeOfConref(refOffset: number, startPath: string, startContent: string, fragment: string): Promise<void> {
+    async function keyTakesPriority(refOffset: number): Promise<boolean> {
+        const conkeyref = attributeOfTag(cleanText, refOffset, 'conkeyref');
+        return !!(conkeyref && keySpaceService && await keySpaceService.resolveKey(conkeyref.value.split('/')[0], filePath));
+    }
+
+    /**
+     * The @conrefend of the element whose @conref, at `refOffset`, starts a range in `doc` (its
+     * @conkeyref, if any, does not resolve: see keyTakesPriority).
+     */
+    function checkRangeOfConref(refOffset: number, doc: ReuseDocument, fragment: string): void {
         const conrefend = attributeOfTag(cleanText, refOffset, 'conrefend');
         if (!conrefend) return;
-        const conkeyref = attributeOfTag(cleanText, refOffset, 'conkeyref');
-        if (conkeyref && keySpaceService && await keySpaceService.resolveKey(conkeyref.value.split('/')[0], filePath)) return;
         const end = parseReference(conrefend.value);
-        const endId = getTargetId(end.fragment);
-        if (!endId) return;
+        if (!getTargetId(end.fragment)) return;
         const endPath = end.filePath ? path.resolve(currentDir, decodeHrefPath(end.filePath)) : filePath;
-        validateConrefRange(text, conrefend, { path: startPath, content: startContent, id: getTargetId(fragment) },
-            endPath, endId, referencingElementAt(refOffset), diagnostics);
+        const startParts = fragmentParts(fragment);
+        const endParts = fragmentParts(end.fragment);
+        validateConrefRange(text, conrefend, { doc, topicId: startParts.topicId, id: startParts.elementId },
+            endPath, { topicId: endParts.topicId, id: endParts.elementId }, referencingElementAt(refOffset), diagnostics);
     }
 
     // --- A @conrefend without @conref or @conkeyref: "No result" (DITA 1.3 §3.12.13.7) ---
@@ -498,15 +521,18 @@ export async function validateCrossReferences(
                     } else if (match[1] === 'conkeyref') {
                         // conkeyref compatibility: the target is the referencing element or a specialization of it
                         const referencing = referencingElementAt(match.index);
-                        validateConrefCompatibility(referencing, elementId, targetContent, range, diagnostics);
+                        const doc = reuseDocument(keyDef.targetFile, targetContent);
+                        // The topic the key addresses (its @href fragment), else the whole document
+                        const keyTopic = keyDef.elementId?.split('/')[0];
+                        validateConrefCompatibility(referencing, doc, keyTopic, elementId, range, diagnostics);
                         // A range: "the map or topic element addressed by the key name component of
                         // the @conkeyref is used in place of whatever map or topic element is addressed
                         // by the @conrefend attribute" (DITA 1.3 §3.12.13.7)
                         const conrefend = attributeOfTag(cleanText, match.index, 'conrefend');
                         const endId = conrefend && getTargetId(parseReference(conrefend.value).fragment);
                         if (conrefend && endId) {
-                            validateConrefRange(text, conrefend, { path: keyDef.targetFile, content: targetContent, id: elementId },
-                                keyDef.targetFile, endId, referencing, diagnostics);
+                            validateConrefRange(text, conrefend, { doc, topicId: keyTopic, id: elementId },
+                                keyDef.targetFile, { topicId: keyTopic, id: endId }, referencing, diagnostics);
                         }
                     }
                 }
@@ -1515,66 +1541,82 @@ function getContainingElementName(text: string, attrOffset: number): string | nu
     return nameMatch ? nameMatch[1] : null;
 }
 
-/** An element that a content reference involves: its name, and its class when known. */
-interface ReuseElement {
-    name: string;
-    cls: string | undefined;
+/** The referencing element of a content reference, and whether it pushes (`@conaction`). */
+interface ReuseElement extends ClassedElement {
+    push: boolean;
 }
 
 /**
- * The first element of `content` whose @id is `elementId`, in document order: its name and its
- * class (its own @class, else the default class of the document's DITA version and type).
+ * A document that content references point into: its text, the text with comments and CDATA
+ * blanked, and its class context. Built once per document in a validation pass.
  */
-function findTargetElement(elementId: string, content: string): ReuseElement | null {
-    const searchable = stripCommentsAndCDATA(content);
-    const pattern = new RegExp(
-        `<([A-Za-z_][\\w.:-]*)((?:"[^"]*"|'[^']*'|[^>"'])*?\\sid\\s*=\\s*["']${escapeRegex(elementId)}["'](?:"[^"]*"|'[^']*'|[^>"'])*)>`);
-    const match = pattern.exec(searchable);
-    if (!match) return null;
-    return { name: match[1], cls: elementClass(match[1], tagAttribute(match[2], 'class'), documentClassContext(content)) };
+interface ReuseDocument {
+    path: string;
+    content: string;
+    searchable: string;
+    context: ClassContext;
 }
 
-/** An attribute of a start tag's attribute text, read attribute by attribute. */
-function tagAttribute(attributes: string, name: string): string | undefined {
-    const pattern = /([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
-    let attribute: RegExpExecArray | null;
-    while ((attribute = pattern.exec(attributes)) !== null) {
-        if (attribute[1] === name) return attribute[2] ?? attribute[3];
-    }
-    return undefined;
+/** The topic id and element id of a fragment: "topic/element", or "topic" for the topic itself. */
+function fragmentParts(fragment: string): { topicId?: string; elementId: string } {
+    const slash = fragment.indexOf('/');
+    return slash >= 0 ? { topicId: fragment.slice(0, slash), elementId: fragment.slice(slash + 1) } : { elementId: fragment };
 }
 
 /**
- * Report a content reference whose target is neither the referencing element nor a
- * specialization of it (DITA 1.3 §2.4.2.2; see `isReuseCompatible`). DITA-OT 4.3.5 fails such a
- * reference (DOTX010E): an Error.
+ * The element of `doc` whose @id is `elementId`, the first in document order inside the topic
+ * `topicId` when given (element ids are unique within a topic only; "." is the referencing topic,
+ * looked for in the whole document), else in the whole document: its extent, name and class.
+ */
+function findReuseElement(doc: ReuseDocument, topicId: string | undefined, elementId: string): (ClassedElement & { extent: ElementExtent }) | null {
+    let from = 0;
+    let to = doc.content.length;
+    if (topicId && topicId !== '.' && topicId !== elementId) {
+        const topic = findElementExtentById(doc.content, topicId, doc.searchable);
+        if (topic) {
+            from = topic.start;
+            to = topic.end;
+        }
+    }
+    const found = findElementExtentById(doc.content.slice(from, to), elementId, doc.searchable.slice(from, to));
+    if (!found) return null;
+    const extent: ElementExtent = {
+        ...found, start: found.start + from, end: found.end + from,
+        openTagEnd: found.openTagEnd + from, closeTagStart: found.closeTagStart + from,
+    };
+    const attributes = doc.content.slice(extent.start + 1 + extent.tagName.length, extent.openTagEnd);
+    return { extent, name: extent.tagName, cls: elementClass(extent.tagName, readAttribute(attributes, 'class'), doc.context), context: doc.context };
+}
+
+/**
+ * Report a content reference whose target is not compatible with the referencing element (see
+ * `isReuseCompatible`): for a pull, the target is neither the referencing element nor a
+ * specialization of it (DITA 1.3 §2.4.2.2); for a push, the pushed element is neither the target
+ * element nor a specialization of it. DITA-OT 4.3.5 fails such a reference (DOTX010E): an Error.
  */
 function validateConrefCompatibility(
     referencing: ReuseElement | null,
-    targetId: string,
-    targetContent: string,
+    doc: ReuseDocument,
+    topicId: string | undefined,
+    elementId: string,
     range: Range,
     diagnostics: Diagnostic[]
 ): void {
-    if (!referencing || !targetId) return;
-    const target = findTargetElement(targetId, targetContent);
+    if (!referencing || !elementId) return;
+    const target = findReuseElement(doc, topicId, elementId);
     if (!target) return; // Target not found — already reported by validateFragment
-    if (!isReuseCompatible(referencing.cls, target.cls)) {
+    if (!isReuseCompatible(referencing, target, referencing.push)) {
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range,
-            message: t('xref.incompatibleConref', referencing.name, target.name),
+            message: t(referencing.push ? 'xref.incompatibleConrefPush' : 'xref.incompatibleConref', referencing.name, target.name),
             code: XREF_CODES.INCOMPATIBLE_CONREF,
             source: SOURCE,
         });
     }
 }
 
-/**
- * An attribute of the start tag that holds `refOffset`, with the offset of its value, or null.
- * Attributes are read one after the other, so a name written in another attribute's value is
- * not taken for one.
- */
+/** An attribute of the start tag that holds `refOffset`, with the offset of its value, or null. */
 function attributeOfTag(text: string, refOffset: number, name: string): { value: string; offset: number } | null {
     const tagStart = text.lastIndexOf('<', refOffset);
     if (tagStart === -1) return null;
@@ -1583,13 +1625,8 @@ function attributeOfTag(text: string, refOffset: number, name: string): { value:
     const tag = tagPattern.exec(text);
     if (!tag) return null;
     const attributesStart = tagStart + tag[0].length - tag[1].length;
-    const attributePattern = /([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
-    let attribute: RegExpExecArray | null;
-    while ((attribute = attributePattern.exec(tag[1])) !== null) {
-        if (attribute[1] !== name) continue;
-        const value = attribute[2] ?? attribute[3];
-        // The value ends just before the closing quote
-        return { value, offset: attributesStart + attribute.index + attribute[0].length - 1 - value.length };
+    for (const attribute of readAttributes(tag[1])) {
+        if (attribute.name === name) return { value: attribute.value, offset: attributesStart + attribute.valueOffset };
     }
     return null;
 }
@@ -1602,18 +1639,19 @@ function attributeOfTag(text: string, refOffset: number, name: string): { value:
  * be of the same type as the referencing element or generalizable to the referencing element":
  * DITA-OT resolves such a range without a message, so it is a warning.
  *
- * `start` is the document that holds the range and the id of its start element; `endPath` is the
- * document @conrefend addresses, and `endId` the id of its end element.
+ * `start` is the document that holds the range, and the topic and id of its start element; `endPath`
+ * is the document @conrefend addresses, and `end` the topic and id of its end element.
  */
 function validateConrefRange(
     text: string,
     conrefend: { value: string; offset: number },
-    start: { path: string; content: string; id: string },
+    start: { doc: ReuseDocument; topicId?: string; id: string },
     endPath: string,
-    endId: string,
+    end: { topicId?: string; id: string },
     referencing: ReuseElement | null,
     diagnostics: Diagnostic[],
 ): void {
+    const endId = end.id;
     const report = (severity: DiagnosticSeverity, message: string, code: string = XREF_CODES.CONREF_RANGE): void => {
         diagnostics.push({
             severity,
@@ -1623,22 +1661,23 @@ function validateConrefRange(
             source: SOURCE,
         });
     };
-    if (normalizeFsPath(endPath) !== normalizeFsPath(start.path)) {
-        report(DiagnosticSeverity.Error, t('xref.conrefendOtherDocument', endId, path.basename(start.path)));
+    if (normalizeFsPath(endPath) !== normalizeFsPath(start.doc.path)) {
+        report(DiagnosticSeverity.Error, t('xref.conrefendOtherDocument', endId, path.basename(start.doc.path)));
         return;
     }
-    const startElement = findElementExtentById(start.content, start.id);
+    const startElement = findReuseElement(start.doc, start.topicId, start.id)?.extent;
     if (!startElement) return; // The @conref check reports it
-    const endElement = findElementExtentById(start.content, endId);
-    if (!endElement) {
-        report(DiagnosticSeverity.Error, t('xref.conrefendNotFound', endId, path.basename(start.path)));
+    const endReuse = findReuseElement(start.doc, end.topicId ?? start.topicId, endId);
+    const endElement = endReuse?.extent;
+    if (!endReuse || !endElement) {
+        report(DiagnosticSeverity.Error, t('xref.conrefendNotFound', endId, path.basename(start.doc.path)));
         return;
     }
     if (endElement.start !== startElement.start) {
         const after = endElement.start >= startElement.end;
         const before = endElement.end <= startElement.start;
-        const siblings = after ? isSiblingRun(start.content, startElement.end, endElement.start)
-            : before && isSiblingRun(start.content, endElement.end, startElement.start);
+        const siblings = after ? isSiblingRun(start.doc.searchable, startElement.end, endElement.start)
+            : before && isSiblingRun(start.doc.searchable, endElement.end, startElement.start);
         if (!siblings) {
             report(DiagnosticSeverity.Error, t('xref.conrefendNotSibling', endId, start.id));
             return;
@@ -1648,9 +1687,7 @@ function validateConrefRange(
             return;
         }
     }
-    const endClass = elementClass(endElement.tagName,
-        tagAttribute(start.content.slice(endElement.start, endElement.openTagEnd), 'class'), documentClassContext(start.content));
-    if (referencing && !isReuseCompatible(referencing.cls, endClass)) {
+    if (referencing && !isReuseCompatible(referencing, endReuse)) {
         report(DiagnosticSeverity.Warning, t('xref.incompatibleConrefend', referencing.name, endElement.tagName),
             XREF_CODES.INCOMPATIBLE_CONREF);
     }
@@ -1659,10 +1696,11 @@ function validateConrefRange(
 /**
  * Whether the markup between two offsets is a run of siblings: it closes no element opened
  * before it, and every element it opens is closed in it. The element that ends at `from` and
- * the one that starts at `to` then share the same parent.
+ * the one that starts at `to` then share the same parent. `searchable` is the document with
+ * comments and CDATA blanked.
  */
-function isSiblingRun(content: string, from: number, to: number): boolean {
-    const markup = stripCommentsAndCDATA(content).slice(from, to);
+function isSiblingRun(searchable: string, from: number, to: number): boolean {
+    const markup = searchable.slice(from, to);
     let depth = 0;
     for (const tag of markup.matchAll(/<(\/?)[A-Za-z_][\w.:-]*(?:"[^"]*"|'[^']*'|[^>"'])*?(\/?)>/g)) {
         if (tag[1]) {

@@ -46,8 +46,12 @@ export interface ElementExtent {
  * when no element has that id, or its closing tag can't be found
  * (malformed/unclosed content).
  */
-export function findElementExtentById(content: string, elementId: string): ElementExtent | undefined {
-    const searchableText = stripCommentsAndCDATA(content);
+export function findElementExtentById(
+    content: string,
+    elementId: string,
+    /** `content` with comments and CDATA blanked, when the caller has it already. */
+    searchableText: string = stripCommentsAndCDATA(content),
+): ElementExtent | undefined {
     const escapedId = escapeRegex(elementId);
     // The trailing attrs segment is intentionally *lazy* (`*?`), not
     // `TAG_ATTRS`'s own greedy `*` -- a greedy run there would swallow a

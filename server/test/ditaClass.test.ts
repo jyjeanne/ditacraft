@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { classTokens, defaultClass, documentClassContext, elementClass, isReuseCompatible } from '../src/utils/ditaClass';
+import { classTokens, defaultClass, documentClassContext, elementClass, isReuseCompatible, specializes } from '../src/utils/ditaClass';
 
 suite('ditaClass', () => {
     const topic13 = { version: '1.3', isMap: false } as const;
@@ -51,20 +51,41 @@ suite('ditaClass', () => {
         });
     });
 
-    suite('isReuseCompatible', () => {
-        test('the referenced element is the referencing element or a specialization of it', () => {
-            assert.ok(isReuseCompatible('- topic/ph', '+ topic/ph pr-d/codeph'));
-            assert.ok(isReuseCompatible('- topic/li', '- topic/li task/step'));
-            assert.ok(isReuseCompatible('- topic/li task/step', '- topic/li task/step'));
-            assert.ok(!isReuseCompatible('- topic/li task/step', '- topic/li'), 'a more general element');
-            assert.ok(!isReuseCompatible('- topic/p', '- topic/note'), 'an unrelated element');
-            assert.ok(!isReuseCompatible('+ topic/ph pr-d/codeph', '+ topic/ph ui-d/uicontrol'), 'a sibling specialization');
+    suite('specializes', () => {
+        test('a class is the other class or a specialization of it', () => {
+            assert.ok(specializes('+ topic/ph pr-d/codeph', '- topic/ph'));
+            assert.ok(specializes('- topic/li task/step', '- topic/li'));
+            assert.ok(specializes('- topic/li task/step', '- topic/li task/step'));
+            assert.ok(!specializes('- topic/li', '- topic/li task/step'), 'a more general element');
+            assert.ok(!specializes('- topic/note', '- topic/p'), 'an unrelated element');
+            assert.ok(!specializes('+ topic/ph ui-d/uicontrol', '+ topic/ph pr-d/codeph'), 'a sibling specialization');
         });
 
         test('an unknown class is not reported: the type cannot be known', () => {
-            assert.ok(isReuseCompatible(undefined, '- topic/p'));
-            assert.ok(isReuseCompatible('- topic/p', undefined));
-            assert.ok(isReuseCompatible('', ''));
+            assert.ok(specializes('- topic/p', undefined));
+            assert.ok(specializes(undefined, '- topic/p'));
+            assert.ok(specializes('', ''));
+        });
+    });
+
+    suite('isReuseCompatible', () => {
+        const element = (name: string, cls: string, version: '1.2' | '1.3' | '2.0' = '1.3', isMap = false) =>
+            ({ name, cls, context: { version, isMap } });
+
+        test('a pull reuses the referencing element or a specialization of it; a push, the other way round', () => {
+            const step = element('step', '- topic/li task/step');
+            const li = element('li', '- topic/li');
+            assert.ok(isReuseCompatible(element('ph', '- topic/ph'), element('codeph', '+ topic/ph pr-d/codeph')));
+            assert.ok(!isReuseCompatible(step, li), 'a <step> may not pull an <li>');
+            assert.ok(isReuseCompatible(step, li, true), 'a <step> may be pushed where an <li> is: it is generalized');
+            assert.ok(!isReuseCompatible(li, step, true), 'an <li> may not be pushed where a <step> is');
+        });
+
+        test('the same element in two DITA versions is compatible; in one version, the class decides', () => {
+            assert.ok(isReuseCompatible(element('navtitle', '+ topic/titlealt alternativeTitles-d/navtitle', '2.0', true),
+                element('navtitle', '- topic/navtitle', '1.3', true)), 'its class changed in DITA 2.0');
+            assert.ok(!isReuseCompatible(element('shortdesc', '- map/shortdesc', '1.3', true), element('shortdesc', '- topic/shortdesc')),
+                'a map <shortdesc> may not reuse a topic one (DITA-OT 4.3.5: DOTX010E)');
         });
     });
 

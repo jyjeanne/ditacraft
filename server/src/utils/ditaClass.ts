@@ -16,6 +16,7 @@
 
 import { BASE_CLASSES, CLASS_OVERRIDES } from '../data/ditaClasses';
 import { detectDitaVersion } from './ditaVersionDetector';
+import { readAttribute } from './textUtils';
 import type { DitaVersion } from './types';
 
 /** The DITA version and document type that decide an element's default class. */
@@ -57,26 +58,53 @@ export function documentClassContext(text: string): ClassContext {
     if (!root) {
         return { version, isMap: false };
     }
-    const ownClass = /(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)')/.exec(root[2]);
-    const rootClass = elementClass(root[1], ownClass?.[1] ?? ownClass?.[2], { version, isMap: true });
+    const rootClass = elementClass(root[1], readAttribute(root[2], 'class'), { version, isMap: true });
     return { version, isMap: classTokens(rootClass).includes('map/map') };
 }
 
-/** The `module/element` tokens of a class, most general first. */
+/**
+ * The `module/element` tokens of a class, most general first. The twin of `classTokens` in
+ * `src/shared/grammar/classTokens.ts`, which builds the class table: the server cannot import the
+ * extension's sources.
+ */
 export function classTokens(value: string | undefined): string[] {
     return value ? value.trim().split(/\s+/).filter(token => token.includes('/')) : [];
 }
 
 /**
- * Whether a content reference from an element of class `referencing` may reuse an element of
- * class `referenced`: the referenced element is the same type or a specialization, so its class
- * contains the most specific token of the referencing class. An unknown class (no @class and
- * not an OASIS element) is taken as compatible: the type cannot be known, and a false error must
- * not be reported.
+ * Whether the class `cls` is the class `of` or a specialization of it: it contains the most
+ * specific token of `of`. An unknown class (no @class, and not an OASIS element) is taken as
+ * matching: the type cannot be known, and a false error must not be reported.
  */
-export function isReuseCompatible(referencing: string | undefined, referenced: string | undefined): boolean {
-    const referencingTokens = classTokens(referencing);
-    const own = referencingTokens[referencingTokens.length - 1];
-    const tokens = classTokens(referenced);
+export function specializes(cls: string | undefined, of: string | undefined): boolean {
+    const ofTokens = classTokens(of);
+    const own = ofTokens[ofTokens.length - 1];
+    const tokens = classTokens(cls);
     return own === undefined || tokens.length === 0 || tokens.includes(own);
+}
+
+/** An element of a content reference: its name, its class, and its document's class context. */
+export interface ClassedElement {
+    name: string;
+    cls: string | undefined;
+    context: ClassContext;
+}
+
+/**
+ * Whether a content reference from `referencing` may use `referenced`.
+ * - A pull (`@conref`, `@conkeyref`): the referenced element is the referencing element or a
+ *   specialization of it, and is generalized as needed.
+ * - A push (`@conaction="pushreplace"` or `"mark"`): the other way round. The pushed element (the
+ *   referencing one) is the target element or a specialization of it, so that it fits where the
+ *   target is, as DITA-OT 4.3.5 checks it.
+ * The same element in documents of two DITA versions is compatible: its class may have changed
+ * between them (`<navtitle>` is `- topic/navtitle` in DITA 1.3, `+ topic/titlealt
+ * alternativeTitles-d/navtitle` in DITA 2.0).
+ */
+export function isReuseCompatible(referencing: ClassedElement, referenced: ClassedElement, push = false): boolean {
+    if (referencing.name === referenced.name
+        && tableVersion(referencing.context.version) !== tableVersion(referenced.context.version)) {
+        return true;
+    }
+    return push ? specializes(referencing.cls, referenced.cls) : specializes(referenced.cls, referencing.cls);
 }
