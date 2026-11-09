@@ -20,7 +20,7 @@
                 </dlentry>
                 <dlentry>
                     <dt>conref Attributes</dt>
-                    <dd>Validates that the referenced file exists and that the target topic and element IDs are present in the target file. Same-file conrefs (starting with <codeph>#</codeph>) are validated against IDs within the current document.</dd>
+                    <dd>Validates that the referenced file exists and that the target topic and element IDs are present in the target file. Same-file conrefs (starting with <codeph>#</codeph>) are validated against IDs within the current document. The referenced element must be the referencing element or a specialization of it, by its <codeph>@class</codeph>: a <codeph>&lt;ph&gt;</codeph> can reuse a <codeph>&lt;codeph&gt;</codeph>, but a <codeph>&lt;step&gt;</codeph> cannot reuse an <codeph>&lt;li&gt;</codeph>.</dd>
                 </dlentry>
                 <dlentry>
                     <dt>keyref Attributes</dt>
@@ -60,6 +60,13 @@
                     <stentry>Error for <codeph>@conref</codeph>, Warning for
                         <codeph>@href</codeph></stentry>
                     <stentry>Element ID not found in target file</stentry>
+                </strow>
+                <strow>
+                    <stentry><codeph>DITA-XREF-004</codeph></stentry>
+                    <stentry>Error; Warning for the end of a <codeph>@conrefend</codeph>
+                        range</stentry>
+                    <stentry>The referenced element is neither the referencing element nor a
+                        specialization of it, by its <codeph>@class</codeph></stentry>
                 </strow>
                 <strow>
                     <stentry><codeph>DITA-XREF-006</codeph></stentry>

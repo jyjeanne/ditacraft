@@ -11,7 +11,8 @@ import { promises as fsp } from 'fs';
 import { KeySpaceService } from '../services/keySpaceService';
 import { getTargetId, parseReference } from '../utils/referenceParser';
 import { findElementExtentById } from '../utils/elementExtent';
-import { TOPIC_TYPE_NAMES, MAP_TYPE_NAMES } from '../data/ditaSpecialization';
+import { ClassContext, documentClassContext, elementClass, isReuseCompatible } from '../utils/ditaClass';
+import { TOPIC_TYPE_NAMES } from '../data/ditaSpecialization';
 import { DITA_ELEMENTS } from '../data/ditaSchema';
 import { t } from '../utils/i18n';
 import {
@@ -85,6 +86,8 @@ export async function validateCrossReferences(
     // Strip comments/CDATA to avoid matching inside them
     const cleanText = stripCommentsAndCodeContent(text);
     const scopeExtents = cascadingScopes(cleanText, isMapLikeSource);
+    // The DITA version and document type that decide the default @class of its elements
+    let classContext: ClassContext | undefined;
 
     // --- Validate href and conref attributes ---
     const hrefRegex = /\b(href|conref)\s*=\s*["']([^"']+)["']/g;
@@ -251,14 +254,12 @@ export async function validateCrossReferences(
                     isConref ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
                 );
 
-                // Conref compatibility: source and target elements must match
+                // Conref compatibility: the target is the referencing element or a specialization of it
                 if (fragmentValid && isConref) {
-                    if (sourceElement) {
-                        validateConrefCompatibility(
-                            sourceElement, parsed.fragment, targetContent,
-                            range, diagnostics
-                        );
-                    }
+                    validateConrefCompatibility(
+                        referencingElementAt(match.index), getTargetId(parsed.fragment), targetContent,
+                        range, diagnostics
+                    );
                     await checkRangeOfConref(match.index, targetPath, targetContent, parsed.fragment);
                 }
             }
@@ -272,15 +273,24 @@ export async function validateCrossReferences(
 
             // Conref compatibility for same-file references
             if (sameFileValid && isConref) {
-                if (sourceElement) {
-                    validateConrefCompatibility(
-                        sourceElement, parsed.fragment, text,
-                        range, diagnostics
-                    );
-                }
+                validateConrefCompatibility(
+                    referencingElementAt(match.index), getTargetId(parsed.fragment), text,
+                    range, diagnostics
+                );
                 await checkRangeOfConref(match.index, filePath, text, parsed.fragment);
             }
         }
+    }
+
+    /**
+     * The element whose start tag holds the attribute at `refOffset`: its name and its class
+     * (its own @class, else the default class of the document's DITA version and type).
+     */
+    function referencingElementAt(refOffset: number): ReuseElement | null {
+        const name = getContainingElementName(cleanText, refOffset);
+        if (!name) return null;
+        classContext ??= documentClassContext(text);
+        return { name, cls: elementClass(name, attributeOfTag(cleanText, refOffset, 'class')?.value, classContext) };
     }
 
     /**
@@ -299,7 +309,7 @@ export async function validateCrossReferences(
         if (!endId) return;
         const endPath = end.filePath ? path.resolve(currentDir, decodeHrefPath(end.filePath)) : filePath;
         validateConrefRange(text, conrefend, { path: startPath, content: startContent, id: getTargetId(fragment) },
-            endPath, endId, getContainingElementName(cleanText, refOffset), diagnostics);
+            endPath, endId, referencingElementAt(refOffset), diagnostics);
     }
 
     // --- A @conrefend without @conref or @conkeyref: "No result" (DITA 1.3 §3.12.13.7) ---
@@ -486,20 +496,9 @@ export async function validateCrossReferences(
                             source: SOURCE,
                         });
                     } else if (match[1] === 'conkeyref') {
-                        // conkeyref compatibility: source and target elements must match
-                        const sourceElement = getContainingElementName(cleanText, match.index);
-                        if (sourceElement) {
-                            const targetElement = findTargetElementByIdOnly(elementId, targetContent);
-                            if (targetElement && !areConrefCompatible(sourceElement, targetElement)) {
-                                diagnostics.push({
-                                    severity: DiagnosticSeverity.Error,
-                                    range,
-                                    message: t('xref.incompatibleConref', sourceElement, targetElement),
-                                    code: XREF_CODES.INCOMPATIBLE_CONREF,
-                                    source: SOURCE,
-                                });
-                            }
-                        }
+                        // conkeyref compatibility: the target is the referencing element or a specialization of it
+                        const referencing = referencingElementAt(match.index);
+                        validateConrefCompatibility(referencing, elementId, targetContent, range, diagnostics);
                         // A range: "the map or topic element addressed by the key name component of
                         // the @conkeyref is used in place of whatever map or topic element is addressed
                         // by the @conrefend attribute" (DITA 1.3 §3.12.13.7)
@@ -507,7 +506,7 @@ export async function validateCrossReferences(
                         const endId = conrefend && getTargetId(parseReference(conrefend.value).fragment);
                         if (conrefend && endId) {
                             validateConrefRange(text, conrefend, { path: keyDef.targetFile, content: targetContent, id: elementId },
-                                keyDef.targetFile, endId, sourceElement, diagnostics);
+                                keyDef.targetFile, endId, referencing, diagnostics);
                         }
                     }
                 }
@@ -1516,98 +1515,55 @@ function getContainingElementName(text: string, attrOffset: number): string | nu
     return nameMatch ? nameMatch[1] : null;
 }
 
-/**
- * DITA specialization groups for conref compatibility.
- * Elements within the same group are conref-compatible.
- * Key = base element, Value = set of specialized element names.
- */
-const CONREF_COMPAT_GROUPS: Map<string, ReadonlySet<string>> = new Map([
-    // Topic types (all specialize topic/topic)
-    ['topic', TOPIC_TYPE_NAMES],
-    // Map types (all specialize map/map)
-    ['map', MAP_TYPE_NAMES],
-    // Body types (specialize topic/body)
-    ['body', new Set(['body', 'conbody', 'taskbody', 'refbody', 'glossBody', 'troublebody'])],
-    // Section types
-    ['section', new Set(['section', 'refsyn', 'prereq', 'context', 'steps-informal', 'result', 'postreq', 'example', 'glossdef'])],
-    // List item types
-    ['li', new Set(['li', 'step', 'substep', 'choice'])],
-    // List types
-    ['ol', new Set(['ol', 'steps', 'substeps', 'steps-unordered'])],
-    ['ul', new Set(['ul', 'choices'])],
-    // Definition list types (parml specializes dl)
-    ['dl', new Set(['dl', 'parml'])],
-    ['dlentry', new Set(['dlentry', 'plentry'])],
-    ['dt', new Set(['dt', 'pt'])],
-    ['dd', new Set(['dd', 'pd'])],
-    // Figure types
-    ['fig', new Set(['fig', 'syntaxdiagram'])],
-]);
+/** An element that a content reference involves: its name, and its class when known. */
+interface ReuseElement {
+    name: string;
+    cls: string | undefined;
+}
 
-/** Reverse lookup: element name → base group name. */
-const elementToBaseGroup: Map<string, string> = (() => {
-    const map = new Map<string, string>();
-    for (const [base, members] of CONREF_COMPAT_GROUPS) {
-        for (const member of members) {
-            map.set(member, base);
-        }
+/**
+ * The first element of `content` whose @id is `elementId`, in document order: its name and its
+ * class (its own @class, else the default class of the document's DITA version and type).
+ */
+function findTargetElement(elementId: string, content: string): ReuseElement | null {
+    const searchable = stripCommentsAndCDATA(content);
+    const pattern = new RegExp(
+        `<([A-Za-z_][\\w.:-]*)((?:"[^"]*"|'[^']*'|[^>"'])*?\\sid\\s*=\\s*["']${escapeRegex(elementId)}["'](?:"[^"]*"|'[^']*'|[^>"'])*)>`);
+    const match = pattern.exec(searchable);
+    if (!match) return null;
+    return { name: match[1], cls: elementClass(match[1], tagAttribute(match[2], 'class'), documentClassContext(content)) };
+}
+
+/** An attribute of a start tag's attribute text, read attribute by attribute. */
+function tagAttribute(attributes: string, name: string): string | undefined {
+    const pattern = /([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+    let attribute: RegExpExecArray | null;
+    while ((attribute = pattern.exec(attributes)) !== null) {
+        if (attribute[1] === name) return attribute[2] ?? attribute[3];
     }
-    return map;
-})();
-
-/**
- * Check whether two element names are conref-compatible.
- * Same name → always compatible.
- * Same specialization group → compatible.
- */
-function areConrefCompatible(sourceElement: string, targetElement: string): boolean {
-    if (sourceElement === targetElement) return true;
-    const sourceBase = elementToBaseGroup.get(sourceElement);
-    const targetBase = elementToBaseGroup.get(targetElement);
-    if (sourceBase && sourceBase === targetBase) return true;
-    return false;
+    return undefined;
 }
 
 /**
- * Find the element name of a target identified by fragment (topicid/elementid or topicid).
- * Returns the element name, or null if not found.
+ * Report a content reference whose target is neither the referencing element nor a
+ * specialization of it (DITA 1.3 §2.4.2.2; see `isReuseCompatible`). DITA-OT 4.3.5 fails such a
+ * reference (DOTX010E): an Error.
  */
-function findTargetElementName(fragment: string, content: string): string | null {
-    const slashPos = fragment.indexOf('/');
-    const targetId = slashPos !== -1 ? fragment.substring(slashPos + 1) : fragment;
-    const escaped = escapeRegex(targetId);
-    const regex = new RegExp(`<([a-zA-Z_][\\w.-]*)\\b[^>]*\\bid\\s*=\\s*["']${escaped}["']`);
-    const match = content.match(regex);
-    return match ? match[1] : null;
-}
-
-/**
- * Find the element name of a target identified by element ID only (no topic qualifier).
- * Used for conkeyref where the value is "key/elementid".
- */
-function findTargetElementByIdOnly(elementId: string, content: string): string | null {
-    const escaped = escapeRegex(elementId);
-    const regex = new RegExp(`<([a-zA-Z_][\\w.-]*)\\b[^>]*\\bid\\s*=\\s*["']${escaped}["']`);
-    const match = content.match(regex);
-    return match ? match[1] : null;
-}
-
-/** Validate conref source/target element compatibility. */
 function validateConrefCompatibility(
-    sourceElement: string,
-    fragment: string,
+    referencing: ReuseElement | null,
+    targetId: string,
     targetContent: string,
     range: Range,
     diagnostics: Diagnostic[]
 ): void {
-    const targetElement = findTargetElementName(fragment, targetContent);
-    if (!targetElement) return; // Target not found — already reported by validateFragment
-
-    if (!areConrefCompatible(sourceElement, targetElement)) {
+    if (!referencing || !targetId) return;
+    const target = findTargetElement(targetId, targetContent);
+    if (!target) return; // Target not found — already reported by validateFragment
+    if (!isReuseCompatible(referencing.cls, target.cls)) {
         diagnostics.push({
             severity: DiagnosticSeverity.Error,
             range,
-            message: t('xref.incompatibleConref', sourceElement, targetElement),
+            message: t('xref.incompatibleConref', referencing.name, target.name),
             code: XREF_CODES.INCOMPATIBLE_CONREF,
             source: SOURCE,
         });
@@ -1655,7 +1611,7 @@ function validateConrefRange(
     start: { path: string; content: string; id: string },
     endPath: string,
     endId: string,
-    referencingElement: string | null,
+    referencing: ReuseElement | null,
     diagnostics: Diagnostic[],
 ): void {
     const report = (severity: DiagnosticSeverity, message: string, code: string = XREF_CODES.CONREF_RANGE): void => {
@@ -1692,8 +1648,10 @@ function validateConrefRange(
             return;
         }
     }
-    if (referencingElement && !areConrefCompatible(referencingElement, endElement.tagName)) {
-        report(DiagnosticSeverity.Warning, t('xref.incompatibleConrefend', referencingElement, endElement.tagName),
+    const endClass = elementClass(endElement.tagName,
+        tagAttribute(start.content.slice(endElement.start, endElement.openTagEnd), 'class'), documentClassContext(start.content));
+    if (referencing && !isReuseCompatible(referencing.cls, endClass)) {
+        report(DiagnosticSeverity.Warning, t('xref.incompatibleConrefend', referencing.name, endElement.tagName),
             XREF_CODES.INCOMPATIBLE_CONREF);
     }
 }

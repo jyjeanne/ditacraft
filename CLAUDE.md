@@ -201,6 +201,8 @@ webview/preview/              # Visual preview page script + stylesheet (bundled
 webview/editor/               # Visual editor page (ProseMirror; map rows: mapView.ts) + stylesheet (bundled to out/webview/)
 webview/properties/           # Properties view page + stylesheet (bundled to out/webview/)
 scripts/compile-grammars.js   # Builds out/grammars/ from dtds/ (run by esbuild.js; cached)
+scripts/generate-dita-classes.js # Writes server/src/data/ditaClasses.ts (default @class per OASIS element, for conref compatibility)
+                              #   from those grammars: `npm run dita-classes`; test:shared fails when it is out of date
 scripts/screenshots/          # README/user-guide screenshots of the visual editor in a real VS Code window (shoot.js, demo project)
 scripts/cover/                # User guide cover image: cover.html → docs/user-guide/front_page_picture.png (node scripts/cover/render.js);
                               #   trace-logo.js traces resources/ditacraft-logo.png into resources/ditacraft-logo.svg (needs `npm install --no-save potrace@2 pngjs@7`)

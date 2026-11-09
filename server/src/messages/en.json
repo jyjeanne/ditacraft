@@ -25,7 +25,7 @@
     "xref.outsideWorkspace": "Target file is outside the workspace, not checked: {0}",
     "xref.missingTopicId": "Topic ID \"{0}\" not found in {1}",
     "xref.missingElementId": "Element ID \"{0}\" not found in topic \"{1}\" of {2}",
-    "xref.incompatibleConref": "Conref source <{0}> is not compatible with target <{1}>. Source and target elements must be the same type or in the same specialization group.",
+    "xref.incompatibleConref": "Conref source <{0}> is not compatible with target <{1}>: the referenced element must be the same type as the referencing element, or a specialization of it.",
     "xref.incompatibleConrefend": "Range end <{1}> is not compatible with the referencing element <{0}>: the start and end elements of a range must be of the same type as the referencing element, or specializations of it",
     "xref.conrefendNotFound": "Range end \"{0}\" not found in {1}: the range cannot be resolved, and only its start element is reused",
     "xref.conrefendOtherDocument": "Range end \"{0}\" is not in {1}, the document of the range start: the start and end elements of a range must share the same parent, so only the start element is reused",
