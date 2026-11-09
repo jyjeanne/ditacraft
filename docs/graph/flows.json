@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-06T09:43:42.757Z",
+  "generatedAt": "2026-11-09T19:48:33.602Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.engram/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -1635,6 +1635,32 @@
       "warnings": []
     },
     {
+      "id": "flow:utils_ditaclass_isreusecompatible",
+      "name": "isReuseCompatible",
+      "entryPoint": "utils_ditaclass_isreusecompatible",
+      "entryPointId": "utils_ditaclass_isreusecompatible",
+      "path": [
+        "utils_ditaclass_isreusecompatible",
+        "utils_ditaclass_specializes",
+        "utils_ditaclass_tableversion",
+        "utils_ditaclass_classtokens"
+      ],
+      "qualifiedPath": [
+        "utils_ditaclass_isreusecompatible",
+        "utils_ditaclass_specializes",
+        "utils_ditaclass_tableversion",
+        "utils_ditaclass_classtokens"
+      ],
+      "depth": 2,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/ditaClass.ts"
+      ],
+      "criticality": 0.2325,
+      "warnings": []
+    },
+    {
       "id": "flow:features_customrulesvalidator_validatecustomrules",
       "name": "validateCustomRules",
       "entryPoint": "features_customrulesvalidator_validatecustomrules",
@@ -1897,6 +1923,36 @@
       "warnings": []
     },
     {
+      "id": "flow:utils_ditaclass_documentclasscontext",
+      "name": "documentClassContext",
+      "entryPoint": "utils_ditaclass_documentclasscontext",
+      "entryPointId": "utils_ditaclass_documentclasscontext",
+      "path": [
+        "utils_ditaclass_documentclasscontext",
+        "utils_ditaclass_classtokens",
+        "utils_ditaclass_elementclass",
+        "utils_ditaclass_defaultclass",
+        "utils_ditaclass_entry",
+        "utils_ditaclass_tableversion"
+      ],
+      "qualifiedPath": [
+        "utils_ditaclass_documentclasscontext",
+        "utils_ditaclass_classtokens",
+        "utils_ditaclass_elementclass",
+        "utils_ditaclass_defaultclass",
+        "utils_ditaclass_entry",
+        "utils_ditaclass_tableversion"
+      ],
+      "depth": 3,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/ditaClass.ts"
+      ],
+      "criticality": 0.2217,
+      "warnings": []
+    },
+    {
       "id": "flow:editor_tables_tablecommands_cellat",
       "name": ".cellAt",
       "entryPoint": "editor_tables_tablecommands_cellat",
@@ -1933,15 +1989,16 @@
         "services_keyspaceservice_keyspaceservice_resolvekey",
         "services_keyspaceservice_keyspaceservice_followkeyrefchain",
         "services_keyspaceservice_keyspaceservice_resolvekeyentrywithscope",
-        "services_keyspaceservice_keyspaceservice_lookupkey",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchainwithtrace",
         "services_keyspaceservice_keyspaceservice_buildkeyspace",
         "services_keyspaceservice_keyspaceservice_contextscope",
         "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_lookupkey",
         "services_keyspaceservice_keyspaceservice_peerkeyname",
-        "services_keyspaceservice_keyspaceservice_scopelookuporder",
         "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
         "services_keyspaceservice_keyspaceservice_isbuildstale",
         "services_keyspaceservice_keyspaceservice_chooserootmap",
+        "services_keyspaceservice_keyspaceservice_scopelookuporder",
         "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
         "services_keyspaceservice_keyspaceservice_cachekeyspace",
         "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
@@ -1979,15 +2036,16 @@
         "services_keyspaceservice_keyspaceservice_resolvekey",
         "services_keyspaceservice_keyspaceservice_followkeyrefchain",
         "services_keyspaceservice_keyspaceservice_resolvekeyentrywithscope",
-        "services_keyspaceservice_keyspaceservice_lookupkey",
+        "services_keyspaceservice_keyspaceservice_followkeyrefchainwithtrace",
         "services_keyspaceservice_keyspaceservice_buildkeyspace",
         "services_keyspaceservice_keyspaceservice_contextscope",
         "services_keyspaceservice_keyspaceservice_findrootmap",
+        "services_keyspaceservice_keyspaceservice_lookupkey",
         "services_keyspaceservice_keyspaceservice_peerkeyname",
-        "services_keyspaceservice_keyspaceservice_scopelookuporder",
         "services_keyspaceservice_keyspaceservice_dobuildkeyspace",
         "services_keyspaceservice_keyspaceservice_isbuildstale",
         "services_keyspaceservice_keyspaceservice_chooserootmap",
+        "services_keyspaceservice_keyspaceservice_scopelookuporder",
         "services_keyspaceservice_keyspaceservice_addscopedkeyentry",
         "services_keyspaceservice_keyspaceservice_cachekeyspace",
         "services_keyspaceservice_keyspaceservice_combinescopeprefixes",
@@ -2022,7 +2080,7 @@
         "services_keyspaceservice_nodetext"
       ],
       "depth": 7,
-      "nodeCount": 44,
+      "nodeCount": 45,
       "fileCount": 1,
       "files": [
         "server/src/services/keySpaceService.ts"
@@ -2426,10 +2484,9 @@
         "features_crossrefvalidation_appendditaotresourcebuilddiagnostics",
         "features_crossrefvalidation_appendnestednavigationmaploaderror",
         "features_crossrefvalidation_appendoutsideinputdirdiagnosticsfrommap",
-        "features_crossrefvalidation_areconrefcompatible",
         "features_crossrefvalidation_attributeoftag",
         "features_crossrefvalidation_cascadingscopes",
-        "features_crossrefvalidation_findtargetelementbyidonly",
+        "features_crossrefvalidation_fragmentparts",
         "features_crossrefvalidation_getattributevalue",
         "features_crossrefvalidation_getcontainingelementname",
         "features_crossrefvalidation_getinvalidkeynamesfrommap",
@@ -2454,7 +2511,7 @@
         "features_crossrefvalidation_collectresourcemapbuildprofile",
         "features_crossrefvalidation_getcontainingtag",
         "features_crossrefvalidation_collectinvalidkeynames",
-        "features_crossrefvalidation_findtargetelementname",
+        "features_crossrefvalidation_findreuseelement",
         "features_crossrefvalidation_issiblingrun",
         "features_crossrefvalidation_hastopicid",
         "features_crossrefvalidation_collectkeysfrommaptext",
@@ -2472,10 +2529,9 @@
         "features_crossrefvalidation_appendditaotresourcebuilddiagnostics",
         "features_crossrefvalidation_appendnestednavigationmaploaderror",
         "features_crossrefvalidation_appendoutsideinputdirdiagnosticsfrommap",
-        "features_crossrefvalidation_areconrefcompatible",
         "features_crossrefvalidation_attributeoftag",
         "features_crossrefvalidation_cascadingscopes",
-        "features_crossrefvalidation_findtargetelementbyidonly",
+        "features_crossrefvalidation_fragmentparts",
         "features_crossrefvalidation_getattributevalue",
         "features_crossrefvalidation_getcontainingelementname",
         "features_crossrefvalidation_getinvalidkeynamesfrommap",
@@ -2500,7 +2556,7 @@
         "features_crossrefvalidation_collectresourcemapbuildprofile",
         "features_crossrefvalidation_getcontainingtag",
         "features_crossrefvalidation_collectinvalidkeynames",
-        "features_crossrefvalidation_findtargetelementname",
+        "features_crossrefvalidation_findreuseelement",
         "features_crossrefvalidation_issiblingrun",
         "features_crossrefvalidation_hastopicid",
         "features_crossrefvalidation_collectkeysfrommaptext",
@@ -2508,12 +2564,12 @@
         "features_crossrefvalidation_parseaudiencevalues"
       ],
       "depth": 4,
-      "nodeCount": 44,
+      "nodeCount": 43,
       "fileCount": 1,
       "files": [
         "server/src/features/crossRefValidation.ts"
       ],
-      "criticality": 0.2127,
+      "criticality": 0.2133,
       "warnings": []
     },
     {
@@ -3695,54 +3751,6 @@
       "warnings": []
     },
     {
-      "id": "flow:preview_resolver_referenceresolver_resolvereuseof",
-      "name": ".resolveReuseOf",
-      "entryPoint": "preview_resolver_referenceresolver_resolvereuseof",
-      "entryPointId": "preview_resolver_referenceresolver_resolvereuseof",
-      "path": [
-        "preview_resolver_referenceresolver_resolvereuseof",
-        "preview_resolver_referenceresolver_resolvereuse",
-        "preview_resolver_decode",
-        "preview_resolver_findtarget",
-        "preview_resolver_isancestor",
-        "preview_resolver_parsereference",
-        "preview_resolver_referenceresolver_load",
-        "preview_resolver_referenceresolver_resolve",
-        "preview_resolver_referenceresolver_resolvein",
-        "preview_resolver_resolvepath",
-        "preview_resolver_siblingrange",
-        "preview_resolver_splitonce",
-        "preview_resolver_referenceresolver_collect",
-        "preview_resolver_isempty",
-        "preview_resolver_referenceresolver_tokens"
-      ],
-      "qualifiedPath": [
-        "preview_resolver_referenceresolver_resolvereuseof",
-        "preview_resolver_referenceresolver_resolvereuse",
-        "preview_resolver_decode",
-        "preview_resolver_findtarget",
-        "preview_resolver_isancestor",
-        "preview_resolver_parsereference",
-        "preview_resolver_referenceresolver_load",
-        "preview_resolver_referenceresolver_resolve",
-        "preview_resolver_referenceresolver_resolvein",
-        "preview_resolver_resolvepath",
-        "preview_resolver_siblingrange",
-        "preview_resolver_splitonce",
-        "preview_resolver_referenceresolver_collect",
-        "preview_resolver_isempty",
-        "preview_resolver_referenceresolver_tokens"
-      ],
-      "depth": 4,
-      "nodeCount": 15,
-      "fileCount": 1,
-      "files": [
-        "src/preview/resolver.ts"
-      ],
-      "criticality": 0.2067,
-      "warnings": []
-    },
-    {
       "id": "flow:editor_tables_tablecommands_columnwidths",
       "name": ".columnWidths",
       "entryPoint": "editor_tables_tablecommands_columnwidths",
@@ -3772,6 +3780,56 @@
         "src/shared/editor/tables.ts"
       ],
       "criticality": 0.2057,
+      "warnings": []
+    },
+    {
+      "id": "flow:preview_resolver_referenceresolver_resolvereuseof",
+      "name": ".resolveReuseOf",
+      "entryPoint": "preview_resolver_referenceresolver_resolvereuseof",
+      "entryPointId": "preview_resolver_referenceresolver_resolvereuseof",
+      "path": [
+        "preview_resolver_referenceresolver_resolvereuseof",
+        "preview_resolver_referenceresolver_resolvereuse",
+        "preview_resolver_decode",
+        "preview_resolver_findtarget",
+        "preview_resolver_isancestor",
+        "preview_resolver_parsereference",
+        "preview_resolver_referenceresolver_load",
+        "preview_resolver_referenceresolver_resolve",
+        "preview_resolver_referenceresolver_resolvein",
+        "preview_resolver_resolvepath",
+        "preview_resolver_samepath",
+        "preview_resolver_siblingrange",
+        "preview_resolver_splitonce",
+        "preview_resolver_referenceresolver_collect",
+        "preview_resolver_isempty",
+        "preview_resolver_referenceresolver_tokens"
+      ],
+      "qualifiedPath": [
+        "preview_resolver_referenceresolver_resolvereuseof",
+        "preview_resolver_referenceresolver_resolvereuse",
+        "preview_resolver_decode",
+        "preview_resolver_findtarget",
+        "preview_resolver_isancestor",
+        "preview_resolver_parsereference",
+        "preview_resolver_referenceresolver_load",
+        "preview_resolver_referenceresolver_resolve",
+        "preview_resolver_referenceresolver_resolvein",
+        "preview_resolver_resolvepath",
+        "preview_resolver_samepath",
+        "preview_resolver_siblingrange",
+        "preview_resolver_splitonce",
+        "preview_resolver_referenceresolver_collect",
+        "preview_resolver_isempty",
+        "preview_resolver_referenceresolver_tokens"
+      ],
+      "depth": 4,
+      "nodeCount": 16,
+      "fileCount": 1,
+      "files": [
+        "src/preview/resolver.ts"
+      ],
+      "criticality": 0.2056,
       "warnings": []
     },
     {
@@ -4147,74 +4205,6 @@
       "warnings": []
     },
     {
-      "id": "flow:preview_resolver_referenceresolver_resolveone",
-      "name": ".resolveOne",
-      "entryPoint": "preview_resolver_referenceresolver_resolveone",
-      "entryPointId": "preview_resolver_referenceresolver_resolveone",
-      "path": [
-        "preview_resolver_referenceresolver_resolveone",
-        "preview_resolver_referenceresolver_resolvecode",
-        "preview_resolver_referenceresolver_resolveforeign",
-        "preview_resolver_referenceresolver_resolvehref",
-        "preview_resolver_referenceresolver_resolvekeyref",
-        "preview_resolver_referenceresolver_resolvereuse",
-        "preview_resolver_referenceresolver_resolve",
-        "preview_resolver_referenceresolver_targetpath",
-        "preview_resolver_selectlines",
-        "preview_resolver_referenceresolver_load",
-        "preview_resolver_decode",
-        "preview_resolver_findtarget",
-        "preview_resolver_parsereference",
-        "preview_resolver_referenceresolver_titletext",
-        "preview_resolver_resolvepath",
-        "preview_resolver_referenceresolver_glossarytext",
-        "preview_resolver_referenceresolver_tokens",
-        "preview_resolver_splitonce",
-        "preview_resolver_isancestor",
-        "preview_resolver_referenceresolver_resolvein",
-        "preview_resolver_siblingrange",
-        "preview_resolver_referenceresolver_plaintext",
-        "preview_resolver_referenceresolver_titlechild",
-        "preview_resolver_referenceresolver_collect",
-        "preview_resolver_isempty"
-      ],
-      "qualifiedPath": [
-        "preview_resolver_referenceresolver_resolveone",
-        "preview_resolver_referenceresolver_resolvecode",
-        "preview_resolver_referenceresolver_resolveforeign",
-        "preview_resolver_referenceresolver_resolvehref",
-        "preview_resolver_referenceresolver_resolvekeyref",
-        "preview_resolver_referenceresolver_resolvereuse",
-        "preview_resolver_referenceresolver_resolve",
-        "preview_resolver_referenceresolver_targetpath",
-        "preview_resolver_selectlines",
-        "preview_resolver_referenceresolver_load",
-        "preview_resolver_decode",
-        "preview_resolver_findtarget",
-        "preview_resolver_parsereference",
-        "preview_resolver_referenceresolver_titletext",
-        "preview_resolver_resolvepath",
-        "preview_resolver_referenceresolver_glossarytext",
-        "preview_resolver_referenceresolver_tokens",
-        "preview_resolver_splitonce",
-        "preview_resolver_isancestor",
-        "preview_resolver_referenceresolver_resolvein",
-        "preview_resolver_siblingrange",
-        "preview_resolver_referenceresolver_plaintext",
-        "preview_resolver_referenceresolver_titlechild",
-        "preview_resolver_referenceresolver_collect",
-        "preview_resolver_isempty"
-      ],
-      "depth": 4,
-      "nodeCount": 25,
-      "fileCount": 1,
-      "files": [
-        "src/preview/resolver.ts"
-      ],
-      "criticality": 0.2,
-      "warnings": []
-    },
-    {
       "id": "flow:editor_toprosemirror_buildfragment",
       "name": "buildFragment",
       "entryPoint": "editor_toprosemirror_buildfragment",
@@ -4558,6 +4548,76 @@
         "src/shared/editor/toSource.ts"
       ],
       "criticality": 0.2,
+      "warnings": []
+    },
+    {
+      "id": "flow:preview_resolver_referenceresolver_resolveone",
+      "name": ".resolveOne",
+      "entryPoint": "preview_resolver_referenceresolver_resolveone",
+      "entryPointId": "preview_resolver_referenceresolver_resolveone",
+      "path": [
+        "preview_resolver_referenceresolver_resolveone",
+        "preview_resolver_referenceresolver_resolvecode",
+        "preview_resolver_referenceresolver_resolveforeign",
+        "preview_resolver_referenceresolver_resolvehref",
+        "preview_resolver_referenceresolver_resolvekeyref",
+        "preview_resolver_referenceresolver_resolvereuse",
+        "preview_resolver_referenceresolver_resolve",
+        "preview_resolver_referenceresolver_targetpath",
+        "preview_resolver_selectlines",
+        "preview_resolver_referenceresolver_load",
+        "preview_resolver_decode",
+        "preview_resolver_findtarget",
+        "preview_resolver_parsereference",
+        "preview_resolver_referenceresolver_titletext",
+        "preview_resolver_resolvepath",
+        "preview_resolver_referenceresolver_glossarytext",
+        "preview_resolver_referenceresolver_tokens",
+        "preview_resolver_splitonce",
+        "preview_resolver_isancestor",
+        "preview_resolver_referenceresolver_resolvein",
+        "preview_resolver_samepath",
+        "preview_resolver_siblingrange",
+        "preview_resolver_referenceresolver_plaintext",
+        "preview_resolver_referenceresolver_titlechild",
+        "preview_resolver_referenceresolver_collect",
+        "preview_resolver_isempty"
+      ],
+      "qualifiedPath": [
+        "preview_resolver_referenceresolver_resolveone",
+        "preview_resolver_referenceresolver_resolvecode",
+        "preview_resolver_referenceresolver_resolveforeign",
+        "preview_resolver_referenceresolver_resolvehref",
+        "preview_resolver_referenceresolver_resolvekeyref",
+        "preview_resolver_referenceresolver_resolvereuse",
+        "preview_resolver_referenceresolver_resolve",
+        "preview_resolver_referenceresolver_targetpath",
+        "preview_resolver_selectlines",
+        "preview_resolver_referenceresolver_load",
+        "preview_resolver_decode",
+        "preview_resolver_findtarget",
+        "preview_resolver_parsereference",
+        "preview_resolver_referenceresolver_titletext",
+        "preview_resolver_resolvepath",
+        "preview_resolver_referenceresolver_glossarytext",
+        "preview_resolver_referenceresolver_tokens",
+        "preview_resolver_splitonce",
+        "preview_resolver_isancestor",
+        "preview_resolver_referenceresolver_resolvein",
+        "preview_resolver_samepath",
+        "preview_resolver_siblingrange",
+        "preview_resolver_referenceresolver_plaintext",
+        "preview_resolver_referenceresolver_titlechild",
+        "preview_resolver_referenceresolver_collect",
+        "preview_resolver_isempty"
+      ],
+      "depth": 4,
+      "nodeCount": 26,
+      "fileCount": 1,
+      "files": [
+        "src/preview/resolver.ts"
+      ],
+      "criticality": 0.1996,
       "warnings": []
     },
     {
@@ -12009,6 +12069,30 @@
       "warnings": []
     },
     {
+      "id": "flow:grammar_classtable_buildclasstable",
+      "name": "buildClassTable",
+      "entryPoint": "grammar_classtable_buildclasstable",
+      "entryPointId": "grammar_classtable_buildclasstable",
+      "path": [
+        "grammar_classtable_buildclasstable",
+        "grammar_classtable_ismapgrammar",
+        "grammar_classtable_normalizeclass"
+      ],
+      "qualifiedPath": [
+        "grammar_classtable_buildclasstable",
+        "grammar_classtable_ismapgrammar",
+        "grammar_classtable_normalizeclass"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/shared/grammar/classTable.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_ditavalparser_buildditavaldocument",
       "name": "buildDitavalDocument",
       "entryPoint": "utils_ditavalparser_buildditavaldocument",
@@ -13688,6 +13772,28 @@
       "fileCount": 1,
       "files": [
         "src/preview/ditaval.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_textutils_readattribute",
+      "name": "readAttribute",
+      "entryPoint": "utils_textutils_readattribute",
+      "entryPointId": "utils_textutils_readattribute",
+      "path": [
+        "utils_textutils_readattribute",
+        "utils_textutils_readattributes"
+      ],
+      "qualifiedPath": [
+        "utils_textutils_readattribute",
+        "utils_textutils_readattributes"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "server/src/utils/textUtils.ts"
       ],
       "criticality": 0.16,
       "warnings": []
