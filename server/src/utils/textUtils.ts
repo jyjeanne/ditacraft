@@ -114,6 +114,29 @@ export function normalizeFsPath(filePath: string): string {
     return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
 }
 
+/**
+ * The attributes of a start tag's attribute text (what follows the element name), read one after
+ * the other, so that a name written inside another attribute's value is not taken for one: each
+ * name, value, and the offset of the value in `attributes`.
+ */
+export function* readAttributes(attributes: string): Generator<{ name: string; value: string; valueOffset: number }> {
+    const pattern = /([^\s=]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(attributes)) !== null) {
+        const value = match[2] ?? match[3];
+        // The value ends just before the closing quote
+        yield { name: match[1], value, valueOffset: match.index + match[0].length - 1 - value.length };
+    }
+}
+
+/** One attribute of a start tag's attribute text, as `readAttributes` reads them. */
+export function readAttribute(attributes: string, name: string): string | undefined {
+    for (const attribute of readAttributes(attributes)) {
+        if (attribute.name === name) return attribute.value;
+    }
+    return undefined;
+}
+
 /** The file path of an @href, URI-decoded (`my%20topic.dita` is `my topic.dita`, as DITA-OT reads it). */
 export function decodeHrefPath(filePath: string): string {
     try {

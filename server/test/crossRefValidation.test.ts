@@ -833,6 +833,61 @@ suite('validateCrossReferences', () => {
             ]);
         });
 
+        test('a conref push (@conaction) is checked the other way round: the pushed element fits where the target is', async () => {
+            // A pushed <step> replaces an <li> (it is generalized); a pushed <li> cannot replace a <step>.
+            // DITA-OT 4.3.5 checks pushes this way round.
+            assert.deepStrictEqual(await compatibility(DOMAINS, [
+                '<steps><step conaction="pushreplace" conref="lib.dita#lib/li"><cmd>new</cmd></step></steps>',
+                '<ol><li conaction="pushreplace" conref="lib.dita#lib/step">new</li></ol>',
+                '<ol><li conaction="mark" conref="lib.dita#lib/step"/></ol>',
+            ]), [
+                '<steps><step conaction="pushreplace" conref="lib.dita#lib/li"><cmd>new</cmd></step></steps> → ok',
+                '<ol><li conaction="pushreplace" conref="lib.dita#lib/step">new</li></ol> → Error',
+                '<ol><li conaction="mark" conref="lib.dita#lib/step"/></ol> → Error',
+            ]);
+        });
+
+        test('the element is looked for in the topic the fragment names', async () => {
+            // Element ids are unique within a topic only: "t2/x" is the <note> of t2, not the <p> of t1.
+            const twoTopics = '<dita><topic id="t1"><title>1</title><body><p id="x">p</p></body></topic>'
+                + '<topic id="t2"><title>2</title><body><note id="x">n</note></body></topic></dita>';
+            assert.deepStrictEqual(await compatibility(twoTopics, [
+                '<note conref="lib.dita#t2/x"/>',
+                '<p conref="lib.dita#t2/x"/>',
+                '<p conref="lib.dita#t1/x"/>',
+            ]), [
+                '<note conref="lib.dita#t2/x"/> → ok',
+                '<p conref="lib.dita#t2/x"/> → Error',
+                '<p conref="lib.dita#t1/x"/> → ok',
+            ]);
+        });
+
+        test('the @conref of an element whose @conkeyref resolves is not used, so not checked', async () => {
+            // "When @conref, @conkeyref, and @conrefend are all specified, the key value takes priority" (§3.12.13.7)
+            assert.deepStrictEqual(await compatibility(DOMAINS, [
+                '<ol><li conkeyref="lib/li" conref="lib.dita#lib/note"/></ol>',
+                '<ol><li conkeyref="nokey/li" conref="lib.dita#lib/note"/></ol>',
+            ], { keyed: true }), [
+                '<ol><li conkeyref="lib/li" conref="lib.dita#lib/note"/></ol> → ok',
+                '<ol><li conkeyref="nokey/li" conref="lib.dita#lib/note"/></ol> → Error',
+            ]);
+        });
+
+        test('the same element in documents of two DITA versions is compatible', async () => {
+            // <navtitle> is - topic/navtitle in DITA 1.3, + topic/titlealt alternativeTitles-d/navtitle in DITA 2.0
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const map = (version: string, body: string) =>
+                `<?xml version="1.0"?>\n<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA ${version} Map//EN" "map.dtd">\n<map>${body}</map>`;
+            fs.writeFileSync(path.join(tmpDir, 'old.ditamap'), map('1.3', '<topicref href="a.dita"><topicmeta><navtitle id="nt">N</navtitle></topicmeta></topicref>'));
+            const text = map('2.0', '<topicref href="a.dita"><topicmeta><navtitle conref="old.ditamap#nt"/></topicmeta></topicref>');
+            try {
+                const diags = await validateCrossReferences(text, URI.file(path.join(tmpDir, 'new.ditamap')).toString(), undefined, 100);
+                assert.strictEqual(diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF).length, 0);
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
         test('the classes of the target\'s DITA version and document type decide', async () => {
             // <reqconds> is a list of the ordered kind in DITA 1.2 (topic/ol) and of the unordered kind in
             // DITA 1.3 (topic/ul). A <shortdesc> of a map is map/shortdesc, not topic/shortdesc: DITA-OT
