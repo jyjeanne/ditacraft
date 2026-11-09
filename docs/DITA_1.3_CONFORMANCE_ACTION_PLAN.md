@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Version | 1.0 — 2026-11-06 |
+| Version | 1.1 — 2026-11-09 (1.0: phases 1 to 4; 1.1: phase 5, the deviations found by the conformance check of 9 November 2026) |
 | Source | [DITA 1.3 Conformance Test Book](DITA_1.3_CONFORMANCE_TEST_BOOK.md), sections 7 (deviations) and 8 (requirements without tests) |
 | Goal | Fix the 8 deviations from DITA 1.3, give a test to the 10 untested requirements, then publish a conformance statement |
 
@@ -19,6 +19,8 @@ Effort: **S** = up to half a day, **M** = up to two days, **L** = more.
 | D3 | A key definition without a target or text is valid DITA 1.3. Keep `DITA-KEY-002` as a Warning (the link leads nowhere), or lower it to Information? | KEY-07 | Keep the Warning, documented in the test book as an intended best-practice check (accepted deviation). **Decided (phase 3)**: DITA-OT 4.3.5 renders such a reference as an empty element, without a message. |
 | D4 | Branch filtering (`<ditavalref>`) is not supported. Implement it, or declare it out of scope? | FLT-08 | Declare it out of scope in the conformance statement for now. **Decided (phase 4)**: out of scope; FLT-08 is marked "Out of scope" in the test book and the proposed conformance statement names it. |
 | D5 | Grouped values in conditional attributes (`product="database(myDB)"`) are not supported by the DITAVAL filtering of the editor. Implement? | FLT-04 | Yes, in phase 4 (they are part of DITA 1.3 filtering). **Decided (phase 4)**: implemented. Where DITA-OT 4.3.5 departs from the standard (two cases, listed in the test book), the standard is followed. |
+| D6 | The DITA-OT corpus run cannot pass. Its "DITA rules" suite counts every `DITA-SCH-*` diagnostic as a false positive, and 108 of them come from recommendation and authoring rules that are right about the DITA-OT documentation (mostly `DITA-SCH-046`, a `<section>` with a title and no id). One more failure is the duplicate keys `license` and `third-party-software`, which are in the documentation itself. Change the suite? | Corpus run (phase 6) | Check only the mandatory rules in that suite, and expect the two duplicate keys, so that the run passes and a regression shows. |
+| D7 | A conref to a more general element (`<step conref>` to an `<li>`) gets no diagnostic today, and DITA-OT 4.3.5 fails it (`DOTX010E`). With the fix of CON-02 it becomes a `DITA-XREF-004` Error. Release it as a CHANGELOG "Changed" entry? | CON-02, CON-03 | Yes, as DITA-OT does: the content is not reused. |
 
 ## 2. Phase 1 — Key resolution between scopes (KSC-02)
 
@@ -134,14 +136,87 @@ Also in this phase, the partial requirements that only need stronger tests, from
 - KEY-04, the same key in two sibling submaps (done in the first part);
 - SUB-05, completion of controlled values and of the default.
 
-## 6. Phase 5 — Close-out
+## 6. Phase 5 — Deviations found by the conformance check of 9 November 2026
+
+The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation corpus. It then used the knowledge graph (`docs/graph/graph.json`) to find each place where a DITA rule is implemented: the language server, the extension's key resolver, the visual preview and editor, and the MCP server. Where one rule has several implementations, each was compared with the standard and with DITA-OT 4.3.5. The check found five deviations, which the test book now marks ⚠️. They are planned here in the order of their impact.
+
+| Order | Item | Requirement | Where | Effort |
+|---|---|---|---|---|
+| 1 | CON-02, CON-03 | Conref compatibility follows specialization (§2.4.2.2, §3.12.13.7) | Language server | M |
+| 2 | KEY-09 | Key reference chains of any length (§2.3.4.10.6) | Language server, extension | S |
+| 3 | KEY-12 | The `@keyref` of a key definition resolves in the scope of that definition | MCP server | S, after KEY-09 |
+| 4 | CON-06 | Conref ranges as §3.12.13.7 says | Visual preview and editor | S |
+
+### 6.1 CON-02, CON-03 — Conref compatibility from `@class` (M)
+
+**Problem.** `areConrefCompatible` (`server/src/features/crossRefValidation.ts`) decides from a fixed list of element names (`CONREF_COMPAT_GROUPS`), the same way in both directions. DITA lets the referenced element be the referencing element or a specialization of it. §2.4.2.2 says "processors resolving conrefs SHOULD tolerate specializations of valid elements". §3.12.13.7 says "It is not valid to use @conrefend to reference a more general version of an element (such as using <step> to reference an <li> element)". The fixed list has three consequences:
+- **False errors.** A valid conref to a specialization outside the list is an Error (`DITA-XREF-004`). This happened for all 8 standard DITA 1.3 domain elements tested: `<ph>` to `<codeph>` or `<uicontrol>`, `<keyword>` to `<apiname>` or `<option>`, `<pre>` to `<codeblock>` or `<screen>`, `<note>` to `<hazardstatement>`, and `<fig>` to `<imagemap>`. DITA-OT 4.3.5 resolves the `<ph>` and `<pre>` cases without a message and generalizes the content; the others are still to be run (step 4).
+- **Missed errors.** A conref to a more general element (`<step conref>` to an `<li>`) gets no diagnostic, and DITA-OT fails it (`DOTX010E`).
+- **Wrong groups.** The list groups elements that the OASIS classes do not relate:
+  - `<example>` (`- topic/example`) and `<glossdef>` (`- topic/abstract …`) are with the sections;
+  - `<steps-unordered>` (`- topic/ul task/steps-unordered`) is with the ordered lists.
+
+**Steps.**
+1. Generate `server/src/data/ditaClasses.ts`: the default `@class` of each element of the OASIS document types, one table per DITA version (1.2, 1.3, 2.0). Build it from the grammars that `scripts/compile-grammars.js` already compiles from `dtds/` (612 elements with a class in DITA 1.3). A test of `npm run test:shared` checks that the table matches the compiled grammars, so that it cannot drift. Three elements have one class in maps and another in topics (`shortdesc`, `linktext`, `searchtitle`): the table keeps both, and the document type chooses.
+2. Find the class of an element:
+   - its own `@class`, when the document writes it (a project's specialization, or generalized content);
+   - otherwise, the table for the document's DITA version (the server already detects it);
+   - otherwise (an unknown element without `@class`), report no compatibility problem: the server cannot tell, and must not report a false error.
+3. An element is compatible when the class of the referenced element contains the most specific token of the referencing element's class (`topic/ph` is in `+ topic/ph pr-d/codeph`). Use this for `@conref`, `@conkeyref` and the end of a `@conrefend` range (CON-05), and remove `CONREF_COMPAT_GROUPS`.
+4. Check with DITA-OT 4.3.5 the cases not yet run: `<keyword>` to `<apiname>`, `<note>` to `<hazardstatement>`, `<fig>` to `<imagemap>`, `<conbody conref>` to a `<body>` (more general, expected to fail), a `<shortdesc>` of a map to one of a topic, and a project specialization.
+
+**Tests.**
+- Accepted: the 8 domain cases; `<body>` to `<conbody>` (the existing test "body and conbody are compatible", renamed); an element with its own `@class`.
+- Refused: `<step>` to `<li>`; `<p>` to `<note>`; `<conbody>` to `<body>`.
+- Not reported: an unknown element without `@class`.
+- The range end of CON-05 follows the same rule.
+
+**Done when** CON-02 and CON-03 are ✅. The CHANGELOG gets a "Fixed" entry for the false errors, and a "Changed" entry for the conrefs to a more general element (decision D7). **Effort** M.
+
+### 6.2 KEY-09 — Key reference chains of any length (S)
+
+**Problem.** The extension's resolver (`followKeyrefChain` in `src/utils/keySpaceResolver.ts`) and the server (`followKeyrefChain` and `followKeyrefChainWithTrace` in `server/src/services/keySpaceService.ts`) stop after 3 hops. A key definition that reaches its target through 4 others therefore resolves to no target. DITA-OT 4.3.5 resolves it (checked on a chain k1 → k2 → k3 → k4 → k5). DITA 1.3 sets no limit (§2.3.4.10.6).
+
+**Steps.** Follow the chain until a definition without `@keyref`, or a key already visited (the cycle check exists). Keep a safety bound well above any real chain, such as the number of keys in the key space. Make the same change in the extension's resolver.
+
+**Tests.** Chains of 4 and of 10 hops resolve, in both resolvers. A cycle still stops. `explainKey` lists every hop.
+
+### 6.3 KEY-12 — The MCP server resolves a `@keyref` chain in the scope of each definition (S, after 6.2)
+
+**Problem.** `resolveKeyref` (`mcp/src/tools/ditaResolveReference.ts`) calls `KeySpaceService.resolveKey`, which follows the `@keyref` of each definition in the scope of that definition. A chain can end on a definition that still has a `@keyref` (a broken chain). The tool then looks that key up again, from the topic that makes the reference, in another scope. Example: key `a` in scope S has `keyref="b"`, and only scope T defines `b`. The language server says that `S.a` has no target, but `dita_resolve_reference` resolves it to `b.dita`. No MCP test covers chains across key scopes.
+
+**Steps.**
+1. Use the service's result as it is: a definition that still has a `@keyref` is a broken chain, reported as `resolved: false`, naming the missing key.
+2. Build the resolution trace from `explainKey`, whose steps list each hop, instead of resolving again.
+3. `resolveConkeyref` uses the same function, so it follows.
+
+**Tests** in `mcp/test/tools/ditaResolveReference.test.ts`: the broken chain across scopes above; a chain across scopes that resolves; the existing cycle test.
+
+### 6.4 CON-06 — Conref ranges in the visual preview and editor (S)
+
+**Problem.** `resolveReuse` (`src/preview/resolver.ts`) looks for the end of a range with `findTarget(target.doc, endRef.topicId ?? target.topicId, endRef.elemId)`. The visual editor shows reused content through the same resolver. There are two problems:
+- **`@conkeyref` ranges show only their first element.** §3.12.13.7 says "the map or topic element addressed by the key name component of the @conkeyref is used in place of whatever map or topic element is addressed by the @conrefend attribute". The preview uses the topic of `@conrefend` instead, so both examples of the standard (Figures 7 and 8) show only the first element. The DITA-OT documentation uses this form (`topics/migrating-to-3.5.dita`).
+- **The file of `@conrefend` is ignored.** An end in another document is looked for in the document of the start, so a range can be built from the wrong document. DITA-OT reports `DOTX071E` and keeps only the start element.
+
+**Steps.**
+1. With `@conkeyref`, look for the end element in the key's topic (`target.topicId`), using the element id of `@conrefend` alone.
+2. With `@conref`, resolve the file of `@conrefend` against the referencing document. When it is not the document of the start, render the start element alone, as DITA-OT does. The language server already reports such ranges (`DITA-XREF-006`), so the preview only needs to render what DITA-OT renders.
+3. Add a test for `src/preview/mapContexts.ts`, which resolves the preview's keys in the map context the user chose. The knowledge graph shows that no test file imports it.
+
+**Tests** in `src/test/shared/previewHost.test.ts`:
+- Figures 7 and 8 of §3.12.13.7 render the whole range;
+- an end in another document with the same ids renders the start alone;
+- the existing range test still passes;
+- a topic used in two key scopes resolves its keys in the scope of the chosen map context.
+
+## 7. Phase 6 — Close-out
 
 1. Update the test book: rows, evidence, statuses, summary and execution record.
-2. Adopt the conformance statement (test book section 9) in the README, with the deviations that remain accepted (D3) and the features out of scope (D4).
+2. Adopt the conformance statement (test book section 9) in the README, once the deviations of phase 5 are fixed, with the deviations that remain accepted (D3) and the features out of scope (D4).
 3. Update `docs/VALIDATION-SPECIFICATION.md` and the user guide for the changed messages and severities, then add the CHANGELOG entries.
-4. Run every suite, including the opt-in DITA-OT corpus, and record the run in the test book.
+4. Run every suite, including the opt-in DITA-OT corpus, and record the run in the test book. Apply decision D6 first, so that the corpus run can pass: on 9 November 2026 it had 109 failures, all of them known (see D6).
 
-## 7. Tracking
+## 8. Tracking
 
 | Item | Phase | Effort | Status |
 |---|---|---|---|
@@ -158,4 +233,9 @@ Also in this phase, the partial requirements that only need stronger tests, from
 | FLT-04 grouped values | 4 | M | Done |
 | CON-05 `@conrefend` | 4 | M | Done |
 | FLT-08 branch filtering (decision) | 4 | S | Done (out of scope, D4) |
-| Conformance statement, documentation, release | 5 | S | Open |
+| D6, D7 decisions | 5 | — | Open |
+| CON-02, CON-03 conref compatibility from `@class` | 5 | M | Open |
+| KEY-09 key reference chains of any length | 5 | S | Open |
+| KEY-12 MCP: `@keyref` chains in the scope of each definition | 5 | S | Open |
+| CON-06 conref ranges in the visual preview | 5 | S | Open |
+| Conformance statement, documentation, release | 6 | S | Open |
