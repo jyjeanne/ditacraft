@@ -626,6 +626,20 @@ suite('Key Space Resolver Test Suite', () => {
         });
     });
 
+    suite('keyref chains (DITA 1.3 §2.3.4.10.6)', () => {
+        test('Should follow a chain of any length, and stop on a cycle', async () => {
+            // keyref-chain/: k1 → k2 → … → k6 (target.dita), five hops; loop1 → … → loop5 → loop1.
+            // DITA 1.3 sets no limit, and DITA-OT 4.3.5 resolves such chains; they used to stop after 3 hops.
+            const dir = path.join(fixturesPath, 'keyref-chain');
+            const mapPath = path.join(dir, 'root.ditamap');
+            const target = path.join(dir, 'target.dita');
+            assert.ok((await resolver.resolveKeyInMap('k1', mapPath, target))?.targetFile?.endsWith('target.dita'), 'five hops');
+            assert.ok((await resolver.resolveKeyInMap('k3', mapPath, target))?.targetFile?.endsWith('target.dita'), 'three hops');
+            const loop = await resolver.resolveKeyInMap('loop1', mapPath, target);
+            assert.ok(loop && !loop.targetFile, 'a cycle ends on a definition without a target');
+        });
+    });
+
     suite('Workspace Boundary Path Normalization', () => {
         // normalizePathForComparison is the private helper isPathWithinWorkspace uses to
         // compare an absolute path against configured workspace folders. It must case-fold

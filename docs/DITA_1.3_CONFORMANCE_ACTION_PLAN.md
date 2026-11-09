@@ -235,7 +235,7 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 | FLT-08 branch filtering (decision) | 4 | S | Done (out of scope, D4) |
 | D6, D7 decisions | 5 | — | D7 applied as recommended; D6 open |
 | CON-02, CON-03 conref compatibility from `@class` | 5 | M | Done |
-| KEY-09 key reference chains of any length | 5 | S | Open |
+| KEY-09 key reference chains of any length | 5 | S | Done |
 | KEY-12 MCP: `@keyref` chains in the scope of each definition | 5 | S | Open |
 | CON-06 conref ranges in the visual preview | 5 | S | Open |
 | Conformance statement, documentation, release | 6 | S | Open |

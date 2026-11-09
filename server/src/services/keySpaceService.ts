@@ -1624,25 +1624,17 @@ export class KeySpaceService implements IKeySpaceService {
     }
 
     /**
-     * Follow @keyref chains up to hopsRemaining hops.
-     * Returns the original definition unchanged when no chain exists, the chain
-     * is broken (target key missing), or the hop limit / cycle guard fires.
+     * Follow a @keyref chain to its end and return the last definition reached: one without
+     * @keyref, one whose @keyref names an undefined key (a broken chain), or the definition
+     * where a cycle closes. DITA 1.3 sets no limit to the length of a chain (§2.3.4.10.6), and
+     * DITA-OT 4.3.5 follows long ones: each definition is visited once, which bounds the walk.
      */
     private followKeyrefChain(
         keyDef: KeyDefinition,
         keys: Map<string, KeyDefinition>,
-        scopePrefix = '',
-        hopsRemaining = 3,
-        visited = new Set<string>()
+        scopePrefix = ''
     ): KeyDefinition {
-        if (!keyDef.keyref || hopsRemaining <= 0 || visited.has(keyDef.keyName)) {
-            return keyDef;
-        }
-        visited.add(keyDef.keyName);
-        // The @keyref of a key definition is a key reference made in the scope of that definition
-        const next = KeySpaceService.lookupKey(keys, keyDef.keyref, scopePrefix);
-        if (!next) return keyDef;
-        return this.followKeyrefChain(next.def, keys, next.scopePrefix, hopsRemaining - 1, visited);
+        return this.followKeyrefChainWithTrace(keyDef, keys, scopePrefix).def;
     }
 
     /**
@@ -1660,17 +1652,17 @@ export class KeySpaceService implements IKeySpaceService {
         const chain: string[] = [];
         let current = startDef;
         let currentScope = scopePrefix;
-        const visited = new Set<string>();
-        let hopsRemaining = 3;
+        // Definitions, not key names: two scopes may define keys of the same name
+        const visited = new Set<KeyDefinition>();
 
-        while (current.keyref && hopsRemaining > 0 && !visited.has(current.keyName)) {
-            visited.add(current.keyName);
+        while (current.keyref && !visited.has(current)) {
+            visited.add(current);
             chain.push(current.keyName);
+            // The @keyref of a key definition is a key reference made in the scope of that definition
             const next = KeySpaceService.lookupKey(keys, current.keyref, currentScope);
             if (!next) break;
             current = next.def;
             currentScope = next.scopePrefix;
-            hopsRemaining--;
         }
 
         // Append final destination only when it differs from the last pushed entry.
