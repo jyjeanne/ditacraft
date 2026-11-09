@@ -54,36 +54,37 @@ async function resolveKeyref(
     fromUri: string | undefined,
     ctx: McpContext,
     trace: string[],
-    visited: Set<string> = new Set(),
 ): Promise<ResolveReferenceResult> {
-    if (visited.has(keyName)) {
-        trace.push(`  -> cycle detected: "${keyName}" already in chain`);
-        return {
-            resolved: false,
-            resolutionTrace: trace,
-            error: `Cyclic keyref chain detected at key "${keyName}"`,
-        };
-    }
-    visited.add(keyName);
-
     const contextPath = fromUri
         ? fileUriToFsPath(resolvePath(fromUri, ctx.workspaceRoot) ?? '')
         : ctx.workspaceRoot;
 
     trace.push(`keyref lookup: "${keyName}" from context "${contextPath}"`);
 
-    const keyDef = await ctx.keySpaceService.resolveKey(keyName, contextPath);
+    // The language server's resolution, as the editor shows it: it follows the @keyref of each
+    // key definition in the scope of that definition (DITA 1.3 §2.3.4.10.6), and its steps,
+    // each hop of a chain included, make the trace.
+    const report = await ctx.keySpaceService.explainKey(keyName, contextPath);
+    for (const step of report.steps) {
+        trace.push(`  -> ${step.note}`);
+    }
+    const keyDef = report.resolvedDefinition;
 
     if (!keyDef) {
         trace.push(`  -> not found in key space`);
         return { resolved: false, resolutionTrace: trace, error: `Key "${keyName}" not defined` };
     }
 
-    trace.push(`  -> found key "${keyName}"`);
-
     if (keyDef.keyref) {
-        trace.push(`  -> keyref chain: "${keyName}" -> "${keyDef.keyref}"`);
-        return resolveKeyref(keyDef.keyref, fromUri, ctx, trace, visited);
+        // The chain ends on a definition that still refers to a key: a cycle, or a key that is
+        // not defined in the scope of that definition. It is not looked up again from here.
+        const chain = report.keyrefChain;
+        const cyclic = new Set(chain).size < chain.length || keyDef.keyref === keyDef.keyName.split('.').pop();
+        const error = cyclic
+            ? `Cyclic keyref chain detected at key "${keyDef.keyName}"`
+            : `Key "${keyName}" has no target: key "${keyDef.keyName}" refers to key "${keyDef.keyref}", which is not defined in its key scope`;
+        trace.push(`  -> ${error}`);
+        return { resolved: false, resolutionTrace: trace, error };
     }
 
     if (keyDef.targetFile) {

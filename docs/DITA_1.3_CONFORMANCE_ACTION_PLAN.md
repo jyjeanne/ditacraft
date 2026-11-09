@@ -138,13 +138,13 @@ Also in this phase, the partial requirements that only need stronger tests, from
 
 ## 6. Phase 5 — Deviations found by the conformance check of 9 November 2026
 
-The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation corpus. It then used the knowledge graph (`docs/graph/graph.json`) to find each place where a DITA rule is implemented: the language server, the extension's key resolver, the visual preview and editor, and the MCP server. Where one rule has several implementations, each was compared with the standard and with DITA-OT 4.3.5. The check found five deviations, which the test book now marks ⚠️. They are planned here in the order of their impact.
+The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation corpus. It then used the knowledge graph (`docs/graph/graph.json`) to find each place where a DITA rule is implemented: the language server, the extension's key resolver, the visual preview and editor, and the MCP server. Where one rule has several implementations, each was compared with the standard and with DITA-OT 4.3.5. The check found five problems, which the test book marked ⚠️. They are planned here in the order of their impact. KEY-09 turned out to meet the standard, which asks for at least three levels of key references (§2.3.4.8): it is a gap with DITA-OT. Fixing KEY-12 showed that its cause was also in the language server and the extension (6.3).
 
 | Order | Item | Requirement | Where | Effort |
 |---|---|---|---|---|
 | 1 | CON-02, CON-03 | Conref compatibility follows specialization (§2.4.2.2, §3.12.13.7) | Language server | M |
 | 2 | KEY-09 | Key reference chains of any length (§2.3.4.10.6) | Language server, extension | S |
-| 3 | KEY-12 | The `@keyref` of a key definition resolves in the scope of that definition | MCP server | S, after KEY-09 |
+| 3 | KEY-12 | The `@keyref` of a key definition resolves in the scope of that definition | Language server, extension, MCP server | S, after KEY-09 |
 | 4 | CON-06 | Conref ranges as §3.12.13.7 says | Visual preview and editor | S |
 
 ### 6.1 CON-02, CON-03 — Conref compatibility from `@class` (M)
@@ -175,13 +175,13 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 
 ### 6.2 KEY-09 — Key reference chains of any length (S)
 
-**Problem.** The extension's resolver (`followKeyrefChain` in `src/utils/keySpaceResolver.ts`) and the server (`followKeyrefChain` and `followKeyrefChainWithTrace` in `server/src/services/keySpaceService.ts`) stop after 3 hops. A key definition that reaches its target through 4 others therefore resolves to no target. DITA-OT 4.3.5 resolves it (checked on a chain k1 → k2 → k3 → k4 → k5). DITA 1.3 sets no limit (§2.3.4.10.6).
+**Problem.** The extension's resolver (`followKeyrefChain` in `src/utils/keySpaceResolver.ts`) and the server (`followKeyrefChain` and `followKeyrefChainWithTrace` in `server/src/services/keySpaceService.ts`) stop after 3 hops. A key definition that reaches its target through 4 others therefore resolves to no target. DITA-OT 4.3.5 resolves it (checked on a chain k1 → k2 → k3 → k4 → k5). DITA 1.3 only asks processors to "support at least three levels of key references" (§2.3.4.8), so the limit met the standard: this item aligns with DITA-OT, it does not fix a deviation (found while fixing KEY-12).
 
 **Steps.** Follow the chain until a definition without `@keyref`, or a key already visited (the cycle check exists). Keep a safety bound well above any real chain, such as the number of keys in the key space. Make the same change in the extension's resolver.
 
 **Tests.** Chains of 4 and of 10 hops resolve, in both resolvers. A cycle still stops. `explainKey` lists every hop.
 
-### 6.3 KEY-12 — The MCP server resolves a `@keyref` chain in the scope of each definition (S, after 6.2)
+### 6.3 KEY-12 — The `@keyref` of a key definition resolves in the scope of that definition (S, after 6.2)
 
 **Problem.** `resolveKeyref` (`mcp/src/tools/ditaResolveReference.ts`) calls `KeySpaceService.resolveKey`, which follows the `@keyref` of each definition in the scope of that definition. A chain can end on a definition that still has a `@keyref` (a broken chain). The tool then looks that key up again, from the topic that makes the reference, in another scope. Example: key `a` in scope S has `keyref="b"`, and only scope T defines `b`. The language server says that `S.a` has no target, but `dita_resolve_reference` resolves it to `b.dita`. No MCP test covers chains across key scopes.
 
@@ -191,6 +191,10 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 3. `resolveConkeyref` uses the same function, so it follows.
 
 **Tests** in `mcp/test/tools/ditaResolveReference.test.ts`: the broken chain across scopes above; a chain across scopes that resolves; the existing cycle test.
+
+**Found while fixing it.** The language server and the extension had the same fault, one level down. A key definition reached by its scope-qualified name (`S2.c`, from another scope or the root) had its `@keyref` resolved in the scope where the name was found, not in its own scope. So `c` → `d`, both defined in S2, ended with no target. DITA 1.3 says "Each key scope has its own key space that is used to resolve the key references that occur within the scope" (§2.3.4.2), and DITA-OT 4.3.5 resolves `S2.c` to `d`.
+- **Fix.** The key space records the scope of each scoped definition (`keyScope`), and every chain is followed from that scope, peer maps included.
+- **Difference with DITA-OT.** DITA-OT 4.3.5 resolves `S.a` of the example above to `b.dita`: when the definition's scope has no `b`, it falls back to the scope of the referencing topic. The standard has no such fallback, so the language server, the extension and the MCP tool report no target.
 
 ### 6.4 CON-06 — Conref ranges in the visual preview and editor (S)
 
@@ -235,7 +239,7 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 | FLT-08 branch filtering (decision) | 4 | S | Done (out of scope, D4) |
 | D6, D7 decisions | 5 | — | D7 applied as recommended; D6 open |
 | CON-02, CON-03 conref compatibility from `@class` | 5 | M | Done |
-| KEY-09 key reference chains of any length | 5 | S | Done |
-| KEY-12 MCP: `@keyref` chains in the scope of each definition | 5 | S | Open |
+| KEY-09 key reference chains of any length | 5 | S | Done (a gap with DITA-OT, not a deviation) |
+| KEY-12 `@keyref` chains in the scope of each definition (language server, extension, MCP) | 5 | S | Done |
 | CON-06 conref ranges in the visual preview | 5 | S | Open |
 | Conformance statement, documentation, release | 6 | S | Open |

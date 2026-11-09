@@ -13,5 +13,9 @@
     <keydef keys="loop3" keyref="loop4"/>
     <keydef keys="loop4" keyref="loop5"/>
     <keydef keys="loop5" keyref="loop1"/>
+    <topicgroup keyscope="S2">
+        <keydef keys="c" keyref="d"/>
+        <keydef keys="d" href="target.dita"/>
+    </topicgroup>
     <topicref href="target.dita"/>
 </map>

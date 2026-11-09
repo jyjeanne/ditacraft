@@ -132,4 +132,72 @@ suite('dita_resolve_reference', () => {
         await cycleWs.cleanup();
     });
 
+    suite('keyref chains across key scopes (DITA 1.3 §2.3.4.10.6)', () => {
+        // Scope S: "a" refers to "b", which only scope T defines; scope S2: "c" refers to "d", which S2 defines.
+        // The @keyref of a key definition is a key reference made in the scope of that definition.
+        const SCOPED_MAP = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">',
+            '<map>',
+            '  <title>Scoped Chains</title>',
+            '  <topicgroup keyscope="S"><keydef keys="a" keyref="b"/></topicgroup>',
+            '  <topicgroup keyscope="S2"><keydef keys="c" keyref="d"/><keydef keys="d" href="topics/d.dita"/></topicgroup>',
+            '  <topicgroup keyscope="T"><keydef keys="b" href="topics/b.dita"/><topicref href="topics/t.dita"/></topicgroup>',
+            '</map>',
+        ].join('\n');
+        const topic = (id: string, body: string) => [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">',
+            `<topic id="${id}"><title>${id}</title><body>${body}</body></topic>`,
+        ].join('\n');
+        let scopedWs: TestWorkspace;
+
+        suiteSetup(async () => {
+            scopedWs = await createTestWorkspace();
+            scopedWs.addFile('scoped.ditamap', SCOPED_MAP);
+            scopedWs.addFile('topics/t.dita', topic('t', '<p><xref keyref="S.a"/> <xref keyref="S2.c"/></p>'));
+            scopedWs.addFile('topics/b.dita', topic('b', '<p>B</p>'));
+            scopedWs.addFile('topics/d.dita', topic('d', '<p>D</p>'));
+        });
+
+        suiteTeardown(async () => {
+            await scopedWs.cleanup();
+        });
+
+        test('a broken chain is not looked up again from the referencing topic, in another scope', async () => {
+            // The language server says that "S.a" has no target; the tool used to resolve "b" from the
+            // topic, in scope T, and return b.dita.
+            const result = await scopedWs.callTool('dita_resolve_reference', {
+                reference: 'S.a',
+                referenceType: 'keyref',
+                fromUri: 'topics/t.dita',
+            }) as Record<string, unknown>;
+            assert.strictEqual(result.resolved, false, JSON.stringify(result));
+            assert.strictEqual(result.error,
+                'Key "S.a" has no target: key "S.a" refers to key "b", which is not defined in its key scope');
+        });
+
+        test('a chain in a scope resolves, and the trace lists each hop', async () => {
+            const result = await scopedWs.callTool('dita_resolve_reference', {
+                reference: 'S2.c',
+                referenceType: 'keyref',
+                fromUri: 'topics/t.dita',
+            }) as Record<string, unknown>;
+            assert.strictEqual(result.resolved, true, JSON.stringify(result));
+            assert.ok((result.targetUri as string).endsWith('topics/d.dita'));
+            const trace = result.resolutionTrace as string[];
+            assert.ok(trace.some(line => line.includes('Followed @keyref: "S2.c" → "S2.d"')), trace.join('\n'));
+        });
+
+        test('a broken chain through @conkeyref is reported the same way', async () => {
+            const result = await scopedWs.callTool('dita_resolve_reference', {
+                reference: 'S.a/p1',
+                referenceType: 'conkeyref',
+                fromUri: 'topics/t.dita',
+            }) as Record<string, unknown>;
+            assert.strictEqual(result.resolved, false);
+            assert.match(result.error as string, /refers to key "b", which is not defined in its key scope/);
+        });
+    });
+
 });

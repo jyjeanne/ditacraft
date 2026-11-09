@@ -978,8 +978,8 @@ suite('KeySpaceService', () => {
         });
 
         test('a chain of any length resolves, as DITA-OT does (DITA 1.3 §2.3.4.10.6)', async () => {
-            // DITA 1.3 sets no limit to a chain of key definitions; DITA-OT 4.3.5 resolves a chain of 4 hops.
-            // Chains used to stop after 3 hops, with no target.
+            // DITA 1.3 asks for "at least three levels of key references" (§2.3.4.8); DITA-OT 4.3.5 resolves
+            // longer chains. Chains used to stop after 3 hops, with no target.
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
             try {
@@ -1025,6 +1025,39 @@ ${chain}
                 assert.ok(result && !result.targetFile, 'a definition, without a target');
                 const report = await service.explainKey('a', contextFile);
                 assert.deepStrictEqual(report.keyrefChain, ['a', 'b', 'c', 'd', 'e', 'a']);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('the @keyref of a key definition resolves in the scope of the definition, however the key is named', async () => {
+            // "Each key scope has its own key space that is used to resolve the key references that occur
+            // within the scope" (DITA 1.3 §2.3.4.2): the @keyref of a definition of scope S2 resolves in S2.
+            // Reached by its qualified name "S2.c" from scope T, the chain used to resolve "d" in scope T
+            // and found nothing; DITA-OT 4.3.5 resolves it to d.dita.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), `<?xml version="1.0"?>
+<map>
+  <topicgroup keyscope="S2"><keydef keys="c" keyref="d"/><keydef keys="d" href="d.dita"/><topicref href="in.dita"/></topicgroup>
+  <topicgroup keyscope="S"><keydef keys="a" keyref="b"/></topicgroup>
+  <topicgroup keyscope="T"><keydef keys="b" href="b.dita"/><topicref href="t.dita"/></topicgroup>
+</map>`, 'utf-8');
+                for (const name of ['t.dita', 'in.dita']) {
+                    fs.writeFileSync(path.join(tmpDir, name), '', 'utf-8');
+                }
+                const fromT = path.join(tmpDir, 't.dita');
+                const target = async (key: string, context: string) => path.basename((await service.resolveKey(key, context))?.targetFile ?? '') || null;
+
+                assert.strictEqual(await target('S2.c', fromT), 'd.dita', 'from another scope');
+                assert.strictEqual(await target('S2.c', path.join(tmpDir, 'root.ditamap')), 'd.dita', 'from the root scope');
+                assert.strictEqual(await target('c', path.join(tmpDir, 'in.dita')), 'd.dita', 'from its own scope');
+                assert.deepStrictEqual((await service.explainKey('S2.c', fromT)).keyrefChain, ['S2.c', 'S2.d']);
+                // "b" is defined in scope T only: not in the key space of S. DITA-OT 4.3.5 falls back to the
+                // scope of the referencing topic (T) and links to b.dita; the standard does not.
+                assert.strictEqual(await target('S.a', fromT), null, 'no target: "b" is not in scope S');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);

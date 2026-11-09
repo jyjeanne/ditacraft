@@ -32,6 +32,11 @@ export interface KeyDefinition {
     processingRole?: string;
     /** Indirect key reference: when set, resolution follows the chain to this key name. */
     keyref?: string;
+    /**
+     * The key scope the definition is in (`"A.A-2"`), for an entry under its scope-qualified name;
+     * undefined in the root scope. Its @keyref is resolved in that scope, however the key was named.
+     */
+    keyScope?: string;
     metadata?: KeyMetadata;
     /**
      * Defined by a `<subjectdef>` of a subject scheme: a controlled value (a subject
@@ -423,11 +428,8 @@ export class KeySpaceService implements IKeySpaceService {
                     const peerName = KeySpaceService.peerKeyName(peerKeySpace, peerMapPath, peerKey);
                     const peerDef = peerKeySpace.keys.get(peerName) ?? null;
                     if (peerDef) {
-                        // Derive the scope prefix from the name so that keyref chains
-                        // within a named scope of the peer map resolve correctly.
-                        // e.g. peerName="inner.realKey" → peerKeyScope="inner"
-                        const lastDot = peerName.lastIndexOf('.');
-                        const peerKeyScope = lastDot > 0 ? peerName.slice(0, lastDot) : '';
+                        // Keyref chains within a named scope of the peer map resolve in that scope
+                        const peerKeyScope = peerDef.keyScope ?? '';
                         return { def: peerDef, keys: peerKeySpace.keys, scopePrefix: peerKeyScope };
                     }
                 } catch {
@@ -463,7 +465,12 @@ export class KeySpaceService implements IKeySpaceService {
         return Array.from({ length: segments.length + 1 }, (_, depth) => segments.slice(0, depth).join('.'));
     }
 
-    /** The effective definition of a key referenced from a key scope, and the scope it was found in. */
+    /**
+     * The effective definition of a key referenced from a key scope, and the scope the definition
+     * is in: the scope in which its own @keyref resolves. That is not the scope where the name was
+     * found when the reference qualifies it: `S.c` found from the root scope is a definition of
+     * scope S (DITA 1.3 §2.3.4.10.6).
+     */
     private static lookupKey(
         keys: Map<string, KeyDefinition>,
         keyName: string,
@@ -471,7 +478,7 @@ export class KeySpaceService implements IKeySpaceService {
     ): { def: KeyDefinition; scopePrefix: string } | null {
         for (const prefix of KeySpaceService.scopeLookupOrder(scopePrefix)) {
             const def = keys.get(prefix ? `${prefix}.${keyName}` : keyName);
-            if (def) return { def, scopePrefix: prefix };
+            if (def) return { def, scopePrefix: def.keyScope ?? prefix };
         }
         return null;
     }
@@ -566,7 +573,7 @@ export class KeySpaceService implements IKeySpaceService {
                         : `Key "${attempted}" not found in key space`,
             });
             if (keyDef) {
-                const { def: resolved, chain } = this.followKeyrefChainWithTrace(keyDef, keySpace.keys, prefix);
+                const { def: resolved, chain } = this.followKeyrefChainWithTrace(keyDef, keySpace.keys, keyDef.keyScope ?? prefix);
                 this.appendKeyrefSteps(report.steps, chain, keySpace.keys);
                 report.keyrefChain = chain;
                 report.resolvedDefinition = resolved;
@@ -598,9 +605,7 @@ export class KeySpaceService implements IKeySpaceService {
                         peerStep.found = true;
                         peerStep.definition = peerDef;
                         peerStep.note = `Found "${peerKey}" in peer map "${path.basename(peerMapPath)}"`;
-                        const lastDot = peerName.lastIndexOf('.');
-                        const peerKeyScope = lastDot > 0 ? peerName.slice(0, lastDot) : '';
-                        const { def: resolved, chain } = this.followKeyrefChainWithTrace(peerDef, peerKeySpace.keys, peerKeyScope);
+                        const { def: resolved, chain } = this.followKeyrefChainWithTrace(peerDef, peerKeySpace.keys, peerDef.keyScope ?? '');
                         this.appendKeyrefSteps(report.steps, chain, peerKeySpace.keys);
                         report.keyrefChain = chain;
                         report.resolvedDefinition = resolved;
@@ -1172,8 +1177,7 @@ export class KeySpaceService implements IKeySpaceService {
 
                     // Scope-qualified entries — first definition per qualified name wins.
                     for (const prefix of effectivePrefixes) {
-                        const qualifiedName = `${prefix}.${keyDef.keyName}`;
-                        this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+                        this.addScopedKeyEntry(keySpace, prefix, keyDef);
                     }
                 }
 
@@ -1626,8 +1630,9 @@ export class KeySpaceService implements IKeySpaceService {
     /**
      * Follow a @keyref chain to its end and return the last definition reached: one without
      * @keyref, one whose @keyref names an undefined key (a broken chain), or the definition
-     * where a cycle closes. DITA 1.3 sets no limit to the length of a chain (§2.3.4.10.6), and
-     * DITA-OT 4.3.5 follows long ones: each definition is visited once, which bounds the walk.
+     * where a cycle closes. DITA 1.3 asks processors to "support at least three levels of key
+     * references" (§2.3.4.8); DITA-OT 4.3.5 follows longer chains, and so does this: each definition
+     * is visited once, which bounds the walk.
      */
     private followKeyrefChain(
         keyDef: KeyDefinition,
@@ -1909,8 +1914,7 @@ export class KeySpaceService implements IKeySpaceService {
             };
             // In the child scope only: reachable by scope-qualified names
             for (const prefix of childPrefixes) {
-                const qualifiedName = `${prefix}.${inlineKeyName}`;
-                this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                this.addScopedKeyEntry(keySpace, prefix, inlineDef);
             }
         }
     }
@@ -1934,8 +1938,7 @@ export class KeySpaceService implements IKeySpaceService {
 
         for (const keyDef of keys) {
             for (const prefix of effectivePrefixes) {
-                const qualifiedName = `${prefix}.${keyDef.keyName}`;
-                this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+                this.addScopedKeyEntry(keySpace, prefix, keyDef);
             }
         }
     }
@@ -1960,21 +1963,23 @@ export class KeySpaceService implements IKeySpaceService {
     }
 
     /**
-     * Insert a scope-qualified alias entry only when the key space has not yet
-     * reached the combinatorial explosion cap.  Always a no-op when the name
+     * Insert the entry of a key definition of scope `scope`, under its scope-qualified
+     * name (`scope.key`), recording the scope in `keyScope`. Only when the key space has
+     * not yet reached the combinatorial explosion cap. Always a no-op when the name
      * already exists (first-definition wins).
      */
     private addScopedKeyEntry(
         keySpace: KeySpace,
-        qualifiedName: string,
+        scope: string,
         def: KeyDefinition
     ): void {
+        const qualifiedName = `${scope}.${def.keyName}`;
         if (keySpace.keys.has(qualifiedName)) return;
         if (keySpace.keys.size >= MAX_KEY_SPACE_ENTRIES) {
             keySpace.scopeExplosionWarning = true;
             return;
         }
-        keySpace.keys.set(qualifiedName, def);
+        keySpace.keys.set(qualifiedName, { ...def, keyName: qualifiedName, keyScope: scope });
     }
 
     /** Return the 1-based line number for `charIndex` within `content`. */
@@ -2190,8 +2195,7 @@ export class KeySpaceService implements IKeySpaceService {
             for (const inlineKeyName of block.inlineKeys) {
                 const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap: mapPath };
                 for (const prefix of childPrefixes) {
-                    const qualifiedName = `${prefix}.${inlineKeyName}`;
-                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                    this.addScopedKeyEntry(keySpace, prefix, inlineDef);
                 }
             }
 
@@ -2207,8 +2211,7 @@ export class KeySpaceService implements IKeySpaceService {
             const blockKeys = this.extractKeyDefinitions(maskedBlockContent, mapPath, maxLinkMatches);
             for (const keyDef of blockKeys) {
                 for (const prefix of childPrefixes) {
-                    const qualifiedName = `${prefix}.${keyDef.keyName}`;
-                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+                    this.addScopedKeyEntry(keySpace, prefix, keyDef);
                 }
             }
 
@@ -2237,8 +2240,7 @@ export class KeySpaceService implements IKeySpaceService {
                             targetFile: submap.path,
                         };
                         for (const prefix of grandchildPrefixes) {
-                            const qualifiedName = `${prefix}.${inlineKeyName}`;
-                            this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                            this.addScopedKeyEntry(keySpace, prefix, inlineDef);
                         }
                     }
                 }
