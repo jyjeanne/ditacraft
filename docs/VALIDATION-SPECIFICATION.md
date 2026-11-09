@@ -342,6 +342,7 @@ Validates targets of `href`, `conref`, `keyref`, and `conkeyref` attributes:
 | DITA-XREF-001 | Target file not found |
 | DITA-XREF-002 | Topic ID not found in target |
 | DITA-XREF-003 | Element ID not found in target |
+| DITA-XREF-004 | Conref target is neither the referencing element nor a specialization of it, by `@class` (DITA 1.3 §2.4.2.2, §3.12.13.7) |
 | DITA-XREF-006 | `@conrefend` range end missing, not a sibling of the range start, before it, or in another document (DITA 1.3 §3.12.13.7; DITA-OT `DOTX071E`) |
 | DITA-XREF-007 | `@conrefend` without `@conref` or `@conkeyref`: ignored |
 | DITA-KEY-001 | Key not defined in any map; for a key of a peer map (`ext.key`), the message names the peer map and its key scope |
@@ -476,7 +477,7 @@ Files exceeding `ditacraft.largeFileThresholdKB` (default 500 KB, 0 = disabled) 
 | DITA-DTD-001 | 5 | Error | DTD validation error |
 | DITA-XREF-001 | 6 | Error for a DITA topic or map (as DITA-OT, `DOTX008E`), a `@conref` (`DOTX010E`) or an image (`DOTJ023E`); Warning for a peer or non-DITA resource, or a file outside the workspace (not looked up) | Target file not found |
 | DITA-XREF-002..003 | 6 | Error for `@conref` (as DITA-OT, `DOTX010E`), Warning for `@href` | Topic or element ID not found in target |
-| DITA-XREF-004 | 6 | Error; Warning for the end of a `@conrefend` range (DITA-OT resolves it without a message) | Referenced element not compatible with the referencing element |
+| DITA-XREF-004 | 6 | Error (as DITA-OT, `DOTX010E`); Warning for the end of a `@conrefend` range (DITA-OT resolves it without a message) | Referenced element is neither the referencing element nor a specialization of it, by `@class` (DITA 1.3 §2.4.2.2) |
 | DITA-XREF-006 | 6 | Error (as DITA-OT, `DOTX071E`) | `@conrefend` range end missing, not a sibling of the start, before it, or in another document |
 | DITA-XREF-007 | 6 | Warning | `@conrefend` without `@conref` or `@conkeyref` (ignored) |
 | DITA-KEY-001 | 6 | Error for `@conkeyref` (as DITA-OT, `DOTJ046E`), Warning for `@keyref` | Key not defined |

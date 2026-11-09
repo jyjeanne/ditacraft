@@ -1174,7 +1174,8 @@
     "coverage:check": "npx c8 check-coverage",
     "coverage:report": "npx c8 report --reporter=html --reporter=text --reporter=lcov",
     "test:shared": "npm run compile-tests && mocha \"out/test/shared/**/*.test.js\" --ui tdd --timeout 60000",
-    "grammars": "node scripts/compile-grammars.js --force"
+    "grammars": "node scripts/compile-grammars.js --force",
+    "dita-classes": "node scripts/generate-dita-classes.js"
   },
   "nyc": {
     "_NOTE": "nyc does not work with VS Code extension tests - use c8 instead",

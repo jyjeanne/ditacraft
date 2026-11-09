@@ -25,7 +25,7 @@
     "xref.outsideWorkspace": "Fichier cible en dehors de l'espace de travail, non vérifié : {0}",
     "xref.missingTopicId": "Identifiant de topic \"{0}\" introuvable dans {1}",
     "xref.missingElementId": "Identifiant d'élément \"{0}\" introuvable dans le topic \"{1}\" de {2}",
-    "xref.incompatibleConref": "L'élément source <{0}> du conref n'est pas compatible avec l'élément cible <{1}>. Les éléments source et cible doivent être du même type ou du même groupe de spécialisation.",
+    "xref.incompatibleConref": "L'élément source <{0}> du conref n'est pas compatible avec l'élément cible <{1}> : l'élément référencé doit être du même type que l'élément référençant, ou une spécialisation de celui-ci.",
     "xref.incompatibleConrefend": "La fin de plage <{1}> n'est pas compatible avec l'élément référençant <{0}> : les éléments de début et de fin d'une plage doivent être du même type que l'élément référençant, ou des spécialisations de celui-ci",
     "xref.conrefendNotFound": "Fin de plage \"{0}\" introuvable dans {1} : la plage ne peut pas être résolue, et seul son élément de début est réutilisé",
     "xref.conrefendOtherDocument": "La fin de plage \"{0}\" n'est pas dans {1}, le document du début de plage : les éléments de début et de fin d'une plage doivent avoir le même parent, donc seul l'élément de début est réutilisé",

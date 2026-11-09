@@ -661,7 +661,7 @@ suite('validateCrossReferences', () => {
             }
         });
 
-        test('body and conbody are compatible (same specialization group)', async () => {
+        test('body and conbody are compatible (conbody specializes body)', async () => {
             const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
             const targetFile = path.join(tmpDir, 'target.dita');
             fs.writeFileSync(targetFile, '<concept id="c1"><title>C</title><conbody id="cb1"><p>text</p></conbody></concept>');
@@ -704,6 +704,152 @@ suite('validateCrossReferences', () => {
                 const diags = await validateCrossReferences(text, testUri, undefined, 100);
                 const compat = diags.filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
                 assert.strictEqual(compat.length, 0, 'href should not trigger compatibility check');
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+    });
+
+    suite('Conref compatibility by @class (DITA 1.3 §2.4.2.2, §3.12.13.7, checked with DITA-OT 4.3.5)', () => {
+        /**
+         * Validates each referencing element of `refs` (one topic each) against `lib.dita`, with a key
+         * space when `keyed`. Returns, for each, "<element> → <target>: ok" or the DITA-XREF-004 severity.
+         */
+        async function compatibility(lib: string, refs: string[], options: { keyed?: boolean } = {}): Promise<string[]> {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            fs.writeFileSync(path.join(tmpDir, 'lib.dita'), lib);
+            const files = refs.map((_, i) => `t${i}.dita`);
+            if (options.keyed) {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'),
+                    `<map><keydef keys="lib" href="lib.dita"/>${files.map(f => `<topicref href="${f}"/>`).join('')}</map>`);
+            }
+            const keySpaceService = options.keyed
+                ? new KeySpaceService([tmpDir], async () => ({ keySpaceCacheTtlMinutes: 5, maxLinkMatches: 10000 }), () => {})
+                : undefined;
+            try {
+                const results: string[] = [];
+                for (const [i, ref] of refs.entries()) {
+                    const text = `<topic id="t"><title>T</title><body>${ref}</body></topic>`;
+                    fs.writeFileSync(path.join(tmpDir, files[i]), text);
+                    const diags = (await validateCrossReferences(text, URI.file(path.join(tmpDir, files[i])).toString(), keySpaceService, 100))
+                        .filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF);
+                    results.push(`${ref} → ${diags.length ? (diags[0].severity === DiagnosticSeverity.Error ? 'Error' : 'Warning') : 'ok'}`);
+                }
+                return results;
+            } finally {
+                keySpaceService?.shutdown();
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        }
+
+        const DOMAINS = '<topic id="lib"><title>L</title><body>'
+            + '<p><codeph id="codeph">c</codeph><uicontrol id="uicontrol">u</uicontrol><apiname id="apiname">a</apiname><option id="option">o</option></p>'
+            + '<codeblock id="codeblock">b</codeblock><screen id="screen">s</screen>'
+            + '<hazardstatement id="hazard"><messagepanel><typeofhazard>T</typeofhazard><howtoavoid>H</howtoavoid></messagepanel></hazardstatement>'
+            + '<imagemap id="imagemap"><image href="a.png"/></imagemap>'
+            + '<ol><li id="li">i</li></ol><steps><step id="step"><cmd>s</cmd></step></steps><note id="note">n</note>'
+            + '</body></topic>';
+
+        test('a specialization of the referencing element is compatible: the DITA 1.3 domains', async () => {
+            // "processors resolving conrefs SHOULD tolerate specializations of valid elements" (§2.4.2.2).
+            // DITA-OT 4.3.5 resolves each of them and generalizes the content.
+            assert.deepStrictEqual(await compatibility(DOMAINS, [
+                '<p><ph conref="lib.dita#lib/codeph"/></p>',
+                '<p><ph conref="lib.dita#lib/uicontrol"/></p>',
+                '<p><keyword conref="lib.dita#lib/apiname"/></p>',
+                '<p><keyword conref="lib.dita#lib/option"/></p>',
+                '<pre conref="lib.dita#lib/codeblock"/>',
+                '<pre conref="lib.dita#lib/screen"/>',
+                '<note conref="lib.dita#lib/hazard"/>',
+                '<fig conref="lib.dita#lib/imagemap"/>',
+                '<ol><li conref="lib.dita#lib/step"/></ol>',
+            ]), [
+                '<p><ph conref="lib.dita#lib/codeph"/></p> → ok',
+                '<p><ph conref="lib.dita#lib/uicontrol"/></p> → ok',
+                '<p><keyword conref="lib.dita#lib/apiname"/></p> → ok',
+                '<p><keyword conref="lib.dita#lib/option"/></p> → ok',
+                '<pre conref="lib.dita#lib/codeblock"/> → ok',
+                '<pre conref="lib.dita#lib/screen"/> → ok',
+                '<note conref="lib.dita#lib/hazard"/> → ok',
+                '<fig conref="lib.dita#lib/imagemap"/> → ok',
+                '<ol><li conref="lib.dita#lib/step"/></ol> → ok',
+            ]);
+        });
+
+        test('a more general or an unrelated element is not compatible, as DITA-OT fails it (DOTX010E)', async () => {
+            // "It is not valid to use @conrefend to reference a more general version of an element
+            // (such as using <step> to reference an <li> element)" (§3.12.13.7).
+            assert.deepStrictEqual(await compatibility(DOMAINS, [
+                '<steps><step conref="lib.dita#lib/li"/></steps>',
+                '<p><codeph conref="lib.dita#lib/codeph"/><codeph conref="lib.dita#lib/uicontrol"/></p>',
+                '<p conref="lib.dita#lib/note"/>',
+            ]), [
+                '<steps><step conref="lib.dita#lib/li"/></steps> → Error',
+                '<p><codeph conref="lib.dita#lib/codeph"/><codeph conref="lib.dita#lib/uicontrol"/></p> → Error',
+                '<p conref="lib.dita#lib/note"/> → Error',
+            ]);
+        });
+
+        test('<body> may reuse a <conbody>, not the reverse', async () => {
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            fs.writeFileSync(path.join(tmpDir, 'c.dita'), '<concept id="c"><title>C</title><conbody id="cb"><p>x</p></conbody></concept>');
+            fs.writeFileSync(path.join(tmpDir, 'p.dita'), '<topic id="p"><title>P</title><body id="pb"><p>x</p></body></topic>');
+            try {
+                const compat = async (text: string) => (await validateCrossReferences(text, URI.file(path.join(tmpDir, 'r.dita')).toString(), undefined, 100))
+                    .filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF).length;
+                assert.strictEqual(await compat('<topic id="r"><title>R</title><body conref="c.dita#c/cb"/></topic>'), 0, 'conbody specializes body');
+                assert.strictEqual(await compat('<concept id="r"><title>R</title><conbody conref="p.dita#p/pb"/></concept>'), 1,
+                    'body is more general than conbody (DITA-OT: DOTX010E)');
+            } finally {
+                fs.rmSync(tmpDir, { recursive: true, force: true });
+            }
+        });
+
+        test('an element written with its own @class is decided by it; an unknown element without @class is not reported', async () => {
+            // A project's specialization, written with its @class (no DTD), as DITA-OT 4.3.5 reads it.
+            const lib = '<topic class="- topic/topic " id="lib"><title class="- topic/title ">L</title><body class="- topic/body ">'
+                + '<p class="- topic/p "><myph class="+ topic/ph my-d/myph " id="myph">m</myph><ph class="- topic/ph " id="ph">p</ph></p>'
+                + '<custom id="custom">?</custom></body></topic>';
+            assert.deepStrictEqual(await compatibility(lib, [
+                '<p><ph conref="lib.dita#lib/myph"/></p>',
+                '<p><myph class="+ topic/ph my-d/myph " conref="lib.dita#lib/ph"/></p>',
+                '<p conref="lib.dita#lib/custom"/>',
+                '<other conref="lib.dita#lib/ph"/>',
+            ]), [
+                '<p><ph conref="lib.dita#lib/myph"/></p> → ok',
+                '<p><myph class="+ topic/ph my-d/myph " conref="lib.dita#lib/ph"/></p> → Error',
+                '<p conref="lib.dita#lib/custom"/> → ok',
+                '<other conref="lib.dita#lib/ph"/> → ok',
+            ]);
+        });
+
+        test('with @conkeyref, the same rule', async () => {
+            assert.deepStrictEqual(await compatibility(DOMAINS, [
+                '<p><ph conkeyref="lib/codeph"/></p>',
+                '<steps><step conkeyref="lib/li"/></steps>',
+            ], { keyed: true }), [
+                '<p><ph conkeyref="lib/codeph"/></p> → ok',
+                '<steps><step conkeyref="lib/li"/></steps> → Error',
+            ]);
+        });
+
+        test('the classes of the target\'s DITA version and document type decide', async () => {
+            // <reqconds> is a list of the ordered kind in DITA 1.2 (topic/ol) and of the unordered kind in
+            // DITA 1.3 (topic/ul). A <shortdesc> of a map is map/shortdesc, not topic/shortdesc: DITA-OT
+            // 4.3.5 does not let a map's <shortdesc> reuse a topic's (DOTX010E).
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-test-'));
+            const req = (version: string) => `<?xml version="1.0"?>\n<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA ${version} Task//EN" "task.dtd">\n`
+                + '<task id="k"><title>K</title><taskbody><prereq><reqconds id="rc"><reqcond>r</reqcond></reqconds></prereq></taskbody></task>';
+            fs.writeFileSync(path.join(tmpDir, 'req12.dita'), req('1.2'));
+            fs.writeFileSync(path.join(tmpDir, 'req13.dita'), req('1.3'));
+            fs.writeFileSync(path.join(tmpDir, 'lib.dita'), '<topic id="lib"><title>L</title><shortdesc id="sd">Short.</shortdesc></topic>');
+            try {
+                const compat = async (text: string, name: string) => (await validateCrossReferences(text, URI.file(path.join(tmpDir, name)).toString(), undefined, 100))
+                    .filter(d => d.code === XREF_CODES.INCOMPATIBLE_CONREF).length;
+                assert.strictEqual(await compat('<topic id="r"><title>R</title><body><ol conref="req12.dita#k/rc"/></body></topic>', 'r.dita'), 0);
+                assert.strictEqual(await compat('<topic id="r"><title>R</title><body><ol conref="req13.dita#k/rc"/></body></topic>', 'r.dita'), 1);
+                assert.strictEqual(await compat('<map><topicref href="lib.dita"><topicmeta><shortdesc conref="lib.dita#lib/sd"/></topicmeta></topicref></map>', 'm.ditamap'), 1);
+                assert.strictEqual(await compat('<topic id="r"><title>R</title><shortdesc conref="lib.dita#lib/sd"/></topic>', 'r.dita'), 0);
             } finally {
                 fs.rmSync(tmpDir, { recursive: true, force: true });
             }

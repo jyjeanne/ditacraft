@@ -13,6 +13,7 @@ import * as path from 'path';
 import { Schema } from 'prosemirror-model';
 import { bundledCatalogFor, bundledVersionOf } from '../../shared/grammar/buildGrammars';
 import { discoverShells } from '../../shared/grammar/catalogShells';
+import { buildClassTable, renderClassTable } from '../../shared/grammar/classTable';
 import { basePlacement, classTokens } from '../../shared/grammar/classTokens';
 import { compileGrammar, expandEntities, expandText } from '../../shared/grammar/compiler';
 import { compileWithCache } from '../../shared/grammar/grammarCache';
@@ -56,6 +57,17 @@ suite('Visual Preview: grammar compiler', function () {
                 assert.ok(relShells.includes(expected), `missing shell ${expected}`);
             }
             assert.ok(!relShells.some((s) => /ditaval/i.test(s)), 'DITAVAL is not a document shell');
+        });
+
+        test('the class table of the language server matches the bundled grammars', () => {
+            // server/src/data/ditaClasses.ts is generated from these grammars (scripts/generate-dita-classes.js):
+            // the server decides conref compatibility by class (DITA 1.3 §2.4.2.2).
+            const expected = renderClassTable(buildClassTable(relShells.map(compileBundled)));
+            const committed = fs.readFileSync(path.join(DTDS_DIR, '..', 'server', 'src', 'data', 'ditaClasses.ts'), 'utf8').replace(/\r\n/g, '\n');
+            assert.ok(committed === expected, 'server/src/data/ditaClasses.ts is out of date: run `npm run dita-classes`');
+            const table = buildClassTable(relShells.map(compileBundled));
+            assert.strictEqual(table.base.codeph, '+ topic/ph pr-d/codeph');
+            assert.deepStrictEqual(Object.keys(table.overrides['1.3/map']).sort(), ['linktext', 'searchtitle', 'shortdesc']);
         });
 
         test('every bundled shell compiles and yields a valid ProseMirror schema', () => {
