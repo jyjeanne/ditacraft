@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+    <title>Keyref Chain</title>
+    <keydef keys="k1" keyref="k2"/>
+    <keydef keys="k2" keyref="k3"/>
+    <keydef keys="k3" keyref="k4"/>
+    <keydef keys="k4" keyref="k5"/>
+    <keydef keys="k5" keyref="k6"/>
+    <keydef keys="k6" href="target.dita"/>
+    <keydef keys="loop1" keyref="loop2"/>
+    <keydef keys="loop2" keyref="loop3"/>
+    <keydef keys="loop3" keyref="loop4"/>
+    <keydef keys="loop4" keyref="loop5"/>
+    <keydef keys="loop5" keyref="loop1"/>
+    <topicref href="target.dita"/>
+</map>

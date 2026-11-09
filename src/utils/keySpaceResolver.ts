@@ -1625,25 +1625,29 @@ export class KeySpaceResolver implements vscode.Disposable {
     }
 
     /**
-     * Follow @keyref chains up to hopsRemaining hops.
-     * Returns the original definition if no chain exists, the target is missing,
-     * the hop limit is reached, or a cycle is detected.
+     * Follow a @keyref chain to its end and return the last definition reached: one without
+     * @keyref, one whose @keyref names an undefined key (a broken chain), or the definition
+     * where a cycle closes. DITA 1.3 sets no limit to the length of a chain (§2.3.4.10.6), and
+     * DITA-OT 4.3.5 follows long ones: each definition is visited once, which bounds the walk.
      */
     private followKeyrefChain(
         keyDef: KeyDefinition,
         keys: Map<string, KeyDefinition>,
-        scopePrefix = '',
-        hopsRemaining = 3,
-        visited = new Set<string>()
+        scopePrefix = ''
     ): KeyDefinition {
-        if (!keyDef.keyref || hopsRemaining <= 0 || visited.has(keyDef.keyName)) {
-            return keyDef;
+        let current = keyDef;
+        let currentScope = scopePrefix;
+        // Definitions, not key names: two scopes may define keys of the same name
+        const visited = new Set<KeyDefinition>();
+        while (current.keyref && !visited.has(current)) {
+            visited.add(current);
+            // The @keyref of a key definition is a key reference made in the scope of that definition
+            const next = KeySpaceResolver.lookupKey(keys, current.keyref, currentScope);
+            if (!next) break;
+            current = next.def;
+            currentScope = next.scopePrefix;
         }
-        visited.add(keyDef.keyName);
-        // The @keyref of a key definition is a key reference made in the scope of that definition
-        const next = KeySpaceResolver.lookupKey(keys, keyDef.keyref, scopePrefix);
-        if (!next) return keyDef;
-        return this.followKeyrefChain(next.def, keys, next.scopePrefix, hopsRemaining - 1, visited);
+        return current;
     }
 
     /**

@@ -977,6 +977,84 @@ suite('KeySpaceService', () => {
             }
         });
 
+        test('a chain of any length resolves, as DITA-OT does (DITA 1.3 §2.3.4.10.6)', async () => {
+            // DITA 1.3 sets no limit to a chain of key definitions; DITA-OT 4.3.5 resolves a chain of 4 hops.
+            // Chains used to stop after 3 hops, with no target.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                const chain = Array.from({ length: 10 }, (_, i) => `  <keydef keys="k${i + 1}" keyref="k${i + 2}"/>`).join('\n');
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), `<?xml version="1.0"?>
+<map>
+${chain}
+  <keydef keys="k11" href="target.dita"/>
+</map>`, 'utf-8');
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                for (const [key, hops] of [['k7', 4], ['k1', 10]] as const) {
+                    const result = await service.resolveKey(key, contextFile);
+                    assert.ok(result?.targetFile?.endsWith('target.dita'), `${hops} hops`);
+                }
+                const report = await service.explainKey('k1', contextFile);
+                assert.strictEqual(report.keyrefChain.length, 11, 'the trace lists every key of the chain');
+                assert.strictEqual(report.steps.filter(s => s.type === 'keyref-hop').length, 10, 'one step per hop');
+                assert.ok(report.resolvedDefinition?.targetFile?.endsWith('target.dita'));
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a cycle longer than three hops still stops', async () => {
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), `<?xml version="1.0"?>
+<map>
+  <keydef keys="a" keyref="b"/>
+  <keydef keys="b" keyref="c"/>
+  <keydef keys="c" keyref="d"/>
+  <keydef keys="d" keyref="e"/>
+  <keydef keys="e" keyref="a"/>
+</map>`, 'utf-8');
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                const result = await service.resolveKey('a', contextFile);
+                assert.ok(result && !result.targetFile, 'a definition, without a target');
+                const report = await service.explainKey('a', contextFile);
+                assert.deepStrictEqual(report.keyrefChain, ['a', 'b', 'c', 'd', 'e', 'a']);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
+        test('a chain goes through keys of the same name in two scopes', async () => {
+            // "A.k" refers to "B.k": two definitions of the key "k", in two scopes. The cycle check
+            // compares the definitions, so the second one does not end the chain.
+            const tmpDir = makeTmpDir();
+            const service = createService(tmpDir);
+            try {
+                fs.writeFileSync(path.join(tmpDir, 'root.ditamap'), `<?xml version="1.0"?>
+<map>
+  <keydef keys="start" keyref="A.k"/>
+  <topicgroup keyscope="A"><keydef keys="k" keyref="B.k"/></topicgroup>
+  <topicgroup keyscope="B"><keydef keys="k" keyref="end"/></topicgroup>
+  <keydef keys="end" href="end.dita"/>
+</map>`, 'utf-8');
+                const contextFile = path.join(tmpDir, 'topic.dita');
+                fs.writeFileSync(contextFile, '', 'utf-8');
+
+                const result = await service.resolveKey('start', contextFile);
+                assert.ok(result?.targetFile?.endsWith('end.dita'), `got ${result?.keyName} → ${result?.targetFile}`);
+            } finally {
+                service.shutdown();
+                cleanup(tmpDir);
+            }
+        });
+
         test('keyref to missing key returns the alias definition itself', async () => {
             const tmpDir = makeTmpDir();
             const service = createService(tmpDir);
