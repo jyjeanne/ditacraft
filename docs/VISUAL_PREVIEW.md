@@ -44,6 +44,9 @@ The preview resolves references the way an output would, using DitaCraft's key s
   columns, a reused image its `href` (relative to its own file) — with the referencing element's
   attributes winning, as in DITA processing. `conrefend` ranges, reuse inside reused content and
   chained reuse are followed; reuse of an element's own ancestor, and cycles, are reported instead.
+  A range follows DITA 1.3 §3.12.13.7. With `@conkeyref`, its end is looked for in the key's topic,
+  whatever topic `@conrefend` names. An end that is not a following sibling of the start, or that is
+  in another document, leaves the start element alone, as DITA-OT 4.3.5 does (`DOTX071E`).
   Reused content has a light tint; hover for its origin.
 - **Empty `xref`/`link`**: the target topic's or element's title.
 - **Glossary** `term` / `abbreviated-form` with a key to a glossentry: the term, or the surface

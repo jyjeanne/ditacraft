@@ -206,6 +206,7 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 1. With `@conkeyref`, look for the end element in the key's topic (`target.topicId`), using the element id of `@conrefend` alone.
 2. With `@conref`, resolve the file of `@conrefend` against the referencing document. When it is not the document of the start, render the start element alone, as DITA-OT does. The language server already reports such ranges (`DITA-XREF-006`), so the preview only needs to render what DITA-OT renders.
 3. Add a test for `src/preview/mapContexts.ts`, which resolves the preview's keys in the map context the user chose. The knowledge graph shows that no test file imports it.
+   **Not needed**: `mapContexts.ts` is tested through the commands of the visual editor ("Visual Editor and Preview: map context (spec §13.8 M4)" in `src/test/suite/visualEditor.test.ts`), which shows one topic in two key scopes. The knowledge graph does not see tests that go through commands, as it does not see the MCP tools tested through the protocol.
 
 **Tests** in `src/test/shared/previewHost.test.ts`:
 - Figures 7 and 8 of §3.12.13.7 render the whole range;
@@ -241,5 +242,5 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 | CON-02, CON-03 conref compatibility from `@class` | 5 | M | Done |
 | KEY-09 key reference chains of any length | 5 | S | Done (a gap with DITA-OT, not a deviation) |
 | KEY-12 `@keyref` chains in the scope of each definition (language server, extension, MCP) | 5 | S | Done |
-| CON-06 conref ranges in the visual preview | 5 | S | Open |
+| CON-06 conref ranges in the visual preview | 5 | S | Done |
 | Conformance statement, documentation, release | 6 | S | Open |

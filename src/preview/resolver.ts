@@ -277,7 +277,7 @@ export class ReferenceResolver {
     private async resolveReuse(el: ElementNode, doc: Document, docPath: string, pass: Pass, depth: number, chain: Set<string>): Promise<Resolution | undefined> {
         const { deps, out } = pass;
         const maxDepth = this.opts.maxDepth ?? 8;
-        let target: { doc: Document; path: string; topicId?: string; elemId?: string; display: string } | undefined;
+        let target: { doc: Document; path: string; topicId?: string; elemId?: string; display: string; viaKey?: boolean } | undefined;
         let failure: string | undefined;
 
         const conkeyref = attr(el, 'conkeyref');
@@ -287,7 +287,7 @@ export class ReferenceResolver {
             if (def?.targetFile) {
                 const loaded = await this.load(def.targetFile, deps);
                 if (loaded) {
-                    target = { doc: loaded, path: def.targetFile, topicId: def.elementId, elemId: elemId || undefined, display: `${key}/${elemId ?? ''}` };
+                    target = { doc: loaded, path: def.targetFile, topicId: def.elementId, elemId: elemId || undefined, display: `${key}/${elemId ?? ''}`, viaKey: true };
                 } else {
                     failure = `cannot read ${path.basename(def.targetFile)}`;
                 }
@@ -322,11 +322,24 @@ export class ReferenceResolver {
             return { kind: 'conref', unresolved: containsSelf || chain.has(chainKey) ? 'circular reuse' : 'reuse nested too deeply', path: target.path };
         }
 
+        // A range (DITA 1.3 §3.12.13.7): its end is a following sibling of the start, in the same
+        // document. Without one, the start element alone is reused, as DITA-OT 4.3.5 does (DOTX071E).
         let range: ElementNode[] | undefined;
         const conrefend = attr(el, 'conrefend');
         if (conrefend) {
             const endRef = parseReference(decode(conrefend));
-            const end = findTarget(target.doc, endRef.topicId ?? target.topicId, endRef.elemId);
+            let end: ElementNode | undefined;
+            if (target.viaKey) {
+                // "the map or topic element addressed by the key name component of the @conkeyref is
+                // used in place of whatever map or topic element is addressed by the @conrefend attribute"
+                end = endRef.elemId ? findTarget(target.doc, target.topicId, endRef.elemId) : undefined;
+            } else {
+                // The file of @conrefend, relative to the referencing document, is the start's document
+                const endPath = endRef.file ? resolvePath(docPath, endRef.file) : docPath;
+                end = path.resolve(endPath) === path.resolve(target.path)
+                    ? findTarget(target.doc, endRef.topicId ?? target.topicId, endRef.elemId)
+                    : undefined;
+            }
             range = end ? siblingRange(found, end) : undefined;
         }
 
