@@ -19,7 +19,7 @@ Effort: **S** = up to half a day, **M** = up to two days, **L** = more.
 | D3 | A key definition without a target or text is valid DITA 1.3. Keep `DITA-KEY-002` as a Warning (the link leads nowhere), or lower it to Information? | KEY-07 | Keep the Warning, documented in the test book as an intended best-practice check (accepted deviation). **Decided (phase 3)**: DITA-OT 4.3.5 renders such a reference as an empty element, without a message. |
 | D4 | Branch filtering (`<ditavalref>`) is not supported. Implement it, or declare it out of scope? | FLT-08 | Declare it out of scope in the conformance statement for now. **Decided (phase 4)**: out of scope; FLT-08 is marked "Out of scope" in the test book and the proposed conformance statement names it. |
 | D5 | Grouped values in conditional attributes (`product="database(myDB)"`) are not supported by the DITAVAL filtering of the editor. Implement? | FLT-04 | Yes, in phase 4 (they are part of DITA 1.3 filtering). **Decided (phase 4)**: implemented. Where DITA-OT 4.3.5 departs from the standard (two cases, listed in the test book), the standard is followed. |
-| D6 | The DITA-OT corpus run cannot pass. Its "DITA rules" suite counts every `DITA-SCH-*` diagnostic as a false positive, and 108 of them come from recommendation and authoring rules that are right about the DITA-OT documentation (mostly `DITA-SCH-046`, a `<section>` with a title and no id). One more failure is the duplicate keys `license` and `third-party-software`, which are in the documentation itself. Change the suite? | Corpus run (phase 6) | Check only the mandatory rules in that suite, and expect the two duplicate keys, so that the run passes and a regression shows. |
+| D6 | The DITA-OT corpus run cannot pass. Its "DITA rules" suite counts every `DITA-SCH-*` diagnostic as a false positive, and 108 of them come from recommendation and authoring rules that are right about the DITA-OT documentation (mostly `DITA-SCH-046`, a `<section>` with a title and no id). One more failure is the duplicate keys `license` and `third-party-software`, which are in the documentation itself. Change the suite? | Corpus run (phase 6) | Check only the mandatory rules in that suite, and expect the two duplicate keys, so that the run passes and a regression shows. **Decided (phase 5)**: done, so the corpus run passes (2,781 tests). The two keys are valid DITA: they are defined in two maps with the same targets, and DITA-OT 4.3.5 reports a key defined twice in one map only (`DOTJ045I`), so it says nothing about them. The best-practice findings are printed with the run, not counted as failures. |
 | D7 | A conref to a more general element (`<step conref>` to an `<li>`) gets no diagnostic today, and DITA-OT 4.3.5 fails it (`DOTX010E`). With the fix of CON-02 it becomes a `DITA-XREF-004` Error. Release it as a CHANGELOG "Changed" entry? | CON-02, CON-03 | Yes, as DITA-OT does: the content is not reused. **Applied as recommended (phase 5)**: a CHANGELOG "Changed" entry. |
 
 ## 2. Phase 1 — Key resolution between scopes (KSC-02)
@@ -219,7 +219,7 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 1. Update the test book: rows, evidence, statuses, summary and execution record.
 2. Adopt the conformance statement (test book section 9) in the README, once the deviations of phase 5 are fixed, with the deviations that remain accepted (D3) and the features out of scope (D4).
 3. Update `docs/VALIDATION-SPECIFICATION.md` and the user guide for the changed messages and severities, then add the CHANGELOG entries.
-4. Run every suite, including the opt-in DITA-OT corpus, and record the run in the test book. Apply decision D6 first, so that the corpus run can pass: on 9 November 2026 it had 109 failures, all of them known (see D6).
+4. Run every suite, including the opt-in DITA-OT corpus, and record the run in the test book. With decision D6 applied, the corpus run passes.
 
 ## 8. Tracking
 
@@ -238,7 +238,7 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 | FLT-04 grouped values | 4 | M | Done |
 | CON-05 `@conrefend` | 4 | M | Done |
 | FLT-08 branch filtering (decision) | 4 | S | Done (out of scope, D4) |
-| D6, D7 decisions | 5 | — | D7 applied as recommended; D6 open |
+| D6, D7 decisions | 5 | — | Decided (D6: option B; D7 applied as recommended) |
 | CON-02, CON-03 conref compatibility from `@class` | 5 | M | Done |
 | KEY-09 key reference chains of any length | 5 | S | Done (a gap with DITA-OT, not a deviation) |
 | KEY-12 `@keyref` chains in the scope of each definition (language server, extension, MCP) | 5 | S | Done |

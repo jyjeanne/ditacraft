@@ -98,6 +98,14 @@ const DITA_RULES_SETTINGS: DitaRulesSettings = {
     ditaVersion: '1.3',
 };
 
+/**
+ * The mandatory rules only. The others (recommendation, authoring, accessibility) are best
+ * practice: they are meant to fire on real content, and they do on the DITA-OT documentation
+ * (sections without ids, long short descriptions…). Decision D6 of the DITA 1.3 conformance
+ * action plan.
+ */
+const MANDATORY_RULES_SETTINGS: DitaRulesSettings = { ...DITA_RULES_SETTINGS, categories: ['mandatory'] };
+
 // ---------------------------------------------------------------------------
 // Dataset availability guard
 // ---------------------------------------------------------------------------
@@ -334,9 +342,13 @@ suiteIfDataset('docs-develop dataset — Suite 3: key space from root map', func
             `Expected scope="external", got: ${def.scope}`);
     });
 
-    test('no duplicate keys in clean dataset', () => {
-        assert.strictEqual(keySpace.duplicateKeys.size, 0,
-            `Unexpected duplicate keys: ${[...keySpace.duplicateKeys.keys()].join(', ')}`);
+    test('the only duplicate keys are the two the documentation defines twice', () => {
+        // reference/license.ditamap (<topicref keys>) and resources/source-files.ditamap (<keydef>)
+        // both define "license" and "third-party-software", with the same targets. That is valid
+        // DITA: the first definition takes effect (DITA 1.3 §2.3.4.10.5); DITA-OT 4.3.5 reports
+        // a key defined twice in the same map only (DOTJ045I), and says nothing here. Any other
+        // duplicate is unexpected (decision D6).
+        assert.deepStrictEqual([...keySpace.duplicateKeys.keys()].sort(), ['license', 'third-party-software']);
     });
 
     test('resolveKey returns a definition for "release"', async () => {
@@ -442,13 +454,26 @@ suiteIfDataset('docs-develop dataset — Suite 4: cross-reference validation', f
 suiteIfDataset('docs-develop dataset — Suite 5: DITA rules — no false positives across all files', function () {
     this.timeout(120_000);
 
-    // All 263 .dita files: zero SCH-* violations expected on real content
-    suite('all dataset files — zero DITA-SCH-* violations', function () {
+    // Every .dita file: no mandatory rule fires on valid content. The best-practice rules are
+    // counted, not asserted: their findings on this documentation are real (decision D6).
+    suite('all dataset files — zero mandatory DITA-SCH-* violations', function () {
         this.timeout(120_000);
+        const bestPractice = new Map<string, number>();
+        suiteTeardown(() => {
+            const counts = [...bestPractice].sort(([a], [b]) => a.localeCompare(b)).map(([code, n]) => `${code} ${n}`).join(', ');
+            console.log(`      best-practice findings (not failures): ${counts || 'none'}`);
+        });
         for (const relPath of ALL_DITA_FILES) {
             test(relPath, () => {
                 const { text } = readDatasetFile(relPath);
-                const diags = validateDitaRules(text, DITA_RULES_SETTINGS);
+                const diags = validateDitaRules(text, MANDATORY_RULES_SETTINGS);
+                // The findings of all categories that the mandatory rules did not make
+                const mandatory = new Set(diags.map(d => d.code));
+                for (const d of validateDitaRules(text, DITA_RULES_SETTINGS)) {
+                    if (typeof d.code === 'string' && !mandatory.has(d.code)) {
+                        bestPractice.set(d.code, (bestPractice.get(d.code) ?? 0) + 1);
+                    }
+                }
                 const violations = diags.filter(d =>
                     typeof d.code === 'string' && d.code.startsWith('DITA-SCH-')
                 );
