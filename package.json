@@ -1204,7 +1204,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
-    "@sentropic/engram": "^0.23.0",
+    "@sentropic/engram": "^0.23.1",
     "@types/mocha": "^10.0.1",
     "@types/node": "^26.6.6",
     "@types/sinon": "^22.0.2",
@@ -1225,8 +1225,8 @@
     "prosemirror-keymap": "^1.2.3",
     "prosemirror-model": "^1.25.12",
     "prosemirror-state": "^1.4.4",
-    "prosemirror-transform": "^1.12.4",
-    "prosemirror-view": "^1.42.8",
+    "prosemirror-transform": "^1.12.5",
+    "prosemirror-view": "^1.42.9",
     "sinon": "^22.1.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1"
