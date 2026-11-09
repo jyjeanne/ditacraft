@@ -71,20 +71,26 @@ async function resolveKeyref(
     const keyDef = report.resolvedDefinition;
 
     if (!keyDef) {
-        trace.push(`  -> not found in key space`);
+        // The steps above say where the key was looked for
         return { resolved: false, resolutionTrace: trace, error: `Key "${keyName}" not defined` };
     }
 
     if (keyDef.keyref) {
-        // The chain ends on a definition that still refers to a key: a cycle, or a key that is
-        // not defined in the scope of that definition. It is not looked up again from here.
-        const chain = report.keyrefChain;
-        const cyclic = new Set(chain).size < chain.length || keyDef.keyref === keyDef.keyName.split('.').pop();
-        const error = cyclic
-            ? `Cyclic keyref chain detected at key "${keyDef.keyName}"`
-            : `Key "${keyName}" has no target: key "${keyDef.keyName}" refers to key "${keyDef.keyref}", which is not defined in its key scope`;
-        trace.push(`  -> ${error}`);
-        return { resolved: false, resolutionTrace: trace, error };
+        // The chain ends on a definition that still refers to a key: a cycle, or a key that is not
+        // defined in the scope of that definition. It is not looked up again from here. The
+        // definition's own resources then apply (DITA 1.3 §2.3.4.8), as in the language server:
+        // its @href or its text; without any, the key has no target.
+        const reason = report.keyrefCycle
+            ? `the @keyref chain of key "${keyDef.keyName}" is a cycle`
+            : `key "${keyDef.keyName}" refers to key "${keyDef.keyref}", which is not defined in its key scope`;
+        if (!keyDef.targetFile && !keyDef.externalHref && !keyDef.inlineContent) {
+            const error = report.keyrefCycle
+                ? `Cyclic keyref chain detected at key "${keyDef.keyName}"`
+                : `Key "${keyName}" has no target: ${reason}`;
+            trace.push(`  -> ${error}`);
+            return { resolved: false, resolutionTrace: trace, error };
+        }
+        trace.push(`  -> ${reason}: its own resources are used`);
     }
 
     if (keyDef.targetFile) {

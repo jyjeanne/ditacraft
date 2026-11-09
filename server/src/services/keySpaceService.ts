@@ -81,6 +81,8 @@ export interface KeyResolutionReport {
      * Empty when no keyref chain was followed.
      */
     keyrefChain: string[];
+    /** The chain stopped on a definition it had visited already: a cycle. */
+    keyrefCycle?: boolean;
 }
 
 export interface KeySpace {
@@ -573,9 +575,10 @@ export class KeySpaceService implements IKeySpaceService {
                         : `Key "${attempted}" not found in key space`,
             });
             if (keyDef) {
-                const { def: resolved, chain } = this.followKeyrefChainWithTrace(keyDef, keySpace.keys, keyDef.keyScope ?? prefix);
+                const { def: resolved, chain, cycle } = this.followKeyrefChainWithTrace(keyDef, keySpace.keys, keyDef.keyScope ?? prefix);
                 this.appendKeyrefSteps(report.steps, chain, keySpace.keys);
                 report.keyrefChain = chain;
+                report.keyrefCycle = cycle;
                 report.resolvedDefinition = resolved;
                 return report;
             }
@@ -605,9 +608,10 @@ export class KeySpaceService implements IKeySpaceService {
                         peerStep.found = true;
                         peerStep.definition = peerDef;
                         peerStep.note = `Found "${peerKey}" in peer map "${path.basename(peerMapPath)}"`;
-                        const { def: resolved, chain } = this.followKeyrefChainWithTrace(peerDef, peerKeySpace.keys, peerDef.keyScope ?? '');
+                        const { def: resolved, chain, cycle } = this.followKeyrefChainWithTrace(peerDef, peerKeySpace.keys, peerDef.keyScope ?? '');
                         this.appendKeyrefSteps(report.steps, chain, peerKeySpace.keys);
                         report.keyrefChain = chain;
+                        report.keyrefCycle = cycle;
                         report.resolvedDefinition = resolved;
                     } else {
                         peerStep.note = `Key "${peerKey}" not found in peer map "${path.basename(peerMapPath)}"`;
@@ -1639,20 +1643,21 @@ export class KeySpaceService implements IKeySpaceService {
         keys: Map<string, KeyDefinition>,
         scopePrefix = ''
     ): KeyDefinition {
-        return this.followKeyrefChainWithTrace(keyDef, keys, scopePrefix).def;
+        return this.followKeyrefChainWithTrace(keyDef, keys, scopePrefix, false).def;
     }
 
     /**
-     * Like followKeyrefChain but also returns the sequence of key names traversed.
-     * chain is empty when no @keyref exists; otherwise lists every visited key name
-     * including the final destination.
+     * Like followKeyrefChain, and also returns the key names traversed (`chain`, when `trace`
+     * is set: empty when no @keyref exists, otherwise every visited key name including the final
+     * destination) and whether the walk stopped on a definition it had visited already (`cycle`).
      */
     private followKeyrefChainWithTrace(
         startDef: KeyDefinition,
         keys: Map<string, KeyDefinition>,
-        scopePrefix: string
-    ): { def: KeyDefinition; chain: string[] } {
-        if (!startDef.keyref) return { def: startDef, chain: [] };
+        scopePrefix: string,
+        trace = true
+    ): { def: KeyDefinition; chain: string[]; cycle: boolean } {
+        if (!startDef.keyref) return { def: startDef, chain: [], cycle: false };
 
         const chain: string[] = [];
         let current = startDef;
@@ -1660,9 +1665,14 @@ export class KeySpaceService implements IKeySpaceService {
         // Definitions, not key names: two scopes may define keys of the same name
         const visited = new Set<KeyDefinition>();
 
-        while (current.keyref && !visited.has(current)) {
+        let cycle = false;
+        while (current.keyref) {
+            if (visited.has(current)) {
+                cycle = true;
+                break;
+            }
             visited.add(current);
-            chain.push(current.keyName);
+            if (trace) chain.push(current.keyName);
             // The @keyref of a key definition is a key reference made in the scope of that definition
             const next = KeySpaceService.lookupKey(keys, current.keyref, currentScope);
             if (!next) break;
@@ -1676,7 +1686,7 @@ export class KeySpaceService implements IKeySpaceService {
         if (chain.length > 0 && current.keyName !== chain[chain.length - 1]) {
             chain.push(current.keyName);
         }
-        return { def: current, chain };
+        return { def: current, chain, cycle };
     }
 
     /** Append one keyref-hop step per transition in `chain` to `steps`. */

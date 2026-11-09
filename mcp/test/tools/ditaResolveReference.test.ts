@@ -143,6 +143,8 @@ suite('dita_resolve_reference', () => {
             '  <topicgroup keyscope="S"><keydef keys="a" keyref="b"/></topicgroup>',
             '  <topicgroup keyscope="S2"><keydef keys="c" keyref="d"/><keydef keys="d" href="topics/d.dita"/></topicgroup>',
             '  <topicgroup keyscope="T"><keydef keys="b" href="topics/b.dita"/><topicref href="topics/t.dita"/></topicgroup>',
+            '  <keydef keys="fallback" keyref="missing" href="topics/d.dita"/>',
+            '  <keydef keys="loop1" keyref="loop2"/><keydef keys="loop2" keyref="loop1"/>',
             '</map>',
         ].join('\n');
         const topic = (id: string, body: string) => [
@@ -197,6 +199,39 @@ suite('dita_resolve_reference', () => {
             }) as Record<string, unknown>;
             assert.strictEqual(result.resolved, false);
             assert.match(result.error as string, /refers to key "b", which is not defined in its key scope/);
+        });
+
+        test('a definition whose @keyref does not resolve keeps its own @href, as in the language server', async () => {
+            // "If ... a key definition specifies a @keyref attribute that can be resolved ..., the resources
+            // bound to the referenced key definition take precedence" (DITA 1.3 §2.3.4.8): otherwise its own apply.
+            const result = await scopedWs.callTool('dita_resolve_reference', {
+                reference: 'fallback',
+                referenceType: 'keyref',
+                fromUri: 'topics/t.dita',
+            }) as Record<string, unknown>;
+            assert.strictEqual(result.resolved, true, JSON.stringify(result));
+            assert.ok((result.targetUri as string).endsWith('topics/d.dita'));
+            assert.ok((result.resolutionTrace as string[]).some(line => line.includes('its own resources are used')));
+        });
+
+        test('a cycle is reported as one, and the trace of an undefined key has each lookup once', async () => {
+            const loop = await scopedWs.callTool('dita_resolve_reference', {
+                reference: 'loop1',
+                referenceType: 'keyref',
+                fromUri: 'topics/t.dita',
+            }) as Record<string, unknown>;
+            assert.strictEqual(loop.resolved, false);
+            assert.match(loop.error as string, /^Cyclic keyref chain detected at key "loop1"$/);
+            const missing = await scopedWs.callTool('dita_resolve_reference', {
+                reference: 'no-such-key',
+                referenceType: 'keyref',
+                fromUri: 'topics/t.dita',
+            }) as Record<string, unknown>;
+            // The lookups of the language server (the root scope, then scope T), without a line of the tool's own
+            const trace = missing.resolutionTrace as string[];
+            assert.strictEqual(new Set(trace).size, trace.length, trace.join(' | '));
+            assert.ok(!trace.includes('  -> not found in key space'), trace.join(' | '));
+            assert.strictEqual(missing.error, 'Key "no-such-key" not defined');
         });
     });
 
