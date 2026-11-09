@@ -120,6 +120,20 @@ suite('Visual Preview: host modules', function () {
             assert.deepStrictEqual(reused(3), ['bear', 'cat', 'dog']);
         });
 
+        test('on Windows, the document of a range end is compared as the file system does: without case', async function () {
+            // As the language server compares paths: "Source.dita" and "source.dita" are one file there.
+            if (process.platform !== 'win32') {
+                this.skip();
+            }
+            const rangeFiles = {
+                [p('source.dita')]: '<topic id="x"><title>S</title><body><ol><li id="bear">B</li><li id="cat">C</li><li id="dog">D</li></ol></body></topic>',
+            };
+            const rangeDoc = parse('<topic id="t"><title>T</title><body><ol><li conref="source.dita#x/bear" conrefend="Source.dita#x/dog"/></ol></body></topic>');
+            const { resolutions: ranges } = await resolverFor(rangeFiles).resolve(rangeDoc, p('topic.dita'));
+            assert.deepStrictEqual(ranges.get(findElements(rangeDoc, 'li')[0])?.conrefRange?.map((e) => e.attrs.find((a) => a.name === 'id')?.value),
+                ['bear', 'cat', 'dog']);
+        });
+
         test('references inside reused content resolve too', () => {
             const libPh = [...resolutions.keys()].find((el) => el.name === 'ph' && el.attrs.some((a) => a.value === 'product') && !findElements(doc, 'ph').includes(el));
             assert.ok(libPh, 'the keyref inside lib.dita\'s note has its own resolution');

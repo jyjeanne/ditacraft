@@ -336,7 +336,7 @@ export class ReferenceResolver {
             } else {
                 // The file of @conrefend, relative to the referencing document, is the start's document
                 const endPath = endRef.file ? resolvePath(docPath, endRef.file) : docPath;
-                end = path.resolve(endPath) === path.resolve(target.path)
+                end = samePath(endPath, target.path)
                     ? findTarget(target.doc, endRef.topicId ?? target.topicId, endRef.elemId)
                     : undefined;
             }
@@ -637,6 +637,15 @@ function findTarget(doc: Document, topicId: string | undefined, elemId: string |
         return scope;
     }
     return scope ? findElementById(scope.children, elemId) ?? (attr(scope, 'id') === elemId ? scope : undefined) : undefined;
+}
+
+/**
+ * Whether two paths name the same file: case-insensitively on Windows, whose file system ignores
+ * case, as the language server compares paths (normalizeFsPath).
+ */
+function samePath(a: string, b: string): boolean {
+    const [first, second] = [path.resolve(a), path.resolve(b)];
+    return process.platform === 'win32' ? first.toLowerCase() === second.toLowerCase() : first === second;
 }
 
 /** `start` and its following element siblings up to and including `end` (same parent). */
