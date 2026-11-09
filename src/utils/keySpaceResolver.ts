@@ -51,6 +51,11 @@ export interface KeyDefinition {
     scope?: string;                // Key scope (local, peer, external)
     processingRole?: string;       // resource-only, normal, etc.
     keyref?: string;               // Indirect key reference — resolution follows this chain
+    /**
+     * The key scope the definition is in (`"A.A-2"`), for an entry under its scope-qualified name;
+     * undefined in the root scope. Its @keyref is resolved in that scope, however the key was named.
+     */
+    keyScope?: string;
     metadata?: KeyMetadata;        // Additional metadata from topicmeta
 }
 
@@ -552,8 +557,7 @@ export class KeySpaceResolver implements vscode.Disposable {
 
                     // Scope-qualified entries — first definition per qualified name wins.
                     for (const prefix of effectivePrefixes) {
-                        const qualifiedName = `${prefix}.${keyDef.keyName}`;
-                        this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+                        this.addScopedKeyEntry(keySpace, prefix, keyDef);
                     }
                 }
 
@@ -935,10 +939,11 @@ export class KeySpaceResolver implements vscode.Disposable {
      * yet reached the combinatorial-explosion cap. Always a no-op when the
      * name already exists (first-definition wins).
      */
-    private addScopedKeyEntry(keySpace: KeySpace, qualifiedName: string, def: KeyDefinition): void {
+    private addScopedKeyEntry(keySpace: KeySpace, scope: string, def: KeyDefinition): void {
+        const qualifiedName = `${scope}.${def.keyName}`;
         if (keySpace.keys.has(qualifiedName)) return;
         if (keySpace.keys.size >= MAX_KEY_SPACE_ENTRIES) return;
-        keySpace.keys.set(qualifiedName, def);
+        keySpace.keys.set(qualifiedName, { ...def, keyName: qualifiedName, keyScope: scope });
     }
 
     /** Register @keys defined directly on a mapref element under the child scope it creates. */
@@ -955,8 +960,7 @@ export class KeySpaceResolver implements vscode.Disposable {
             const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap, targetFile };
             // In the child scope only: reachable by scope-qualified names
             for (const prefix of childPrefixes) {
-                const qualifiedName = `${prefix}.${inlineKeyName}`;
-                this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                this.addScopedKeyEntry(keySpace, prefix, inlineDef);
             }
         }
     }
@@ -1166,8 +1170,7 @@ export class KeySpaceResolver implements vscode.Disposable {
             for (const inlineKeyName of block.inlineKeys) {
                 const inlineDef: KeyDefinition = { keyName: inlineKeyName, sourceMap: mapPath };
                 for (const prefix of childPrefixes) {
-                    const qualifiedName = `${prefix}.${inlineKeyName}`;
-                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...inlineDef, keyName: qualifiedName });
+                    this.addScopedKeyEntry(keySpace, prefix, inlineDef);
                 }
             }
 
@@ -1181,8 +1184,7 @@ export class KeySpaceResolver implements vscode.Disposable {
             const blockKeys = this.extractKeyDefinitions(maskedBlockContent, mapPath);
             for (const keyDef of blockKeys) {
                 for (const prefix of childPrefixes) {
-                    const qualifiedName = `${prefix}.${keyDef.keyName}`;
-                    this.addScopedKeyEntry(keySpace, qualifiedName, { ...keyDef, keyName: qualifiedName });
+                    this.addScopedKeyEntry(keySpace, prefix, keyDef);
                 }
             }
 
@@ -1310,8 +1312,7 @@ export class KeySpaceResolver implements vscode.Disposable {
                     const peerName = this.peerKeyName(peerKeySpace, peerMapPath, peerKey);
                     const peerDef = peerKeySpace.keys.get(peerName);
                     if (peerDef) {
-                        const lastDot = peerName.lastIndexOf('.');
-                        const peerKeyScope = lastDot > 0 ? peerName.slice(0, lastDot) : '';
+                        const peerKeyScope = peerDef.keyScope ?? '';
                         const resolved = this.followKeyrefChain(peerDef, peerKeySpace.keys, peerKeyScope);
                         logger.debug('Key resolved (peer map)', { keyName, peerMapPath, targetFile: resolved.targetFile });
                         return resolved;
@@ -1619,7 +1620,8 @@ export class KeySpaceResolver implements vscode.Disposable {
         for (let depth = 0; depth <= segments.length; depth++) {
             const prefix = segments.slice(0, depth).join('.');
             const def = keys.get(prefix ? `${prefix}.${keyName}` : keyName);
-            if (def) return { def, scopePrefix: prefix };
+            // The scope the definition is in: its own @keyref resolves there (`S.c` found from the root is of scope S)
+            if (def) return { def, scopePrefix: def.keyScope ?? prefix };
         }
         return null;
     }
@@ -1627,8 +1629,9 @@ export class KeySpaceResolver implements vscode.Disposable {
     /**
      * Follow a @keyref chain to its end and return the last definition reached: one without
      * @keyref, one whose @keyref names an undefined key (a broken chain), or the definition
-     * where a cycle closes. DITA 1.3 sets no limit to the length of a chain (§2.3.4.10.6), and
-     * DITA-OT 4.3.5 follows long ones: each definition is visited once, which bounds the walk.
+     * where a cycle closes. DITA 1.3 asks processors to "support at least three levels of key
+     * references" (§2.3.4.8); DITA-OT 4.3.5 follows longer chains, and so does this: each definition
+     * is visited once, which bounds the walk.
      */
     private followKeyrefChain(
         keyDef: KeyDefinition,
