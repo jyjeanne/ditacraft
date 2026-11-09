@@ -1000,6 +1000,7 @@ ${chain}
                 assert.strictEqual(report.keyrefChain.length, 11, 'the trace lists every key of the chain');
                 assert.strictEqual(report.steps.filter(s => s.type === 'keyref-hop').length, 10, 'one step per hop');
                 assert.ok(report.resolvedDefinition?.targetFile?.endsWith('target.dita'));
+                assert.strictEqual(report.keyrefCycle, false);
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -1025,6 +1026,7 @@ ${chain}
                 assert.ok(result && !result.targetFile, 'a definition, without a target');
                 const report = await service.explainKey('a', contextFile);
                 assert.deepStrictEqual(report.keyrefChain, ['a', 'b', 'c', 'd', 'e', 'a']);
+                assert.strictEqual(report.keyrefCycle, true, 'reported as a cycle');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
@@ -1058,6 +1060,7 @@ ${chain}
                 // "b" is defined in scope T only: not in the key space of S. DITA-OT 4.3.5 falls back to the
                 // scope of the referencing topic (T) and links to b.dita; the standard does not.
                 assert.strictEqual(await target('S.a', fromT), null, 'no target: "b" is not in scope S');
+                assert.strictEqual((await service.explainKey('S.a', fromT)).keyrefCycle, false, 'a broken chain, not a cycle');
             } finally {
                 service.shutdown();
                 cleanup(tmpDir);
