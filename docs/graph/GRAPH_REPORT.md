@@ -14,11 +14,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 3449 · Candidates: 4048
-- Excluded: 0 untracked · 40086 ignored · 34 sensitive · 0 missing committed
+- Excluded: 0 untracked · 40575 ignored · 34 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `0ac3c1f`
+- Built from Git commit: `0ca570e`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 92 edges
@@ -56,7 +56,7 @@ Nodes (77): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (33): main, 0ac3c1f [npm]: bump glob from 13.0.6 to 14.0.4, enumerateAttributes(), GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue, ICatalogValidationService (+25 more)
+Nodes (33): main, 0ca570e [npm]: bump the production-dependencies group across 1 directory with 4 updates, enumerateAttributes(), GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue, ICatalogValidationService (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.07
