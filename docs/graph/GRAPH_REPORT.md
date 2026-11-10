@@ -1,4 +1,4 @@
-# Graph Report - .  (2026-11-09)
+# Graph Report - .  (2026-11-10)
 
 ## Corpus Check
 - Large corpus: 3449 files · ~1,203,754 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
@@ -14,11 +14,11 @@
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 3449 · Candidates: 4048
-- Excluded: 0 untracked · 39168 ignored · 34 sensitive · 0 missing committed
+- Excluded: 0 untracked · 40086 ignored · 34 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `f3c473a`
+- Built from Git commit: `0ac3c1f`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 92 edges
@@ -56,7 +56,7 @@ Nodes (77): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (33): main, f3c473a test(corpus): let the dita-ot documentation corpus run pass, enumerateAttributes(), GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue, ICatalogValidationService (+25 more)
+Nodes (33): main, 0ac3c1f [npm]: bump glob from 13.0.6 to 14.0.4, enumerateAttributes(), GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue, ICatalogValidationService (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.07
