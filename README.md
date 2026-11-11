@@ -5,7 +5,7 @@
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.125+-blue.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jyjeanne/ditacraft/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-0.10.4-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.11.0-orange.svg)](CHANGELOG.md)
 
 DITA Craft is a comprehensive Visual Studio Code extension for editing and publishing DITA (Darwin Information Typing Architecture) content. It provides syntax highlighting, real-time validation, smart navigation, AI-powered assistance, an MCP server for external AI agents, and seamless integration with DITA-OT for multi-format publishing. And now a **visual editor**: edit your topics on a formatted page — tables, images, links, reused content, problems and quick fixes included — and your maps and bookmaps as rows that show each topic's title, while DITA Craft keeps your DITA content clean, with a live **visual preview** and a **Properties view** for attributes.
 
@@ -105,6 +105,7 @@ The page follows your theme — light, dark or VS Code's:
 - [AI Provider Configuration](#ai-provider-configuration)
 - [MCP Server Integration](#mcp-server-integration-external-ai-agents)
 - [Workflows](#workflows)
+- [DITA 1.3 Conformance](#dita-13-conformance)
 - [Troubleshooting](#troubleshooting)
 - [Documentation](#documentation)
 - [Recent Updates](#recent-updates)
@@ -119,6 +120,7 @@ The page follows your theme — light, dark or VS Code's:
 🧩 **Properties View** - The attributes of the element at the cursor, from the DTD, for the visual and the text editor
 🔗 **Smart Navigation** - Ctrl+Click on `href`, `conref`, `keyref`, and `conkeyref` attributes with full key space resolution
 🔑 **Key Space Resolution** - Full DITA 1.3 key space: keyref chains, keyscopes, provenance tracking and `explainKey()` diagnostics
+📏 **DITA 1.3 Conformance** - 126 requirements of the standard traced to their tests and checked against DITA-OT 4.3.5, in a [conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md)
 ✅ **13-Phase Validation Pipeline** - DTD (TypesXML) + optional RelaxNG + 43 DITA rules + custom rules for DITA 1.2/1.3/2.0, with severity overrides and comment-based suppression
 🌍 **Localized** - Diagnostics and the visual editor in English and French
 🚀 **One-Click Publishing** - Direct DITA-OT integration for HTML5, PDF, EPUB, and more
@@ -127,7 +129,7 @@ The page follows your theme — light, dark or VS Code's:
 🤖 **AI-Powered Features** - `@ditacraft` chat participant, AI Quick Fix, AI Completion, map restructuring (Copilot, Anthropic, OpenAI, Ollama)
 🔌 **MCP Server** - Model Context Protocol server for external AI agents (opencode, Claude Desktop, Cursor, Continue)
 🔒 **Enterprise Security** - Path traversal protection, XXE neutralization, command injection prevention, bounded entity expansion
-🧪 **2183+ Tests** - Integration, security, LSP server, and editing fuzz tests
+🧪 **3,000+ Tests** - Integration, security, LSP server, MCP server, visual editor fuzz tests, and DITA 1.3 conformance
 📚 **DITA User Guide** - Complete documentation written in DITA (bookmap structure)
 
 ## All Features
@@ -649,7 +651,7 @@ Track progress: see the [Roadmap](ROADMAP.md#milestone-7-publishing-enhancements
 
 DITA Craft exposes its DITA intelligence — validation, key space, context snapshots — over the **Model Context Protocol (MCP)**, letting external AI coding agents read and query your DITA workspace.
 
-> **Status:** MCP server is **available** since v0.8.0 (current release: v0.10.4). Download `mcp-server-<version>.zip` and `lsp-server-<version>.zip` from the [GitHub releases](https://github.com/jyjeanne/ditacraft/releases), or build them with `npm run build-standalone` (`dist/mcp-server.js` and `dist/lsp-server.js`).
+> **Status:** MCP server is **available** since v0.8.0 (current release: v0.11.0). Download `mcp-server-<version>.zip` and `lsp-server-<version>.zip` from the [GitHub releases](https://github.com/jyjeanne/ditacraft/releases), or build them with `npm run build-standalone` (`dist/mcp-server.js` and `dist/lsp-server.js`).
 
 ### What is MCP?
 
@@ -816,6 +818,19 @@ Additional formats available through DITA-OT plugins.
 }
 ```
 
+## DITA 1.3 Conformance
+
+> The DitaCraft language server is a DITA-aware editing processor that supports DITA 1.3 (OASIS Standard, Errata 02), as well as DITA 1.2 and 2.0 documents. It validates documents against the OASIS grammars and checks URI-based and key-based addressing, content references, key scopes, subject scheme controlled values and DITAVAL files. It does not produce output, and it does not apply branch filtering (`<ditavalref>`). Known deviations from DITA 1.3 are listed in the [DITA 1.3 conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md).
+
+DITA 1.3 §4.1 asks conforming implementations for this statement. The [conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md) backs it requirement by requirement: for each of 126 requirements, the text of the standard, what the language server does, and the tests that demonstrate it. Where the standard leaves the behaviour to processors, it is compared with DITA-OT 4.3.5, the reference processor.
+
+- **Tested:** 98 requirements are verified, and 26 are tested in part (the book says what is missing). Every requirement has a test, and no deviation is open.
+- **Out of scope:** branch filtering with `<ditavalref>` (§2.4.4).
+- **Stricter than the standard, on purpose:** a reference to a key that has neither a target nor text gets a warning (`DITA-KEY-002`), though the key definition is valid DITA. DITA-OT renders such a reference as an empty element, without a message.
+- **Where DITA-OT and the standard differ, the standard is followed.** For example, a key definition whose `@keyref` does not resolve in its own key scope keeps its own `@href` or text, as §2.3.4.8 says; DITA-OT 4.3.5 resolves it again in the scope of the referencing topic.
+
+The [DITA 1.3 conformance action plan](docs/DITA_1.3_CONFORMANCE_ACTION_PLAN.md) records the fixes and the decisions behind them.
+
 ## Known Limitations
 
 ### Smart Navigation
@@ -941,6 +956,23 @@ Developer documentation: [docs/VISUAL_EDITOR.md](docs/VISUAL_EDITOR.md), [docs/V
 - [VS Code Publishing](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 
 ## Recent Updates
+
+### Version 0.11.0 — DITA 1.3 Conformance
+
+The language server was checked against the DITA 1.3 standard, requirement by requirement, and against DITA-OT 4.3.5: see [DITA 1.3 Conformance](#dita-13-conformance).
+
+**Changed:**
+- Key references resolve across key scopes as DITA 1.3 requires: a key defined in a parent scope overrides the same key in a child scope, and a key defined only in a child scope is reached from outside it by its scope-qualified name (`product.version`). Some key references now resolve to another definition. The keys of a peer map are named by the `@keyscope` of the map reference.
+- Reference problems have DITA-OT's severity: a missing topic, map, content reference target or image is an error, a missing peer or non-DITA resource a warning. A content reference to a more general element, such as `<step conref>` to an `<li>`, is an error.
+- `DITA-SCH-003` (`<indextermref>`) is a warning and `DITA-SCH-014` (the `@navtitle` attribute) an information, and their messages, like that of `DITA-KEY-002`, say what DITA 1.3 and DITA-OT do.
+
+**Fixed:** content references to a specialization (`<ph>` to `<codeph>`, `<note>` to `<hazardstatement>`) are accepted, as decided by `@class`; key reference chains of any length; a key defined twice in one map is reported; subject schemes apply to every bound attribute, to nested categories and to empty enumerations; ids in any script; `<?xml-model?>` without a DOCTYPE; `@scope` inherited from the map; grouped values in DITAVAL filtering; `@conrefend` ranges through a key in the visual preview and editor; the MCP server returns fresh results.
+
+**Added:** `@conrefend` ranges are checked (`DITA-XREF-006`, `DITA-XREF-007`); the MCP server reads the workspace's `ditacraft.*` settings.
+
+**Dependencies:** `vscode-languageclient` 11, `@anthropic-ai/sdk` 1.6.
+
+See the [CHANGELOG](CHANGELOG.md) for details.
 
 ### Version 0.10.4
 

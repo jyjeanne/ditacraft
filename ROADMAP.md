@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DITA Craft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.10.4)
+## Current Status (v0.11.0)
 
 DITA Craft is a production-ready VS Code extension for DITA editing and publishing with the following complete features. The **visual preview** and the **visual editor** (Milestone 8 below) shipped in v0.10.0.
 
@@ -124,6 +124,7 @@ DITA Craft is a production-ready VS Code extension for DITA editing and publishi
 | **Key Space: Provenance Tracking (sourceLine)** | Complete | 100% |
 | **Key Space: Scope Explosion Cap (50 k entries)** | Complete | 100% |
 | **Key Space: Resolution Reporting (explainKey, reportKeySpace)** | Complete | 100% |
+| **DITA 1.3 Conformance (test book, 126 requirements, checked against DITA-OT 4.3.5)** | Complete | 100% |
 | **Validation Pipeline Budget (pipelineBudgetMs)** | Complete | 100% |
 | **ReDoS Protection (custom rules)** | Complete | 100% |
 | **LSP 3.17 Conformance (executeCommandProvider, serverInfo)** | Complete | 100% |
@@ -185,7 +186,16 @@ DITA Craft is a production-ready VS Code extension for DITA editing and publishi
 | **Visual Editor: Cursor and Scroll Sync with the Text Editor** | Complete | 100% |
 | **Properties View (visual and text editor)** | Complete | 100% |
 
-### Recent Changes (v0.10.0)
+### Recent Changes (v0.11.0)
+
+**DITA 1.3 conformance:** the language server was checked against the DITA 1.3 standard, requirement by requirement, and against DITA-OT 4.3.5. The [conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md) traces 126 requirements to their tests, and the README states the conformance (DITA 1.3 §4.1). The [action plan](docs/DITA_1.3_CONFORMANCE_ACTION_PLAN.md) fixed the deviations in five phases, and keeps one check stricter than the standard on purpose (`DITA-KEY-002`, a reference to a key with neither a target nor text):
+
+- **Keys:** key precedence between key scopes, scope-qualified names and peer maps as §2.3.4 says; key reference chains of any length, each resolved in the scope of its definition; a key defined twice in one map reported.
+- **References:** DITA-OT's severities for missing targets; content reference compatibility decided by `@class`, specializations included; `@conrefend` ranges checked (`DITA-XREF-006`, `DITA-XREF-007`) and rendered through a key in the visual preview and editor; `@scope` inherited.
+- **Values and documents:** subject schemes on every bound attribute, nested categories, empty enumerations; DITAVAL grouped values; ids in any script; `<?xml-model?>` without a DOCTYPE.
+- **Out of scope:** branch filtering with `<ditavalref>`.
+
+### Previous Changes (v0.10.0)
 
 **Added — Visual preview** (`DITA: Preview`, the new default engine): a live, formatted page of the topic rendered by DITA Craft itself — no DITA-OT, no Java, no save. Grammars are compiled from the bundled OASIS DTDs (or your catalog), so specializations render like what they specialize; keys, reuse (ranges, nested and chained), link titles, glossary terms, DITAVAL filtering and flags, problems and exact scroll sync. DITA-OT HTML5 class names keep `previewCustomCss` working; `DITA: Preview with DITA-OT` keeps the previous preview.
 
@@ -908,8 +918,9 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.10.1 | Maintenance release: root map discovery keeps the map that references the topic | Released |
 | v0.10.2 | Maintenance release: explicit root map, topics in no map, web address and keytext keys, examples in text, same-topic links | Released |
 | v0.10.3 | Maintenance release: DITA-OT parity checks on every platform | Released |
-| v0.10.4 | Maintenance release: subject scheme maps without a DOCTYPE, no known vulnerability in the dependencies | **Current** |
+| v0.10.4 | Maintenance release: subject scheme maps without a DOCTYPE, no known vulnerability in the dependencies | Released |
+| v0.11.0 | DITA 1.3 conformance: key scopes, reference severities and content references as the standard and DITA-OT 4.3.5, conformance test book and statement | **Current** |
 
 ---
 
-*Last updated: October 2026 (v0.10.4: subject scheme maps, dependency security fixes)*
+*Last updated: November 2026 (v0.11.0: DITA 1.3 conformance)*

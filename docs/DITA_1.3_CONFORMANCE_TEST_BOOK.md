@@ -3,8 +3,8 @@
 | | |
 |---|---|
 | Document | Conformance test book of the DitaCraft DITA language server (LSP) |
-| Version | 1.4 — 2026-11-09 (1.0: first edition; 1.1: deviations ID-01, SUB-03, DOC-06 and ADR-06 fixed by phase 2 of the action plan; 1.2: KSC-02 fixed by phase 1, rule messages of phase 3, KEY-07 accepted; 1.3: phase 4 — tests for ID-03, ID-05, KEY-04, KEY-11, KSC-05, PEER-03 and MAP-04, PEER-02 fixed, CON-05 and FLT-04 implemented, FLT-08 out of scope; 1.4: conformance check of 9 November 2026, deviations CON-02, CON-03, KEY-09, KEY-12 and CON-06 found and planned in phase 5, CON-02, CON-03, KEY-09, KEY-12 and CON-06 fixed; KEY-09 met the standard, a gap with DITA-OT) |
-| Code baseline | `main` at `cd524ed` (phases 1 to 4 of the action plan) with phase 5 (branch `fix/conformance-phase-5`) |
+| Version | 1.5 — 2026-11-11 (1.0: first edition; 1.1: deviations ID-01, SUB-03, DOC-06 and ADR-06 fixed by phase 2 of the action plan; 1.2: KSC-02 fixed by phase 1, rule messages of phase 3, KEY-07 accepted; 1.3: phase 4 — tests for ID-03, ID-05, KEY-04, KEY-11, KSC-05, PEER-03 and MAP-04, PEER-02 fixed, CON-05 and FLT-04 implemented, FLT-08 out of scope; 1.4: conformance check of 9 November 2026, deviations CON-02, CON-03, KEY-09, KEY-12 and CON-06 found and planned in phase 5, CON-02, CON-03, KEY-09, KEY-12 and CON-06 fixed; KEY-09 met the standard, a gap with DITA-OT; 1.5: conformance statement published in the README with release 0.11.0, phase 6) |
+| Code baseline | `main` at `8c45fe7` (phases 1 to 5 of the action plan), release 0.11.0 |
 | Reference standard | OASIS *Darwin Information Typing Architecture (DITA) Version 1.3 Part 3: All-Inclusive Edition Plus Errata 02*, OASIS Standard, 19 June 2018 — <https://docs.oasis-open.org/dita/dita/v1.3/errata02/os/complete/part3-all-inclusive/dita-v1.3-errata02-os-part3-all-inclusive-complete.html> |
 | Related documents | [MANUAL_TEST_PLAN.md](MANUAL_TEST_PLAN.md) (manual checks, UI), [AUTOMATE_TEST_PLAN.md](AUTOMATE_TEST_PLAN.md) (automation of the manual plan), [VALIDATION-SPECIFICATION.md](VALIDATION-SPECIFICATION.md) (diagnostic codes) |
 
@@ -312,16 +312,19 @@ None: every requirement of section 4 has at least one test.
 
 Other gaps found by the review of the server tests (November 2026): cancellation of a validation run, the pipeline's phases 11 and 12 with real data, deduplication of DTD diagnostics, the debounced key space invalidation, and the workspace-boundary refusals of go to definition, hover and completion.
 
-## 9. Conformance statement (proposed)
+## 9. Conformance statement
 
-DITA 1.3 §4.1 requires that "Conforming DITA implementations MUST include a conformance statement that gives the version of the DITA specification that is supported." The project does not publish one yet. Proposed wording, to adopt in the README once the deviations of section 7 are fixed or accepted:
+DITA 1.3 §4.1 requires that "Conforming DITA implementations MUST include a conformance statement that gives the version of the DITA specification that is supported." The README publishes it ([DITA 1.3 Conformance](../README.md#dita-13-conformance)) since release 0.11.0, with the deviation accepted and the feature out of scope of section 7:
 
-> The DitaCraft language server is a DITA-aware editing processor that supports DITA 1.3 (OASIS Standard, Errata 02), as well as DITA 1.0–1.2 and 2.0 documents. It validates documents against the OASIS grammars and checks URI-based and key-based addressing, content references, key scopes, subject scheme controlled values and DITAVAL files. It does not produce output, and it does not apply branch filtering (`<ditavalref>`). Known deviations from DITA 1.3 are listed in the DITA 1.3 conformance test book.
+> The DitaCraft language server is a DITA-aware editing processor that supports DITA 1.3 (OASIS Standard, Errata 02), as well as DITA 1.2 and 2.0 documents. It validates documents against the OASIS grammars and checks URI-based and key-based addressing, content references, key scopes, subject scheme controlled values and DITAVAL files. It does not produce output, and it does not apply branch filtering (`<ditavalref>`). Known deviations from DITA 1.3 are listed in the DITA 1.3 conformance test book.
+
+The statement names the versions whose grammars the language server bundles (`dtds/`): DITA 1.2, 1.3 and 2.0. Documents of DITA 1.0 and 1.1 are recognized by their version, but no requirement of this book covers them.
 
 ## 10. Execution record
 
 | Date | Code | Suite | Result |
 |---|---|---|---|
+| 2026-11-11 | Branch `release/0.11.0` (`main` `8c45fe7`, phase 6) | Language server 1,250 passed, 5 skipped; with the DITA-OT 4.3.5 documentation corpus, 2,781 passed, 0 failed. MCP 126 passed; editor core 313 passed; client (VS Code) 1,389 passed, 9 skipped; lint 0 errors; type checks pass. The conformance statement of section 9 is published in the README. | ✅ Passed |
 | 2026-11-09 | Branch `fix/conformance-phase-5` (decision D6) | DITA-OT 4.3.5 documentation corpus with the language server suite: 2,781 passed, 0 failed. The corpus suite checks the mandatory rules and prints the best-practice findings (`DITA-SCH-046` 302, `DITA-SCH-016` 13, `DITA-SCH-045` 13, `DITA-SCH-030` 3, `DITA-SCH-022` 3), and it expects the two keys that the documentation defines twice (`license`, `third-party-software`). DITA-OT 4.3.5, run on the same documentation, reports nothing about these keys. | ✅ Passed |
 | 2026-11-09 | Branch `fix/conformance-phase-5` (fixes of the code review) | Language server 1,250 passed, 5 skipped; MCP 126 passed; editor core 313 passed; client (VS Code) 1,389 passed, 9 skipped, in a clean checkout of the branch; lint 0 errors. In the author's working copy, the visual editor's scroll-sync test timed out; in a clean checkout it passes, on this code and on the code before the review fixes, so the cause is in that working copy. | ✅ Passed |
 | 2026-11-09 | Branch `fix/conformance-phase-5` (CON-06) | Client (VS Code) 1,388 passed, 9 skipped; editor core 312 passed; lint 0 errors (no change to the language server or the MCP server). The new test fails on the code before the fix. The preview renders the two examples of §3.12.13.7 as DITA-OT 4.3.5 does. | ✅ Passed |

@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **DitaCraft** is a comprehensive VS Code extension for editing and publishing DITA (Darwin Information Typing Architecture) XML files. It provides syntax highlighting, real-time validation, smart navigation, LSP-based IntelliSense, live HTML preview, and one-click DITA-OT publishing. The project uses a **client-server architecture**: the client extension handles UI commands and a separate LSP server handles all language intelligence.
 
 **Key Stats:**
-- 2,900+ tests (1,371 client + 1,167 server + 307 visual preview/editor core + 88 MCP)
+- 3,000+ tests (1,389 client + 1,250 server + 313 visual preview/editor core + 126 MCP)
 - 50,000+ lines of TypeScript code
 - Client: ES2020, CommonJS, esbuild bundled
 - Server: 13-phase validation pipeline, LSP 3.17+
@@ -196,7 +196,7 @@ src/                          # Client extension
                               #   image files (imageFiles.ts: hrefs, pasted images), link picker
                               #   (linkPicker.ts QuickPick + Open link target; linkTargets.ts items, no vscode)
   properties/                 # Properties view (side bar): follows the visual or text editor, edits attributes
-  test/                       # 1,371 client tests; test/shared/ = plain-Mocha suites for shared/ + preview/ (307)
+  test/                       # 1,389 client tests; test/shared/ = plain-Mocha suites for shared/ + preview/ (313)
 webview/preview/              # Visual preview page script + stylesheet (bundled to out/webview/)
 webview/editor/               # Visual editor page (ProseMirror; map rows: mapView.ts) + stylesheet (bundled to out/webview/)
 webview/properties/           # Properties view page + stylesheet (bundled to out/webview/)
@@ -217,7 +217,7 @@ server/
     utils/                    # Shared utilities (referenceParser, workspaceScanner, textUtils)
     messages/                 # Localization (en.json, fr.json)
     data/                     # Static schema data (ditaSchema.ts, ditaSpecialization.ts)
-  test/                       # 1,167 server tests (standalone Mocha)
+  test/                       # 1,250 server tests (standalone Mocha)
 
 dtds/                         # DITA 1.2, 1.3, 2.0 DTDs + OASIS catalogs
 docs/                         # Architecture docs

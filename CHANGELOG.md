@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-11
+
+A DITA 1.3 conformance release. The language server was checked against the DITA 1.3 standard, requirement by requirement, and against DITA-OT 4.3.5, the reference processor; the [DITA 1.3 conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md) gives the results. Key references across key scopes, the severity of reference problems and the compatibility of content references now follow the standard: some key references resolve to another definition, and some warnings are now errors.
+
 ### Changed
 
 - Key references now resolve across key scopes as DITA 1.3 requires (§2.3.4.1, §2.3.4.4), in the language server and in the extension's own key resolution. Some key references now resolve to a different definition; the results were checked against DITA-OT 4.3.5 on the example of §2.3.4.10.8.
@@ -22,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `DITA-SCH-003` (`<indextermref>`) is a Warning in the recommendation category, no longer a mandatory Error, and no longer calls the element deprecated. DITA 1.3 says it "is not completely defined; it is reserved for future use", and DITA-OT drops it without a message. The quick fix that removes it is unchanged.
   - `DITA-SCH-014` (the `@navtitle` attribute) is an Information, no longer a Warning. It says that the `<navtitle>` element is preferred, not that the attribute is deprecated (DITA 1.3 §3.2.1.5); DITA-OT accepts both.
   - `DITA-KEY-002` says that the reference produces no link and no text, and that the key definition itself is valid DITA. Such a reference renders as an empty element in DITA-OT, without a message.
-
 - Reference severities follow DITA-OT, the reference processor:
   - A missing target file (`DITA-XREF-001`) is an error when DITA-OT fails to load it: a DITA topic or map (`DOTX008E`), a content reference (`DOTX010E`) or an image (`DOTJ023E`). It was a warning unless the internal DITA-OT comparison profile was on. A missing peer resource (`scope="peer"`, another publication) or non-DITA file (a PDF, an HTML page), which DITA-OT only links to, stays a warning.
   - A content reference whose topic or element cannot be found is an error, as in DITA-OT (`DOTX010E`). That covers `@conref` (`DITA-XREF-002`, `DITA-XREF-003`) and `@conkeyref` (`DITA-KEY-003`).
@@ -30,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A link (`@href`, `@keyref`) to a missing element in an existing topic stays a warning: DITA-OT does not report it, but the published link leads nowhere.
   - A reference to a file outside the workspace is not looked up, and the warning now says so instead of calling the file missing.
 - A content reference to an element more general than the referencing one, such as `<step conref="…">` to an `<li>`, is an error (`DITA-XREF-004`). DITA 1.3 says "It is not valid to use @conrefend to reference a more general version of an element (such as using <step> to reference an <li> element)" (§3.12.13.7), and DITA-OT 4.3.5 fails such a reference (`DOTX010E`). Before, elements of one specialization family were accepted in both directions.
+- Dependencies updated: `vscode-languageclient` 11.0, `@anthropic-ai/sdk` 1.6, `openai` 7.53, `@modelcontextprotocol/sdk` 1.32.2, `fast-xml-parser` 5.12.0 and `typesxml` 2.9.0, and in the visual editor `prosemirror-transform` 1.12.5 and `prosemirror-view` 1.42.9.
 
 ### Fixed
 
@@ -43,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A key definition reached by its scope-qualified name, such as `S2.c` written in another scope, had its `@keyref` resolved in the scope where the name was found, not in its own scope. A chain that went on inside that scope (`c` → `d`, both in `S2`) ended with no target. DITA 1.3 resolves the key references of a scope in that scope (§2.3.4.2), and DITA-OT 4.3.5 resolves such a chain. This applies to the language server and to the extension's key resolution.
 - The visual preview and the visual editor showed only the first element of a `@conrefend` range made with `@conkeyref`, as in both examples of DITA 1.3 §3.12.13.7: they looked for the end in the topic that `@conrefend` names. The standard says the key's topic replaces it, and DITA-OT 4.3.5 renders the whole range. They also ignored the file of `@conrefend`, so they could build a range from the wrong document. DITA-OT reports such an end (`DOTX071E`) and reuses the start element alone, and the preview and editor now do the same. On Windows, the two paths are compared without case, as the language server compares them. "Replace with copy" follows them.
 - MCP server: `dita_resolve_reference` followed a broken `@keyref` chain again from the topic that makes the reference, in another key scope. It could return a target that the language server does not resolve. It now uses the language server's resolution, and its trace lists each hop. A broken chain names the key that is not defined in the definition's scope. A definition whose `@keyref` does not resolve keeps its own `@href` or text, as in the language server (DITA 1.3 §2.3.4.8). DITA-OT 4.3.5 does fall back to the referencing topic's scope in that case; the standard does not, and the conformance test book records the difference.
-
 - A key defined twice in the same map was not reported. `DITA-KEY-004` skipped every definition in the map that holds the effective one; the later definitions there are now reported, as DITA-OT does (`DOTJ045I`). The first definition, which takes effect, is still not reported. Duplicates are found in the map's text as it is in the editor, unsaved changes included, and only within one key scope: a key defined in a `@keyscope` block and again outside it is not a duplicate. Across maps, `DITA-KEY-004` no longer reports a key that the other map defines in another key scope.
 - When a map defined the same key with elements of different names, such as a `<topicref>` then a `<keydef>`, the key space could take the later definition for the effective one: the XML parser groups the elements by name. The key space now reads the definitions in document order. The line numbers of key definitions in or after a `@keyscope` block are also right now.
 - A content reference into a specialized topic type, such as `<faq id="f1">`, was reported as a missing topic (`DITA-XREF-002`): only the standard topic types were recognized.
@@ -89,8 +92,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed `server/src/utils/xmlTokenizer.ts` and its 57 tests: nothing used the tokenizer. Its tests were counted as coverage of malformed-markup handling (manual test plan §12.4), which they never exercised. New tests now cover it: completion, hover, go-to-definition, folding, outline and formatting on documents with unclosed tags, unquoted or malformed attributes, or cut short (`server/test/malformedMarkup.test.ts`).
 - The DITA-OT documentation integration tests (`server/test/docsDataset.test.ts`) are opt-in: set `DITACRAFT_DOCS_DATASET` to the folder holding `userguide.ditamap`. They read a path hard-coded to one machine, so they never ran anywhere else.
 - Tests for requirements of the DITA 1.3 conformance test book that had none (phase 4 of the action plan). They cover duplicate ids in maps, references to a duplicated id, a key defined in two sibling submaps, the values the key check skips, key scope names, peer maps and unused topics. Branch filtering (`<ditavalref>`, FLT-08) is declared out of scope (decision D4).
+- Development dependencies updated: `glob` 14, `@sentropic/engram` 0.23.1, `eslint` 10.14, `typescript-eslint` 8.72 and `@vscode/vsce` 4.1. The AI connection tests accept the API key that `@anthropic-ai/sdk` 1.x sends in an `Authorization: Bearer` header.
 
 ### Documentation
+
+- The README states the DITA 1.3 conformance of the language server, as DITA 1.3 §4.1 asks of conforming implementations. The [DITA 1.3 conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md) traces 126 requirements of the standard to their tests and to the behaviour of DITA-OT 4.3.5, and the [action plan](docs/DITA_1.3_CONFORMANCE_ACTION_PLAN.md) records the fixes and the decisions.
 
 - The MCP server documentation listed `DITACRAFT_DITA_VERSION` and `DITACRAFT_VALIDATION_ENGINE` environment variables that the server never read; `ditacraft.ditaVersion` and `ditacraft.validationEngine` in the settings file now do that.
 
