@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Version | 1.1 — 2026-11-09 (1.0: phases 1 to 4; 1.1: phase 5, the deviations found by the conformance check of 9 November 2026) |
+| Version | 1.2 — 2026-11-11 (1.0: phases 1 to 4; 1.1: phase 5, the deviations found by the conformance check of 9 November 2026; 1.2: phase 6, close-out with release 0.11.0) |
 | Source | [DITA 1.3 Conformance Test Book](DITA_1.3_CONFORMANCE_TEST_BOOK.md), sections 7 (deviations) and 8 (requirements without tests) |
 | Goal | Fix the 8 deviations from DITA 1.3, give a test to the 10 untested requirements, then publish a conformance statement |
 
@@ -243,4 +243,4 @@ The check ran every suite on `main` at `cd524ed`, with the DITA-OT documentation
 | KEY-09 key reference chains of any length | 5 | S | Done (a gap with DITA-OT, not a deviation) |
 | KEY-12 `@keyref` chains in the scope of each definition (language server, extension, MCP) | 5 | S | Done |
 | CON-06 conref ranges in the visual preview | 5 | S | Done |
-| Conformance statement, documentation, release | 6 | S | Open |
+| Conformance statement, documentation, release | 6 | S | Done (release 0.11.0: statement in the README, every suite run with the corpus) |
