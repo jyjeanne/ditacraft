@@ -1,7 +1,7 @@
-# Graph Report - .  (2026-11-11)
+# Graph Report - .  (2026-11-17)
 
 ## Corpus Check
-- Large corpus: 3449 files · ~1,204,862 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 3450 files · ~1,204,875 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
 - 3574 nodes · 8681 edges · 142 communities detected
@@ -13,12 +13,12 @@
 ## Input Scope
 - Requested: auto
 - Resolved: committed (source: default-auto)
-- Included files: 3449 · Candidates: 4048
-- Excluded: 0 untracked · 40575 ignored · 34 sensitive · 0 missing committed
+- Included files: 3450 · Candidates: 4049
+- Excluded: 0 untracked · 40648 ignored · 34 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `39b0fdc`
+- Built from Git commit: `d52d949`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 92 edges
@@ -56,7 +56,7 @@ Nodes (77): AttributePairs, rewriteOpenTag(), withAttribute(), parse(), WS, esca
 
 ### Community 2 - "Community 2"
 Cohesion: 0.04
-Nodes (33): main, 39b0fdc chore(release): bump version to 0.11.0, enumerateAttributes(), GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue, ICatalogValidationService (+25 more)
+Nodes (33): main, d52d949 [npm]: bump the production-dependencies group with 3 updates, enumerateAttributes(), GetSubjectSchemeAttributesResult, handleGetSubjectSchemeAttributes(), SchemeAttributeInfo, SchemeAttributeValue, ICatalogValidationService (+25 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.07
