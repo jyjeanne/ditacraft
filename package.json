@@ -44,6 +44,8 @@
     "onCommand:ditacraft.newMap",
     "onCommand:ditacraft.newBookmap",
     "onCommand:ditacraft.configureDitaOT",
+    "onCommand:ditacraft.installDitaOt",
+    "onCommand:ditacraft.manageDitaOtPlugins",
     "workspaceContains:**/*.dita",
     "workspaceContains:**/*.ditamap",
     "workspaceContains:**/*.bookmap",
@@ -288,6 +290,14 @@
       {
         "command": "ditacraft.configureDitaOT",
         "title": "DITA: Configure DITA-OT Path"
+      },
+      {
+        "command": "ditacraft.installDitaOt",
+        "title": "DITA: Install DITA-OT"
+      },
+      {
+        "command": "ditacraft.manageDitaOtPlugins",
+        "title": "DITA: Manage DITA-OT Plugins"
       },
       {
         "command": "ditacraft.setupCSpell",
@@ -643,8 +653,26 @@
         "ditacraft.ditaOtPath": {
           "type": "string",
           "default": "",
-          "description": "Path to DITA-OT installation directory (e.g., C:\\DITA-OT or /usr/local/dita-ot). Leave empty to use system PATH.",
+          "markdownDescription": "Path to DITA-OT installation directory (e.g., `C:\\DITA-OT` or `/usr/local/dita-ot`). Leave empty to use system PATH. Use [DITA: Install DITA-OT](command:ditacraft.installDitaOt) to install a release, or [DITA: Configure DITA-OT Path](command:ditacraft.configureDitaOT) to select an existing one.",
           "order": 1
+        },
+        "ditacraft.ditaOtInstallTargetDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Folder in which [DITA: Install DITA-OT](command:ditacraft.installDitaOt) creates the `dita-ot-<version>` directory. Leave empty to choose a folder each time. Supports `${workspaceFolder}`.",
+          "order": 2
+        },
+        "ditacraft.ditaOtPreferredVersion": {
+          "type": "string",
+          "default": "",
+          "description": "DITA-OT version preselected in the install version picker (e.g., 4.4.2). Leave empty to preselect the latest release.",
+          "order": 3
+        },
+        "ditacraft.ditaOtRegistryUrl": {
+          "type": "string",
+          "default": "https://plugins.dita-ot.org/",
+          "description": "Base URL of the DITA-OT plugin registry used by DITA: Manage DITA-OT Plugins. Must be an http(s) URL.",
+          "order": 4
         },
         "ditacraft.defaultTranstype": {
           "type": "string",
@@ -1209,6 +1237,7 @@
     "@types/node": "^26.6.6",
     "@types/sinon": "^22.0.2",
     "@types/vscode": "^1.125.0",
+    "@types/yauzl": "^2.10.3",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^4.1.1",
     "c8": "^12.0.0",
@@ -1239,6 +1268,7 @@
     "openai": "^7.57.0",
     "typesxml": "^2.9.0",
     "vscode-languageclient": "^11.0.0",
+    "yauzl": "^3.4.0",
     "zod": "^4.6.7"
   },
   "overrides": {

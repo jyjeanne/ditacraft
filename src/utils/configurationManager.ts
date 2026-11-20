@@ -55,6 +55,9 @@ export type ConfigurationChangeListener = (event: ConfigurationChangeEvent) => v
 export interface DitaCraftConfiguration {
     // DITA-OT settings
     ditaOtPath: string;
+    ditaOtInstallTargetDir: string;
+    ditaOtPreferredVersion: string;
+    ditaOtRegistryUrl: string;
     defaultTranstype: TranstypeType;
     outputDirectory: string;
     ditaOtArgs: string[];
@@ -116,6 +119,9 @@ export function validateNumericConfig(value: number, defaultValue: number, minVa
  */
 const DEFAULT_CONFIG: DitaCraftConfiguration = {
     ditaOtPath: '',
+    ditaOtInstallTargetDir: '',
+    ditaOtPreferredVersion: '',
+    ditaOtRegistryUrl: 'https://plugins.dita-ot.org/',
     defaultTranstype: 'html5',
     outputDirectory: '${workspaceFolder}/out',
     ditaOtArgs: [],
@@ -237,6 +243,9 @@ export class ConfigurationManager implements vscode.Disposable {
 
         return {
             ditaOtPath: config.get<string>('ditaOtPath', DEFAULT_CONFIG.ditaOtPath),
+            ditaOtInstallTargetDir: config.get<string>('ditaOtInstallTargetDir', DEFAULT_CONFIG.ditaOtInstallTargetDir),
+            ditaOtPreferredVersion: config.get<string>('ditaOtPreferredVersion', DEFAULT_CONFIG.ditaOtPreferredVersion),
+            ditaOtRegistryUrl: config.get<string>('ditaOtRegistryUrl', DEFAULT_CONFIG.ditaOtRegistryUrl),
             defaultTranstype: config.get<TranstypeType>('defaultTranstype', DEFAULT_CONFIG.defaultTranstype),
             outputDirectory: config.get<string>('outputDirectory', DEFAULT_CONFIG.outputDirectory),
             ditaOtArgs: config.get<string[]>('ditaOtArgs', DEFAULT_CONFIG.ditaOtArgs),
