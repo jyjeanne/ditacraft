@@ -139,7 +139,7 @@ export function buildCatalogFromFileNames(names: string[]): RegistryPlugin[] {
 export function resolveRegistryBaseUrl(configured: string): string {
     try {
         const url = new URL(configured || DEFAULT_REGISTRY_URL);
-        if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+        if (url.protocol !== 'https:') {
             return DEFAULT_REGISTRY_URL;
         }
         return url.href.endsWith('/') ? url.href : `${url.href}/`;

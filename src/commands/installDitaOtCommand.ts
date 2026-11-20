@@ -141,18 +141,22 @@ async function pickTargetDirectory(): Promise<string | undefined> {
  */
 async function applyInstalledPath(installPath: string, version: string): Promise<void> {
     const config = vscode.workspace.getConfiguration('ditacraft');
-    const previous = config.get<string>('ditaOtPath', '');
+    const previousGlobal = config.inspect<string>('ditaOtPath')?.globalValue;
 
     await config.update('ditaOtPath', installPath, vscode.ConfigurationTarget.Global);
 
+    const effectivePath = vscode.workspace.getConfiguration('ditacraft').get<string>('ditaOtPath', '');
     const wrapper = new DitaOtWrapper();
     wrapper.reloadConfiguration();
-    const verification = await wrapper.verifyInstallation();
-    if (!verification.installed) {
-        await config.update('ditaOtPath', previous, vscode.ConfigurationTarget.Global);
+    const verification = effectivePath === installPath ? await wrapper.verifyInstallation() : undefined;
+    if (!verification?.installed) {
+        await config.update('ditaOtPath', previousGlobal, vscode.ConfigurationTarget.Global);
         wrapper.reloadConfiguration();
+        const reason = effectivePath === installPath
+            ? 'verification failed'
+            : `a workspace or folder setting overrides it (${effectivePath || 'empty'})`;
         vscode.window.showErrorMessage(
-            `DITA-OT ${version} was extracted to ${installPath}, but verification failed. The DITA-OT path setting was not changed.`
+            `DITA-OT ${version} was extracted to ${installPath}, but ${reason}. The DITA-OT path setting was not changed.`
         );
         return;
     }
