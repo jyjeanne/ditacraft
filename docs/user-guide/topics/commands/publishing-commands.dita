@@ -69,13 +69,29 @@
                 behavior.</p>
         </section>
 
+        <section id="dita-ot-install">
+            <title>DITA: Install DITA-OT</title>
+            <p>Downloads a DITA-OT release from GitHub, extracts it into a folder, verifies it and sets <codeph>ditacraft.ditaOtPath</codeph> to the new installation.</p>
+            <ol>
+                <li>Pick a version. The preferred version from <codeph>ditacraft.ditaOtPreferredVersion</codeph> is preselected; otherwise the latest release is.</li>
+                <li>Pick the install folder, or use <codeph>ditacraft.ditaOtInstallTargetDir</codeph> if it is set.</li>
+                <li>Confirm the install. The archive is extracted to a staging folder, verified with <codeph>dita --version</codeph>, then moved to <filepath>dita-ot-&lt;version&gt;</filepath>.</li>
+            </ol>
+            <p>If verification fails, the staging folder is removed and the path setting is not changed. If GitHub cannot be reached, a built-in list of versions is shown.</p>
+        </section>
+
+        <section id="manage-dita-ot-plugins">
+            <title>DITA: Manage DITA-OT Plugins</title>
+            <p>Lists the plugins installed in the configured DITA-OT (<codeph>dita plugins</codeph>) and installs plugins from the DITA-OT plugin registry (<codeph>dita install &lt;id&gt;[@version]</codeph>).</p>
+            <p>Plugin installation runs code from the registry. Output is shown in the DITA-OT output panel. The registry URL is set with <codeph>ditacraft.ditaOtRegistryUrl</codeph>.</p>
+        </section>
+
         <section id="configure-dita-ot">
             <title>DITA: Configure DITA-OT Path</title>
             <p>Opens a folder picker to select your DITA-OT installation directory.</p>
             <p><b>Steps:</b></p>
             <ol>
-                <li>Download DITA-OT from <xref href="https://www.dita-ot.org/download" format="html" scope="external">dita-ot.org</xref></li>
-                <li>Extract to a location on your system</li>
+                <li>Install DITA-OT with <uicontrol>DITA: Install DITA-OT</uicontrol>, or download it from <xref href="https://www.dita-ot.org/download" format="html" scope="external">dita-ot.org</xref> and extract it to a location on your system</li>
                 <li>Run this command and select the DITA-OT directory</li>
             </ol>
             <p><b>Verification:</b></p>

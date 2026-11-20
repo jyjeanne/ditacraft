@@ -22,6 +22,8 @@ export type { PublishingProfile } from './publishProfilesCommand';
 export { previewHTML5Command, previewDitaOtCommand, initializePreview, shouldAutoRefreshPreview, pickPreviewFilterCommand, requestPreviewRefresh, isPreviewRefreshInFlight, getActiveDitavalPath, onDidChangeActiveDitaval, followActiveDitavalMove } from './previewCommand';
 export { newTopicCommand, newMapCommand, newBookmapCommand, initProjectCommand } from './fileCreationCommands';
 export { configureDitaOTCommand } from './configureCommand';
+export { installDitaOtCommand } from './installDitaOtCommand';
+export { manageDitaOtPluginsCommand } from './manageDitaOtPluginsCommand';
 export { setupCSpellCommand } from './cspellSetupCommand';
 export { validateGuideCommand } from './validateGuideCommand';
 export { configureAICommand } from './configureAICommand';

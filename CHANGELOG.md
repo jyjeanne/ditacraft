@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `DITA: Install DITA-OT` downloads a DITA-OT release from GitHub, extracts it safely (no path traversal or symlinks), verifies it and sets `ditacraft.ditaOtPath`. Settings: `ditacraft.ditaOtInstallTargetDir`, `ditacraft.ditaOtPreferredVersion`.
+- `DITA: Manage DITA-OT Plugins` lists installed plugins (`dita plugins`) and installs plugins from the registry (`dita install <id>[@version]`). Setting: `ditacraft.ditaOtRegistryUrl`.
+
+### Known limitations
+- The plugin registry response format and the `dita plugins` output format are based on the `dita-ot/registry` repository and DITA-OT 4.x CLI; they have not been verified against a live registry in every environment.
+- Installation requires network access to GitHub. Without it, a built-in version list is shown and the download fails.
+
 ## [0.11.0] - 2026-11-11
 
 A DITA 1.3 conformance release. The language server was checked against the DITA 1.3 standard, requirement by requirement, and against DITA-OT 4.3.5, the reference processor; the [DITA 1.3 conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md) gives the results. Key references across key scopes, the severity of reference problems and the compatibility of content references now follow the standard: some key references resolve to another definition, and some warnings are now errors.
