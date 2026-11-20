@@ -219,11 +219,15 @@ export function extractZipSafely(zipPath: string, targetDir: string): Promise<vo
                 return;
             }
             let settled = false;
+            const activeStreams: Array<{ destroy(): void }> = [];
             const fail = (error: unknown) => {
                 if (settled) {
                     return;
                 }
                 settled = true;
+                for (const stream of activeStreams) {
+                    stream.destroy();
+                }
                 zipfile.close();
                 reject(error instanceof Error ? error : new Error(String(error)));
             };
@@ -255,6 +259,7 @@ export function extractZipSafely(zipPath: string, targetDir: string): Promise<vo
                             return;
                         }
                         const writeStream = fs.createWriteStream(destPath);
+                        activeStreams.push(readStream, writeStream);
                         readStream.on('error', fail);
                         writeStream.on('error', fail);
                         writeStream.on('finish', () => {
@@ -324,12 +329,9 @@ export function verifyDitaOtAt(installPath: string): Promise<string | undefined>
     const binName = process.platform === 'win32' ? 'dita.bat' : 'dita';
     const command = path.join(installPath, 'bin', binName);
     const env = { ...process.env, DITA_HOME: installPath };
-    const done = (stdout: string) => {
-        const match = stdout.match(/DITA-OT version ([\d.]+)/i);
-        return match ? match[1] : 'unknown';
-    };
+    const parse = (stdout: string): string | undefined => stdout.match(/DITA-OT version ([\d.]+)/i)?.[1];
     return new Promise(resolve => {
-        const callback = (error: Error | null, stdout: string) => resolve(error ? undefined : done(stdout));
+        const callback = (error: Error | null, stdout: string) => resolve(error ? undefined : parse(stdout));
         if (process.platform === 'win32') {
             execFile('cmd.exe', ['/c', command, '--version'], { env, timeout: 60000 }, (error, stdout) => callback(error, String(stdout)));
         } else {
@@ -358,7 +360,8 @@ export async function installDitaOt(options: InstallOptions): Promise<InstallRes
     }
 
     const stamp = `${process.pid}-${Date.now()}`;
-    const archivePath = path.join(os.tmpdir(), `ditacraft-dita-ot-${version}-${stamp}.zip`);
+    const privateTempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ditacraft-'));
+    const archivePath = path.join(privateTempDir, `dita-ot-${version}.zip`);
     const stagingDir = path.join(targetDir, `.ditacraft-staging-${stamp}`);
     try {
         onProgress?.(`Downloading DITA-OT ${version}…`);
@@ -392,8 +395,17 @@ export async function installDitaOt(options: InstallOptions): Promise<InstallRes
         }
         return { version: verifiedVersion, installPath };
     } finally {
-        fs.rmSync(archivePath, { force: true });
-        fs.rmSync(stagingDir, { recursive: true, force: true });
+        safeRemove(privateTempDir);
+        safeRemove(stagingDir);
+    }
+}
+
+/** Best-effort removal that never masks the primary error from an install step. */
+function safeRemove(target: string): void {
+    try {
+        fs.rmSync(target, { recursive: true, force: true });
+    } catch {
+        // Leftover temp files are harmless; ignore cleanup failures.
     }
 }
 

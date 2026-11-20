@@ -671,7 +671,7 @@
         "ditacraft.ditaOtRegistryUrl": {
           "type": "string",
           "default": "https://plugins.dita-ot.org/",
-          "description": "Base URL of the DITA-OT plugin registry used by DITA: Manage DITA-OT Plugins. Must be an http(s) URL.",
+          "description": "Base URL of the DITA-OT plugin registry used by DITA: Manage DITA-OT Plugins. Must be an https URL.",
           "order": 4
         },
         "ditacraft.defaultTranstype": {

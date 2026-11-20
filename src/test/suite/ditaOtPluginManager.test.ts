@@ -60,8 +60,9 @@ suite('DITA-OT Plugin Manager Test Suite', () => {
         assert.deepStrictEqual(catalog.map(p => p.id), ['dita-ot-pdf', 'org.example']);
     });
 
-    test('resolveRegistryBaseUrl falls back to the default for non-http(s) values', () => {
+    test('resolveRegistryBaseUrl falls back to the default for non-https values', () => {
         assert.strictEqual(resolveRegistryBaseUrl('ftp://example.com'), 'https://plugins.dita-ot.org/');
+        assert.strictEqual(resolveRegistryBaseUrl('http://registry.example.com'), 'https://plugins.dita-ot.org/');
         assert.strictEqual(resolveRegistryBaseUrl('not a url'), 'https://plugins.dita-ot.org/');
         assert.strictEqual(resolveRegistryBaseUrl('https://registry.example.com'), 'https://registry.example.com/');
     });

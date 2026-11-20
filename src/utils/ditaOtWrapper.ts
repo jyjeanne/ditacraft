@@ -355,10 +355,11 @@ export class DitaOtWrapper {
             let settled = false;
 
             let child: ReturnType<typeof spawn>;
+            const isWindows = process.platform === 'win32';
             try {
-                child = process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))
+                child = isWindows && (command.endsWith('.bat') || command.endsWith('.cmd'))
                     ? spawn('cmd.exe', ['/c', command, ...args], { env })
-                    : spawn(command, args, { env });
+                    : spawn(command, args, { env, detached: !isWindows });
             } catch (error: unknown) {
                 resolve({ code: null, stdout, stderr: error instanceof Error ? error.message : String(error), timedOut });
                 return;
@@ -372,9 +373,24 @@ export class DitaOtWrapper {
                 }
             };
 
+            const killTree = (): void => {
+                // `dita` runs Java as a child process, so the whole tree must be stopped.
+                if (child.pid === undefined) {
+                    child.kill();
+                } else if (isWindows) {
+                    execFile('taskkill', ['/pid', String(child.pid), '/T', '/F'], () => undefined);
+                } else {
+                    try {
+                        process.kill(-child.pid, 'SIGTERM');
+                    } catch {
+                        child.kill();
+                    }
+                }
+            };
+
             const timer = setTimeout(() => {
                 timedOut = true;
-                child.kill();
+                killTree();
                 setTimeout(() => finish(null), PROCESS_CONSTANTS.KILL_GRACE_PERIOD_MS);
             }, this.getProcessTimeoutMs());
 
