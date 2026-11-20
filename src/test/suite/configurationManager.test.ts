@@ -228,7 +228,9 @@ suite('Configuration Manager Test Suite', () => {
             // Verify all expected properties exist
             const expectedProperties: (keyof DitaCraftConfiguration)[] = [
                 'ditaOtPath',
-                'defaultTranstype',
+                'ditaOtInstallTargetDir',
+                'ditaOtPreferredVersion',
+                'ditaOtRegistryUrl',
                 'outputDirectory',
                 'ditaOtArgs',
                 'ditaOtTimeoutMinutes',

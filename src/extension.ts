@@ -32,6 +32,8 @@ import {
     newMapCommand,
     newBookmapCommand,
     configureDitaOTCommand,
+    installDitaOtCommand,
+    manageDitaOtPluginsCommand,
     setupCSpellCommand,
     validateGuideCommand,
     managePublishingProfilesCommand,
@@ -1038,6 +1040,14 @@ function registerCommands(context: vscode.ExtensionContext): void {
     // Configuration commands
     context.subscriptions.push(
         vscode.commands.registerCommand('ditacraft.configureDitaOT', configureDitaOTCommand)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.installDitaOt', installDitaOtCommand)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ditacraft.manageDitaOtPlugins', manageDitaOtPluginsCommand)
     );
 
     context.subscriptions.push(

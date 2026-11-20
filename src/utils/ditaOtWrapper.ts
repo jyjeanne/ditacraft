@@ -335,6 +335,84 @@ export class DitaOtWrapper {
     }
 
     /**
+     * Runs an arbitrary DITA-OT CLI command (e.g. `plugins`, `install`) and collects its output.
+     * Never rejects: spawn failures and timeouts are reported in the result.
+     */
+    public runDitaCli(
+        args: string[],
+        onOutput?: (chunk: string) => void
+    ): Promise<{ code: number | null; stdout: string; stderr: string; timedOut: boolean }> {
+        return new Promise(resolve => {
+            const command = this.ditaOtCommand || 'dita';
+            const env = { ...process.env };
+            if (this.config.ditaOtPath) {
+                env['DITA_HOME'] = this.config.ditaOtPath;
+            }
+
+            let stdout = '';
+            let stderr = '';
+            let timedOut = false;
+            let settled = false;
+
+            let child: ReturnType<typeof spawn>;
+            const isWindows = process.platform === 'win32';
+            try {
+                child = isWindows && (command.endsWith('.bat') || command.endsWith('.cmd'))
+                    ? spawn('cmd.exe', ['/c', command, ...args], { env })
+                    : spawn(command, args, { env, detached: !isWindows });
+            } catch (error: unknown) {
+                resolve({ code: null, stdout, stderr: error instanceof Error ? error.message : String(error), timedOut });
+                return;
+            }
+
+            const finish = (code: number | null): void => {
+                if (!settled) {
+                    settled = true;
+                    clearTimeout(timer);
+                    resolve({ code, stdout, stderr, timedOut });
+                }
+            };
+
+            const killTree = (): void => {
+                // `dita` runs Java as a child process, so the whole tree must be stopped.
+                if (child.pid === undefined) {
+                    child.kill();
+                } else if (isWindows) {
+                    execFile('taskkill', ['/pid', String(child.pid), '/T', '/F'], () => undefined);
+                } else {
+                    try {
+                        process.kill(-child.pid, 'SIGTERM');
+                    } catch {
+                        child.kill();
+                    }
+                }
+            };
+
+            const timer = setTimeout(() => {
+                timedOut = true;
+                killTree();
+                setTimeout(() => finish(null), PROCESS_CONSTANTS.KILL_GRACE_PERIOD_MS);
+            }, this.getProcessTimeoutMs());
+
+            child.stdout?.on('data', (data: Buffer) => {
+                const text = data.toString();
+                stdout += text;
+                onOutput?.(text);
+            });
+            child.stderr?.on('data', (data: Buffer) => {
+                const text = data.toString();
+                stderr += text;
+                onOutput?.(text);
+            });
+            child.on('error', (error: Error) => {
+                stderr += error.message;
+                finish(null);
+            });
+            child.on('close', (code: number | null) => finish(code));
+        });
+    }
+
+    /**
      * Get list of available transtypes from DITA-OT
      */
     public async getAvailableTranstypes(): Promise<string[]> {

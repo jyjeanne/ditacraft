@@ -9,7 +9,7 @@
             <title>ditacraft.ditaOtPath</title>
             <p><b>Type:</b> String</p>
             <p><b>Default:</b> <codeph>""</codeph> (empty)</p>
-            <p>The path to your DITA Open Toolkit installation directory. This setting is required for publishing features.</p>
+            <p>The path to your DITA Open Toolkit installation directory. This setting is required for publishing features. Run <uicontrol>DITA: Install DITA-OT</uicontrol> to install a release automatically.</p>
             <p><b>Example Values:</b></p>
             <ul>
                 <li>Windows: <codeph>"C:/DITA-OT-4.2.1"</codeph></li>
@@ -28,6 +28,27 @@
                 <li><filepath>bin/dita</filepath> (Unix) or <filepath>bin/dita.bat</filepath> (Windows)</li>
                 <li><filepath>lib/</filepath> directory with required JAR files</li>
             </ul>
+        </section>
+
+        <section id="dita-ot-install-target-dir">
+            <title>ditacraft.ditaOtInstallTargetDir</title>
+            <p><b>Type:</b> String</p>
+            <p><b>Default:</b> <codeph>""</codeph> (empty: choose a folder each time)</p>
+            <p>Folder in which <uicontrol>DITA: Install DITA-OT</uicontrol> creates the <filepath>dita-ot-&lt;version&gt;</filepath> directory. Supports <codeph>${workspaceFolder}</codeph>.</p>
+        </section>
+
+        <section id="dita-ot-preferred-version">
+            <title>ditacraft.ditaOtPreferredVersion</title>
+            <p><b>Type:</b> String</p>
+            <p><b>Default:</b> <codeph>""</codeph> (empty: latest release is preselected)</p>
+            <p>DITA-OT version preselected in the install version picker, for example <codeph>4.4.2</codeph>.</p>
+        </section>
+
+        <section id="dita-ot-registry-url">
+            <title>ditacraft.ditaOtRegistryUrl</title>
+            <p><b>Type:</b> String</p>
+            <p><b>Default:</b> <codeph>"https://plugins.dita-ot.org/"</codeph></p>
+            <p>Base URL of the DITA-OT plugin registry used by <uicontrol>DITA: Manage DITA-OT Plugins</uicontrol>. Only <codeph>http</codeph> and <codeph>https</codeph> URLs are accepted; otherwise the default is used.</p>
         </section>
 
         <section id="java-home">
