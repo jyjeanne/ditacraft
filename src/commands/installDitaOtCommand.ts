@@ -24,7 +24,7 @@ const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 const RUN_PUBLISH_ACTION = 'Run Publish';
 
 /**
- * Command: ditacraft.installDitaOt
+ * Command: ditacraft.installDitaOT
  * Installs DITA-OT into a chosen folder and configures ditacraft.ditaOtPath.
  */
 export async function installDitaOtCommand(): Promise<void> {

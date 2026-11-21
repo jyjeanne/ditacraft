@@ -1043,7 +1043,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ditacraft.installDitaOt', installDitaOtCommand)
+        vscode.commands.registerCommand('ditacraft.installDitaOT', installDitaOtCommand)
     );
 
     context.subscriptions.push(

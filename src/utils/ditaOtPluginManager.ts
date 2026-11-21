@@ -11,7 +11,7 @@ const REGISTRY_FALLBACK_CONTENTS_URL = 'https://api.github.com/repos/dita-ot/reg
 
 const PLUGIN_ID_PATTERN = /^[A-Za-z0-9][\w.-]*$/;
 const PLUGIN_VERSION_PATTERN = /^[A-Za-z0-9][\w.+-]*$/;
-const INSTALLED_LINE_PATTERN = /^([A-Za-z0-9][\w.-]*)(?:(?:@|\s+)v?([A-Za-z0-9][\w.+-]*))?$/;
+const INSTALLED_LINE_PATTERN = /^([A-Za-z0-9][\w.-]*)(?:@v?([A-Za-z0-9][\w.+-]*)|\s+v?(\d[\w.+-]*))?$/;
 const HIGHLIGHT_PATTERN = /\[ERROR\]|\[FATAL\]|\bERROR:|\bFATAL:|Exception\b|BUILD FAILED|\[DOT[A-Z]\d{3}[EF]\]/;
 const MAX_HIGHLIGHTS = 5;
 
@@ -55,7 +55,8 @@ export function parseInstalledPlugins(stdout: string): InstalledPlugin[] {
     for (const line of stdout.split(/\r?\n/)) {
         const match = line.trim().match(INSTALLED_LINE_PATTERN);
         if (match && !plugins.has(match[1])) {
-            plugins.set(match[1], match[2] ? { id: match[1], version: match[2] } : { id: match[1] });
+            const version = match[2] ?? match[3];
+            plugins.set(match[1], version ? { id: match[1], version } : { id: match[1] });
         }
     }
     return [...plugins.values()].sort((a, b) => a.id.localeCompare(b.id));

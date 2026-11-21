@@ -31,6 +31,11 @@ suite('DITA-OT Plugin Manager Test Suite', () => {
         ]);
     });
 
+    test('parseInstalledPlugins rejects header lines that look like id and version', () => {
+        const stdout = ['Plugin Version', 'Installed plugins', 'Name Version', 'org.example 1.0.0'].join('\n');
+        assert.deepStrictEqual(parseInstalledPlugins(stdout), [{ id: 'org.example', version: '1.0.0' }]);
+    });
+
     test('buildInstallArgs pins a version only when one is given', () => {
         assert.deepStrictEqual(buildInstallArgs('dita-ot-pdf'), ['install', 'dita-ot-pdf']);
         assert.deepStrictEqual(buildInstallArgs('dita-ot-pdf', '4.4.1'), ['install', 'dita-ot-pdf@4.4.1']);
