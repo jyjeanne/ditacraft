@@ -327,7 +327,9 @@ To build and install DITA Craft from its source code (development, testing), see
 ## Quick Start
 
 ### 1. Install DITA-OT
-Download and install DITA-OT from https://www.dita-ot.org/download
+Either run **DITA: Install DITA-OT** from the Command Palette to download a release from GitHub and set it up automatically (requires network access to github.com), or download and install DITA-OT manually from https://www.dita-ot.org/download
+
+Then use **DITA: Manage DITA-OT Plugins** to list installed plugins or install plugins from the plugin registry (requires network access to plugins.dita-ot.org; plugin installs run code from the registry and ask for confirmation first).
 
 ### 2. Configure DITA Craft
 1. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
@@ -374,6 +376,8 @@ All commands are accessible via Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 | **DITA: Create New Map** | - | Create new DITA map |
 | **DITA: Create New Bookmap** | - | Create new bookmap |
 | **DITA: Configure DITA-OT Path** | - | Set DITA-OT installation path |
+| **DITA: Install DITA-OT** | - | Download a DITA-OT release from GitHub, extract it, and set it as the DITA-OT path |
+| **DITA: Manage DITA-OT Plugins** | - | List installed DITA-OT plugins or install plugins from the registry |
 | **DITA: Set Root Map** | - | Choose explicit root map for key resolution |
 | **DITA: Clear Root Map** | - | Revert to automatic root map discovery |
 | **DITA: Validate Workspace** | - | Validate all DITA files across workspace |

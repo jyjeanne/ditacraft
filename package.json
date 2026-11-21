@@ -44,7 +44,7 @@
     "onCommand:ditacraft.newMap",
     "onCommand:ditacraft.newBookmap",
     "onCommand:ditacraft.configureDitaOT",
-    "onCommand:ditacraft.installDitaOt",
+    "onCommand:ditacraft.installDitaOT",
     "onCommand:ditacraft.manageDitaOtPlugins",
     "workspaceContains:**/*.dita",
     "workspaceContains:**/*.ditamap",
@@ -292,7 +292,7 @@
         "title": "DITA: Configure DITA-OT Path"
       },
       {
-        "command": "ditacraft.installDitaOt",
+        "command": "ditacraft.installDitaOT",
         "title": "DITA: Install DITA-OT"
       },
       {
@@ -653,13 +653,13 @@
         "ditacraft.ditaOtPath": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Path to DITA-OT installation directory (e.g., `C:\\DITA-OT` or `/usr/local/dita-ot`). Leave empty to use system PATH. Use [DITA: Install DITA-OT](command:ditacraft.installDitaOt) to install a release, or [DITA: Configure DITA-OT Path](command:ditacraft.configureDitaOT) to select an existing one.",
+          "markdownDescription": "Path to DITA-OT installation directory (e.g., `C:\\DITA-OT` or `/usr/local/dita-ot`). Leave empty to use system PATH. Use [DITA: Install DITA-OT](command:ditacraft.installDitaOT) to install a release, or [DITA: Configure DITA-OT Path](command:ditacraft.configureDitaOT) to select an existing one.",
           "order": 1
         },
         "ditacraft.ditaOtInstallTargetDir": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Folder in which [DITA: Install DITA-OT](command:ditacraft.installDitaOt) creates the `dita-ot-<version>` directory. Leave empty to choose a folder each time. Supports `${workspaceFolder}`.",
+          "markdownDescription": "Folder in which [DITA: Install DITA-OT](command:ditacraft.installDitaOT) creates the `dita-ot-<version>` directory. Leave empty to choose a folder each time. Supports `${workspaceFolder}`.",
           "order": 2
         },
         "ditacraft.ditaOtPreferredVersion": {

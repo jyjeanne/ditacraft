@@ -38,7 +38,7 @@ export async function manageDitaOtPluginsCommand(): Promise<void> {
             if (choice === 'Configure DITA-OT Path') {
                 await vscode.commands.executeCommand('ditacraft.configureDitaOT');
             } else if (choice === 'Install DITA-OT') {
-                await vscode.commands.executeCommand('ditacraft.installDitaOt');
+                await vscode.commands.executeCommand('ditacraft.installDitaOT');
             }
             return;
         }

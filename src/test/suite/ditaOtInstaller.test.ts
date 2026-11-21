@@ -10,7 +10,9 @@ import * as path from 'path';
 import {
     buildArchiveUrl,
     compareVersionStrings,
+    extractZipSafely,
     findDitaOtRoot,
+    installDitaOt,
     isValidDitaOtVersion,
     parseReleaseVersions,
     resolveEntryPath
@@ -86,6 +88,39 @@ suite('DITA-OT Installer Test Suite', () => {
         test('returns undefined when no bin/dita exists', () => {
             fs.mkdirSync(path.join(tmp, 'other'), { recursive: true });
             assert.strictEqual(findDitaOtRoot(tmp), undefined);
+        });
+    });
+
+    suite('installDitaOt guards and extraction failures', () => {
+        let tmp: string;
+
+        setup(() => {
+            tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ditaot-install-'));
+        });
+
+        teardown(() => {
+            fs.rmSync(tmp, { recursive: true, force: true });
+        });
+
+        test('extractZipSafely rejects a file that is not a zip archive', async () => {
+            const notZip = path.join(tmp, 'broken.zip');
+            fs.writeFileSync(notZip, 'not a zip');
+            await assert.rejects(extractZipSafely(notZip, path.join(tmp, 'out')));
+        });
+
+        test('installDitaOt rejects an invalid version before any download', async () => {
+            await assert.rejects(
+                installDitaOt({ version: '4.4.2; rm -rf /', targetDir: tmp, downloadTimeoutMs: 1000, verify: async () => '4.4.2' }),
+                /Invalid DITA-OT version/
+            );
+        });
+
+        test('installDitaOt refuses to overwrite an existing install folder', async () => {
+            fs.mkdirSync(path.join(tmp, 'dita-ot-4.4.2'));
+            await assert.rejects(
+                installDitaOt({ version: '4.4.2', targetDir: tmp, downloadTimeoutMs: 1000, verify: async () => '4.4.2' }),
+                /already exists/
+            );
         });
     });
 });
