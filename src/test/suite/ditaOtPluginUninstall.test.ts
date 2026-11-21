@@ -1,7 +1,8 @@
 /**
  * DITA-OT Plugin Uninstall Test Suite
- * Plugin descriptors read from a DITA-OT folder, and uninstalls with their backup and
- * rollback, on temporary folders, with a fake `dita` that behaves as DITA-OT 4.3.5 does.
+ * Plugin descriptors read from a DITA-OT folder, the DITA-OT folder of a `dita` command, and
+ * uninstalls with their backup and rollback, on temporary folders, with a fake `dita` that
+ * behaves as DITA-OT 4.3.5 does.
  */
 
 import * as assert from 'assert';
@@ -14,6 +15,7 @@ import {
     DitaCliResult,
     DitaCliRunner
 } from '../../utils/ditaOtPluginManager';
+import { findDitaOtHome } from '../../utils/ditaOtWrapper';
 
 suite('DITA-OT Plugin Uninstall Test Suite', () => {
     let root: string;
@@ -156,6 +158,35 @@ suite('DITA-OT Plugin Uninstall Test Suite', () => {
             /Plugin folder not found/
         );
         assert.deepStrictEqual(dita.calls, []);
+    });
+
+    suite('findDitaOtHome', () => {
+        const script = process.platform === 'win32' ? 'dita.bat' : 'dita';
+
+        setup(() => {
+            fs.mkdirSync(path.join(ditaOt, 'bin'), { recursive: true });
+            fs.writeFileSync(path.join(ditaOt, 'bin', script), '');
+        });
+
+        test('finds the DITA-OT folder of a dita command given by its path', () => {
+            assert.strictEqual(findDitaOtHome(path.join(ditaOt, 'bin', script)), fs.realpathSync(ditaOt));
+        });
+
+        test('finds the DITA-OT folder of the first dita on the PATH', () => {
+            const elsewhere = path.join(root, 'empty-bin');
+            fs.mkdirSync(elsewhere);
+            const pathEnv = [elsewhere, path.join(ditaOt, 'bin')].join(path.delimiter);
+            assert.strictEqual(findDitaOtHome(script, pathEnv), fs.realpathSync(ditaOt));
+            assert.strictEqual(findDitaOtHome(script, elsewhere), undefined);
+        });
+
+        test('rejects a dita command outside a DITA-OT folder with plugins', () => {
+            const wrapperDir = path.join(root, 'wrapper', 'bin');
+            fs.mkdirSync(wrapperDir, { recursive: true });
+            fs.writeFileSync(path.join(wrapperDir, script), '');
+            assert.strictEqual(findDitaOtHome(path.join(wrapperDir, script)), undefined, 'no plugins folder next to bin');
+            assert.strictEqual(findDitaOtHome(path.join(root, 'missing', 'bin', script)), undefined);
+        });
     });
 
     test('uninstallPlugin refuses an invalid plugin id before touching anything', async () => {
