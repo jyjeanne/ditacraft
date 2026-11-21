@@ -111,7 +111,7 @@ async function pickTargetDirectory(): Promise<string | undefined> {
     if (configured) {
         if (!isWritableDirectory(configured)) {
             vscode.window.showErrorMessage(
-                `The configured install folder does not exist or is not writable: ${configured}`
+                `Installation directory is not writable: ${configured}`
             );
             return undefined;
         }
@@ -129,7 +129,7 @@ async function pickTargetDirectory(): Promise<string | undefined> {
         return undefined;
     }
     if (!isWritableDirectory(selected)) {
-        vscode.window.showErrorMessage(`The selected folder is not writable: ${selected}`);
+        vscode.window.showErrorMessage(`Installation directory is not writable: ${selected}`);
         return undefined;
     }
     return selected;
