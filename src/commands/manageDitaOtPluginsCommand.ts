@@ -1,8 +1,10 @@
 /**
  * Manage DITA-OT Plugins Command
- * Lists installed DITA-OT plugins and installs plugins from the DITA-OT plugin registry.
+ * Lists installed DITA-OT plugins, installs plugins from the DITA-OT plugin registry, and
+ * uninstalls plugins (with the safeguards of docs/STUDY_DITA_OT_PLUGIN_UNINSTALL.md).
  */
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { DitaOtWrapper } from '../utils/ditaOtWrapper';
 import { configManager } from '../utils/configurationManager';
@@ -10,17 +12,26 @@ import { getDitaOtOutputChannel } from '../utils/ditaOtOutputChannel';
 import { getErrorMessage } from '../utils/errorUtils';
 import { logger } from '../utils/logger';
 import {
+    classifyForUninstall,
+    describeUninstallBlock,
     fetchRegistryCatalog,
     installPlugin,
     listInstalledPlugins,
-    RegistryPlugin
+    readPluginDescriptors,
+    uninstallPlugin,
+    PluginUninstallResult,
+    RegistryPlugin,
+    UninstallCandidate
 } from '../utils/ditaOtPluginManager';
 
 const ACTION_LIST = 'list';
 const ACTION_INSTALL = 'install';
+const ACTION_UNINSTALL = 'uninstall';
 const LATEST_LABEL = 'Latest';
 const SHOW_OUTPUT = 'Show Output';
 const LIST_PLUGINS = 'List Installed Plugins';
+const REMOVE = 'Remove';
+const CONFIGURE_PATH = 'Configure DITA-OT Path';
 
 /**
  * Command: ditacraft.manageDitaOtPlugins
@@ -46,7 +57,8 @@ export async function manageDitaOtPluginsCommand(): Promise<void> {
         const action = await vscode.window.showQuickPick(
             [
                 { label: 'List installed plugins', action: ACTION_LIST },
-                { label: 'Install plugin from registry', action: ACTION_INSTALL }
+                { label: 'Install plugin from registry', action: ACTION_INSTALL },
+                { label: 'Uninstall plugin', action: ACTION_UNINSTALL }
             ],
             { placeHolder: `DITA-OT ${verification.version ?? ''} plugins` }
         );
@@ -57,8 +69,10 @@ export async function manageDitaOtPluginsCommand(): Promise<void> {
         const run = (args: string[], onOutput?: (chunk: string) => void) => wrapper.runDitaCli(args, onOutput);
         if (action.action === ACTION_LIST) {
             await showInstalledPlugins(run);
-        } else {
+        } else if (action.action === ACTION_INSTALL) {
             await installFromRegistry(run);
+        } else {
+            await uninstallFromDitaOt(wrapper, run);
         }
     } catch (error: unknown) {
         logger.error('DITA-OT plugin management failed', { error });
@@ -151,6 +165,141 @@ async function installFromRegistry(run: Runner): Promise<void> {
     );
     if (choice === SHOW_OUTPUT) {
         output.show(true);
+    }
+}
+
+type CandidateItem = vscode.QuickPickItem & { candidate?: UninstallCandidate };
+
+async function uninstallFromDitaOt(wrapper: DitaOtWrapper, run: Runner): Promise<void> {
+    // The folder is needed to back up the plugin before DITA-OT deletes it.
+    const ditaOtHome = wrapper.resolveDitaOtHome();
+    if (!ditaOtHome) {
+        const choice = await vscode.window.showWarningMessage(
+            'To uninstall a plugin, DITA Craft needs the DITA-OT folder and its plugins folder. Set it with DITA: Configure DITA-OT Path.',
+            CONFIGURE_PATH
+        );
+        if (choice === CONFIGURE_PATH) {
+            await vscode.commands.executeCommand('ditacraft.configureDitaOT');
+        }
+        return;
+    }
+
+    const candidates = await vscode.window.withProgress(
+        { location: vscode.ProgressLocation.Notification, title: 'Reading installed DITA-OT plugins...' },
+        async () => classifyForUninstall(await listInstalledPlugins(run), readPluginDescriptors(ditaOtHome), ditaOtHome)
+    );
+    if (candidates.length === 0) {
+        vscode.window.showInformationMessage('No DITA-OT plugins are installed.');
+        return;
+    }
+
+    const candidate = await pickPluginToUninstall(candidates);
+    if (!candidate) {
+        return;
+    }
+    if (candidate.block) {
+        vscode.window.showInformationMessage(uninstallBlockMessage(candidate));
+        return;
+    }
+
+    const target = candidate.version ? `${candidate.id}@${candidate.version}` : candidate.id;
+    const confirm = await vscode.window.showWarningMessage(
+        `Remove DITA-OT plugin ${target} from ${ditaOtHome}?`,
+        {
+            modal: true,
+            detail: 'Its folder is deleted and DITA-OT is integrated again; do not publish meanwhile. '
+                + 'To get the plugin back, install it again from the registry or from its ZIP file.'
+        },
+        REMOVE
+    );
+    if (confirm !== REMOVE) {
+        return;
+    }
+
+    const output = getDitaOtOutputChannel();
+    output.clear();
+    output.show(true);
+    output.info(`> dita uninstall ${candidate.id}`);
+
+    let result: PluginUninstallResult;
+    try {
+        result = await vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification, title: `Removing DITA-OT plugin ${target}...`, cancellable: false },
+            () => uninstallPlugin(run, candidate.id, { ditaOtPath: ditaOtHome, onOutput: chunk => output.logOutput(chunk) })
+        );
+    } catch (error: unknown) {
+        // The backup of the plugin folder failed, so DITA-OT was not run.
+        vscode.window.showErrorMessage(`Could not remove ${candidate.id}: ${getErrorMessage(error)}. Nothing was changed.`);
+        return;
+    }
+
+    if (result.success) {
+        output.info(`Removed ${candidate.id}.`);
+        const choice = await vscode.window.showInformationMessage(`DITA-OT plugin ${target} removed.`, LIST_PLUGINS);
+        if (choice === LIST_PLUGINS) {
+            await showInstalledPlugins(run);
+        }
+        return;
+    }
+
+    const reason = result.reason ?? 'unknown error';
+    let message: string;
+    if (result.notFound) {
+        message = `Could not remove ${candidate.id}: DITA-OT did not find it in ${path.join(ditaOtHome, 'plugins')}.`;
+    } else if (result.restored) {
+        output.info(`${candidate.id} was put back from its backup, and DITA-OT was integrated again.`);
+        message = `Could not remove ${candidate.id}: ${reason}. The plugin was restored.`;
+    } else {
+        output.info(`Putting ${candidate.id} back failed: ${result.rollbackError}. A copy of its folder is in ${result.backupPath}.`);
+        message = `Could not remove ${candidate.id}: ${reason}. Putting it back failed (${result.rollbackError}), `
+            + `so DITA-OT may not work until ${candidate.id} is installed again. A copy of its folder is in ${result.backupPath}.`;
+    }
+    const choice = await vscode.window.showErrorMessage(message, SHOW_OUTPUT);
+    if (choice === SHOW_OUTPUT) {
+        output.show(true);
+    }
+}
+
+/** The removable plugins first, then, under a separator, the others with the reason. */
+async function pickPluginToUninstall(candidates: UninstallCandidate[]): Promise<UninstallCandidate | undefined> {
+    const removable = candidates.filter(candidate => !candidate.block);
+    const blocked = candidates.filter(candidate => candidate.block);
+    const items: CandidateItem[] = [
+        ...removable.map(candidate => ({ label: candidate.id, description: candidate.version ?? '', candidate })),
+        ...(blocked.length > 0 ? [{ label: 'Cannot be removed here', kind: vscode.QuickPickItemKind.Separator }] : []),
+        ...blocked.map(candidate => ({
+            label: candidate.id,
+            description: candidate.version ?? '',
+            detail: candidate.block ? describeUninstallBlock(candidate.block) : '',
+            candidate
+        }))
+    ];
+    const picked = await vscode.window.showQuickPick(items, {
+        placeHolder: removable.length > 0
+            ? `Select a DITA-OT plugin to uninstall (${removable.length} of ${candidates.length} can be removed)`
+            : `No DITA-OT plugin can be removed here (${candidates.length} installed)`,
+        matchOnDescription: true,
+        matchOnDetail: true
+    });
+    return picked?.candidate;
+}
+
+function uninstallBlockMessage(candidate: UninstallCandidate): string {
+    const block = candidate.block;
+    switch (block?.kind) {
+        case 'protected':
+            return `${candidate.id} is part of DITA-OT and cannot be removed here.`;
+        case 'required': {
+            const one = block.dependents.length === 1;
+            return `${candidate.id} cannot be removed: ${block.dependents.join(', ')} ${one ? 'depends' : 'depend'} on it. `
+                + `Remove ${one ? 'it' : 'them'} first.`;
+        }
+        case 'not-in-plugins-folder':
+            return block.folder
+                ? `${candidate.id} is in ${block.folder}, which dita uninstall does not remove.`
+                : `${candidate.id} was not found in the plugins folder of DITA-OT.`;
+        default:
+            return '';
     }
 }
 

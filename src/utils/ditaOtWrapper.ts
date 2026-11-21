@@ -13,6 +13,7 @@ import { getDitaOtOutputChannel } from './ditaOtOutputChannel';
 import { PROCESS_CONSTANTS } from './constants';
 import { configManager } from './configurationManager';
 import { substituteWorkspaceFolderVar } from './pathUtils';
+import { isDitaOtRoot } from './ditaOtInstaller';
 
 const execFileAsync = promisify(execFile);
 
@@ -85,6 +86,36 @@ export interface PublishResult {
     error?: string;
     /** Combined stdout and stderr output for error parsing */
     output?: string;
+}
+
+/** True for a DITA-OT folder: `bin/dita` (or `.bat`, `.cmd`) and a `plugins` folder. */
+function isDitaOtHome(dir: string): boolean {
+    return isDitaOtRoot(dir) && fs.existsSync(path.join(dir, 'plugins'));
+}
+
+/**
+ * The DITA-OT folder of a `dita` command: the folder above its `bin`, for a command given by
+ * its path or, for a bare name, for the first match on the PATH. Symbolic links are followed,
+ * as Homebrew links `dita` into its own `bin`. Undefined when that folder is not a DITA-OT
+ * folder (a wrapper script elsewhere, for instance).
+ */
+export function findDitaOtHome(command: string, pathEnv: string = process.env.PATH ?? ''): string | undefined {
+    const candidates = command.includes('/') || command.includes('\\')
+        ? [command]
+        : pathEnv.split(path.delimiter).filter(Boolean).map(dir => path.join(dir, command));
+    for (const candidate of candidates) {
+        let real: string;
+        try {
+            real = fs.realpathSync(candidate);
+        } catch {
+            continue;
+        }
+        const home = path.dirname(path.dirname(real));
+        if (isDitaOtHome(home)) {
+            return home;
+        }
+    }
+    return undefined;
 }
 
 export class DitaOtWrapper {
@@ -410,6 +441,17 @@ export class DitaOtWrapper {
             });
             child.on('close', (code: number | null) => finish(code));
         });
+    }
+
+    /**
+     * The DITA-OT folder: `ditacraft.ditaOtPath`, or the folder of the `dita` command found on
+     * the PATH. Undefined when it is not a DITA-OT folder with its plugins.
+     */
+    public resolveDitaOtHome(): string | undefined {
+        if (this.config.ditaOtPath) {
+            return isDitaOtHome(this.config.ditaOtPath) ? this.config.ditaOtPath : undefined;
+        }
+        return this.ditaOtCommand ? findDitaOtHome(this.ditaOtCommand) : undefined;
     }
 
     /**
