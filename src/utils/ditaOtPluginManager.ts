@@ -54,9 +54,14 @@ export function parseInstalledPlugins(stdout: string): InstalledPlugin[] {
     const plugins = new Map<string, InstalledPlugin>();
     for (const line of stdout.split(/\r?\n/)) {
         const match = line.trim().match(INSTALLED_LINE_PATTERN);
-        if (match && !plugins.has(match[1])) {
+        if (match) {
+            const id = match[1];
             const version = match[2] ?? match[3];
-            plugins.set(match[1], version ? { id: match[1], version } : { id: match[1] });
+            const existing = plugins.get(id);
+            // Prefer keeping an entry that has explicit version information.
+            if (!existing || (!existing.version && version)) {
+                plugins.set(id, version ? { id, version } : { id });
+            }
         }
     }
     return [...plugins.values()].sort((a, b) => a.id.localeCompare(b.id));

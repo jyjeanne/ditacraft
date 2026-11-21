@@ -36,6 +36,11 @@ suite('DITA-OT Plugin Manager Test Suite', () => {
         assert.deepStrictEqual(parseInstalledPlugins(stdout), [{ id: 'org.example', version: '1.0.0' }]);
     });
 
+    test('parseInstalledPlugins prefers duplicate entries that include a version', () => {
+        const stdout = ['org.example.plugin', 'org.example.plugin 1.2.3'].join('\n');
+        assert.deepStrictEqual(parseInstalledPlugins(stdout), [{ id: 'org.example.plugin', version: '1.2.3' }]);
+    });
+
     test('buildInstallArgs pins a version only when one is given', () => {
         assert.deepStrictEqual(buildInstallArgs('dita-ot-pdf'), ['install', 'dita-ot-pdf']);
         assert.deepStrictEqual(buildInstallArgs('dita-ot-pdf', '4.4.1'), ['install', 'dita-ot-pdf@4.4.1']);
