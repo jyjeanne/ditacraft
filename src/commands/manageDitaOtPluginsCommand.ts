@@ -79,13 +79,12 @@ async function showInstalledPlugins(run: Runner): Promise<void> {
         return;
     }
 
-    const output = getDitaOtOutputChannel();
-    output.clear();
-    output.show(true);
-    output.logLine(`Installed DITA-OT plugins (${plugins.length}):`);
-    for (const plugin of plugins) {
-        output.logLine(`  ${plugin.version ? `${plugin.id}@${plugin.version}` : plugin.id}`);
-    }
+    // In a QuickPick, not in the DITA-OT output channel: that is a log channel, where
+    // these lines, which carry no log level, were logged at debug level and hidden.
+    await vscode.window.showQuickPick(
+        plugins.map(plugin => ({ label: plugin.id, description: plugin.version ?? '' })),
+        { placeHolder: `Installed DITA-OT plugins (${plugins.length})`, matchOnDescription: true }
+    );
 }
 
 async function installFromRegistry(run: Runner): Promise<void> {
@@ -131,7 +130,7 @@ async function installFromRegistry(run: Runner): Promise<void> {
     const output = getDitaOtOutputChannel();
     output.clear();
     output.show(true);
-    output.logLine(`> dita install ${target}`);
+    output.info(`> dita install ${target}`);
 
     const result = await vscode.window.withProgress(
         { location: vscode.ProgressLocation.Notification, title: `Installing DITA-OT plugin ${target}...`, cancellable: false },
