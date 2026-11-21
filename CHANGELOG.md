@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `DITA: Install DITA-OT` downloads a DITA-OT release from GitHub, extracts it safely (no path traversal or symlinks), verifies it and sets `ditacraft.ditaOtPath`. Settings: `ditacraft.ditaOtInstallTargetDir`, `ditacraft.ditaOtPreferredVersion`.
-- `DITA: Manage DITA-OT Plugins` lists installed plugins (`dita plugins`) and installs plugins from the registry (`dita install <id>[@version]`). Setting: `ditacraft.ditaOtRegistryUrl`.
+- `DITA: Manage DITA-OT Plugins` lists installed plugins with their versions (`dita plugins`), installs plugins from the registry (`dita install <id>[@version]`) and uninstalls plugins (`dita uninstall <id>`). Setting: `ditacraft.ditaOtRegistryUrl`.
+  - Uninstalling is safer than `dita uninstall` alone, which deletes the plugin folder before it integrates DITA-OT again: when another plugin needs the removed one, the integration fails and DITA-OT is left broken. DITA Craft refuses to remove a plugin that other plugins depend on, through a requirement or an extension point, and names them. It protects DITA-OT's own plugins (`org.dita.*`, `org.oasis-open.*`), such as the DITA grammars, which DITA-OT removes without a warning. And it backs up the plugin folder: if DITA-OT cannot be integrated without the plugin, the plugin is put back and DITA-OT integrated again. The study behind it, with the behaviour of DITA-OT 4.3.5, is `docs/STUDY_DITA_OT_PLUGIN_UNINSTALL.md`.
 
 ### Known limitations
 - The plugin registry response format and the `dita plugins` output format are based on the `dita-ot/registry` repository and DITA-OT 4.x CLI; they have not been verified against a live registry in every environment.

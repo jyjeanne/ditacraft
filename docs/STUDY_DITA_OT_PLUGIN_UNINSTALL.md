@@ -1,8 +1,8 @@
 # Study: Uninstalling DITA-OT Plugins
 
-**Version:** 1.1 (1.0: study; 1.1: decisions D1 to D3 taken, fix of the Windows path length limit for the install feature, §7)  
-**Status:** Study — decisions taken, implementation scope to finalize  
-**Related:** [SPEC_DITA_OT_INSTALL_AND_PLUGIN_MANAGEMENT.md](SPEC_DITA_OT_INSTALL_AND_PLUGIN_MANAGEMENT.md) (§2.2 lists plugin uninstall as a non-goal of v1)
+**Version:** 1.2 (1.0: study; 1.1: decisions D1 to D3 taken, fix of the Windows path length limit for the install feature, §7; 1.2: phases 8 to 10 done)  
+**Status:** Uninstall implemented (phases 8 to 10); phase 11, the Windows path length fix, open  
+**Related:** [SPEC_DITA_OT_INSTALL_AND_PLUGIN_MANAGEMENT.md](SPEC_DITA_OT_INSTALL_AND_PLUGIN_MANAGEMENT.md) (§2.2 listed plugin uninstall as a non-goal of v1)
 
 ---
 
@@ -125,6 +125,16 @@ Decided on 21 November 2026, as recommended.
 - A plugin whose files are locked on Windows (a file of the plugin open, a running build): what `dita uninstall` does, and that the rollback still applies.
 - The same cases on the latest DITA-OT release (4.4.x), which the installer offers.
 - A build running while a plugin is removed: the wrapper keeps no build state today, so at least say in the confirmation that builds should not run meanwhile.
+
+**After phases 8 to 10:**
+
+| Check | Status |
+|---|---|
+| Alternatives (`plugin="a\|b"`) and `importance="optional"` | Covered by unit tests of the dependency rules; not run on a DITA-OT. |
+| Locked files on Windows | Not verified. The backup and rollback apply to any failure of `dita uninstall`, but a partly deleted folder has not been tried. |
+| DITA-OT 4.4.x | Not verified: cases 1, 4, 5 and 6 were run on 4.3.5 only. |
+| A build running meanwhile | The confirmation says not to publish while a plugin is being removed. |
+| The real flow | The core ran on a copy of DITA-OT 4.3.5: classification of the stock plugins, a removal, and a failed removal rolled back, after which `dita plugins` works. The command was tested by hand with the packaged extension. |
 
 ## 6. Phases
 

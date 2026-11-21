@@ -30,7 +30,7 @@ These features are **client-side only** and integrate with the existing `DitaOtW
 
 ### 2.2 Non-Goals (v1)
 
-- Plugin uninstall/update/remove.
+- Plugin update. (Plugin uninstall, a non-goal of v1, was added afterwards, with safeguards that `dita uninstall` lacks: see [STUDY_DITA_OT_PLUGIN_UNINSTALL.md](STUDY_DITA_OT_PLUGIN_UNINSTALL.md).)
 - Editing custom registry URLs from UI.
 - Managing multiple DITA-OT installs in one workspace profile.
 - Automatic DITA-OT upgrades.
