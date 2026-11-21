@@ -82,9 +82,16 @@
 
         <section id="manage-dita-ot-plugins">
             <title>DITA: Manage DITA-OT Plugins</title>
-            <p>Lists the plugins installed in the configured DITA-OT (<codeph>dita plugins</codeph>), with their versions, in a picker, and installs plugins from the DITA-OT plugin registry (<codeph>dita install &lt;id&gt;[@version]</codeph>).</p>
+            <p>Lists the plugins installed in the configured DITA-OT (<codeph>dita plugins</codeph>), with their versions, in a picker, installs plugins from the DITA-OT plugin registry (<codeph>dita install &lt;id&gt;[@version]</codeph>), and uninstalls plugins (<codeph>dita uninstall &lt;id&gt;</codeph>).</p>
             <p>Plugin installation runs code from the registry. Output is shown in the DITA-OT output panel. The registry URL is set with <codeph>ditacraft.ditaOtRegistryUrl</codeph> and must use <codeph>https</codeph>.</p>
-            <p><b>Known limitations:</b> uninstalling and updating plugins are not available yet; use the <codeph>dita</codeph> command line for those. Editing the registry list is not supported; only the registry URL can be changed. If the registry catalog cannot be loaded, DITA Craft falls back to the file listing of the <codeph>dita-ot/registry</codeph> repository on GitHub, which shows plugin IDs without version information.</p>
+            <p><b>Uninstalling a plugin:</b> the picker lists the plugins that can be removed, then, under <uicontrol>Cannot be removed here</uicontrol>, the others with the reason:</p>
+            <ul>
+                <li><b>Part of DITA-OT</b>: the plugins of DITA-OT itself (<codeph>org.dita.*</codeph>, <codeph>org.oasis-open.*</codeph>), such as the DITA grammars. DITA-OT stops working without them, and only reinstalling DITA-OT restores them.</li>
+                <li><b>Required by</b>: plugins that other installed plugins need, through a requirement or an extension point. Remove those plugins first.</li>
+                <li>A plugin in another plugin folder (<codeph>plugindirs</codeph> in the DITA-OT configuration): <codeph>dita uninstall</codeph> removes only the plugins of the <filepath>plugins</filepath> folder of DITA-OT.</li>
+            </ul>
+            <p>After a confirmation, DITA Craft backs up the plugin folder and runs <codeph>dita uninstall</codeph>. If DITA-OT cannot be integrated without the plugin, DITA Craft puts the plugin back and integrates DITA-OT again. To get a removed plugin back, install it again from the registry or from its ZIP file. Uninstalling needs the DITA-OT folder: <codeph>ditacraft.ditaOtPath</codeph>, or the folder of the <codeph>dita</codeph> command found on the system path. Do not publish while a plugin is being removed.</p>
+            <p><b>Known limitations:</b> updating plugins is not available yet; use the <codeph>dita</codeph> command line for that. Editing the registry list is not supported; only the registry URL can be changed. If the registry catalog cannot be loaded, DITA Craft falls back to the file listing of the <codeph>dita-ot/registry</codeph> repository on GitHub, which shows plugin IDs without version information.</p>
         </section>
 
         <section id="configure-dita-ot">

@@ -48,7 +48,7 @@
             <title>ditacraft.ditaOtRegistryUrl</title>
             <p><b>Type:</b> String</p>
             <p><b>Default:</b> <codeph>"https://plugins.dita-ot.org/"</codeph></p>
-            <p>Base URL of the DITA-OT plugin registry used by <uicontrol>DITA: Manage DITA-OT Plugins</uicontrol>. Only <codeph>http</codeph> and <codeph>https</codeph> URLs are accepted; otherwise the default is used.</p>
+            <p>Base URL of the DITA-OT plugin registry used by <uicontrol>DITA: Manage DITA-OT Plugins</uicontrol>. Only <codeph>https</codeph> URLs are accepted; otherwise the default is used.</p>
         </section>
 
         <section id="java-home">
