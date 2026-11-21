@@ -163,6 +163,14 @@ export class DitaOtOutputChannel implements vscode.Disposable {
     }
 
     /**
+     * Log a message of DITA Craft itself, at info level. logLine is for DITA-OT output:
+     * it logs a line without a level marker at debug level, which VS Code hides by default.
+     */
+    public info(message: string): void {
+        this.outputChannel.info(message);
+    }
+
+    /**
      * Log multiple lines (e.g., from stdout/stderr buffer)
      */
     public logOutput(output: string): void {

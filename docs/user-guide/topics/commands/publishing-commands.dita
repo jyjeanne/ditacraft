@@ -82,7 +82,7 @@
 
         <section id="manage-dita-ot-plugins">
             <title>DITA: Manage DITA-OT Plugins</title>
-            <p>Lists the plugins installed in the configured DITA-OT (<codeph>dita plugins</codeph>) and installs plugins from the DITA-OT plugin registry (<codeph>dita install &lt;id&gt;[@version]</codeph>).</p>
+            <p>Lists the plugins installed in the configured DITA-OT (<codeph>dita plugins</codeph>), with their versions, in a picker, and installs plugins from the DITA-OT plugin registry (<codeph>dita install &lt;id&gt;[@version]</codeph>).</p>
             <p>Plugin installation runs code from the registry. Output is shown in the DITA-OT output panel. The registry URL is set with <codeph>ditacraft.ditaOtRegistryUrl</codeph> and must use <codeph>https</codeph>.</p>
             <p><b>Known limitations:</b> uninstalling and updating plugins are not available yet; use the <codeph>dita</codeph> command line for those. Editing the registry list is not supported; only the registry URL can be changed. If the registry catalog cannot be loaded, DITA Craft falls back to the file listing of the <codeph>dita-ot/registry</codeph> repository on GitHub, which shows plugin IDs without version information.</p>
         </section>
