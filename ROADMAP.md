@@ -2,7 +2,7 @@
 
 This document outlines the planned features, improvements, and future direction for DITA Craft. It's designed to help users and contributors understand where the project is heading and find opportunities to contribute.
 
-## Current Status (v0.11.0)
+## Current Status (v0.12.0)
 
 DITA Craft is a production-ready VS Code extension for DITA editing and publishing with the following complete features. The **visual preview** and the **visual editor** (Milestone 8 below) shipped in v0.10.0.
 
@@ -125,6 +125,9 @@ DITA Craft is a production-ready VS Code extension for DITA editing and publishi
 | **Key Space: Scope Explosion Cap (50 k entries)** | Complete | 100% |
 | **Key Space: Resolution Reporting (explainKey, reportKeySpace)** | Complete | 100% |
 | **DITA 1.3 Conformance (test book, 126 requirements, checked against DITA-OT 4.3.5)** | Complete | 100% |
+| **DITA-OT Install from VS Code (GitHub releases, safe extraction, verification)** | Complete | 100% |
+| **DITA-OT Plugin Management (list, install from the registry, safe uninstall)** | Complete | 100% |
+| **Windows: DITA-OT from Deep Folders (short path launch, command line check)** | Complete | 100% |
 | **Validation Pipeline Budget (pipelineBudgetMs)** | Complete | 100% |
 | **ReDoS Protection (custom rules)** | Complete | 100% |
 | **LSP 3.17 Conformance (executeCommandProvider, serverInfo)** | Complete | 100% |
@@ -186,7 +189,15 @@ DITA Craft is a production-ready VS Code extension for DITA editing and publishi
 | **Visual Editor: Cursor and Scroll Sync with the Text Editor** | Complete | 100% |
 | **Properties View (visual and text editor)** | Complete | 100% |
 
-### Recent Changes (v0.11.0)
+### Recent Changes (v0.12.0)
+
+**DITA-OT from VS Code:**
+
+- **DITA: Install DITA-OT** downloads a DITA-OT release from GitHub, extracts it without path traversal or symbolic links, verifies it with `dita --version` and sets `ditacraft.ditaOtPath` ([specification](docs/SPEC_DITA_OT_INSTALL_AND_PLUGIN_MANAGEMENT.md)).
+- **DITA: Manage DITA-OT Plugins** lists the installed plugins, installs plugins from the DITA-OT registry, and uninstalls plugins. `dita uninstall` deletes a plugin before it integrates DITA-OT again and leaves DITA-OT broken when another plugin needs it; DITA Craft checks the dependencies first, protects DITA-OT's own plugins, and rolls back a failed removal ([study](docs/STUDY_DITA_OT_PLUGIN_UNINSTALL.md)).
+- **Windows:** `dita.bat` puts every plugin library on one command line, which Windows limits to 8,191 characters: DITA-OT 4.3.5 stopped working from a folder path of 97 characters. DITA Craft launches it through the short name of its folder, and explains when the line would still be too long.
+
+### Previous Changes (v0.11.0)
 
 **DITA 1.3 conformance:** the language server was checked against the DITA 1.3 standard, requirement by requirement, and against DITA-OT 4.3.5. The [conformance test book](docs/DITA_1.3_CONFORMANCE_TEST_BOOK.md) traces 126 requirements to their tests, and the README states the conformance (DITA 1.3 §4.1). The [action plan](docs/DITA_1.3_CONFORMANCE_ACTION_PLAN.md) fixed the deviations in five phases, and keeps one check stricter than the standard on purpose (`DITA-KEY-002`, a reference to a key with neither a target nor text):
 
@@ -762,7 +773,7 @@ scope (see its §7) and remain open for a future milestone.
 - [ ] VS Code task definitions for DITA workflows
 - [x] Watch mode for continuous publishing — §6.2 (watch + rerun the full publish only, not true incremental — see below)
 - [ ] Incremental publishing (only changed files) — DITA-OT has no incremental build mode; would need DITA Craft-side dependency-graph tracking, a meaningfully larger project — see Backlog in the v0.9.0 plan
-- [ ] Custom DITA-OT plugin management
+- [x] DITA-OT plugin management: list, install from the registry, uninstall (v0.12.0)
 
 ### Output Formats (not scoped into v0.9.0 — open for a future milestone)
 - [ ] Markdown output support
@@ -919,8 +930,9 @@ Have ideas for features not listed here? We'd love to hear from you!
 | v0.10.2 | Maintenance release: explicit root map, topics in no map, web address and keytext keys, examples in text, same-topic links | Released |
 | v0.10.3 | Maintenance release: DITA-OT parity checks on every platform | Released |
 | v0.10.4 | Maintenance release: subject scheme maps without a DOCTYPE, no known vulnerability in the dependencies | Released |
-| v0.11.0 | DITA 1.3 conformance: key scopes, reference severities and content references as the standard and DITA-OT 4.3.5, conformance test book and statement | **Current** |
+| v0.11.0 | DITA 1.3 conformance: key scopes, reference severities and content references as the standard and DITA-OT 4.3.5, conformance test book and statement | Released |
+| v0.12.0 | DITA-OT from VS Code: install DITA-OT, list, install and uninstall plugins; DITA-OT from deep folders on Windows | **Current** |
 
 ---
 
-*Last updated: November 2026 (v0.11.0: DITA 1.3 conformance)*
+*Last updated: November 2026 (v0.12.0: DITA-OT install and plugin management)*

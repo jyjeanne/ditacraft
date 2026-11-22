@@ -7,16 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-22
+
+DITA-OT from VS Code: DITA Craft installs DITA-OT, and lists, installs and uninstalls its plugins. On Windows, DITA-OT now runs from deep folders.
+
 ### Added
 - `DITA: Install DITA-OT` downloads a DITA-OT release from GitHub, extracts it safely (no path traversal or symlinks), verifies it and sets `ditacraft.ditaOtPath`. Settings: `ditacraft.ditaOtInstallTargetDir`, `ditacraft.ditaOtPreferredVersion`.
 - `DITA: Manage DITA-OT Plugins` lists installed plugins with their versions (`dita plugins`), installs plugins from the registry (`dita install <id>[@version]`) and uninstalls plugins (`dita uninstall <id>`). Setting: `ditacraft.ditaOtRegistryUrl`.
   - Uninstalling is safer than `dita uninstall` alone, which deletes the plugin folder before it integrates DITA-OT again: when another plugin needs the removed one, the integration fails and DITA-OT is left broken. DITA Craft refuses to remove a plugin that other plugins depend on, through a requirement or an extension point, and names them. It protects DITA-OT's own plugins (`org.dita.*`, `org.oasis-open.*`), such as the DITA grammars, which DITA-OT removes without a warning. And it backs up the plugin folder: if DITA-OT cannot be integrated without the plugin, the plugin is put back and DITA-OT integrated again. The study behind it, with the behaviour of DITA-OT 4.3.5, is `docs/STUDY_DITA_OT_PLUGIN_UNINSTALL.md`.
+
+### Changed
+- Dependencies updated: `@anthropic-ai/sdk` 1.8, `openai` 7.57 and `fast-xml-parser` 5.12.1, and in the visual editor `prosemirror-model` 1.25.13. `yauzl` 3.4 is a new dependency: it extracts the DITA-OT archive.
 
 ### Fixed
 - On Windows, DITA-OT failed to run from a deep folder: publishing failed with cmd.exe's own message ("The input line is too long."), and DITA Craft said that DITA-OT was not found. The DITA-OT launcher, `dita.bat`, puts every plugin library on one command line with the full path of the DITA-OT folder, and cmd.exe refuses a line longer than 8,191 characters: DITA-OT 4.3.5 stopped working from a folder path of 97 characters, and publishing from a shorter one, with long document paths.
   - DITA Craft now launches `dita.bat` through the short (8.3) name of its folder, which Windows gives most folders: a DITA-OT at 135 characters, which could not run, runs from its 89-character short path.
   - When the command line still does not fit, DITA Craft does not launch DITA-OT, and says why and what to do, in every command that uses DITA-OT.
   - `DITA: Install DITA-OT` asks before installing into a folder that may be too deep, and `DITA: Manage DITA-OT Plugins` warns after an install when the plugin's libraries make the command line too long for publishing.
+
+### Development
+- Development dependencies updated: `eslint` 10.15, `typescript-eslint` 8.72.2, `glob` 14.0.6 and `@vscode/vsce` 4.1.1.
+- The repository has funding links (Liberapay, Buy Me a Coffee) in `.github/FUNDING.yml`.
 
 ### Known limitations
 - The plugin registry response format and the `dita plugins` output format are based on the `dita-ot/registry` repository and DITA-OT 4.x CLI; they have not been verified against a live registry in every environment.
