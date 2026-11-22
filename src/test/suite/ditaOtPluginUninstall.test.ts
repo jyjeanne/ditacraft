@@ -15,7 +15,7 @@ import {
     DitaCliResult,
     DitaCliRunner
 } from '../../utils/ditaOtPluginManager';
-import { findDitaOtHome } from '../../utils/ditaOtWrapper';
+import { findDitaOtHome } from '../../utils/ditaOtLaunch';
 
 suite('DITA-OT Plugin Uninstall Test Suite', () => {
     let root: string;

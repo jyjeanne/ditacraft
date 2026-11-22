@@ -1,7 +1,7 @@
 # Study: Uninstalling DITA-OT Plugins
 
-**Version:** 1.2 (1.0: study; 1.1: decisions D1 to D3 taken, fix of the Windows path length limit for the install feature, §7; 1.2: phases 8 to 10 done)  
-**Status:** Uninstall implemented (phases 8 to 10); phase 11, the Windows path length fix, open  
+**Version:** 1.2 (1.0: study; 1.1: decisions D1 to D3 taken, fix of the Windows path length limit for the install feature, §7; 1.2: phases 8 to 10 done; 1.3: phase 11 done, measurements of §7.2 corrected by one character)  
+**Status:** Implemented: uninstall (phases 8 to 10) and the Windows path length fix (phase 11)  
 **Related:** [SPEC_DITA_OT_INSTALL_AND_PLUGIN_MANAGEMENT.md](SPEC_DITA_OT_INSTALL_AND_PLUGIN_MANAGEMENT.md) (§2.2 listed plugin uninstall as a non-goal of v1)
 
 ---
@@ -163,21 +163,23 @@ Decided on 21 November 2026, as recommended.
 
 On Windows, `bin/dita.bat` runs `config/env.bat`, which the integration writes: it adds every library of every plugin to the Java class path, each with the **full path** of the DITA-OT folder (47 entries with DITA-OT 4.3.5 and its bundled plugins). The whole class path ends up on one command line, and `cmd.exe` refuses a line longer than 8,191 characters: `The input line is too long.` (in French, `La ligne entrée est trop longue.`).
 
+`dita.bat` always sets `DITA_HOME` to the folder it is launched from followed by `\..` (`set DITA_HOME=%~dp0..`: the `if` before it jumps to the next line either way), whatever the environment says. Each entry therefore holds `<DITA-OT folder>\bin\..`, and only the path `dita.bat` is launched from matters.
+
 `dita install` and `dita uninstall` do not run `env.bat`, so they keep working; every other command fails: `--version`, `plugins`, `transtypes`, and publishing.
 
 ### 7.2 Measurements
 
-DITA-OT 4.3.5, Java 21, copies of one installation at paths of chosen lengths. The Java command line was captured by making a copy of `dita.bat` print it instead of running it.
+DITA-OT 4.3.5, Java 21, copies of one installation at paths of chosen lengths. The Java command line was captured by making a copy of `dita.bat` print it instead of running it. (Version 1.2 of this study gave every length one character too high: it counted the space that `echo` writes before a redirection.)
 
 | DITA-OT folder path | `dita plugins` | Java command line |
 |---|---|---|
-| 80 characters | works | 7,350 characters, of which 6,581 are the class path |
-| 90 characters | works | 7,870 |
-| 95 characters | works | 8,130 |
-| 96 characters | works | 8,182 |
-| 97 characters and more | **fails** | 8,234 and more |
+| 80 characters | works | 7,349 characters, of which 6,581 are the class path |
+| 90 characters | works | 7,869 |
+| 95 characters | works | 8,129 |
+| 96 characters | works | 8,181 |
+| 97 characters and more | **fails** | 8,233 and more |
 
-- Each character of the folder path adds 52 characters to the line: 47 class path entries and 5 other uses. For `dita plugins`, the line is 3,190 + 52 × the path length (with a 38-character `JAVA_HOME`).
+- Each character of the folder path adds 52 characters to the line: 47 class path entries and 5 other uses. For `dita plugins`, the line is 3,189 + 52 × the path length (with a 38-character `JAVA_HOME`).
 - **Arguments count too.** A DITA-OT at 95 characters lists its plugins and publishes `--input Q:\t.dita --output Q:\o`, but fails to publish with absolute input and output paths (382 characters of arguments in the test), as DITA Craft passes them (`--input`, `--output`, and `--temp` and `--filter` when set).
 - **Plugins count too.** Each plugin library adds about the folder path length plus 50 characters. A DITA-OT that works can stop working after a plugin install.
 - The DITA-OT of this repository's user guide build, `docs/user-guide/build/dita-ot/dita-ot-4.3.5`, is 95 characters long in a checkout under `C:\Users\<user>\Documents\Perso\Projects\`: at the limit. Publishing from DITA Craft with it can fail, depending on the paths of the document and of the output.
@@ -190,9 +192,9 @@ DITA-OT 4.3.5, Java 21, copies of one installation at paths of chosen lengths. T
 
 ### 7.4 Fix
 
-**F1 — Launch DITA-OT through the short name of its folder.** Windows gives most folders a short (8.3) name as well, such as `C:\Users\<user>\DOCUME~1\…\DITA-O~1.5`. Before launching `dita.bat`, DITA Craft resolves the short path of the DITA-OT folder once (`cmd /c for %I in ("<path>") do @echo %~sI`, cached per path) and uses it for the command (`<short path>\bin\dita.bat`) and for `DITA_HOME`. Measured: a DITA-OT at 135 characters, whose `dita plugins` fails, runs `plugins`, `transtypes` and an HTML5 publish with a 162-character output path through its 89-character short path.
+**F1 — Launch DITA-OT through the short name of its folder.** Windows gives most folders a short (8.3) name as well, such as `C:\Users\<user>\DOCUME~1\…\DITA-O~1.5`. Before launching `dita.bat`, DITA Craft resolves the short path of the DITA-OT folder once (`cmd /c for %I in ("<path>") do @echo %~sI`, cached per path) and launches `<short path>\bin\dita.bat`: `dita.bat` takes `DITA_HOME` from the folder it is launched from (§7.1). Measured: a DITA-OT at 135 characters, whose `dita plugins` fails, runs `plugins`, `transtypes` and an HTML5 publish with a 162-character output path through its 89-character short path.
 
-The wrapper launches `dita.bat` in four places: `verifyInstallation`, `getAvailableTranstypes`, `runDitaCli` and `publish`. Only the last two set `DITA_HOME`. One launch helper serves all four.
+DITA Craft launched `dita` in five places: `verifyInstallation`, `getAvailableTranstypes`, `runDitaCli` and `publish` in the wrapper, and `verifyDitaOtAt` in the installer. One launch helper, `src/utils/ditaOtLaunch.ts`, now serves all five.
 
 Limits: Windows creates short names only where 8.3 name generation is enabled on the volume. It usually is on the system drive, but it can be disabled, on other drives or by policy. Without a short name, the resolved path is the long one, and F2 applies. DITA-OT messages show the short names (`DITA-O~1.5`); that is cosmetic.
 
@@ -202,7 +204,7 @@ Limits: Windows creates short names only where 8.3 name generation is enabled on
 
 This replaces the localized `cmd.exe` message and "DITA-OT was not found". Read `env.bat` again only when its modification time changes.
 
-**F3 — Warn when installing into a deep folder.** Before the download, when F1 cannot shorten the chosen folder (no short name) and the path of the folder to create (`<target>\dita-ot-<version>`) is longer than 80 characters, a modal warning: "DITA-OT may not run from this folder on Windows: its path is N characters long…", with **Choose Another Folder** and **Install Anyway**. At 80 characters, DITA-OT 4.3.5's command line is 7,350 characters: that leaves about 840 for publishing arguments and the libraries of added plugins.
+**F3 — Warn when installing into a deep folder.** Before the download, when the path of the folder to create, after F1 shortens what it can (`<short path of the target>\dita-ot-<version>`), is longer than 80 characters, a modal warning: "DITA-OT may not run from this folder on Windows: its path is N characters long…", with **Choose Another Folder** and **Install Anyway**. At 80 characters, DITA-OT 4.3.5's command line is 7,349 characters: that leaves about 840 for publishing arguments and the libraries of added plugins.
 
 **F4 — Check after a plugin install.** After a successful `dita install` on Windows, run the F2 check with an allowance of 300 characters for publishing arguments. When it is over the limit: "<plugin> added libraries to DITA-OT, and its command line would now be N characters long: publishing may fail. Move DITA-OT to a shorter folder, or uninstall the plugin." Uninstalling still works, since `dita uninstall` does not run `env.bat`.
 
@@ -214,9 +216,9 @@ This replaces the localized `cmd.exe` message and "DITA-OT was not found". Read 
 
 ### 7.5 Tests
 
-- Short path resolution: the short path is used for the command and `DITA_HOME` in the four launch places; the long path is kept when Windows returns no short name; no change on Linux and macOS.
-- Command line estimate, with the `env.bat` and the Java line of `dita.bat` of DITA-OT 4.3.5 as fixtures and a 38-character Java path: 7,350 characters at 80 and 7,870 at 90 for `dita plugins`; the F2 message above 8,191.
-- Installer: the F3 warning, and **Choose Another Folder**.
+- Short path launch: `dita.bat` runs through cmd.exe from the short path of its folder; a bare `dita.bat` is found on the PATH; nothing changes on Linux and macOS; Windows is simulated, so the tests run on every platform.
+- Command line estimate, with the Java line of DITA-OT 4.3.5's `dita.bat` as a fixture: `DITA_HOME` as `<bin>\..`, the plugin libraries left out for `install` and `uninstall`, quoted arguments, `JAVA_HOME`, `CLASSPATH` and `ANT_OPTS`; the F2 error above 8,191 characters, and a short path that makes a deep folder fit.
+- The F3 and F4 rules: the folder length after shortening, and the room left for publishing arguments. The dialogs of the install command are not covered by tests.
 - Manual, on Windows: a DITA-OT copy at more than 100 characters: version check, plugin list, transtypes and a publish work through F1; with F1 disabled, the F2 message appears instead of the `cmd.exe` one.
 
 ### 7.6 Phase 11 — Windows path length
@@ -225,3 +227,10 @@ This replaces the localized `cmd.exe` message and "DITA-OT was not found". Read 
 2. **Command line estimate and message (F2).**
 3. **Installer warning (F3) and check after a plugin install (F4).**
 4. **Tests** of §7.5, and the **user guide**: a Windows note in **DITA: Install DITA-OT** and **DITA: Configure DITA-OT Path**.
+
+**After phase 11**, on Windows with DITA-OT 4.3.5:
+
+- The estimate equals the measured Java command lines: 7,349 characters at 80, 7,869 at 90, 8,181 at 96 and 8,233 at 97.
+- A DITA-OT at 135 characters, whose line would be 10,209 characters, runs `dita plugins` through the launch helper, from its short path (7,817 characters). Without short names, the helper refuses it with the F2 message.
+- The DITA-OT of this repository's user guide build, 95 characters long, goes from 8,129 to 7,765 characters: about 420 more for publishing arguments.
+- Not verified: a volume without 8.3 names (simulated in the tests only), and a publish from the packaged extension with a deep DITA-OT.

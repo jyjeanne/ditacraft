@@ -40,6 +40,14 @@ export async function manageDitaOtPluginsCommand(): Promise<void> {
     try {
         const wrapper = new DitaOtWrapper();
         const verification = await wrapper.verifyInstallation();
+        if (!verification.installed && verification.problem) {
+            // DITA-OT is there but cannot run from its folder (Windows command line limit).
+            const choice = await vscode.window.showErrorMessage(verification.problem, 'Configure DITA-OT Path');
+            if (choice === 'Configure DITA-OT Path') {
+                await vscode.commands.executeCommand('ditacraft.configureDitaOT');
+            }
+            return;
+        }
         if (!verification.installed) {
             const choice = await vscode.window.showWarningMessage(
                 'DITA-OT was not found. Configure the DITA-OT path or install DITA-OT first.',
@@ -70,7 +78,7 @@ export async function manageDitaOtPluginsCommand(): Promise<void> {
         if (action.action === ACTION_LIST) {
             await showInstalledPlugins(run);
         } else if (action.action === ACTION_INSTALL) {
-            await installFromRegistry(run);
+            await installFromRegistry(wrapper, run);
         } else {
             await uninstallFromDitaOt(wrapper, run);
         }
@@ -101,7 +109,7 @@ async function showInstalledPlugins(run: Runner): Promise<void> {
     );
 }
 
-async function installFromRegistry(run: Runner): Promise<void> {
+async function installFromRegistry(wrapper: DitaOtWrapper, run: Runner): Promise<void> {
     const registryUrl = configManager.get('ditaOtRegistryUrl');
     const catalog = await vscode.window.withProgress(
         { location: vscode.ProgressLocation.Notification, title: 'Loading DITA-OT plugin registry...' },
@@ -152,6 +160,11 @@ async function installFromRegistry(run: Runner): Promise<void> {
     );
 
     if (result.success) {
+        // The plugin's libraries lengthen DITA-OT's command line, which has a limit on Windows.
+        const problem = wrapper.publishCommandLineProblem();
+        if (problem) {
+            vscode.window.showWarningMessage(problem);
+        }
         const choice = await vscode.window.showInformationMessage(`DITA-OT plugin ${target} installed.`, LIST_PLUGINS);
         if (choice === LIST_PLUGINS) {
             await showInstalledPlugins(run);

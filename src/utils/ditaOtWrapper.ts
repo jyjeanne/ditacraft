@@ -13,7 +13,14 @@ import { getDitaOtOutputChannel } from './ditaOtOutputChannel';
 import { PROCESS_CONSTANTS } from './constants';
 import { configManager } from './configurationManager';
 import { substituteWorkspaceFolderVar } from './pathUtils';
-import { isDitaOtRoot } from './ditaOtInstaller';
+import {
+    DitaCommandLineTooLongError,
+    DitaLaunch,
+    findDitaOtHome,
+    isDitaOtHome,
+    prepareDitaLaunch,
+    publishCommandLineWarning
+} from './ditaOtLaunch';
 
 const execFileAsync = promisify(execFile);
 
@@ -86,36 +93,6 @@ export interface PublishResult {
     error?: string;
     /** Combined stdout and stderr output for error parsing */
     output?: string;
-}
-
-/** True for a DITA-OT folder: `bin/dita` (or `.bat`, `.cmd`) and a `plugins` folder. */
-function isDitaOtHome(dir: string): boolean {
-    return isDitaOtRoot(dir) && fs.existsSync(path.join(dir, 'plugins'));
-}
-
-/**
- * The DITA-OT folder of a `dita` command: the folder above its `bin`, for a command given by
- * its path or, for a bare name, for the first match on the PATH. Symbolic links are followed,
- * as Homebrew links `dita` into its own `bin`. Undefined when that folder is not a DITA-OT
- * folder (a wrapper script elsewhere, for instance).
- */
-export function findDitaOtHome(command: string, pathEnv: string = process.env.PATH ?? ''): string | undefined {
-    const candidates = command.includes('/') || command.includes('\\')
-        ? [command]
-        : pathEnv.split(path.delimiter).filter(Boolean).map(dir => path.join(dir, command));
-    for (const candidate of candidates) {
-        let real: string;
-        try {
-            real = fs.realpathSync(candidate);
-        } catch {
-            continue;
-        }
-        const home = path.dirname(path.dirname(real));
-        if (isDitaOtHome(home)) {
-            return home;
-        }
-    }
-    return undefined;
 }
 
 export class DitaOtWrapper {
@@ -335,19 +312,12 @@ export class DitaOtWrapper {
      * }
      * ```
      */
-    public async verifyInstallation(): Promise<{ installed: boolean; version?: string; path?: string }> {
+    public async verifyInstallation(): Promise<{ installed: boolean; version?: string; path?: string; problem?: string }> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            let stdout: string;
-
-            // On Windows, .bat and .cmd files need to be executed through cmd.exe
-            if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
-                const result = await execFileAsync('cmd.exe', ['/c', command, '--version']);
-                stdout = result.stdout;
-            } else {
-                const result = await execFileAsync(command, ['--version']);
-                stdout = result.stdout;
-            }
+            // On Windows, a batch file runs through cmd.exe, from the short path of its folder.
+            const launch = prepareDitaLaunch(command, ['--version'], process.env);
+            const { stdout } = await execFileAsync(launch.file, launch.args, { env: launch.env });
 
             const versionMatch = stdout.match(/DITA-OT version ([\d.]+)/i);
             const version = versionMatch ? versionMatch[1] : 'unknown';
@@ -359,6 +329,10 @@ export class DitaOtWrapper {
             };
         } catch (_error) {
             logger.debug('DITA-OT verification failed', { error: _error });
+            if (_error instanceof DitaCommandLineTooLongError) {
+                // DITA-OT is there, but cannot run from its folder: say why instead of "not found".
+                return { installed: false, problem: _error.message };
+            }
             return {
                 installed: false
             };
@@ -388,9 +362,8 @@ export class DitaOtWrapper {
             let child: ReturnType<typeof spawn>;
             const isWindows = process.platform === 'win32';
             try {
-                child = isWindows && (command.endsWith('.bat') || command.endsWith('.cmd'))
-                    ? spawn('cmd.exe', ['/c', command, ...args], { env })
-                    : spawn(command, args, { env, detached: !isWindows });
+                const launch: DitaLaunch = prepareDitaLaunch(command, args, env);
+                child = spawn(launch.file, launch.args, { env: launch.env, detached: !isWindows });
             } catch (error: unknown) {
                 resolve({ code: null, stdout, stderr: error instanceof Error ? error.message : String(error), timedOut });
                 return;
@@ -444,6 +417,14 @@ export class DitaOtWrapper {
     }
 
     /**
+     * On Windows, a warning when publishing would probably not fit in cmd.exe's command line,
+     * as after a plugin install that added libraries; undefined otherwise.
+     */
+    public publishCommandLineProblem(): string | undefined {
+        return this.ditaOtCommand ? publishCommandLineWarning(this.ditaOtCommand, process.env) : undefined;
+    }
+
+    /**
      * The DITA-OT folder: `ditacraft.ditaOtPath`, or the folder of the `dita` command found on
      * the PATH. Undefined when it is not a DITA-OT folder with its plugins.
      */
@@ -460,16 +441,9 @@ export class DitaOtWrapper {
     public async getAvailableTranstypes(): Promise<string[]> {
         try {
             const command = this.ditaOtCommand || 'dita';
-            let stdout: string;
-
-            // On Windows, .bat and .cmd files need to be executed through cmd.exe
-            if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
-                const result = await execFileAsync('cmd.exe', ['/c', command, 'transtypes']);
-                stdout = result.stdout;
-            } else {
-                const result = await execFileAsync(command, ['transtypes']);
-                stdout = result.stdout;
-            }
+            // On Windows, a batch file runs through cmd.exe, from the short path of its folder.
+            const launch = prepareDitaLaunch(command, ['transtypes'], process.env);
+            const { stdout } = await execFileAsync(launch.file, launch.args, { env: launch.env });
 
             const transtypes = parseTranstypes(stdout);
 
@@ -656,20 +630,25 @@ export class DitaOtWrapper {
                 ditaHome: ditaHome || 'not set (using system PATH)'
             });
 
-            const buildStartTime = Date.now();
-            let ditaProcess;
-            if (process.platform === 'win32' && (command.endsWith('.bat') || command.endsWith('.cmd'))) {
-                // Execute through cmd.exe for Windows batch files
-                ditaProcess = spawn('cmd.exe', ['/c', command, ...args], {
-                    cwd: normalizedCwd,
-                    env: processEnv
-                });
-            } else {
-                ditaProcess = spawn(command, args, {
-                    cwd: normalizedCwd,
-                    env: processEnv
-                });
+            // On Windows, a batch file runs through cmd.exe, from the short path of its folder;
+            // a command line too long for cmd.exe is refused here, with the reason.
+            let launch: DitaLaunch;
+            try {
+                launch = prepareDitaLaunch(command, args, processEnv);
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : String(error);
+                logger.error('DITA-OT cannot be launched', { error: message });
+                ditaOtOutput.info(message);
+                ditaOtOutput.logBuildComplete(false, options.outputDir);
+                resolve({ success: false, outputPath: options.outputDir, error: message });
+                return;
             }
+
+            const buildStartTime = Date.now();
+            const ditaProcess = spawn(launch.file, launch.args, {
+                cwd: normalizedCwd,
+                env: launch.env
+            });
 
             let outputBuffer = '';
             let errorBuffer = '';

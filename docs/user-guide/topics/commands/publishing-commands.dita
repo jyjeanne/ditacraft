@@ -78,12 +78,13 @@
                 <li>Confirm the install. The archive is extracted to a staging folder, verified with <codeph>dita --version</codeph>, then moved to <filepath>dita-ot-&lt;version&gt;</filepath>.</li>
             </ol>
             <p>If verification fails, the staging folder is removed and the path setting is not changed. If GitHub cannot be reached, a built-in list of versions is shown.</p>
+            <p><b>On Windows:</b> choose a short install folder, such as <filepath>C:\DITA-OT</filepath>. The DITA-OT launcher puts the path of every plugin library on one command line, and Windows refuses a command line longer than 8,191 characters: DITA-OT 4.3.5 stops working from a folder path of about 97 characters, less with long document paths or more plugins. DITA Craft launches DITA-OT through the short name that Windows gives the folder, which helps, and asks before installing into a folder that may be too deep.</p>
         </section>
 
         <section id="manage-dita-ot-plugins">
             <title>DITA: Manage DITA-OT Plugins</title>
             <p>Lists the plugins installed in the configured DITA-OT (<codeph>dita plugins</codeph>), with their versions, in a picker, installs plugins from the DITA-OT plugin registry (<codeph>dita install &lt;id&gt;[@version]</codeph>), and uninstalls plugins (<codeph>dita uninstall &lt;id&gt;</codeph>).</p>
-            <p>Plugin installation runs code from the registry. Output is shown in the DITA-OT output panel. The registry URL is set with <codeph>ditacraft.ditaOtRegistryUrl</codeph> and must use <codeph>https</codeph>.</p>
+            <p>Plugin installation runs code from the registry. Output is shown in the DITA-OT output panel. The registry URL is set with <codeph>ditacraft.ditaOtRegistryUrl</codeph> and must use <codeph>https</codeph>. On Windows, DITA Craft warns after an install when the libraries of the plugin make the DITA-OT command line too long for publishing (see <uicontrol>DITA: Install DITA-OT</uicontrol>).</p>
             <p><b>Uninstalling a plugin:</b> the picker lists the plugins that can be removed, then, under <uicontrol>Cannot be removed here</uicontrol>, the others with the reason:</p>
             <ul>
                 <li><b>Part of DITA-OT</b>: the plugins of DITA-OT itself (<codeph>org.dita.*</codeph>, <codeph>org.oasis-open.*</codeph>), such as the DITA grammars. DITA-OT stops working without them, and only reinstalling DITA-OT restores them.</li>
@@ -109,6 +110,7 @@
                 <li><filepath>lib/</filepath> directory with required JAR files</li>
                 <li>Valid version information</li>
             </ul>
+            <p><b>On Windows:</b> when DITA-OT is in a deep folder, DITA Craft may report that its command line would be too long for Windows. Move DITA-OT to a shorter folder, such as <filepath>C:\DITA-OT</filepath>, and run this command again.</p>
         </section>
 
         <section id="publishing-errors">

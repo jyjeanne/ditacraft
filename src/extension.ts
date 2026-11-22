@@ -1251,12 +1251,12 @@ async function verifyDitaOtInstallation(): Promise<void> {
                 `DITA-OT found: Version ${verification.version} at ${verification.path}`
             );
         } else {
-            logger.warn('DITA-OT not found or not configured');
-            outputChannel.appendLine('DITA-OT not found or not configured');
+            logger.warn('DITA-OT not found or not configured', { problem: verification.problem });
+            outputChannel.appendLine(verification.problem ?? 'DITA-OT not found or not configured');
 
             // Show notification with action
             const action = await vscode.window.showWarningMessage(
-                'DITA-OT is not installed or not configured. Publishing features will not work.',
+                verification.problem ?? 'DITA-OT is not installed or not configured. Publishing features will not work.',
                 'Configure Now',
                 'Dismiss'
             );

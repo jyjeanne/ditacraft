@@ -55,7 +55,7 @@ async function validateGuidePrerequisites(): Promise<GuideValidationContext | nu
     const installation = await ditaOt.verifyInstallation();
     if (!installation.installed) {
         const action = await vscode.window.showErrorMessage(
-            'Command not available: DITA-OT must be installed and configured.',
+            installation.problem ?? 'Command not available: DITA-OT must be installed and configured.',
             'Configure Now'
         );
         if (action === 'Configure Now') {

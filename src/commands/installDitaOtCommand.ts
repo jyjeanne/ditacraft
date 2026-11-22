@@ -19,9 +19,12 @@ import {
     verifyDitaOtAt,
     isWritableDirectory
 } from '../utils/ditaOtInstaller';
+import { deepInstallFolderWarning } from '../utils/ditaOtLaunch';
 
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 const RUN_PUBLISH_ACTION = 'Run Publish';
+const CHOOSE_ANOTHER_FOLDER = 'Choose Another Folder';
+const INSTALL_ANYWAY = 'Install Anyway';
 
 /**
  * Command: ditacraft.installDitaOT
@@ -34,9 +37,25 @@ export async function installDitaOtCommand(): Promise<void> {
             return;
         }
 
-        const targetDir = await pickTargetDirectory();
+        let targetDir = await pickTargetDirectory();
         if (!targetDir) {
             return;
+        }
+        // On Windows, DITA-OT may not run from a deep folder: its command line grows with the path.
+        let warning = deepInstallFolderWarning(targetDir, version);
+        while (warning) {
+            const choice = await vscode.window.showWarningMessage(warning, { modal: true }, CHOOSE_ANOTHER_FOLDER, INSTALL_ANYWAY);
+            if (choice === INSTALL_ANYWAY) {
+                break;
+            }
+            if (choice !== CHOOSE_ANOTHER_FOLDER) {
+                return;
+            }
+            targetDir = await pickTargetDirectory(true);
+            if (!targetDir) {
+                return;
+            }
+            warning = deepInstallFolderWarning(targetDir, version);
         }
 
         const installPath = path.join(targetDir, `dita-ot-${version}`);
@@ -106,8 +125,9 @@ async function pickVersion(): Promise<string | undefined> {
     return selected?.version;
 }
 
-async function pickTargetDirectory(): Promise<string | undefined> {
-    const configured = substituteWorkspaceFolderVar(configManager.get('ditaOtInstallTargetDir').trim());
+/** The install folder: the setting when there is one, unless `ignoreSetting`; otherwise a folder dialog. */
+async function pickTargetDirectory(ignoreSetting = false): Promise<string | undefined> {
+    const configured = ignoreSetting ? '' : substituteWorkspaceFolderVar(configManager.get('ditaOtInstallTargetDir').trim());
     if (configured) {
         if (!isWritableDirectory(configured)) {
             vscode.window.showErrorMessage(
@@ -152,6 +172,10 @@ async function applyInstalledPath(installPath: string, version: string): Promise
     if (!verification?.installed) {
         await config.update('ditaOtPath', previousGlobal, vscode.ConfigurationTarget.Global);
         wrapper.reloadConfiguration();
+        if (verification?.problem) {
+            vscode.window.showErrorMessage(`${verification.problem} The DITA-OT path setting was not changed.`);
+            return;
+        }
         const reason = effectivePath === installPath
             ? 'verification failed'
             : `a workspace or folder setting overrides it (${effectivePath || 'empty'})`;
