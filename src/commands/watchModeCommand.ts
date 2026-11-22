@@ -93,7 +93,8 @@ export async function startWatchModeCommand(uri?: vscode.Uri): Promise<void> {
     }
     const verification = await ditaOt.verifyInstallation();
     if (!verification.installed) {
-        vscode.window.showErrorMessage('DITA Craft: DITA-OT is not installed or not configured. Configure it before starting watch mode.');
+        vscode.window.showErrorMessage(verification.problem
+            ?? 'DITA Craft: DITA-OT is not installed or not configured. Configure it before starting watch mode.');
         return;
     }
 

@@ -11,6 +11,7 @@ import { execFile } from 'child_process';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 import * as yauzl from 'yauzl';
+import { DitaCommandLineTooLongError, DitaLaunch, prepareDitaLaunch } from './ditaOtLaunch';
 
 export const DITA_OT_REPO = 'dita-ot/dita-ot';
 
@@ -330,13 +331,17 @@ export function verifyDitaOtAt(installPath: string): Promise<string | undefined>
     const command = path.join(installPath, 'bin', binName);
     const env = { ...process.env, DITA_HOME: installPath };
     const parse = (stdout: string): string | undefined => stdout.match(/DITA-OT version ([\d.]+)/i)?.[1];
+    // On Windows, from the short path of its folder; a command line too long for cmd.exe
+    // rejects with DitaCommandLineTooLongError, so the reason can be given.
+    let launch: DitaLaunch;
+    try {
+        launch = prepareDitaLaunch(command, ['--version'], env);
+    } catch (error: unknown) {
+        return Promise.reject(error);
+    }
     return new Promise(resolve => {
-        const callback = (error: Error | null, stdout: string) => resolve(error ? undefined : parse(stdout));
-        if (process.platform === 'win32') {
-            execFile('cmd.exe', ['/c', command, '--version'], { env, timeout: 60000 }, (error, stdout) => callback(error, String(stdout)));
-        } else {
-            execFile(command, ['--version'], { env, timeout: 60000 }, (error, stdout) => callback(error, String(stdout)));
-        }
+        execFile(launch.file, launch.args, { env: launch.env, timeout: 60000 },
+            (error, stdout) => resolve(error ? undefined : parse(String(stdout))));
     });
 }
 
@@ -388,9 +393,18 @@ export async function installDitaOt(options: InstallOptions): Promise<InstallRes
         fs.renameSync(root, installPath);
 
         onProgress?.('Verifying installation…');
-        const verifiedVersion = await verify(installPath).catch(() => undefined);
+        let verifyError: unknown;
+        const verifiedVersion = await verify(installPath).catch(error => {
+            verifyError = error;
+            return undefined;
+        });
         if (!verifiedVersion) {
             fs.rmSync(installPath, { recursive: true, force: true });
+            if (verifyError instanceof DitaCommandLineTooLongError) {
+                throw new Error(`DITA-OT ${version} cannot run from ${installPath} on Windows: its command line would be `
+                    + `${verifyError.commandLineLength.toLocaleString('en-US')} characters long, over the limit of cmd.exe. `
+                    + 'The folder was removed. Install DITA-OT into a shorter folder, such as C:\\DITA-OT.');
+            }
             throw new Error(`DITA-OT installed but verification failed. Please run 'DITA: Configure DITA-OT Path'.`);
         }
         return { version: verifiedVersion, installPath };

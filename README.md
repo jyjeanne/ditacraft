@@ -327,7 +327,7 @@ To build and install DITA Craft from its source code (development, testing), see
 ## Quick Start
 
 ### 1. Install DITA-OT
-Either run **DITA: Install DITA-OT** from the Command Palette to download a release from GitHub and set it up automatically (requires network access to github.com), or download and install DITA-OT manually from https://www.dita-ot.org/download
+Either run **DITA: Install DITA-OT** from the Command Palette to download a release from GitHub and set it up automatically (requires network access to github.com), or download and install DITA-OT manually from https://www.dita-ot.org/download. On Windows, prefer a short folder such as `C:\DITA-OT`: DITA-OT's launcher stops working when the path of its folder is too long (about 97 characters for DITA-OT 4.3.5).
 
 Then use **DITA: Manage DITA-OT Plugins** to list installed plugins, install plugins from the plugin registry (requires network access to plugins.dita-ot.org; plugin installs run code from the registry and ask for confirmation first), or uninstall plugins. DITA Craft does not remove DITA-OT's own plugins or a plugin that other plugins need, and it puts a plugin back if DITA-OT cannot work without it.
 

@@ -54,7 +54,7 @@ async function validateAndPrepareForPublish(uri?: vscode.Uri): Promise<{ ditaOt:
     const verification = await ditaOt.verifyInstallation();
     if (!verification.installed) {
         const action = await vscode.window.showErrorMessage(
-            'DITA-OT is not installed or not configured. Please configure DITA-OT path.',
+            verification.problem ?? 'DITA-OT is not installed or not configured. Please configure DITA-OT path.',
             'Configure Now'
         );
 
