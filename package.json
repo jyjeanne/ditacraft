@@ -1261,11 +1261,11 @@
     "typescript-eslint": "^8.73.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.8.0",
+    "@anthropic-ai/sdk": "^1.12.0",
     "@modelcontextprotocol/sdk": "^1.32.2",
     "@xmldom/xmldom": "^0.9.11",
     "fast-xml-parser": "^5.12.1",
-    "openai": "^7.57.0",
+    "openai": "^7.62.0",
     "typesxml": "^2.9.0",
     "vscode-languageclient": "^11.0.0",
     "yauzl": "^3.4.0",
