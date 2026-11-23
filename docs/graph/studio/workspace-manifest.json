@@ -2,13 +2,13 @@
   "schema": "engram_workspace_manifest_v1",
   "schema_version": 1,
   "contract": "workspace-bundle-contract-v1",
-  "generated_at": "2026-11-17T00:19:58.546Z",
+  "generated_at": "2026-11-23T00:12:55.960Z",
   "graph_hash": null,
   "present_count": 4,
   "counts": {
-    "graph_nodes": 3574,
-    "scene_nodes": 3574,
-    "entities": 3574,
+    "graph_nodes": 3699,
+    "scene_nodes": 3699,
+    "entities": 3699,
     "coherent": true
   },
   "artifacts": [
@@ -17,8 +17,8 @@
       "path": "entities.json",
       "schema": null,
       "present": true,
-      "sha256": "14016021858b0be3a62fb7287a85f78abcc6fce78360af065d806b2e2053199a",
-      "size_bytes": 660558,
+      "sha256": "90c6d149dc623e6f4b5a23ec6e401a8ae406d4e29bad7e5232194e0b6e0c6f5d",
+      "size_bytes": 684390,
       "role": "entities"
     },
     {
@@ -26,8 +26,8 @@
       "path": "graph.json",
       "schema": null,
       "present": true,
-      "sha256": "4bbcc47b61e5ff33cccc661897167bdfd0bc8502a06d7aecb249c5fcc0f80145",
-      "size_bytes": 5378261,
+      "sha256": "5fde47efd8ac0180e24cbc4e5c57bbfb8fee98551a712abaf9f0fb53e8250cd3",
+      "size_bytes": 5575494,
       "role": "graph"
     },
     {
@@ -44,8 +44,8 @@
       "path": "scene.json",
       "schema": null,
       "present": true,
-      "sha256": "969ef1ca674e1b93c3cb8dd547f6cb9885cf4ae7cd93168afffafb24cb6d35bd",
-      "size_bytes": 2575033,
+      "sha256": "7a6b07e92ea417fe2856201688c00eda3ca54f05ce58410b1fd88d3475325c61",
+      "size_bytes": 2668708,
       "role": "scene"
     },
     {

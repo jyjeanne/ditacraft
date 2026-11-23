@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T00:19:59.394Z",
+  "generatedAt": "2026-11-23T00:12:57.522Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.engram/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -7953,6 +7953,32 @@
       "warnings": []
     },
     {
+      "id": "flow:utils_ditaotpluginmanager_readplugindescriptors",
+      "name": "readPluginDescriptors",
+      "entryPoint": "utils_ditaotpluginmanager_readplugindescriptors",
+      "entryPointId": "utils_ditaotpluginmanager_readplugindescriptors",
+      "path": [
+        "utils_ditaotpluginmanager_readplugindescriptors",
+        "utils_ditaotpluginmanager_parseplugindirs",
+        "utils_ditaotpluginmanager_readpropertyvalue",
+        "utils_ditaotpluginmanager_unescapeproperty"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotpluginmanager_readplugindescriptors",
+        "utils_ditaotpluginmanager_parseplugindirs",
+        "utils_ditaotpluginmanager_readpropertyvalue",
+        "utils_ditaotpluginmanager_unescapeproperty"
+      ],
+      "depth": 3,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtPluginManager.ts"
+      ],
+      "criticality": 0.18,
+      "warnings": []
+    },
+    {
       "id": "flow:editor_main_rebuild",
       "name": "rebuild",
       "entryPoint": "editor_main_rebuild",
@@ -9216,15 +9242,17 @@
       "path": [
         "utils_ditaotoutputchannel_ditaotoutputchannel_logoutput",
         "utils_ditaotoutputchannel_ditaotoutputchannel_logline",
-        "utils_ditaotoutputchannel_ditaotoutputchannel_detectloglevel"
+        "utils_ditaotoutputchannel_ditaotoutputchannel_detectloglevel",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_info"
       ],
       "qualifiedPath": [
         "utils_ditaotoutputchannel_ditaotoutputchannel_logoutput",
         "utils_ditaotoutputchannel_ditaotoutputchannel_logline",
-        "utils_ditaotoutputchannel_ditaotoutputchannel_detectloglevel"
+        "utils_ditaotoutputchannel_ditaotoutputchannel_detectloglevel",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_info"
       ],
       "depth": 2,
-      "nodeCount": 3,
+      "nodeCount": 4,
       "fileCount": 1,
       "files": [
         "src/utils/ditaOtOutputChannel.ts"
@@ -9578,6 +9606,64 @@
       "fileCount": 1,
       "files": [
         "src/utils/ditaOtOutputChannel.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotinstaller_fetchditaotversions",
+      "name": "fetchDitaOtVersions",
+      "entryPoint": "utils_ditaotinstaller_fetchditaotversions",
+      "entryPointId": "utils_ditaotinstaller_fetchditaotversions",
+      "path": [
+        "utils_ditaotinstaller_fetchditaotversions",
+        "utils_ditaotinstaller_parsereleaseversions",
+        "utils_ditaotinstaller_isvalidditaotversion"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotinstaller_fetchditaotversions",
+        "utils_ditaotinstaller_parsereleaseversions",
+        "utils_ditaotinstaller_isvalidditaotversion"
+      ],
+      "depth": 2,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtInstaller.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotpluginmanager_fetchregistrycatalog",
+      "name": "fetchRegistryCatalog",
+      "entryPoint": "utils_ditaotpluginmanager_fetchregistrycatalog",
+      "entryPointId": "utils_ditaotpluginmanager_fetchregistrycatalog",
+      "path": [
+        "utils_ditaotpluginmanager_fetchregistrycatalog",
+        "utils_ditaotpluginmanager_buildcatalogfromfilenames",
+        "utils_ditaotpluginmanager_buildregistrycatalog",
+        "utils_ditaotpluginmanager_errortext",
+        "utils_ditaotpluginmanager_fetchjson",
+        "utils_ditaotpluginmanager_resolveregistrybaseurl",
+        "utils_ditaotpluginmanager_isvalidpluginid",
+        "utils_ditaotpluginmanager_isvalidpluginversion"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotpluginmanager_fetchregistrycatalog",
+        "utils_ditaotpluginmanager_buildcatalogfromfilenames",
+        "utils_ditaotpluginmanager_buildregistrycatalog",
+        "utils_ditaotpluginmanager_errortext",
+        "utils_ditaotpluginmanager_fetchjson",
+        "utils_ditaotpluginmanager_resolveregistrybaseurl",
+        "utils_ditaotpluginmanager_isvalidpluginid",
+        "utils_ditaotpluginmanager_isvalidpluginversion"
+      ],
+      "depth": 2,
+      "nodeCount": 8,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtPluginManager.ts"
       ],
       "criticality": 0.17,
       "warnings": []
@@ -10099,6 +10185,78 @@
       "warnings": []
     },
     {
+      "id": "flow:utils_ditaotinstaller_installditaot",
+      "name": "installDitaOt",
+      "entryPoint": "utils_ditaotinstaller_installditaot",
+      "entryPointId": "utils_ditaotinstaller_installditaot",
+      "path": [
+        "utils_ditaotinstaller_installditaot",
+        "utils_ditaotinstaller_buildarchiveurl",
+        "utils_ditaotinstaller_downloadarchive",
+        "utils_ditaotinstaller_errortext",
+        "utils_ditaotinstaller_extractzipsafely",
+        "utils_ditaotinstaller_findditaotroot",
+        "utils_ditaotinstaller_isvalidditaotversion",
+        "utils_ditaotinstaller_iswritabledirectory",
+        "utils_ditaotinstaller_iszipfile",
+        "utils_ditaotinstaller_saferemove",
+        "utils_ditaotinstaller_isditaotroot"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotinstaller_installditaot",
+        "utils_ditaotinstaller_buildarchiveurl",
+        "utils_ditaotinstaller_downloadarchive",
+        "utils_ditaotinstaller_errortext",
+        "utils_ditaotinstaller_extractzipsafely",
+        "utils_ditaotinstaller_findditaotroot",
+        "utils_ditaotinstaller_isvalidditaotversion",
+        "utils_ditaotinstaller_iswritabledirectory",
+        "utils_ditaotinstaller_iszipfile",
+        "utils_ditaotinstaller_saferemove",
+        "utils_ditaotinstaller_isditaotroot"
+      ],
+      "depth": 2,
+      "nodeCount": 11,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtInstaller.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotpluginmanager_installplugin",
+      "name": "installPlugin",
+      "entryPoint": "utils_ditaotpluginmanager_installplugin",
+      "entryPointId": "utils_ditaotpluginmanager_installplugin",
+      "path": [
+        "utils_ditaotpluginmanager_installplugin",
+        "utils_ditaotpluginmanager_buildinstallargs",
+        "utils_ditaotpluginmanager_parseinstalloutput",
+        "utils_ditaotpluginmanager_isvalidpluginid",
+        "utils_ditaotpluginmanager_isvalidpluginversion",
+        "utils_ditaotpluginmanager_collecthighlights",
+        "utils_ditaotpluginmanager_lastline"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotpluginmanager_installplugin",
+        "utils_ditaotpluginmanager_buildinstallargs",
+        "utils_ditaotpluginmanager_parseinstalloutput",
+        "utils_ditaotpluginmanager_isvalidpluginid",
+        "utils_ditaotpluginmanager_isvalidpluginversion",
+        "utils_ditaotpluginmanager_collecthighlights",
+        "utils_ditaotpluginmanager_lastline"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtPluginManager.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
       "id": "flow:features_crossrefvalidation_isexternalscope",
       "name": "isExternalScope",
       "entryPoint": "features_crossrefvalidation_isexternalscope",
@@ -10212,6 +10370,38 @@
       "fileCount": 1,
       "files": [
         "scripts/generate-graph.js"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:commands_manageditaotpluginscommand_manageditaotpluginscommand",
+      "name": "manageDitaOtPluginsCommand",
+      "entryPoint": "commands_manageditaotpluginscommand_manageditaotpluginscommand",
+      "entryPointId": "commands_manageditaotpluginscommand_manageditaotpluginscommand",
+      "path": [
+        "commands_manageditaotpluginscommand_manageditaotpluginscommand",
+        "commands_manageditaotpluginscommand_installfromregistry",
+        "commands_manageditaotpluginscommand_showinstalledplugins",
+        "commands_manageditaotpluginscommand_uninstallfromditaot",
+        "commands_manageditaotpluginscommand_pickversion",
+        "commands_manageditaotpluginscommand_pickplugintouninstall",
+        "commands_manageditaotpluginscommand_uninstallblockmessage"
+      ],
+      "qualifiedPath": [
+        "commands_manageditaotpluginscommand_manageditaotpluginscommand",
+        "commands_manageditaotpluginscommand_installfromregistry",
+        "commands_manageditaotpluginscommand_showinstalledplugins",
+        "commands_manageditaotpluginscommand_uninstallfromditaot",
+        "commands_manageditaotpluginscommand_pickversion",
+        "commands_manageditaotpluginscommand_pickplugintouninstall",
+        "commands_manageditaotpluginscommand_uninstallblockmessage"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/commands/manageDitaOtPluginsCommand.ts"
       ],
       "criticality": 0.17,
       "warnings": []
@@ -10416,6 +10606,70 @@
       "fileCount": 1,
       "files": [
         "src/utils/mapHierarchyParser.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotlaunch_prepareditalaunch",
+      "name": "prepareDitaLaunch",
+      "entryPoint": "utils_ditaotlaunch_prepareditalaunch",
+      "entryPointId": "utils_ditaotlaunch_prepareditalaunch",
+      "path": [
+        "utils_ditaotlaunch_prepareditalaunch",
+        "utils_ditaotlaunch_ditacommandlinetoolongerror",
+        "utils_ditaotlaunch_planditalaunch",
+        "utils_ditaotlaunch_estimateditacommandline",
+        "utils_ditaotlaunch_findonpath",
+        "utils_ditaotlaunch_ispath",
+        "utils_ditaotlaunch_windowsshortpath"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotlaunch_prepareditalaunch",
+        "utils_ditaotlaunch_ditacommandlinetoolongerror",
+        "utils_ditaotlaunch_planditalaunch",
+        "utils_ditaotlaunch_estimateditacommandline",
+        "utils_ditaotlaunch_findonpath",
+        "utils_ditaotlaunch_ispath",
+        "utils_ditaotlaunch_windowsshortpath"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtLaunch.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotlaunch_publishcommandlinewarning",
+      "name": "publishCommandLineWarning",
+      "entryPoint": "utils_ditaotlaunch_publishcommandlinewarning",
+      "entryPointId": "utils_ditaotlaunch_publishcommandlinewarning",
+      "path": [
+        "utils_ditaotlaunch_publishcommandlinewarning",
+        "utils_ditaotlaunch_formatnumber",
+        "utils_ditaotlaunch_planditalaunch",
+        "utils_ditaotlaunch_estimateditacommandline",
+        "utils_ditaotlaunch_findonpath",
+        "utils_ditaotlaunch_ispath",
+        "utils_ditaotlaunch_windowsshortpath"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotlaunch_publishcommandlinewarning",
+        "utils_ditaotlaunch_formatnumber",
+        "utils_ditaotlaunch_planditalaunch",
+        "utils_ditaotlaunch_estimateditacommandline",
+        "utils_ditaotlaunch_findonpath",
+        "utils_ditaotlaunch_ispath",
+        "utils_ditaotlaunch_windowsshortpath"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtLaunch.ts"
       ],
       "criticality": 0.17,
       "warnings": []
@@ -10732,6 +10986,38 @@
       "fileCount": 1,
       "files": [
         "src/commands/watchModeCommand.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotpluginmanager_uninstallplugin",
+      "name": "uninstallPlugin",
+      "entryPoint": "utils_ditaotpluginmanager_uninstallplugin",
+      "entryPointId": "utils_ditaotpluginmanager_uninstallplugin",
+      "path": [
+        "utils_ditaotpluginmanager_uninstallplugin",
+        "utils_ditaotpluginmanager_builduninstallargs",
+        "utils_ditaotpluginmanager_errortext",
+        "utils_ditaotpluginmanager_lastline",
+        "utils_ditaotpluginmanager_parseuninstalloutput",
+        "utils_ditaotpluginmanager_isvalidpluginid",
+        "utils_ditaotpluginmanager_collecthighlights"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotpluginmanager_uninstallplugin",
+        "utils_ditaotpluginmanager_builduninstallargs",
+        "utils_ditaotpluginmanager_errortext",
+        "utils_ditaotpluginmanager_lastline",
+        "utils_ditaotpluginmanager_parseuninstalloutput",
+        "utils_ditaotpluginmanager_isvalidpluginid",
+        "utils_ditaotpluginmanager_collecthighlights"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtPluginManager.ts"
       ],
       "criticality": 0.17,
       "warnings": []
@@ -11141,6 +11427,28 @@
       "warnings": []
     },
     {
+      "id": "flow:utils_ditaotlaunch_ditacommandlinetoolongerror_constructor",
+      "name": ".constructor",
+      "entryPoint": "utils_ditaotlaunch_ditacommandlinetoolongerror_constructor",
+      "entryPointId": "utils_ditaotlaunch_ditacommandlinetoolongerror_constructor",
+      "path": [
+        "utils_ditaotlaunch_ditacommandlinetoolongerror_constructor",
+        "utils_ditaotlaunch_formatnumber"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotlaunch_ditacommandlinetoolongerror_constructor",
+        "utils_ditaotlaunch_formatnumber"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtLaunch.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_dtdresolver_dtdresolver_constructor",
       "name": ".constructor",
       "entryPoint": "utils_dtdresolver_dtdresolver_constructor",
@@ -11349,14 +11657,16 @@
       "entryPointId": "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
       "path": [
         "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
-        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_info"
       ],
       "qualifiedPath": [
         "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildcomplete",
-        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_info"
       ],
       "depth": 1,
-      "nodeCount": 2,
+      "nodeCount": 3,
       "fileCount": 1,
       "files": [
         "src/utils/ditaOtOutputChannel.ts"
@@ -11371,14 +11681,16 @@
       "entryPointId": "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
       "path": [
         "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
-        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_info"
       ],
       "qualifiedPath": [
         "utils_ditaotoutputchannel_ditaotoutputchannel_logbuildstart",
-        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime"
+        "utils_ditaotoutputchannel_ditaotoutputchannel_formattime",
+        "utils_ditaotoutputchannel_ditaotoutputchannel_info"
       ],
       "depth": 1,
-      "nodeCount": 2,
+      "nodeCount": 3,
       "fileCount": 1,
       "files": [
         "src/utils/ditaOtOutputChannel.ts"
@@ -12387,6 +12699,30 @@
       "warnings": []
     },
     {
+      "id": "flow:utils_ditaotlaunch_deepinstallfolderwarning",
+      "name": "deepInstallFolderWarning",
+      "entryPoint": "utils_ditaotlaunch_deepinstallfolderwarning",
+      "entryPointId": "utils_ditaotlaunch_deepinstallfolderwarning",
+      "path": [
+        "utils_ditaotlaunch_deepinstallfolderwarning",
+        "utils_ditaotlaunch_formatnumber",
+        "utils_ditaotlaunch_windowsshortpath"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotlaunch_deepinstallfolderwarning",
+        "utils_ditaotlaunch_formatnumber",
+        "utils_ditaotlaunch_windowsshortpath"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtLaunch.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:features_workspacevalidation_detectcrossfileduplicateids",
       "name": "detectCrossFileDuplicateIds",
       "entryPoint": "features_workspacevalidation_detectcrossfileduplicateids",
@@ -12688,6 +13024,30 @@
       "fileCount": 1,
       "files": [
         "scripts/cover/trace-logo.js"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotlaunch_findditaothome",
+      "name": "findDitaOtHome",
+      "entryPoint": "utils_ditaotlaunch_findditaothome",
+      "entryPointId": "utils_ditaotlaunch_findditaothome",
+      "path": [
+        "utils_ditaotlaunch_findditaothome",
+        "utils_ditaotlaunch_isditaothome",
+        "utils_ditaotlaunch_ispath"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotlaunch_findditaothome",
+        "utils_ditaotlaunch_isditaothome",
+        "utils_ditaotlaunch_ispath"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtLaunch.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -13257,6 +13617,32 @@
       "warnings": []
     },
     {
+      "id": "flow:commands_installditaotcommand_installditaotcommand",
+      "name": "installDitaOtCommand",
+      "entryPoint": "commands_installditaotcommand_installditaotcommand",
+      "entryPointId": "commands_installditaotcommand_installditaotcommand",
+      "path": [
+        "commands_installditaotcommand_installditaotcommand",
+        "commands_installditaotcommand_applyinstalledpath",
+        "commands_installditaotcommand_picktargetdirectory",
+        "commands_installditaotcommand_pickversion"
+      ],
+      "qualifiedPath": [
+        "commands_installditaotcommand_installditaotcommand",
+        "commands_installditaotcommand_applyinstalledpath",
+        "commands_installditaotcommand_picktargetdirectory",
+        "commands_installditaotcommand_pickversion"
+      ],
+      "depth": 1,
+      "nodeCount": 4,
+      "fileCount": 1,
+      "files": [
+        "src/commands/installDitaOtCommand.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
       "id": "flow:render_html_internalsubsetentities",
       "name": "internalSubsetEntities",
       "entryPoint": "render_html_internalsubsetentities",
@@ -13408,6 +13794,30 @@
       "fileCount": 1,
       "files": [
         "scripts/screenshots/lib.js"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotpluginmanager_listinstalledplugins",
+      "name": "listInstalledPlugins",
+      "entryPoint": "utils_ditaotpluginmanager_listinstalledplugins",
+      "entryPointId": "utils_ditaotpluginmanager_listinstalledplugins",
+      "path": [
+        "utils_ditaotpluginmanager_listinstalledplugins",
+        "utils_ditaotpluginmanager_lastline",
+        "utils_ditaotpluginmanager_parseinstalledplugins"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotpluginmanager_listinstalledplugins",
+        "utils_ditaotpluginmanager_lastline",
+        "utils_ditaotpluginmanager_parseinstalledplugins"
+      ],
+      "depth": 1,
+      "nodeCount": 3,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtPluginManager.ts"
       ],
       "criticality": 0.16,
       "warnings": []
@@ -13660,6 +14070,28 @@
       "fileCount": 1,
       "files": [
         "src/utils/ditavalParser.ts"
+      ],
+      "criticality": 0.16,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_ditaotpluginmanager_parseplugindescriptor",
+      "name": "parsePluginDescriptor",
+      "entryPoint": "utils_ditaotpluginmanager_parseplugindescriptor",
+      "entryPointId": "utils_ditaotpluginmanager_parseplugindescriptor",
+      "path": [
+        "utils_ditaotpluginmanager_parseplugindescriptor",
+        "utils_ditaotpluginmanager_isvalidpluginid"
+      ],
+      "qualifiedPath": [
+        "utils_ditaotpluginmanager_parseplugindescriptor",
+        "utils_ditaotpluginmanager_isvalidpluginid"
+      ],
+      "depth": 1,
+      "nodeCount": 2,
+      "fileCount": 1,
+      "files": [
+        "src/utils/ditaOtPluginManager.ts"
       ],
       "criticality": 0.16,
       "warnings": []
