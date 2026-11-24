@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-23T00:12:57.522Z",
+  "generatedAt": "2026-11-24T07:08:16.482Z",
   "graphPath": "/home/runner/work/ditacraft/ditacraft/.engram/graph.json",
   "maxDepth": 15,
   "includeTests": false,
@@ -1863,66 +1863,6 @@
       "warnings": []
     },
     {
-      "id": "flow:utils_configurationmanager_configurationmanager_constructor",
-      "name": ".constructor",
-      "entryPoint": "utils_configurationmanager_configurationmanager_constructor",
-      "entryPointId": "utils_configurationmanager_configurationmanager_constructor",
-      "path": [
-        "utils_configurationmanager_configurationmanager_constructor",
-        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
-        "utils_configurationmanager_configurationmanager_loadconfiguration",
-        "utils_configurationmanager_configurationmanager_get",
-        "utils_configurationmanager_validatenumericconfig",
-        "utils_configurationmanager_configurationmanager_getconfiguration"
-      ],
-      "qualifiedPath": [
-        "utils_configurationmanager_configurationmanager_constructor",
-        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
-        "utils_configurationmanager_configurationmanager_loadconfiguration",
-        "utils_configurationmanager_configurationmanager_get",
-        "utils_configurationmanager_validatenumericconfig",
-        "utils_configurationmanager_configurationmanager_getconfiguration"
-      ],
-      "depth": 3,
-      "nodeCount": 6,
-      "fileCount": 1,
-      "files": [
-        "src/utils/configurationManager.ts"
-      ],
-      "criticality": 0.2217,
-      "warnings": []
-    },
-    {
-      "id": "flow:utils_configurationmanager_configurationmanager_reloadconfiguration",
-      "name": ".reloadConfiguration",
-      "entryPoint": "utils_configurationmanager_configurationmanager_reloadconfiguration",
-      "entryPointId": "utils_configurationmanager_configurationmanager_reloadconfiguration",
-      "path": [
-        "utils_configurationmanager_configurationmanager_reloadconfiguration",
-        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
-        "utils_configurationmanager_configurationmanager_loadconfiguration",
-        "utils_configurationmanager_configurationmanager_get",
-        "utils_configurationmanager_validatenumericconfig",
-        "utils_configurationmanager_configurationmanager_getconfiguration"
-      ],
-      "qualifiedPath": [
-        "utils_configurationmanager_configurationmanager_reloadconfiguration",
-        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
-        "utils_configurationmanager_configurationmanager_loadconfiguration",
-        "utils_configurationmanager_configurationmanager_get",
-        "utils_configurationmanager_validatenumericconfig",
-        "utils_configurationmanager_configurationmanager_getconfiguration"
-      ],
-      "depth": 3,
-      "nodeCount": 6,
-      "fileCount": 1,
-      "files": [
-        "src/utils/configurationManager.ts"
-      ],
-      "criticality": 0.2217,
-      "warnings": []
-    },
-    {
       "id": "flow:utils_ditaclass_documentclasscontext",
       "name": "documentClassContext",
       "entryPoint": "utils_ditaclass_documentclasscontext",
@@ -2573,6 +2513,36 @@
       "warnings": []
     },
     {
+      "id": "flow:utils_configurationmanager_configurationmanager_constructor",
+      "name": ".constructor",
+      "entryPoint": "utils_configurationmanager_configurationmanager_constructor",
+      "entryPointId": "utils_configurationmanager_configurationmanager_constructor",
+      "path": [
+        "utils_configurationmanager_configurationmanager_constructor",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_configurationmanager_getconfiguration",
+        "utils_configurationmanager_validatenumericconfig"
+      ],
+      "qualifiedPath": [
+        "utils_configurationmanager_configurationmanager_constructor",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_configurationmanager_getconfiguration",
+        "utils_configurationmanager_validatenumericconfig"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "src/utils/configurationManager.ts"
+      ],
+      "criticality": 0.2117,
+      "warnings": []
+    },
+    {
       "id": "flow:utils_configurationmanager_configurationmanager_handleconfigurationchange",
       "name": ".handleConfigurationChange",
       "entryPoint": "utils_configurationmanager_configurationmanager_handleconfigurationchange",
@@ -2590,6 +2560,36 @@
         "utils_configurationmanager_configurationmanager_createconfigsnapshot",
         "utils_configurationmanager_configurationmanager_get",
         "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_getconfiguration",
+        "utils_configurationmanager_validatenumericconfig"
+      ],
+      "depth": 2,
+      "nodeCount": 6,
+      "fileCount": 1,
+      "files": [
+        "src/utils/configurationManager.ts"
+      ],
+      "criticality": 0.2117,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_configurationmanager_configurationmanager_reloadconfiguration",
+      "name": ".reloadConfiguration",
+      "entryPoint": "utils_configurationmanager_configurationmanager_reloadconfiguration",
+      "entryPointId": "utils_configurationmanager_configurationmanager_reloadconfiguration",
+      "path": [
+        "utils_configurationmanager_configurationmanager_reloadconfiguration",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
+        "utils_configurationmanager_configurationmanager_getconfiguration",
+        "utils_configurationmanager_validatenumericconfig"
+      ],
+      "qualifiedPath": [
+        "utils_configurationmanager_configurationmanager_reloadconfiguration",
+        "utils_configurationmanager_configurationmanager_createconfigsnapshot",
+        "utils_configurationmanager_configurationmanager_loadconfiguration",
+        "utils_configurationmanager_configurationmanager_get",
         "utils_configurationmanager_configurationmanager_getconfiguration",
         "utils_configurationmanager_validatenumericconfig"
       ],
@@ -4141,6 +4141,7 @@
         "editor_tosource_writer_origin",
         "editor_tosource_writer_changedelement",
         "editor_tosource_writer_childrenof",
+        "editor_tosource_writer_inline",
         "editor_tosource_writer_newelement",
         "editor_tosource_writer_newtext",
         "editor_tosource_writer_raw",
@@ -4148,16 +4149,15 @@
         "editor_tosource_samexml",
         "editor_tosource_writer_children",
         "editor_tosource_writer_lineindent",
+        "editor_tosource_writer_marktags",
+        "editor_tosource_writer_orderedmarks",
         "editor_tosource_rawwithattributes",
         "editor_tosource_writer_blocklist",
-        "editor_tosource_writer_inline",
         "editor_tosource_writer_opentag",
         "editor_tosource_cdatatext",
         "editor_tosource_writer_blockmiddle",
         "editor_tosource_writer_inlinemiddle",
         "editor_tosource_writer_separator",
-        "editor_tosource_writer_marktags",
-        "editor_tosource_writer_orderedmarks",
         "editor_tosource_writer_outerend",
         "editor_tosource_writer_outerstart",
         "editor_tosource_projecttext",
@@ -4171,6 +4171,7 @@
         "editor_tosource_writer_origin",
         "editor_tosource_writer_changedelement",
         "editor_tosource_writer_childrenof",
+        "editor_tosource_writer_inline",
         "editor_tosource_writer_newelement",
         "editor_tosource_writer_newtext",
         "editor_tosource_writer_raw",
@@ -4178,16 +4179,15 @@
         "editor_tosource_samexml",
         "editor_tosource_writer_children",
         "editor_tosource_writer_lineindent",
+        "editor_tosource_writer_marktags",
+        "editor_tosource_writer_orderedmarks",
         "editor_tosource_rawwithattributes",
         "editor_tosource_writer_blocklist",
-        "editor_tosource_writer_inline",
         "editor_tosource_writer_opentag",
         "editor_tosource_cdatatext",
         "editor_tosource_writer_blockmiddle",
         "editor_tosource_writer_inlinemiddle",
         "editor_tosource_writer_separator",
-        "editor_tosource_writer_marktags",
-        "editor_tosource_writer_orderedmarks",
         "editor_tosource_writer_outerend",
         "editor_tosource_writer_outerstart",
         "editor_tosource_projecttext",
@@ -4475,6 +4475,66 @@
       "warnings": []
     },
     {
+      "id": "flow:cst_parse_parse",
+      "name": "parse",
+      "entryPoint": "cst_parse_parse",
+      "entryPointId": "cst_parse_parse",
+      "path": [
+        "cst_parse_parse",
+        "cst_parse_scanner",
+        "cst_parse_scanner_parsedocument",
+        "cst_parse_scanner_eof",
+        "cst_parse_scanner_parsenode",
+        "cst_parse_parseerror",
+        "cst_parse_scanner_isxmldeclhere",
+        "cst_parse_scanner_parsecdata",
+        "cst_parse_scanner_parsecomment",
+        "cst_parse_scanner_parsedoctype",
+        "cst_parse_scanner_parseelement",
+        "cst_parse_scanner_parsepi",
+        "cst_parse_scanner_parsetext",
+        "cst_parse_scanner_parsexmldecl",
+        "cst_parse_scanner_startswith",
+        "cst_parse_isws",
+        "cst_parse_scanner_consumeuntil",
+        "cst_parse_scanner_parseattr",
+        "cst_parse_scanner_parsename",
+        "cst_parse_scanner_skipws",
+        "cst_parse_isnameboundary"
+      ],
+      "qualifiedPath": [
+        "cst_parse_parse",
+        "cst_parse_scanner",
+        "cst_parse_scanner_parsedocument",
+        "cst_parse_scanner_eof",
+        "cst_parse_scanner_parsenode",
+        "cst_parse_parseerror",
+        "cst_parse_scanner_isxmldeclhere",
+        "cst_parse_scanner_parsecdata",
+        "cst_parse_scanner_parsecomment",
+        "cst_parse_scanner_parsedoctype",
+        "cst_parse_scanner_parseelement",
+        "cst_parse_scanner_parsepi",
+        "cst_parse_scanner_parsetext",
+        "cst_parse_scanner_parsexmldecl",
+        "cst_parse_scanner_startswith",
+        "cst_parse_isws",
+        "cst_parse_scanner_consumeuntil",
+        "cst_parse_scanner_parseattr",
+        "cst_parse_scanner_parsename",
+        "cst_parse_scanner_skipws",
+        "cst_parse_isnameboundary"
+      ],
+      "depth": 5,
+      "nodeCount": 21,
+      "fileCount": 1,
+      "files": [
+        "src/shared/cst/parse.ts"
+      ],
+      "criticality": 0.2,
+      "warnings": []
+    },
+    {
       "id": "flow:editor_tosource_serializedocument",
       "name": "serializeDocument",
       "entryPoint": "editor_tosource_serializedocument",
@@ -4486,6 +4546,7 @@
         "editor_tosource_writer_node",
         "editor_tosource_writer_changedelement",
         "editor_tosource_writer_childrenof",
+        "editor_tosource_writer_inline",
         "editor_tosource_writer_newelement",
         "editor_tosource_writer_newtext",
         "editor_tosource_writer_origin",
@@ -4493,16 +4554,15 @@
         "editor_tosource_writer_role",
         "editor_tosource_samexml",
         "editor_tosource_writer_children",
+        "editor_tosource_writer_marktags",
+        "editor_tosource_writer_orderedmarks",
         "editor_tosource_rawwithattributes",
         "editor_tosource_writer_blocklist",
-        "editor_tosource_writer_inline",
         "editor_tosource_writer_opentag",
         "editor_tosource_cdatatext",
         "editor_tosource_writer_blockmiddle",
         "editor_tosource_writer_inlinemiddle",
         "editor_tosource_writer_separator",
-        "editor_tosource_writer_marktags",
-        "editor_tosource_writer_orderedmarks",
         "editor_tosource_writer_outerend",
         "editor_tosource_writer_outerstart",
         "editor_tosource_projecttext",
@@ -4517,6 +4577,7 @@
         "editor_tosource_writer_node",
         "editor_tosource_writer_changedelement",
         "editor_tosource_writer_childrenof",
+        "editor_tosource_writer_inline",
         "editor_tosource_writer_newelement",
         "editor_tosource_writer_newtext",
         "editor_tosource_writer_origin",
@@ -4524,16 +4585,15 @@
         "editor_tosource_writer_role",
         "editor_tosource_samexml",
         "editor_tosource_writer_children",
+        "editor_tosource_writer_marktags",
+        "editor_tosource_writer_orderedmarks",
         "editor_tosource_rawwithattributes",
         "editor_tosource_writer_blocklist",
-        "editor_tosource_writer_inline",
         "editor_tosource_writer_opentag",
         "editor_tosource_cdatatext",
         "editor_tosource_writer_blockmiddle",
         "editor_tosource_writer_inlinemiddle",
         "editor_tosource_writer_separator",
-        "editor_tosource_writer_marktags",
-        "editor_tosource_writer_orderedmarks",
         "editor_tosource_writer_outerend",
         "editor_tosource_writer_outerstart",
         "editor_tosource_projecttext",
@@ -5327,40 +5387,6 @@
       "warnings": []
     },
     {
-      "id": "flow:utils_logger_logger_dispose",
-      "name": ".dispose",
-      "entryPoint": "utils_logger_logger_dispose",
-      "entryPointId": "utils_logger_logger_dispose",
-      "path": [
-        "utils_logger_logger_dispose",
-        "utils_logger_logger_info",
-        "utils_logger_logger_log",
-        "utils_logger_logger_formatmessage",
-        "utils_logger_logger_warn",
-        "utils_logger_logger_writetoconsole",
-        "utils_logger_logger_writetofile",
-        "utils_logger_logger_error"
-      ],
-      "qualifiedPath": [
-        "utils_logger_logger_dispose",
-        "utils_logger_logger_info",
-        "utils_logger_logger_log",
-        "utils_logger_logger_formatmessage",
-        "utils_logger_logger_warn",
-        "utils_logger_logger_writetoconsole",
-        "utils_logger_logger_writetofile",
-        "utils_logger_logger_error"
-      ],
-      "depth": 4,
-      "nodeCount": 8,
-      "fileCount": 1,
-      "files": [
-        "src/utils/logger.ts"
-      ],
-      "criticality": 0.19,
-      "warnings": []
-    },
-    {
       "id": "flow:services_subjectschemeservice_subjectschemeservice_getschemedata",
       "name": ".getSchemeData",
       "entryPoint": "services_subjectschemeservice_subjectschemeservice_getschemedata",
@@ -5616,56 +5642,6 @@
       "fileCount": 1,
       "files": [
         "src/shared/render/toHtml.ts"
-      ],
-      "criticality": 0.19,
-      "warnings": []
-    },
-    {
-      "id": "flow:cst_parse_parse",
-      "name": "parse",
-      "entryPoint": "cst_parse_parse",
-      "entryPointId": "cst_parse_parse",
-      "path": [
-        "cst_parse_parse",
-        "cst_parse_scanner",
-        "cst_parse_scanner_parsedocument",
-        "cst_parse_scanner_eof",
-        "cst_parse_scanner_parsenode",
-        "cst_parse_parseerror",
-        "cst_parse_scanner_isxmldeclhere",
-        "cst_parse_scanner_parsecdata",
-        "cst_parse_scanner_parsecomment",
-        "cst_parse_scanner_parsedoctype",
-        "cst_parse_scanner_parsepi",
-        "cst_parse_scanner_parsetext",
-        "cst_parse_scanner_parsexmldecl",
-        "cst_parse_scanner_startswith",
-        "cst_parse_isws",
-        "cst_parse_scanner_consumeuntil"
-      ],
-      "qualifiedPath": [
-        "cst_parse_parse",
-        "cst_parse_scanner",
-        "cst_parse_scanner_parsedocument",
-        "cst_parse_scanner_eof",
-        "cst_parse_scanner_parsenode",
-        "cst_parse_parseerror",
-        "cst_parse_scanner_isxmldeclhere",
-        "cst_parse_scanner_parsecdata",
-        "cst_parse_scanner_parsecomment",
-        "cst_parse_scanner_parsedoctype",
-        "cst_parse_scanner_parsepi",
-        "cst_parse_scanner_parsetext",
-        "cst_parse_scanner_parsexmldecl",
-        "cst_parse_scanner_startswith",
-        "cst_parse_isws",
-        "cst_parse_scanner_consumeuntil"
-      ],
-      "depth": 4,
-      "nodeCount": 16,
-      "fileCount": 1,
-      "files": [
-        "src/shared/cst/parse.ts"
       ],
       "criticality": 0.19,
       "warnings": []
@@ -6121,30 +6097,32 @@
       "warnings": []
     },
     {
-      "id": "flow:utils_logger_logger_debug",
-      "name": ".debug",
-      "entryPoint": "utils_logger_logger_debug",
-      "entryPointId": "utils_logger_logger_debug",
+      "id": "flow:utils_logger_logger_dispose",
+      "name": ".dispose",
+      "entryPoint": "utils_logger_logger_dispose",
+      "entryPointId": "utils_logger_logger_dispose",
       "path": [
-        "utils_logger_logger_debug",
+        "utils_logger_logger_dispose",
+        "utils_logger_logger_info",
         "utils_logger_logger_log",
+        "utils_logger_logger_error",
         "utils_logger_logger_formatmessage",
         "utils_logger_logger_warn",
         "utils_logger_logger_writetoconsole",
-        "utils_logger_logger_writetofile",
-        "utils_logger_logger_error"
+        "utils_logger_logger_writetofile"
       ],
       "qualifiedPath": [
-        "utils_logger_logger_debug",
+        "utils_logger_logger_dispose",
+        "utils_logger_logger_info",
         "utils_logger_logger_log",
+        "utils_logger_logger_error",
         "utils_logger_logger_formatmessage",
         "utils_logger_logger_warn",
         "utils_logger_logger_writetoconsole",
-        "utils_logger_logger_writetofile",
-        "utils_logger_logger_error"
+        "utils_logger_logger_writetofile"
       ],
       "depth": 3,
-      "nodeCount": 7,
+      "nodeCount": 8,
       "fileCount": 1,
       "files": [
         "src/utils/logger.ts"
@@ -6242,60 +6220,6 @@
       "fileCount": 1,
       "files": [
         "src/shared/render/toHtml.ts"
-      ],
-      "criticality": 0.18,
-      "warnings": []
-    },
-    {
-      "id": "flow:cst_parse_scanner_parseelement",
-      "name": ".parseElement",
-      "entryPoint": "cst_parse_scanner_parseelement",
-      "entryPointId": "cst_parse_scanner_parseelement",
-      "path": [
-        "cst_parse_scanner_parseelement",
-        "cst_parse_parseerror",
-        "cst_parse_scanner_eof",
-        "cst_parse_scanner_parseattr",
-        "cst_parse_scanner_parsename",
-        "cst_parse_scanner_parsenode",
-        "cst_parse_scanner_skipws",
-        "cst_parse_isnameboundary",
-        "cst_parse_scanner_isxmldeclhere",
-        "cst_parse_scanner_parsecdata",
-        "cst_parse_scanner_parsecomment",
-        "cst_parse_scanner_parsedoctype",
-        "cst_parse_scanner_parsepi",
-        "cst_parse_scanner_parsetext",
-        "cst_parse_scanner_parsexmldecl",
-        "cst_parse_scanner_startswith",
-        "cst_parse_isws",
-        "cst_parse_scanner_consumeuntil"
-      ],
-      "qualifiedPath": [
-        "cst_parse_scanner_parseelement",
-        "cst_parse_parseerror",
-        "cst_parse_scanner_eof",
-        "cst_parse_scanner_parseattr",
-        "cst_parse_scanner_parsename",
-        "cst_parse_scanner_parsenode",
-        "cst_parse_scanner_skipws",
-        "cst_parse_isnameboundary",
-        "cst_parse_scanner_isxmldeclhere",
-        "cst_parse_scanner_parsecdata",
-        "cst_parse_scanner_parsecomment",
-        "cst_parse_scanner_parsedoctype",
-        "cst_parse_scanner_parsepi",
-        "cst_parse_scanner_parsetext",
-        "cst_parse_scanner_parsexmldecl",
-        "cst_parse_scanner_startswith",
-        "cst_parse_isws",
-        "cst_parse_scanner_consumeuntil"
-      ],
-      "depth": 3,
-      "nodeCount": 18,
-      "fileCount": 1,
-      "files": [
-        "src/shared/cst/parse.ts"
       ],
       "criticality": 0.18,
       "warnings": []
@@ -9062,6 +8986,38 @@
       "fileCount": 1,
       "files": [
         "src/shared/editor/links.ts"
+      ],
+      "criticality": 0.17,
+      "warnings": []
+    },
+    {
+      "id": "flow:utils_logger_logger_debug",
+      "name": ".debug",
+      "entryPoint": "utils_logger_logger_debug",
+      "entryPointId": "utils_logger_logger_debug",
+      "path": [
+        "utils_logger_logger_debug",
+        "utils_logger_logger_log",
+        "utils_logger_logger_error",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "qualifiedPath": [
+        "utils_logger_logger_debug",
+        "utils_logger_logger_log",
+        "utils_logger_logger_error",
+        "utils_logger_logger_formatmessage",
+        "utils_logger_logger_warn",
+        "utils_logger_logger_writetoconsole",
+        "utils_logger_logger_writetofile"
+      ],
+      "depth": 2,
+      "nodeCount": 7,
+      "fileCount": 1,
+      "files": [
+        "src/utils/logger.ts"
       ],
       "criticality": 0.17,
       "warnings": []

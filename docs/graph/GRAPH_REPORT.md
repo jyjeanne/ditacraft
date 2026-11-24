@@ -1,24 +1,24 @@
-# Graph Report - .  (2026-11-23)
+# Graph Report - .  (2026-11-24)
 
 ## Corpus Check
 - Large corpus: 3463 files · ~1,224,476 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
-- 3699 nodes · 8983 edges · 140 communities detected
+- 3699 nodes · 9011 edges · 140 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
-- Edge kinds: contains: 2400 · calls: 2049 · imports: 2026 · imports_from: 1133 · method: 885 · MODIFIES: 383 · re_exports: 74 · inherits: 17 · implements: 14 · cites: 1 · ON_BRANCH: 1
+- Edge kinds: contains: 2400 · calls: 2057 · imports: 2029 · imports_from: 1137 · method: 898 · MODIFIES: 383 · re_exports: 74 · inherits: 17 · implements: 14 · ON_BRANCH: 1 · cites: 1
 
 
 ## Input Scope
 - Requested: auto
 - Resolved: committed (source: default-auto)
 - Included files: 3463 · Candidates: 4062
-- Excluded: 0 untracked · 40652 ignored · 34 sensitive · 0 missing committed
+- Excluded: 0 untracked · 40838 ignored · 34 sensitive · 0 missing committed
 - Recommendation: Use --scope all or graphify.yaml inputs.corpus for a knowledge-base folder.
 
 ## Graph Freshness
-- Built from Git commit: `3a0b08a`
+- Built from Git commit: `0bd40c8`
 - Compare this hash to `git rev-parse HEAD` before trusting freshness-sensitive graph output.
 ## God Nodes (most connected - your core abstractions)
 1. `KeySpaceService` - 92 edges
@@ -56,7 +56,7 @@ Nodes (86): RFC-6570, BuildContextSnapshotParams, ContextSnapshotResult, Fragmen
 
 ### Community 2 - "Community 2"
 Cohesion: 0.03
-Nodes (39): main, 3a0b08a chore(release): bump version to 0.12.0, fs, path, vscode, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult (+31 more)
+Nodes (39): main, 0bd40c8 [npm]: bump @types/yauzl from 2.10.3 to 3.4.0, fs, path, vscode, enumerateAttributes(), GetSubjectSchemeAttributesParams, GetSubjectSchemeAttributesResult (+31 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.05
